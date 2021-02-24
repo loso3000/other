@@ -13,6 +13,9 @@ uci set dhcp.@dnsmasq[0].filter_aaaa='1'
 uci commit dhcp
 uci set network.@wan[0].mtu=1400
 uci commit network
+uci set sfe.config.enabled=0
+uci set sfe.config.bbr=0
+uci commit sfe
 #rm -f /usr/lib/lua/luci/view/admin_status/index/mwan.htm
 #rm -f /usr/lib/lua/luci/view/admin_status/index/upnp.htm
 rm -f /usr/lib/lua/luci/view/admin_status/index/ddns.htm
