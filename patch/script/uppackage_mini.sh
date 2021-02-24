@@ -21,9 +21,9 @@ rm -rf ./package/lean/autosamba
 #rm -rf ./package/diy/autocore
 rm -rf ./package/diy/netdata
 rm -rf ./package/diy/mwan3
-rm -rf ./package/lean/default-settings
+# rm -rf ./package/lean/default-settings
 rm -rf ./package/lean/autocore
-#rm -rf ./package/lean/default-settings
+rm -rf ./package/diy/default-settings
 #curl -fsSL https://raw.githubusercontent.com/loso3000/other/master/patch/autocore/files/x86/index.htm > package/lean/autocore/files/x86/index.htm
 #curl -fsSL https://raw.githubusercontent.com/loso3000/other/master/patch/autocore/files/arm/index.htm > package/lean/autocore/files/arm/index.htm
 curl -fsSL  https://raw.githubusercontent.com/loso3000/other/master/patch/default-settings/zzz-default-settings > ./package/lean/default-settings/files/zzz-default-settings
