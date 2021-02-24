@@ -19,6 +19,11 @@ sed -i 's/+qbittorrent/+qbittorrent +python3/g' ./package/lean/luci-app-qbittorr
 rm -rf package/lean/luci-app-qbittorrent
 rm -rf package/lean/qt5
 rm -rf package/lean/qBittorrent
+rm -rf ../lean/luci-app-docker
+rm -rf ../lean/luci-app-dockerman
+rm -rf ../lean/luci-lib-docker
+rm -rf package/lean/luci-app-jd-dailybonus
+
 echo '替换smartdns'
 rm -rf ./feeds/packages/net/smartdns&& svn co https://github.com/sirpdboy/sirpdboy-package/trunk/smartdns ./package/diy/smartdns
 rm -rf ./package/lean/luci-app-netdata && svn co https://github.com/sirpdboy/sirpdboy-package/trunk/luci-app-netdata ./package/lean/luci-app-netdata
@@ -71,7 +76,6 @@ echo  "        option tls_enable 'true'" >> ./package/lean/luci-app-frpc/root/et
 #echo  'CONFIG_NVME_TCP=y' >> ./package/target/linux/x86/config-5.4
 git clone https://github.com/garypang13/luci-app-dnsfilter.git package/diy/luci-app-dnsfilter
 #luci-app-jd-dailybonus
-rm -rf package/lean/luci-app-jd-dailybonus
 git clone https://github.com/jerrykuku/luci-app-jd-dailybonus.git package/diy/luci-app-jd-dailybonus
 svn co https://github.com/vernesong/OpenClash/trunk/luci-app-openclash package/diy/luci-app-openclash
 git clone https://github.com/xiaorouji/openwrt-passwall package/diy1
@@ -84,11 +88,16 @@ svn co https://github.com/jerrykuku/luci-app-vssr/trunk/  package/diy/luci-app-v
 # git clone https://github.com/garypang13/luci-app-bypass.git package/diy/luci-app-bypass
 # sed -i 's/shadowsocksr-libev-alt/shadowsocksr-libev-ssr-redir/g' package/*/*/Makefile
 # sed -i 's/shadowsocksr-libev-server/shadowsocksr-libev-ssr-server/g' package/*/*/Makefile
-svn co https://github.com/jerrykuku/luci-app-ttnode/trunk/  package/diy/luci-app-ttnode
+# svn co https://github.com/jerrykuku/luci-app-ttnode/trunk/  package/diy/luci-app-ttnode
 # sed -i 's/KERNEL_PATCHVER:=5.4/KERNEL_PATCHVER:=4.19/g' ./target/linux/x86/Makefile
 # sed -i 's/KERNEL_TESTING_PATCHVER:=5.4/KERNEL_TESTING_PATCHVER:=4.19/g' ./target/linux/x86/Makefile
 #sed -i "/mediaurlbase/d" package/*/luci-theme*/root/etc/uci-defaults/*
 #sed -i "/mediaurlbase/d" feed/*/luci-theme*/root/etc/uci-defaults/*
+
+# Add driver for rtl8821cu & rtl8812au-ac
+svn co https://github.com/project-openwrt/openwrt/branches/master/package/ctcgfw/rtl8812au-ac ./package/ctcgfw
+svn co https://github.com/project-openwrt/openwrt/branches/master/package/ctcgfw/rtl8821cu ./package/ctcgfw
+
 # rm -rf ./package/diy1/trojan
 # rm -rf ./package/diy1/v2ray
 # rm -rf ./package/diy1/v2ray-plugin
