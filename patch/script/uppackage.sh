@@ -29,10 +29,10 @@ rm -rf ./feeds/packages/net/https-dns-proxy  && svn co https://github.com/Lienol
 #rm -rf ./package/diy/default-settings
 rm -rf ./package/lean/automount
 rm -rf ./package/lean/autosamba
+rm -rf ./package/lean/autocore
 #rm -rf ./package/diy/luci-app-cpufreq
 rm -rf ./package/diy/netdata
 rm -rf ./package/diy/mwan3
-rm -rf ./package/lean/autocore
 rm -rf ./package/diy/default-settings
 #curl -fsSL https://raw.githubusercontent.com/loso3000/other/master/patch/autocore/files/x86/index.htm > package/lean/autocore/files/x86/index.htm
 #curl -fsSL https://raw.githubusercontent.com/loso3000/other/master/patch/autocore/files/arm/index.htm > package/lean/autocore/files/arm/index.htm
@@ -69,9 +69,9 @@ echo  "        option tls_enable 'true'" >> ./package/lean/luci-app-frpc/root/et
 #echo  'CONFIG_NVME_MULTIPATH=y' >> ./package/target/linux/x86/config-5.4
 #echo  'CONFIG_NVME_TCP=y' >> ./package/target/linux/x86/config-5.4
 git clone https://github.com/garypang13/luci-app-bypass.git package/luci-app-bypass
-git clone https://github.com/garypang13/luci-app-dnsfilter.git package/luci-app-dnsfilter
 find package/*/ feeds/*/ -maxdepth 2 -path "*luci-app-bypass/Makefile" | xargs -i sed -i 's/shadowsocksr-libev-ssr-redir/shadowsocksr-libev-alt/g' {}
 find package/*/ feeds/*/ -maxdepth 2 -path "*luci-app-bypass/Makefile" | xargs -i sed -i 's/shadowsocksr-libev-ssr-server/shadowsocksr-libev-server/g' {}
+git clone https://github.com/garypang13/luci-app-dnsfilter.git package/luci-app-dnsfilter
 
 #luci-app-jd-dailybonus
 rm -rf package/lean/luci-app-jd-dailybonus
@@ -84,9 +84,6 @@ git clone -b master --single-branch https://github.com/destan19/OpenAppFilter ./
 #bypass
 git clone -b master --single-branch https://github.com/fw876/helloworld ./package/hw
 svn co https://github.com/jerrykuku/luci-app-vssr/trunk/  package/diy/luci-app-vssr
-# git clone https://github.com/garypang13/luci-app-bypass.git package/diy/luci-app-bypass
-# sed -i 's/shadowsocksr-libev-alt/shadowsocksr-libev-ssr-redir/g' package/*/*/Makefile
-# sed -i 's/shadowsocksr-libev-server/shadowsocksr-libev-ssr-server/g' package/*/*/Makefile
 svn co https://github.com/jerrykuku/luci-app-ttnode/trunk/  package/diy/luci-app-ttnode
 # sed -i 's/KERNEL_PATCHVER:=5.4/KERNEL_PATCHVER:=4.19/g' ./target/linux/x86/Makefile
 # sed -i 's/KERNEL_TESTING_PATCHVER:=5.4/KERNEL_TESTING_PATCHVER:=4.19/g' ./target/linux/x86/Makefile
