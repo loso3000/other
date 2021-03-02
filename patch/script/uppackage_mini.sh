@@ -49,6 +49,10 @@ sed -i 's/带宽监控/监控/g' feeds/luci/applications/luci-app-nlbwmon/po/zh-
 sed -i 's/root::0:0:99999:7:::/root:$1$V4UetPzk$CYXluq4wUazHjmCDBCqXF.:0:0:99999:7:::/g' ./package/base-files/files/etc/shadow
 echo  "        option tls_enable 'true'" >> ./package/lean/luci-app-frpc/root/etc/config/frp
 
+git clone https://github.com/garypang13/luci-app-bypass.git package/luci-app-bypass
+find package/*/ feeds/*/ -maxdepth 2 -path "*luci-app-bypass/Makefile" | xargs -i sed -i 's/shadowsocksr-libev-ssr-redir/shadowsocksr-libev-alt/g' {}
+find package/*/ feeds/*/ -maxdepth 2 -path "*luci-app-bypass/Makefile" | xargs -i sed -i 's/shadowsocksr-libev-ssr-server/shadowsocksr-libev-server/g' {}
+git clone https://github.com/garypang13/luci-app-dnsfilter.git package/luci-app-dnsfilter
 #sed -i '/CONFIG_NVME_MULTIPATH /d' ./package/target/linux/x86/config-5.4
 #sed -i '/CONFIG_NVME_TCP /d' ./package/target/linux/x86/config-5.4
 # echo  'CONFIG_BINFMT_MISC=y' >> ./package/target/linux/x86/config-5.4
@@ -63,7 +67,6 @@ git clone https://github.com/xiaorouji/openwrt-passwall package/diy1
 # sed -i '/filter_/d' package/network/services/dnsmasq/files/dhcp.conf
 #svn co https://github.com/sirpdboy/sirpdboy-package/trunk/AdGuardHome ./package/new/AdGuardHome
 # curl -fsSL https://raw.githubusercontent.com/privacy-protection-tools/anti-AD/master/anti-ad-smartdns.conf >  ./package/new/smartdns/conf/anti-ad-smartdns.conf
-# git clone https://github.com/garypang13/luci-app-dnsfilter.git package/diy/luci-app-dnsfilter
 rm -rf package/lean/luci-app-jd-dailybonus && git clone https://github.com/jerrykuku/luci-app-jd-dailybonus.git package/diy/luci-app-jd-dailybonus
 svn co https://github.com/vernesong/OpenClash/trunk/luci-app-openclash package/diy/luci-app-openclash
 git clone -b master --single-branch https://github.com/tty228/luci-app-serverchan ./package/diy/luci-app-serverchan
