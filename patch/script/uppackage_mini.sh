@@ -35,11 +35,11 @@ sed -i 's/Turbo ACC 网络加速/ACC网络加速/g' package/lean/luci-app-sfe/po
 sed -i 's/解锁网易云灰色歌曲/解锁灰色歌曲/g' package/lean/luci-app-unblockmusic/po/zh-cn/unblockmusic.po
 sed -i 's/家庭云//g' package/lean/luci-app-familycloud/luasrc/controller/familycloud.lua
 cp -f ./package/diy/banner ./package/base-files/files/etc/
-date1='Ipv4P-Mini-S'`TZ=UTC-8 date +%Y.%m.%d -d +"0"days`
+date1='Ipv4P-Mini-S'`TZ=UTC-8 date +%Y.%m.%d -d +"8"hour`
 echo "DISTRIB_REVISION='${date1} by Sirpdboy'" > ./package/base-files/files/etc/openwrt_release1
 echo ${date1}' by Sirpdboy ' >> ./package/base-files/files/etc/banner
 echo '---------------------------------' >> ./package/base-files/files/etc/banner
-sed -i 's/$(VERSION_DIST_SANITIZED)/$(shell TZ=UTC-8 date +%Y%m%d)-Ipv4P-Mini/g' include/image.mk
+sed -i 's/$(VERSION_DIST_SANITIZED)/$(shell TZ=UTC-8 date +%Y%m%d +"8"hour)-Ipv4P-Mini/g' include/image.mk
 #sed -i 's/by/Ipv4P Mini S$(TZ=UTC-8 date +%Y.%m.%d) by/g'  ./package/base-files/files/etc/banner
 #echo "DISTRIB_REVISION='Ipv4P Mini S$(TZ=UTC-8 date +%Y.%m.%d) by Sirpdboy'" > ./package/base-files/files/etc/openwrt_release1 
 sed -i 's/invalid/# invalid/g' package/lean/samba4/files/smb.conf.template
@@ -71,12 +71,16 @@ rm -rf package/lean/luci-app-jd-dailybonus && git clone https://github.com/jerry
 svn co https://github.com/vernesong/OpenClash/trunk/luci-app-openclash package/diy/luci-app-openclash
 git clone -b master --single-branch https://github.com/tty228/luci-app-serverchan ./package/diy/luci-app-serverchan
 git clone -b master --single-branch https://github.com/destan19/OpenAppFilter ./package/diy/OpenAppFilter
-#bypass
+
 git clone -b master --single-branch https://github.com/fw876/helloworld ./package/hw
-svn co https://github.com/jerrykuku/luci-app-vssr/trunk/  package/diy/luci-app-vssr
-#git clone https://github.com/garypang13/luci-app-bypass.git package/diy/luci-app-bypass
-#sed -i 's/shadowsocksr-libev-alt/shadowsocksr-libev-ssr-redir/g' package/*/*/Makefile
-#sed -i 's/shadowsocksr-libev-server/shadowsocksr-libev-ssr-server/g' package/*/*/Makefile
+svn co https://github.com/jerrykuku/luci-app-vssr/trunk/  package/diy/luci-app-vssrif [ -e package/diy/luci-app-openclash/luasrc/view/openclash/myip.htm ]; then
+	sed -i '/status/am:section(SimpleSection).template = "openclash/myip"' ./package/hw/luci-app-ssr-plus/luasrc/model/cbi/shadowsocksr/client.lua
+	sed -i '/get("@global_other/i\m:section(SimpleSection).template = "openclash/myip"' package/diy1/luci-app-passwall/luasrc/model/cbi/passwall/client/global.lua
+else
+	cp -vr package/diy/myip.htm ./package/hw/luci-app-ssr-plus/luasrc/view
+	sed -i '/status/am:section(SimpleSection).template = "myip"'  ./package/hw/luci-app-ssr-plus/luasrc/model/cbi/shadowsocksr/client.lua
+	sed -i '/get("@global_other/i\m:section(SimpleSection).template = "myip"'  package/diy1/luci-app-passwall/luasrc/model/cbi/passwall/client/global.lua
+fi
 # sed -i 's/KERNEL_PATCHVER:=5.4/KERNEL_PATCHVER:=4.19/g' ./target/linux/x86/Makefile
 # sed -i 's/KERNEL_TESTING_PATCHVER:=5.4/KERNEL_TESTING_PATCHVER:=4.19/g' ./target/linux/x86/Makefile
 #sed -i "/mediaurlbase/d" package/*/luci-theme*/root/etc/uci-defaults/*
