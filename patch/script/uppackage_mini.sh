@@ -88,6 +88,6 @@ rm -rf package/hw/xray-core
 rm -rf package/diy1/tcping
 #rm -rf package/diy1/xray-core
 rm -rf ./package/diy1/trojan
-rm -rf ./package/diy1/v2ray
+# rm -rf ./package/diy1/v2ray
 rm -rf ./package/diy1/v2ray-plugin
 ./scripts/feeds update -i
