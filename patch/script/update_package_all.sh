@@ -2,8 +2,6 @@
 #=================================================
 # Description: Build OpenWrt using GitHub Actions
 rm -rf ./package/lean/luci-theme-argon
-rm -rf ./package/lean/trojan
-rm -rf ./package/lean/v2ray-plugin
 rm -rf ./package/lean/luci-theme-opentomcat
 # echo '替换aria2'
 # rm -rf feeds/luci/applications/luci-app-aria2 && svn co https://github.com/sirpdboy/sirpdboy-package/trunk/luci-app-aria2 feeds/luci/applications/luci-app-aria2
@@ -25,7 +23,6 @@ rm -rf package/lean/luci-app-baidupcs-web && git clone https://github.com/garypa
 rm -rf ../lean/luci-app-docker
 rm -rf ../lean/luci-app-dockerman
 rm -rf ../lean/luci-lib-docker
-rm -rf package/lean/luci-app-jd-dailybonus
 echo '替换smartdns'
 rm -rf ./feeds/packages/net/smartdns&& svn co https://github.com/sirpdboy/sirpdboy-package/trunk/smartdns ./package/diy/smartdns
 rm -rf ./package/lean/luci-app-netdata && svn co https://github.com/sirpdboy/sirpdboy-package/trunk/luci-app-netdata ./package/lean/luci-app-netdata
@@ -36,15 +33,10 @@ rm -rf ./feeds/packages/net/https-dns-proxy  && svn co https://github.com/Lienol
 #rm -rf ./package/diy/default-settings
 rm -rf ./package/lean/automount
 rm -rf ./package/lean/autosamba
-#rm -rf ./package/diy/luci-app-cpufreq
 rm -rf ./package/diy/netdata
 rm -rf ./package/diy/mwan3
 rm -rf ./package/lean/autocore
 rm -rf ./package/lean/default-settings
-
-#curl -fsSL https://raw.githubusercontent.com/loso3000/other/master/patch/autocore/files/x86/index.htm > package/lean/autocore/files/x86/index.htm
-#curl -fsSL https://raw.githubusercontent.com/loso3000/other/master/patch/autocore/files/arm/index.htm > package/lean/autocore/files/arm/index.htm
-#curl -fsSL  https://raw.githubusercontent.com/loso3000/other/master/patch/default-settings/zzz-default-settings > ./package/lean/default-settings/files/zzz-default-settings
 curl -fsSL  https://raw.githubusercontent.com/loso3000/other/master/patch/poweroff/poweroff.htm > ./feeds/luci/modules/luci-mod-admin-full/luasrc/view/admin_system/poweroff.htm 
 curl -fsSL  https://raw.githubusercontent.com/loso3000/other/master/patch/poweroff/system.lua > ./feeds/luci/modules/luci-mod-admin-full/luasrc/controller/admin/system.lua
 sed -i 's/网络存储/存储/g' package/lean/luci-app-vsftpd/po/zh-cn/vsftpd.po
@@ -81,8 +73,7 @@ git clone https://github.com/garypang13/luci-app-bypass.git package/luci-app-byp
 find package/*/ feeds/*/ -maxdepth 2 -path "*luci-app-bypass/Makefile" | xargs -i sed -i 's/shadowsocksr-libev-ssr-redir/shadowsocksr-libev-alt/g' {}
 find package/*/ feeds/*/ -maxdepth 2 -path "*luci-app-bypass/Makefile" | xargs -i sed -i 's/shadowsocksr-libev-ssr-server/shadowsocksr-libev-server/g' {}
 git clone https://github.com/garypang13/luci-app-dnsfilter.git package/luci-app-dnsfilter
-
-git clone https://github.com/jerrykuku/luci-app-jd-dailybonus.git package/diy/luci-app-jd-dailybonus
+rm -rf package/lean/luci-app-jd-dailybonus && git clone https://github.com/jerrykuku/luci-app-jd-dailybonus.git package/diy/luci-app-jd-dailybonus
 svn co https://github.com/vernesong/OpenClash/trunk/luci-app-openclash package/diy/luci-app-openclash
 git clone https://github.com/xiaorouji/openwrt-passwall package/diy1
 #git clone https://github.com/AlexZhuo/luci-app-bandwidthd /package/diy/luci-app-bandwidthd
@@ -108,15 +99,17 @@ svn co https://github.com/jerrykuku/luci-app-vssr/trunk/  package/diy/luci-app-v
 #sed -i "/mediaurlbase/d" feed/*/luci-theme*/root/etc/uci-defaults/*
 
 # Add driver for rtl8821cu & rtl8812au-ac
-svn co https://github.com/project-openwrt/openwrt/branches/master/package/ctcgfw/rtl8812au-ac ./package/ctcgfw
-svn co https://github.com/project-openwrt/openwrt/branches/master/package/ctcgfw/rtl8821cu ./package/ctcgfw
+# svn co https://github.com/project-openwrt/openwrt/branches/master/package/ctcgfw/rtl8812au-ac ./package/ctcgfw
+# svn co https://github.com/project-openwrt/openwrt/branches/master/package/ctcgfw/rtl8821cu ./package/ctcgfw
 
 # rm -rf ./package/diy1/trojan
 # rm -rf ./package/diy1/v2ray
 # rm -rf ./package/diy1/v2ray-plugin
 #  rm -rf package/lean/parted
 rm -rf package/hw/xray-core
-rm -rf package/diy1/tcping
+# rm -rf package/diy1/tcping
+rm -rf ./package/lean/trojan
+rm -rf ./package/lean/v2ray-plugin
 #rm -rf package/diy1/xray-core
 #rm -rf package/diy/vssr
 ./scripts/feeds update -i
