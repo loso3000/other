@@ -72,7 +72,7 @@ svn co https://github.com/vernesong/OpenClash/trunk/luci-app-openclash package/d
 git clone -b master --single-branch https://github.com/tty228/luci-app-serverchan ./package/diy/luci-app-serverchan
 git clone -b master --single-branch https://github.com/destan19/OpenAppFilter ./package/diy/OpenAppFilter
 
-git clone -b master --single-branch https://github.com/fw876/helloworld ./package/hw
+svn co https://github.com/fw876/helloworld/trunkluci-app-ssr-plus  package/diy/luci-app-vssr
 svn co https://github.com/jerrykuku/luci-app-vssr/trunk/  package/diy/luci-app-vssr
 if [ -e package/diy/luci-app-openclash/luasrc/view/openclash/myip.htm ]; then
 	sed -i '/status/am:section(SimpleSection).template = "openclash/myip"' ./package/hw/luci-app-ssr-plus/luasrc/model/cbi/shadowsocksr/client.lua
@@ -89,10 +89,6 @@ fi
 #rm -rf ./package/lean/trojan
 #rm -rf ./package/lean/v2ray
 #rm -rf ./package/lean/v2ray-plugin
-rm -rf package/hw/xray-core
-rm -rf package/diy1/tcping
-#rm -rf package/diy1/xray-core
 rm -rf ./package/diy1/trojan
-# rm -rf ./package/diy1/v2ray
 rm -rf ./package/diy1/v2ray-plugin
 ./scripts/feeds update -i
