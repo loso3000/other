@@ -2,9 +2,6 @@
 #=================================================
 # Description: Build OpenWrt using GitHub Actions
 rm -rf ./package/lean/luci-theme-argon
-# rm -rf ./package/lean/trojan
-# rm -rf ./package/lean/v2ray
-# rm -rf ./package/lean/v2ray-plugin
 rm -rf ./package/lean/luci-theme-opentomcat
 # echo '替换aria2'
 # rm -rf feeds/luci/applications/luci-app-aria2 && svn co https://github.com/sirpdboy/sirpdboy-package/trunk/luci-app-aria2 feeds/luci/applications/luci-app-aria2
@@ -28,8 +25,6 @@ rm -rf ./package/lean/luci-app-netdata && svn co https://github.com/sirpdboy/sir
 rm -rf ./feeds/packages/admin/netdata && svn co https://github.com/sirpdboy/sirpdboy-package/trunk/netdata ./feeds/packages/admin/netdata
 rm -rf ./feeds/packages/net/mwan3 && svn co https://github.com/sirpdboy/sirpdboy-package/trunk/mwan3 ./feeds/packages/net/mwan3
 rm -rf ./feeds/packages/net/https-dns-proxy  && svn co https://github.com/Lienol/openwrt-packages/trunk/net/https-dns-proxy ./feeds/packages/net/https-dns-proxy
-#rm -rf ./package/diy/autocore
-#rm -rf ./package/diy/default-settings
 rm -rf ./package/lean/automount
 rm -rf ./package/lean/autosamba
 rm -rf ./package/lean/autocore
@@ -84,9 +79,9 @@ git clone https://github.com/xiaorouji/openwrt-passwall package/diy1
 #git clone https://github.com/AlexZhuo/luci-app-bandwidthd /package/diy/luci-app-bandwidthd
 git clone -b master --single-branch https://github.com/tty228/luci-app-serverchan ./package/diy/luci-app-serverchan
 git clone -b master --single-branch https://github.com/destan19/OpenAppFilter ./package/diy/OpenAppFilter
-#bypass
-git clone -b master --single-branch https://github.com/fw876/helloworld ./package/hw
+
 svn co https://github.com/jerrykuku/luci-app-vssr/trunk/  package/diy/luci-app-vssr
+svn co https://github.com/fw876/helloworld/trunk/luci-app-ssr-plus  package/diy/luci-app-ssr-plus
 svn co https://github.com/jerrykuku/luci-app-ttnode/trunk/  package/diy/luci-app-ttnode
 # sed -i 's/KERNEL_PATCHVER:=5.4/KERNEL_PATCHVER:=4.19/g' ./target/linux/x86/Makefile
 # sed -i 's/KERNEL_TESTING_PATCHVER:=5.4/KERNEL_TESTING_PATCHVER:=4.19/g' ./target/linux/x86/Makefile
@@ -101,14 +96,10 @@ svn co https://github.com/jerrykuku/luci-app-ttnode/trunk/  package/diy/luci-app
 #	sed -i '/get("@global_other/i\m:section(SimpleSection).template = "myip"'  package/diy1/luci-app-passwall/luasrc/model/cbi/passwall/client/global.lua
 #fi
 rm -rf ./package/diy1/trojan
-rm -rf ./package/diy1/v2ray
 rm -rf ./package/diy1/v2ray-plugin
 #rm -rf ./package/lean/trojan
 #rm -rf ./package/lean/v2ray
 #rm -rf ./package/lean/v2ray-plugin
-rm -rf package/hw/xray-core
-rm -rf package/diy1/tcping
-#rm -rf package/diy1/xray-core
 ./scripts/feeds update -i
 #git clone https://github.com/openwrt-dev/po2lmo.git
 #cd po2lmo
