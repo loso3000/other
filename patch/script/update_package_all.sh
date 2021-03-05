@@ -57,7 +57,7 @@ sed -i 's/root::0:0:99999:7:::/root:$1$V4UetPzk$CYXluq4wUazHjmCDBCqXF.:0:0:99999
 sed -i 's/a.default = "0"/a.default = "1"/g' ./package/lean/luci-app-cifsd/luasrc/controller/cifsd.lua
 echo  "        option tls_enable 'true'" >> ./package/lean/luci-app-frpc/root/etc/config/frp
 
-# sed -i '/filter_/d' package/network/services/dnsmasq/files/dhcp.conf
+sed -i '/filter_/d' package/network/services/dnsmasq/files/dhcp.conf
 #内核设置
 ##sed -i '/CONFIG_NVME_MULTIPATH /d' ./package/target/linux/x86/config-5.4
 #sed -i '/CONFIG_NVME_TCP /d' ./package/target/linux/x86/config-5.4
@@ -80,7 +80,7 @@ git clone https://github.com/xiaorouji/openwrt-passwall package/diy1
 git clone -b master --single-branch https://github.com/tty228/luci-app-serverchan ./package/diy/luci-app-serverchan
 git clone -b master --single-branch https://github.com/destan19/OpenAppFilter ./package/diy/OpenAppFilter
 
-git clone -b master --single-branch https://github.com/fw876/helloworld ./package/hw
+svn co https://github.com/fw876/helloworld/trunk/luci-app-ssr-plus  package/diy/luci-app-ssr-plus
 svn co https://github.com/jerrykuku/luci-app-vssr/trunk/  package/diy/luci-app-vssr
 
 #if [ -e package/diy/luci-app-openclash/luasrc/view/openclash/myip.htm ]; then
@@ -106,12 +106,10 @@ svn co https://github.com/jerrykuku/luci-app-vssr/trunk/  package/diy/luci-app-v
 # rm -rf ./package/diy1/v2ray
 # rm -rf ./package/diy1/v2ray-plugin
 #  rm -rf package/lean/parted
-rm -rf package/hw/xray-core
 # rm -rf package/diy1/tcping
 rm -rf ./package/lean/trojan
 rm -rf ./package/lean/v2ray-plugin
-#rm -rf package/diy1/xray-core
-#rm -rf package/diy/vssr
+rm -rf package/diy/vssr
 ./scripts/feeds update -i
 #git clone https://github.com/openwrt-dev/po2lmo.git
 #cd po2lmo
