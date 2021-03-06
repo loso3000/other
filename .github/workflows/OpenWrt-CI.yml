@@ -106,7 +106,7 @@ jobs:
           cp -rf $(find ./openwrt/bin/ -type f -name "*.ipk") ./new/package
           find ./openwrt/bin/targets/ -name "*combined*img*" | xargs -i mv -f {} ./new/firmware
           cd ./new/firmware
-          gzip *.*
+          gzip *.img
       - name: Upload Firmware
         uses: actions/upload-artifact@main
         with:
