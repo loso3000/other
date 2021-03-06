@@ -104,7 +104,8 @@ jobs:
           mkdir -p ./new/firmware
           mkdir -p ./new/package
           cp -rf $(find ./openwrt/bin/ -type f -name "*.ipk") ./new/package
-          find ./openwrt/bin/targets/ -name "*combined*img*" | xargs -i mv -f {} ./new/firmware
+          mv -f $(find ./openwrt/bin/ -type f -name "*combined*img*") ./new/firmware
+          #find ./openwrt/bin/targets/ -name "*combined*img*" | xargs -i mv -f {} ./new/firmware
           cd ./new/firmware
           gzip *.img
       - name: Upload Firmware
@@ -128,4 +129,4 @@ jobs:
           ./transfer wet -s -p 16 --no-progress ./new/firmware 2>&1 | tee wetransfer.log
           echo "::warning file=wetransfer.com::$(cat wetransfer.log | grep https)"
           echo "::set-output name=url::$(cat wetransfer.log | grep https | cut -f3 -d" ")"
-          
+
