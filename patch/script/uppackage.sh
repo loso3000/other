@@ -87,14 +87,14 @@ svn co https://github.com/jerrykuku/luci-app-ttnode/trunk/  package/diy/luci-app
 # sed -i 's/KERNEL_TESTING_PATCHVER:=5.4/KERNEL_TESTING_PATCHVER:=4.19/g' ./target/linux/x86/Makefile
 #sed -i "/mediaurlbase/d" package/*/luci-theme*/root/etc/uci-defaults/*
 #sed -i "/mediaurlbase/d" feed/*/luci-theme*/root/etc/uci-defaults/*
-#if [ -e package/diy/luci-app-openclash/luasrc/view/openclash/myip.htm ]; then
+if [ -e package/diy/luci-app-openclash/luasrc/view/openclash/myip.htm ]; then
 	sed -i '/status/am:section(SimpleSection).template = "openclash/myip"' ./package/hw/luci-app-ssr-plus/luasrc/model/cbi/shadowsocksr/client.lua
-	sed -i '/get("@global_other/i\m:section(SimpleSection).template = "openclash/myip"' package/diy1/luci-app-passwall/luasrc/model/cbi/passwall/client/global.lua
+#sed -i '/get("@global_other/i\m:section(SimpleSection).template = "openclash/myip"' package/diy1/luci-app-passwall/luasrc/model/cbi/passwall/client/global.lua
 #else
 #	cp -vr package/diy/myip.htm ./package/hw/luci-app-ssr-plus/luasrc/view
 #	sed -i '/status/am:section(SimpleSection).template = "myip"'  ./package/hw/luci-app-ssr-plus/luasrc/model/cbi/shadowsocksr/client.lua
 #	sed -i '/get("@global_other/i\m:section(SimpleSection).template = "myip"'  package/diy1/luci-app-passwall/luasrc/model/cbi/passwall/client/global.lua
-#fi
+fi
 rm -rf ./package/diy1/trojan
 rm -rf ./package/diy1/v2ray-plugin
 #rm -rf ./package/lean/trojan
