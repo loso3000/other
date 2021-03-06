@@ -20,9 +20,7 @@ rm -rf package/lean/luci-app-qbittorrent
 rm -rf package/lean/qt5
 rm -rf package/lean/qBittorrent
 rm -rf package/lean/luci-app-baidupcs-web && git clone https://github.com/garypang13/luci-app-baidupcs-web ./package/lean/luci-app-baidupcs-web
-rm -rf ../lean/luci-app-docker
-rm -rf ../lean/luci-app-dockerman
-rm -rf ../lean/luci-lib-docker
+
 echo '替换smartdns'
 rm -rf ./feeds/packages/net/smartdns&& svn co https://github.com/sirpdboy/sirpdboy-package/trunk/smartdns ./package/diy/smartdns
 rm -rf ./package/lean/luci-app-netdata && svn co https://github.com/sirpdboy/sirpdboy-package/trunk/luci-app-netdata ./package/lean/luci-app-netdata
@@ -101,7 +99,9 @@ svn co https://github.com/jerrykuku/luci-app-vssr/trunk/  package/diy/luci-app-v
 # Add driver for rtl8821cu & rtl8812au-ac
 # svn co https://github.com/project-openwrt/openwrt/branches/master/package/ctcgfw/rtl8812au-ac ./package/ctcgfw
 # svn co https://github.com/project-openwrt/openwrt/branches/master/package/ctcgfw/rtl8821cu ./package/ctcgfw
-
+rm -rf package/lean/luci-app-docker
+rm -rf package/lean/luci-app-dockerman
+rm -rf package/lean/luci-lib-docker
 # rm -rf ./package/diy1/trojan
 # rm -rf ./package/diy1/v2ray
 # rm -rf ./package/diy1/v2ray-plugin
