@@ -44,8 +44,8 @@ sed -i 's/Turbo ACC 网络加速/ACC网络加速/g' package/lean/luci-app-sfe/po
 sed -i 's/解锁网易云灰色歌曲/解锁灰色歌曲/g' package/lean/luci-app-unblockmusic/po/zh-cn/unblockmusic.po
 sed -i 's/家庭云//g' package/lean/luci-app-familycloud/luasrc/controller/familycloud.lua
 cp -f ./package/diy/banner ./package/base-files/files/etc/
-date1='Ipv4-S'`TZ=UTC-8 date +%Y.%m.%d -d +"8"hour`
-sed -i 's/$(VERSION_DIST_SANITIZED)/$(shell TZ=UTC-8 date +%Y%m%d -d +8hour)-Ipv4/g' include/image.mk
+date1='Ipv4P-S'`TZ=UTC-8 date +%Y.%m.%d -d +"8"hour`
+sed -i 's/$(VERSION_DIST_SANITIZED)/$(shell TZ=UTC-8 date +%Y%m%d -d +8hour)-Ipv4P/g' include/image.mk
 echo "DISTRIB_REVISION='${date1} by Sirpdboy'" > ./package/base-files/files/etc/openwrt_release1
 echo ${date1}' by Sirpdboy ' >> ./package/base-files/files/etc/banner
 echo '---------------------------------' >> ./package/base-files/files/etc/banner
@@ -57,11 +57,11 @@ sed -i 's/invalid/# invalid/g' package/lean/samba4/files/smb.conf.template
 sed -i 's/invalid/# invalid/g' package/network/services/samba36/files/smb.conf.template
 # sed -i '/filter_/d' package/network/services/dnsmasq/files/dhcp.conf
 #内核设置
-##sed -i '/CONFIG_NVME_MULTIPATH /d' ./package/target/linux/x86/config-5.4
-#sed -i '/CONFIG_NVME_TCP /d' ./package/target/linux/x86/config-5.4
-#echo  'CONFIG_BINFMT_MISC=y' >> ./package/target/linux/x86/config-5.4
-#echo  'CONFIG_EXTRA_FIRMWARE="i915/kbl_dmc_ver1_04.bin"'   >> ./package/target/linux/x86/config-5.4
-#echo  'CONFIG_EXTRA_FIRMWARE_DIR="/lib/firmware"'  >> ./package/target/linux/x86/config-5.4
+sed -i '/CONFIG_NVME_MULTIPATH /d' ./package/target/linux/x86/config-5.4
+sed -i '/CONFIG_NVME_TCP /d' ./package/target/linux/x86/config-5.4
+echo  'CONFIG_BINFMT_MISC=y' >> ./package/target/linux/x86/config-5.4
+echo  'CONFIG_EXTRA_FIRMWARE="i915/kbl_dmc_ver1_04.bin"'   >> ./package/target/linux/x86/config-5.4
+echo  'CONFIG_EXTRA_FIRMWARE_DIR="/lib/firmware"'  >> ./package/target/linux/x86/config-5.4
 #echo  'CONFIG_NVME_FABRICS=y'  >> ./package/target/linux/x86/config-5.4
 #echo  'CONFIG_NVME_FC=y' >> ./package/target/linux/x86/config-5.4
 #echo  'CONFIG_NVME_MULTIPATH=y' >> ./package/target/linux/x86/config-5.4
