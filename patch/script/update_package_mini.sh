@@ -94,7 +94,7 @@ rm -rf ./package/lean/v2ray-plugin
 rm -rf package/hw/xray-core
 rm -rf package/diy1/tcping
 #rm -rf package/diy1/xray-core
-#rm -rf package/diy/vssr
+rm -rf package/diy/vssr
 ./scripts/feeds update -i
 
 
