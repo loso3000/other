@@ -74,8 +74,8 @@ git clone https://github.com/jerrykuku/luci-app-jd-dailybonus.git package/diy/lu
 git clone -b master --single-branch https://github.com/fw876/helloworld ./package/hw
 svn co https://github.com/jerrykuku/luci-app-vssr/trunk/  package/diy/luci-app-vssr
 #if [ -e package/diy/luci-app-openclash/luasrc/view/openclash/myip.htm ]; then
-	sed -i '/status/am:section(SimpleSection).template = "openclash/myip"' ./package/hw/luci-app-ssr-plus/luasrc/model/cbi/shadowsocksr/client.lua
-	sed -i '/get("@global_other/i\m:section(SimpleSection).template = "openclash/myip"' package/diy1/luci-app-passwall/luasrc/model/cbi/passwall/client/global.lua
+sed -i '/status/am:section(SimpleSection).template = "openclash/myip"' ./package/hw/luci-app-ssr-plus/luasrc/model/cbi/shadowsocksr/client.lua
+#sed -i '/get("@global_other/i\m:section(SimpleSection).template = "openclash/myip"' package/diy1/luci-app-passwall/luasrc/model/cbi/passwall/client/global.lua
 #else
 #	cp -vr package/diy/myip.htm ./package/hw/luci-app-ssr-plus/luasrc/view
 #	sed -i '/status/am:section(SimpleSection).template = "myip"'  ./package/hw/luci-app-ssr-plus/luasrc/model/cbi/shadowsocksr/client.lua
