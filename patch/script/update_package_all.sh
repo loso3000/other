@@ -56,10 +56,12 @@ echo  "        option tls_enable 'true'" >> ./package/lean/luci-app-frpc/root/et
 sed -i 's/invalid/# invalid/g' package/lean/samba4/files/smb.conf.template
 sed -i 's/invalid/# invalid/g' package/network/services/samba36/files/smb.conf.template
 sed -i '/filter_/d' package/network/services/dnsmasq/files/dhcp.conf
-#内核设置
+
+#内核设置 甜糖
+cat ./package/diy/set/Config-kernel.in   > ./config/Config-kernel.in
+echo  'CONFIG_BINFMT_MISC=y' >> ./package/target/linux/x86/config-5.4
 ##sed -i '/CONFIG_NVME_MULTIPATH /d' ./package/target/linux/x86/config-5.4
 #sed -i '/CONFIG_NVME_TCP /d' ./package/target/linux/x86/config-5.4
-#echo  'CONFIG_BINFMT_MISC=y' >> ./package/target/linux/x86/config-5.4
 #echo  'CONFIG_EXTRA_FIRMWARE="i915/kbl_dmc_ver1_04.bin"'   >> ./package/target/linux/x86/config-5.4
 #echo  'CONFIG_EXTRA_FIRMWARE_DIR="/lib/firmware"'  >> ./package/target/linux/x86/config-5.4
 #echo  'CONFIG_NVME_FABRICS=y'  >> ./package/target/linux/x86/config-5.4
@@ -79,9 +81,10 @@ git clone -b master --single-branch https://github.com/tty228/luci-app-servercha
 git clone -b master --single-branch https://github.com/destan19/OpenAppFilter ./package/diy/OpenAppFilter
 
 svn co https://github.com/fw876/helloworld/trunk/luci-app-ssr-plus  package/diy/luci-app-ssr-plus
+sed -i '/status/am:section(SimpleSection).template = "openclash/myip"' ./package/diy/luci-app-ssr-plus/luasrc/model/cbi/shadowsocksr/client.lua
+
 svn co https://github.com/jerrykuku/luci-app-vssr/trunk/  package/diy/luci-app-vssr
 
-sed -i '/status/am:section(SimpleSection).template = "openclash/myip"' ./package/hw/luci-app-ssr-plus/luasrc/model/cbi/shadowsocksr/client.lua
 #sed -i '/get("@global_other/i\m:section(SimpleSection).template = "openclash/myip"' package/diy1/luci-app-passwall/luasrc/model/cbi/passwall/client/global.lua
 #else
 #	cp -vr package/diy/myip.htm ./package/hw/luci-app-ssr-plus/luasrc/view
