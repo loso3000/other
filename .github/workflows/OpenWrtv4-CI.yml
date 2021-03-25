@@ -1,23 +1,25 @@
-name: OpenWrt-CI
+
+name: OpenWrtv4-CI
+
 
 on:
   repository_dispatch:
-  release:
-    types: published
-#  push:
-#    branches:
-#      - main
-#    paths:
-#      - 'all.config'
-  schedule:
-    - cron: 0 22 */2 * * 
+  workflow_dispatch:
+    inputs:
+      ssh:
+        description: 'SSH connection to Actions'
+        required: false
+        default: 'false'
   watch:
     types: started
+#  schedule:
+#    - cron: 0 21 */7 * * 
+
 jobs:
 
   build_openwrt:
 
-    name: OpenWrt_Build 
+    name: OpenWrtv4_Build 
 
     runs-on: ubuntu-latest
 
@@ -34,29 +36,12 @@ jobs:
           DEBIAN_FRONTEND: noninteractive
         run: |
           docker rmi `docker images -q`
-          echo "Deleting files, please wait ..."
-          sudo rm -rf \
-          /usr/share/dotnet \
-          /etc/mysql \
-          /etc/php
-          sudo -E apt-get -y purge \
-          azure-cli \
-          ghc* \
-          zulu* \
-          hhvm \
-          llvm* \
-          firefox \
-          google* \
-          dotnet* \
-          powershell \
-          openjdk* \
-          mysql* \
-          php*
-          sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /opt/ghc
-          sudo -E apt-get -qq update
-          sudo -E apt-get -qq install build-essential asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch unzip zlib1g-dev lib32gcc1 libc6-dev-i386 subversion flex uglifyjs gcc-multilib g++-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint device-tree-compiler antlr3 gperf wget swig rsync
-          sudo -E apt-get -qq autoremove --purge
-          sudo -E apt-get -qq clean
+          sudo rm -rf /usr/share/dotnet /etc/mysql /etc/php /etc/apt/sources.list.d
+          sudo -E apt-get -y purge azure-cli ghc* zulu* hhvm llvm* firefox google* dotnet* powershell openjdk* mysql* php* android*
+          sudo -E apt-get update
+          sudo -E apt-get -y install build-essential asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev curl patch python3 unzip zlib1g-dev lib32gcc1 libc6-dev-i386 subversion flex uglifyjs gcc-multilib g++-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint device-tree-compiler antlr3 gperf swig
+          sudo -E apt-get -y autoremove --purge
+          sudo -E apt-get clean
           sudo timedatectl set-timezone "Asia/Shanghai"
       - name: Update feeds
         env:
@@ -65,12 +50,13 @@ jobs:
         run: |
           git clone --depth 1 $REPO_URL -b $REPO_BRANCH openwrt
           cd openwrt
+          #sed -i 's/#src-git helloworld/src-git helloworld/g' ./feeds.conf.default
+          #sed -i 's/coolsnowwolf/sirpdboy/g' ./feeds.conf.default
           git clone https://github.com/sirpdboy/sirpdboy-package package/diy
           ./scripts/feeds update -a
       - name: Update package
         working-directory: ./openwrt
-        run: | 
-          #cd openwrt
+        run: |
           curl -fsSL https://raw.githubusercontent.com/loso3000/other/master/patch/script/uppackage.sh | sh
           ./scripts/feeds install -a
           chmod -R 755 .
@@ -79,12 +65,12 @@ jobs:
         run: |
           #cd openwrt
           curl -fsSL https://raw.githubusercontent.com/loso3000/other/master/patch/x86-64/appdrv.config > .config
+          sed -i 's/192.168.1.1/192.168.10.1/g' package/base-files/files/bin/config_generate
           make defconfig
       - name: Make download
         working-directory: ./openwrt
         run: |
           make download -j8
-          find dl -size -1024c -exec ls -l {} \;
           find dl -size -1024c -exec rm -f {} \;
       - name: Compile firmware
         working-directory: ./openwrt
@@ -98,32 +84,33 @@ jobs:
           du -h --max-depth=1 ./ --exclude=build_dir --exclude=bin
           du -h --max-depth=1 ./build_dir
           du -h --max-depth=1 ./bin
+
       - name: Prepare Artifact
         run: |
-          mkdir -p ./new2/firmware
-          mkdir -p ./new2/package
-          cp -rf $(find ./openwrt/bin/ -type f -name "*.ipk") ./new2/package
-          find ./openwrt/bin/targets/ -name "*combined*img*" | xargs -i mv -f {} ./new2/firmware
-          cd ./new2/firmware
-          gzip *.*
+          mkdir -p ./new1/firmware
+          mkdir -p ./new1/package
+          cp -rf $(find ./openwrt/bin/packages/ -type f -name "*.ipk") ./new1/package
+          find ./openwrt/bin/targets/ -name "*combined*img*" | xargs -i mv -f {} ./new1/firmware
+          cd ./new1/firmware
+          gzip *.img
       - name: Upload Firmware
         uses: actions/upload-artifact@main
         with:
           name: SirpdboyOpenWrt-IPV4P-Firmware
-          path: ./new2/firmware
+          path: ./new1/firmware
       - name: Upload  IPK
         uses: actions/upload-artifact@main
         with:
           name: SirpdboyOpenWrt-IPV4P-Ipk
-          path: ./new2/package
+          path: ./new1/package
+
       - name: Upload firmware to cowtransfer
         run: |
          curl -fsSL git.io/file-transfer | sh
-         ./transfer cow --block 2621440 -s -p 64 --no-progress ./new2/firmware 2>&1 | tee cowtransfer.log
+         ./transfer cow --block 2621440 -s -p 64 --no-progress ./new1/firmware 2>&1 | tee cowtransfer.log
          echo "::warning file=cowtransfer.com::$(cat cowtransfer.log | grep https)"
       - name: Upload Firmware wetransfer
         run: |
           curl -fsSL git.io/file-transfer | sh
-          ./transfer wet -s -p 16 --no-progress ./new2/firmware 2>&1 | tee wetransfer.log
+          ./transfer wet -s -p 16 --no-progress ./new1/firmware 2>&1 | tee wetransfer.log
           echo "::warning file=wetransfer.com::$(cat wetransfer.log | grep https)"
-          echo "::set-output name=url::$(cat wetransfer.log | grep https | cut -f3 -d" ")"
