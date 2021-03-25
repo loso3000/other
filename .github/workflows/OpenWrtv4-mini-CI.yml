@@ -1,23 +1,25 @@
 name: OpenWrt-mini-CI
 
+
+
 on:
   repository_dispatch:
-  release:
-    types: published
-#  push:
-#    branches:
-#      - main
-#    paths:
-#      - '5.config'
-  schedule:
-    - cron: 0 22 */2 * * 
+  workflow_dispatch:
+    inputs:
+      ssh:
+        description: 'SSH connection to Actions'
+        required: false
+        default: 'false'
   watch:
     types: started
+#  schedule:
+#    - cron: 0 21 */7 * * 
+
 jobs:
 
   build_openwrt:
 
-    name: OpenWrt-mini-Build 
+    name: OpenWrtv4-mini-Build 
 
     runs-on: ubuntu-latest
 
@@ -80,6 +82,7 @@ jobs:
         working-directory: ./openwrt
         run: |
           curl -fsSL https://raw.githubusercontent.com/loso3000/other/master/patch/x86-64/mini.config > .config
+          sed -i 's/192.168.1.1/192.168.10.1/g' package/base-files/files/bin/config_generate
           make defconfig
       - name: Make download
         working-directory: ./openwrt
