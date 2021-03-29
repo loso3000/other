@@ -50,7 +50,7 @@ sed -i 's/带宽监控/监控/g' feeds/luci/applications/luci-app-nlbwmon/po/zh-
 sed -i 's/root::0:0:99999:7:::/root:$1$V4UetPzk$CYXluq4wUazHjmCDBCqXF.:0:0:99999:7:::/g' ./package/base-files/files/etc/shadow
 sed -i  '/filter_/d' package/network/services/dnsmasq/files/dhcp.conf
 sed -i '/mcsub_renew.datatype/d'  feeds/luci/applications/luci-app-udpxy/luasrc/model/cbi/udpxy.lua  #修复UDPXY设置延时55的错误
-sed -i "s/60/360/g"  feeds/luci/applications/luci-app-uhttpd/luasrc/model/cbi/uhttpd.lua  #设置script_timeout 延时360的错误
+sed -i "s/60/360/g"  ./feeds/luci/applications/luci-app-uhttpd/luasrc/model/cbi/uhttpd/uhttpd.lua  #设置script_timeout 延时360的错误
 #内核 设置
 #sed -i '/CONFIG_NVME_MULTIPATH /d' ./package/target/linux/x86/config-5.4
 #sed -i '/CONFIG_NVME_TCP /d' ./package/target/linux/x86/config-5.4
