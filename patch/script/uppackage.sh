@@ -57,6 +57,8 @@ echo  "        option tls_enable 'true'" >> ./package/lean/luci-app-frpc/root/et
 sed -i 's/invalid/# invalid/g' package/lean/samba4/files/smb.conf.template
 sed -i 's/invalid/# invalid/g' package/network/services/samba36/files/smb.conf.template
 # sed -i '/filter_/d' package/network/services/dnsmasq/files/dhcp.conf
+sed -i '/mcsub_renew.datatype/d'  ./feeds/luci/applications/luci-app-udpxy/luasrc/model/cbi/udpxy.lua  #修复UDPXY设置延时55的错误
+sed -i "s/60/360/g"  ./feeds/luci/applications/luci-app-uhttpd/luasrc/model/cbi/uhttpd.lua  #设置script_timeout 延时360的错误
 #内核设置
 sed -i '/CONFIG_NVME_MULTIPATH /d' ./package/target/linux/x86/config-5.4
 sed -i '/CONFIG_NVME_TCP /d' ./package/target/linux/x86/config-5.4
