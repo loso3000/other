@@ -28,15 +28,15 @@ rm -rf ./feeds/packages/admin/netdata && svn co https://github.com/sirpdboy/sirp
 rm -rf ./feeds/packages/net/mwan3 && svn co https://github.com/sirpdboy/sirpdboy-package/trunk/mwan3 ./feeds/packages/net/mwan3
 rm -rf ./feeds/packages/net/https-dns-proxy  && svn co https://github.com/Lienol/openwrt-packages/trunk/net/https-dns-proxy ./feeds/packages/net/https-dns-proxy
 #rm -rf ./package/diy/autocore
-#rm -rf ./package/diy/default-settings
+rm -rf ./package/diy/default-settings
 rm -rf ./package/lean/automount
 rm -rf ./package/lean/autosamba
 rm -rf ./package/diy/netdata
 rm -rf ./package/diy/mwan3
 rm -rf ./package/lean/autocore
-rm -rf ./package/lean/default-settings
+#rm -rf ./package/lean/default-settings
 #curl -fsSL  https://raw.githubusercontent.com/sirpdboy/sirpdboy-package/master/set/sysctl.conf > ./package/base-files/files/etc/sysctl.conf
-curl -fsSL  https://raw.githubusercontent.com/loso3000/other/master/patch/default-settings/zzz-default-settings > ./package/diy/default-settings/files/zzz-default-settings
+curl -fsSL  https://raw.githubusercontent.com/loso3000/other/master/patch/default-settings/zzz-default-settings > ./package/diy/default-settings
 curl -fsSL  https://raw.githubusercontent.com/loso3000/other/master/patch/poweroff/poweroff.htm > ./feeds/luci/modules/luci-mod-admin-full/luasrc/view/admin_system/poweroff.htm 
 curl -fsSL  https://raw.githubusercontent.com/loso3000/other/master/patch/poweroff/system.lua > ./feeds/luci/modules/luci-mod-admin-full/luasrc/controller/admin/system.lua
 sed -i 's/网络存储/存储/g' package/lean/luci-app-vsftpd/po/zh-cn/vsftpd.po
@@ -58,7 +58,7 @@ sed -i 's/invalid/# invalid/g' package/lean/samba4/files/smb.conf.template
 sed -i 's/invalid/# invalid/g' package/network/services/samba36/files/smb.conf.template
 # sed -i '/filter_/d' package/network/services/dnsmasq/files/dhcp.conf
 sed -i '/mcsub_renew.datatype/d'  ./feeds/luci/applications/luci-app-udpxy/luasrc/model/cbi/udpxy.lua  #修复UDPXY设置延时55的错误
-sed -i "s/60/360/g"  ./feeds/luci/applications/luci-app-uhttpd/luasrc/model/cbi/uhttpd/uhttpd.lua  #设置script_timeout 延时360的错误
+# sed -i "s/60/360/g"  ./feeds/luci/applications/luci-app-uhttpd/luasrc/model/cbi/uhttpd/uhttpd.lua  #设置script_timeout 延时360的错误
 #内核设置
 sed -i '/CONFIG_NVME_MULTIPATH /d' ./package/target/linux/x86/config-5.4
 sed -i '/CONFIG_NVME_TCP /d' ./package/target/linux/x86/config-5.4
