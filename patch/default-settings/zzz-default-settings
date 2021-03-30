@@ -14,11 +14,9 @@ uci commit dhcp
 uci set network.@globals[0].ula_prefix=''
 uci set network.@wan[0].mtu=1400
 uci commit network
-if [ -f /etc/config/sfe ]; then
 uci set sfe.config.enabled=0
 uci set sfe.config.bbr=0
 uci commit sfe
-fi
 rm -f /usr/lib/lua/luci/view/admin_status/index/ddns.htm
 rm -f /usr/lib/lua/luci/view/admin_status/index/minidlna.htm
 sed -i '/coremark/d' /etc/crontabs/root
@@ -43,10 +41,8 @@ sed -i 's/\"system\"/\"control\"/g' /usr/lib/lua/luci/controller/cpulimit.lua
 sed -i 's/\"services\"/\"control\"/g' /usr/lib/lua/luci/controller/samba4.lua
 sed -i 's/\"nas\"/\"control\"/g' /usr/lib/lua/luci/controller/cifsd.lua
 
-if [ -f /etc/config/vsftpd ]; then
 uci set vsftpd.@listen[0].enable4='0'
 uci commit vsftpd
-fi
 ln -sf /sbin/ip /usr/bin/ip
 
 sed -i 's#http://downloads.openwrt.org#https://mirrors.cloud.tencent.com/lede#g' /etc/opkg/distfeeds.conf
