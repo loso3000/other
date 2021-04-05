@@ -83,6 +83,17 @@ jobs:
           du -h --max-depth=1 ./ --exclude=build_dir --exclude=bin
           du -h --max-depth=1 ./build_dir
           du -h --max-depth=1 ./bin
+          echo "::set-output name=status::success"
+          grep '^CONFIG_TARGET.*DEVICE.*=y' .config | sed -r 's/.*DEVICE_(.*)=y/\1/' > DEVICE_NAME
+          [ -s DEVICE_NAME ] && echo "DEVICE_NAME=_$(cat DEVICE_NAME)" >> $GITHUB_ENV
+          echo "FILE_DATE=_$(date +"%Y%m%d%H%M")" >> $GITHUB_ENV
+          
+      - name: Upload bin directory
+        uses: actions/upload-artifact@main
+        if: steps.compile.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true'
+        with:
+         name: OpenWrt_ipv6_all${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
+         path: openwrt/bin
 
       - name: Prepare Artifact
         run: |
