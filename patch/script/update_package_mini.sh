@@ -10,8 +10,8 @@ rm -rf ./package/lean/luci-app-netdata
 svn co https://github.com/sirpdboy/sirpdboy-package/trunk/luci-app-netdata ./package/lean/luci-app-netdata
 rm -rf ./feeds/packages/admin/netdata
 svn co https://github.com/sirpdboy/sirpdboy-package/trunk/netdata ./feeds/packages/admin/netdata
-rm -rf ./feeds/packages/net/mwan3
-svn co https://github.com/sirpdboy/build/trunk/mwan3 ./feeds/packages/net/mwan3
+rm -rf ./feeds/luci/applications/luci-app-mwan3 && svn co https://github.com/sirpdboy/build/trunk/luci-app-mwan3 feeds/luci/applications/luci-app-mwan3
+rm -rf ./feeds/packages/net/mwan3 && svn co https://github.com/sirpdboy/build/trunk/mwan3 ./feeds/packages/net/mwan3
 rm -rf ./feeds/packages/net/https-dns-proxy  && svn co https://github.com/Lienol/openwrt-packages/trunk/net/https-dns-proxy ./feeds/packages/net/https-dns-proxy
 #drv
 # svn co https://github.com/project-openwrt/openwrt/branches/master/package/ctcgfw/rtl8812au-ac ./package/rtl8812au-ac
