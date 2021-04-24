@@ -30,6 +30,8 @@ rm -rf ./feeds/luci/applications/luci-app-mwan3 && svn co https://github.com/sir
 rm -rf ./feeds/packages/net/https-dns-proxy  && svn co https://github.com/Lienol/openwrt-packages/trunk/net/https-dns-proxy ./feeds/packages/net/https-dns-proxy
 #rm -rf ./package/diy/autocore
 #rm -rf ./package/diy/default-settings
+
+rm -rf package/lean/luci-app-wrtbwmon
 rm -rf ./package/lean/automount
 rm -rf ./package/lean/autosamba
 rm -rf ./package/diy/netdata
