@@ -17,6 +17,7 @@ rm -rf ./feeds/packages/net/https-dns-proxy  && svn co https://github.com/Lienol
 # svn co https://github.com/project-openwrt/openwrt/branches/master/package/ctcgfw/rtl8812au-ac ./package/rtl8812au-ac
 # svn co https://github.com/project-openwrt/openwrt/branches/master/package/ctcgfw/rtl8821cu ./package/rtl8821cu
 
+rm -rf package/lean/luci-app-wrtbwmon
 #rm -rf ./package/diy/autocore
 rm -rf ./package/diy/netdata
 rm -rf ./package/build/mwan3
