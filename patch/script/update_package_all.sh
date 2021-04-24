@@ -8,6 +8,7 @@ rm -rf ./package/lean/luci-theme-opentomcat
 rm -rf feeds/luci/applications/luci-app-aria2 && svn co https://github.com/sirpdboy/sirpdboy-package/trunk/luci-app-aria2 feeds/luci/applications/luci-app-aria2
 rm -rf feeds/packages/net/aria2 && svn co https://github.com/sirpdboy/sirpdboy-package/trunk/aria2 feeds/packages/net/aria2
 rm -rf feeds/packages/net/ariang && svn co https://github.com/sirpdboy/sirpdboy-package/trunk/ariang feeds/packages/net/ariang
+
 # rm -rf package/diy/aria2
 # rm -rf package/diy/ariang
 # rm -rf package/diy/luci-app-aria2
@@ -20,6 +21,7 @@ sed -i 's/+qbittorrent/+qbittorrent +python3/g' ./package/lean/luci-app-qbittorr
 rm -rf package/lean/luci-app-qbittorrent
 rm -rf package/lean/qt5
 rm -rf package/lean/qBittorrent
+rm -rf package/lean/luci-app-wrtbwmon
 rm -rf package/lean/luci-app-baidupcs-web && svn co https://github.com/sirpdboy/sirpdboy-package/trunk/luci-app-baidupcs-web ./package/lean/luci-app-baidupcs-web
 
 echo '替换smartdns'
