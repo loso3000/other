@@ -23,9 +23,9 @@ rm -rf package/lean/qt5
 rm -rf package/lean/qBittorrent
 rm -rf package/lean/luci-app-wrtbwmon
 rm -rf package/lean/luci-app-baidupcs-web && svn co https://github.com/sirpdboy/sirpdboy-package/trunk/luci-app-baidupcs-web ./package/lean/luci-app-baidupcs-web
-echo "ksmbd"
-rm -rf ./feeds/packages/kernel/ksmbd && svn co https://github.com/sirpdboy/sirpdboy-package/trunk/ksmbd ./feeds/packages/kernel/ksmbd
-rm -rf ./feeds/packages/net/ksmbd-tools && svn co https://github.com/sirpdboy/sirpdboy-package/trunk/ksmbd-tools ./feeds/packages/net/ksmbd-tools
+#ksmbd
+rm -rf ./feeds/packages/kernel/ksmbd && svn co https://github.com/sirpdboy/build/trunk/ksmbd ./feeds/packages/kernel/ksmbd
+rm -rf ./feeds/packages/net/ksmbd-tools && svn co https://github.com/sirpdboy/build/trunk/ksmbd-tools ./feeds/packages/net/ksmbd-tools
 echo '替换smartdns'
 rm -rf ./feeds/packages/net/smartdns&& svn co https://github.com/sirpdboy/sirpdboy-package/trunk/smartdns ./feeds/packages/net/smartdns
 rm -rf ./package/lean/luci-app-netdata && svn co https://github.com/sirpdboy/sirpdboy-package/trunk/luci-app-netdata ./package/lean/luci-app-netdata
