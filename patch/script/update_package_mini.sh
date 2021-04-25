@@ -19,7 +19,8 @@ rm -rf ./feeds/packages/net/https-dns-proxy  && svn co https://github.com/Lienol
 #ksmbd
 rm -rf ./feeds/packages/kernel/ksmbd && svn co https://github.com/sirpdboy/build/trunk/ksmbd ./feeds/packages/kernel/ksmbd
 rm -rf ./feeds/packages/net/ksmbd-tools && svn co https://github.com/sirpdboy/build/trunk/ksmbd-tools ./feeds/packages/net/ksmbd-tools
-
+sed -i '60s/ITdesk01/sirpdboy/' ./package/jd_openwrt_script/files/jd_openwrt_script
+rm -rf ./feeds/packages/devel/ninja   && svn co https://github.com/Lienol/openwrt-packages/trunk/devel/ninja feeds/packages/devel/ninja
 rm -rf package/lean/luci-app-wrtbwmon
 #rm -rf ./package/diy/autocore
 rm -rf ./package/diy/netdata
