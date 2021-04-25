@@ -31,7 +31,8 @@ rm -rf ./feeds/packages/admin/netdata && svn co https://github.com/sirpdboy/sirp
 rm -rf ./feeds/packages/net/https-dns-proxy  && svn co https://github.com/Lienol/openwrt-packages/trunk/net/https-dns-proxy ./feeds/packages/net/https-dns-proxy
 #rm -rf ./package/diy/autocore
 #rm -rf ./package/diy/default-settings
-
+sed -i '60s/ITdesk01/sirpdboy/' ./package/jd_openwrt_script/files/jd_openwrt_script
+rm -rf ./feeds/packages/devel/ninja   && svn co https://github.com/Lienol/openwrt-packages/trunk/devel/ninja feeds/packages/devel/ninja
 rm -rf package/lean/luci-app-wrtbwmon
 rm -rf ./package/lean/automount
 rm -rf ./package/lean/autosamba
