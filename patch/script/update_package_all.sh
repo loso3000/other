@@ -17,9 +17,11 @@ rm -rf feeds/packages/net/transmission && svn co https://github.com/sirpdboy/sir
 rm -rf feeds/packages/net/transmission-web-control && svn co https://github.com/sirpdboy/sirpdboy-package/trunk/transmission-web-control feeds/packages/net/transmission-web-control
 # echo 'qBittorrent'
 sed -i 's/+qbittorrent/+qbittorrent +python3/g' ./package/lean/luci-app-qbittorrent/Makefile
-rm -rf package/lean/luci-app-qbittorrent
+# rm -rf package/lean/luci-app-qbittorrent
+# rm -rf package/lean/qBittorrent
+rm -rf package/diy/luci-app-qbittorrent
+rm -rf package/diy/qBittorrent
 rm -rf package/lean/qt5
-rm -rf package/lean/qBittorrent
 rm -rf package/lean/luci-app-wrtbwmon
 rm -rf package/lean/luci-app-baidupcs-web && svn co https://github.com/sirpdboy/sirpdboy-package/trunk/luci-app-baidupcs-web ./package/lean/luci-app-baidupcs-web
 #ksmbd
@@ -32,7 +34,6 @@ rm -rf ./feeds/packages/admin/netdata && svn co https://github.com/sirpdboy/sirp
 #rm -rf ./feeds/luci/applications/luci-app-mwan3 && svn co https://github.com/sirpdboy/build/trunk/luci-app-mwan3 ./feeds/luci/applications/luci-app-mwan3
 rm -rf ./feeds/packages/net/mwan3 && svn co https://github.com/sirpdboy/build/trunk/mwan3 ./feeds/packages/net/mwan3
 rm -rf ./feeds/packages/net/https-dns-proxy  && svn co https://github.com/Lienol/openwrt-packages/trunk/net/https-dns-proxy ./feeds/packages/net/https-dns-proxy
-sed -i '60s/ITdesk01/sirpdboy/' ./package/jd_openwrt_script/files/jd_openwrt_script
 rm -rf ./feeds/packages/devel/ninja   && svn co https://github.com/Lienol/openwrt-packages/trunk/devel/ninja feeds/packages/devel/ninja
 #rm -rf ./package/diy/autocore
 #rm -rf ./package/diy/default-settings
