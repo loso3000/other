@@ -16,11 +16,11 @@ rm -rf feeds/luci/applications/luci-app-transmission && svn co https://github.co
 rm -rf feeds/packages/net/transmission && svn co https://github.com/sirpdboy/sirpdboy-package/trunk/transmission feeds/packages/net/transmission
 rm -rf feeds/packages/net/transmission-web-control && svn co https://github.com/sirpdboy/sirpdboy-package/trunk/transmission-web-control feeds/packages/net/transmission-web-control
 # echo 'qBittorrent'
-sed -i 's/+qbittorrent/+qbittorrent +python3/g' ./package/lean/luci-app-qbittorrent/Makefile
+#sed -i 's/+qbittorrent/+qbittorrent +python3/g' ./package/lean/luci-app-qbittorrent/Makefile
 # rm -rf package/lean/luci-app-qbittorrent
 # rm -rf package/lean/qBittorrent
-rm -rf package/diy/luci-app-qbittorrent
-rm -rf package/diy/qBittorrent
+#rm -rf package/diy/luci-app-qbittorrent
+#rm -rf package/diy/qBittorrent
 rm -rf package/lean/qt5
 rm -rf package/lean/luci-app-wrtbwmon
 rm -rf package/lean/luci-app-baidupcs-web && svn co https://github.com/sirpdboy/sirpdboy-package/trunk/luci-app-baidupcs-web ./package/lean/luci-app-baidupcs-web
