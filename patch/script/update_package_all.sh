@@ -91,6 +91,8 @@ wget -P package/lean/luci-app-jd-dailybonus/root/usr/share/jd-dailybonus/ https:
 svn co https://github.com/teasiu/dragino2/trunk/devices/common/diy/package/teasiu/luci-app-phtunnel package/new/luci-app-phtunnel
 svn co https://github.com/teasiu/dragino2/trunk/devices/common/diy/package/teasiu/phtunnel package/new/phtunnel
 svn co https://github.com/QiuSimons/dragino2-teasiu/trunk/package/teasiu/luci-app-oray package/new/luci-app-oray
+
+rm -rf package/lean/luci-app-arpbind
 cp -f package/build/shortcut-fe ./package/base-files/files/etc/init.d
 
 #内核设置 甜糖
