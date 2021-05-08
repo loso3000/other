@@ -84,7 +84,7 @@ svn co https://github.com/teasiu/dragino2/trunk/devices/common/diy/package/teasi
 svn co https://github.com/QiuSimons/dragino2-teasiu/trunk/package/teasiu/luci-app-oray package/new/luci-app-oray
 
 rm -rf package/lean/luci-app-arpbind
-cp -f package/build/shortcut-fe ./package/base-files/files/etc/init.d
+#cp -f package/build/shortcut-fe ./package/base-files/files/etc/init.d
 
 # sed -i "s/60/360/g"  ./feeds/luci/applications/luci-app-uhttpd/luasrc/model/cbi/uhttpd/uhttpd.lua  #设置script_timeout 延时360的错误
 #内核 设置
