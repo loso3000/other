@@ -24,6 +24,7 @@ rm -rf ./feeds/packages/net/ksmbd-tools && svn co https://github.com/sirpdboy/bu
 rm -rf ./package/diy/netdata
 rm -rf ./package/diy/mwan3
 rm -rf ./package/lean/autocore
+rm -rf ./package/build/set/autocore
 rm -rf ./package/lean/automount
 rm -rf ./package/lean/autosamba
 rm -rf ./package/lean/luci-app-cpufreq
