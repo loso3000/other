@@ -36,6 +36,7 @@ rm -rf ./feeds/packages/net/https-dns-proxy  && svn co https://github.com/Lienol
 rm -rf ./feeds/packages/devel/ninja   && svn co https://github.com/Lienol/openwrt-packages/trunk/devel/ninja feeds/packages/devel/ninja
 #rm -rf ./package/diy/autocore
 #rm -rf ./package/diy/default-settings
+rm -rf ./package/build/set/autocore
 rm -rf ./package/lean/automount
 rm -rf ./package/lean/autosamba
 rm -rf ./package/diy/netdata
