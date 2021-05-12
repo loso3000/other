@@ -199,7 +199,6 @@ rm -rf package/lean/luci-lib-docker
 # rm -rf ./package/lean/trojan
 rm -rf ./package/lean/v2ray-plugin
 rm -rf package/diy/vssr
-./scripts/feeds update -i
 #git clone https://github.com/openwrt-dev/po2lmo.git
 #cd po2lmo
 #make && sudo make install
@@ -221,5 +220,6 @@ chmod -R 755 ./
 find ./ -name *.orig | xargs rm -f
 find ./ -name *.rej | xargs rm -f
 
+./scripts/feeds update -i
 # 生成默认配置及缓存
 rm -rf .config
