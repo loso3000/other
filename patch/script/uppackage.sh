@@ -4,6 +4,9 @@
 # 使用 O2 级别的优化
 sed -i 's/O3/O2/g' include/target.mk
 
+#echo '修改机器名称'
+#sed -i 's/OpenWrt/OpenWrt-x64/g' package/base-files/files/bin/config_generate
+
 git clone https://github.com/sirpdboy/build.git package/build
 rm -rf ./package/lean/luci-theme-argon
 rm -rf ./package/lean/luci-theme-opentomcat
@@ -50,8 +53,14 @@ rm -rf ./package/lean/default-settings
 #curl -fsSL https://raw.githubusercontent.com/loso3000/other/master/patch/autocore/files/arm/index.htm > package/lean/autocore/files/arm/index.htm
 curl -fsSL  https://raw.githubusercontent.com/loso3000/other/master/patch/default-settings/zzz-default-settings >  ./package/build/default-settings/files/zzz-default-settings
 #curl -fsSL  https://raw.githubusercontent.com/sirpdboy/sirpdboy-package/master/set/sysctl.conf > ./package/base-files/files/etc/sysctl.conf
+echo '添加关机'
+sed -i '/"action_reboot"/a\    entry({"admin","system","PowerOff"},template("admin_system/poweroff"),_("Power Off"),92)\n    entry({"admin","system","PowerOff","call"},post("PowerOff"))' \
+feeds/luci/modules/luci-mod-admin-full/luasrc/controller/admin/system.lua
+echo -e 'function PowerOff()\n  luci.util.exec("poweroff")\nend' >> \
+feeds/luci/modules/luci-mod-admin-full/luasrc/controller/admin/system.lua
 curl -fsSL  https://raw.githubusercontent.com/loso3000/other/master/patch/poweroff/poweroff.htm > ./feeds/luci/modules/luci-mod-admin-full/luasrc/view/admin_system/poweroff.htm 
-curl -fsSL  https://raw.githubusercontent.com/loso3000/other/master/patch/poweroff/system.lua > ./feeds/luci/modules/luci-mod-admin-full/luasrc/controller/admin/system.lua
+#curl -fsSL  https://raw.githubusercontent.com/loso3000/other/master/patch/poweroff/system.lua > ./feeds/luci/modules/luci-mod-admin-full/luasrc/controller/admin/system.lua
+
 sed -i 's/网络存储/存储/g' package/lean/luci-app-vsftpd/po/zh-cn/vsftpd.po
 sed -i 's/Turbo ACC 网络加速/ACC网络加速/g' package/lean/luci-app-flowoffload/po/zh-cn/flowoffload.po
 sed -i 's/Turbo ACC 网络加速/ACC网络加速/g' package/lean/luci-app-sfe/po/zh-cn/sfe.po
@@ -130,6 +139,11 @@ svn co https://github.com/xiaorouji/openwrt-passwall/trunk/luci-app-passwall pac
 sed -i 's,default n,default y,g' package/new/luci-app-passwall/Makefile
 sed -i '/V2ray:v2ray/d' package/new/luci-app-passwall/Makefile
 sed -i '/plugin:v2ray/d' package/new/luci-app-passwall/Makefile
+
+sed -i '$a\chdbits.co\n\www.cnscg.club\n\pt.btschool.club\n\et8.org\n\www.nicept.net\n\pthome.net\n\ourbits.club\n\pt.m-team.cc\n\hdsky.me\n\ccfbits.org'package/new/luci-app-passwall/root/usr/share/passwall/rules/direct_host
+sed -i '$a\docker.com\n\docker.io'package/new/luci-app-passwall/root/usr/share/passwall/rules/proxy_host
+sed -i 's/.*auto_update.*/	option auto_update 1\n	option week_update 0\n	option time_update 5/g'package/new/luci-app-passwall/root/etc/config/passwall
+sed -i '/global_subscribe/a	option subscribe_proxy 0\noption auto_update_subscribe 1\noption week_update_subscribe 7\noption time_update_subscribe 5\noption filter_keyword_discarded 1\noption allowInsecure 1' package/new/luci-app-passwall/root/etc/config/passwall
 
 svn co https://github.com/xiaorouji/openwrt-passwall/trunk/tcping package/new/tcping
 svn co https://github.com/xiaorouji/openwrt-passwall/trunk/trojan-go package/new/trojan-go
