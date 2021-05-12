@@ -56,7 +56,7 @@ curl -fsSL  https://raw.githubusercontent.com/loso3000/other/master/patch/defaul
 echo '添加关机'
 sed -i '/"action_reboot"/a\    entry({"admin","system","PowerOff"},template("admin_system/poweroff"),_("Power Off"),92)\n    entry({"admin","system","PowerOff","call"},post("PowerOff"))' \
 feeds/luci/modules/luci-mod-admin-full/luasrc/controller/admin/system.lua
-echo -e 'function PowerOff()\n  luci.util.exec("poweroff")\nend' >> \
+echo 'function PowerOff()\n  luci.util.exec("poweroff")\nend' >> \
 feeds/luci/modules/luci-mod-admin-full/luasrc/controller/admin/system.lua
 curl -fsSL  https://raw.githubusercontent.com/loso3000/other/master/patch/poweroff/poweroff.htm > ./feeds/luci/modules/luci-mod-admin-full/luasrc/view/admin_system/poweroff.htm 
 #curl -fsSL  https://raw.githubusercontent.com/loso3000/other/master/patch/poweroff/system.lua > ./feeds/luci/modules/luci-mod-admin-full/luasrc/controller/admin/system.lua
