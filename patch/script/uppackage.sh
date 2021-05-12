@@ -41,7 +41,7 @@ rm -rf ./feeds/packages/net/mwan3 && svn co https://github.com/sirpdboy/build/tr
 rm -rf ./feeds/packages/net/https-dns-proxy  && svn co https://github.com/Lienol/openwrt-packages/trunk/net/https-dns-proxy ./feeds/packages/net/https-dns-proxy
 rm -rf ./feeds/packages/devel/ninja   && svn co https://github.com/Lienol/openwrt-packages/trunk/devel/ninja feeds/packages/devel/ninja
 #rm -rf ./package/diy/autocore
-#rm -rf ./package/diy/default-settings
+rm -rf ./package/lean/luci-app-accesscontrol
 rm -rf ./package/build/set/autocore
 rm -rf ./package/lean/automount
 rm -rf ./package/lean/autosamba
