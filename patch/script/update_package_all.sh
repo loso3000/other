@@ -134,6 +134,11 @@ sed -i 's,default n,default y,g' package/new/luci-app-passwall/Makefile
 sed -i '/V2ray:v2ray/d' package/new/luci-app-passwall/Makefile
 sed -i '/plugin:v2ray/d' package/new/luci-app-passwall/Makefile
 
+sed -i '$a\chdbits.co\n\www.cnscg.club\n\pt.btschool.club\n\et8.org\n\www.nicept.net\n\pthome.net\n\ourbits.club\n\pt.m-team.cc\n\hdsky.me\n\ccfbits.org'package/new/luci-app-passwall/root/usr/share/passwall/rules/direct_host
+sed -i '$a\docker.com\n\docker.io'package/new/luci-app-passwall/root/usr/share/passwall/rules/proxy_host
+sed -i 's/.*auto_update.*/	option auto_update 1\n	option week_update 0\n	option time_update 5/g'package/new/luci-app-passwall/root/etc/config/passwall
+sed -i '/global_subscribe/a	option subscribe_proxy 0\noption auto_update_subscribe 1\noption week_update_subscribe 7\noption time_update_subscribe 5\noption filter_keyword_discarded 1\noption allowInsecure 1' package/new/luci-app-passwall/root/etc/config/passwall
+
 svn co https://github.com/xiaorouji/openwrt-passwall/trunk/tcping package/new/tcping
 svn co https://github.com/xiaorouji/openwrt-passwall/trunk/trojan-go package/new/trojan-go
 svn co https://github.com/xiaorouji/openwrt-passwall/trunk/brook package/new/brook
