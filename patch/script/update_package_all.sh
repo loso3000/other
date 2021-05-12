@@ -104,8 +104,8 @@ cat ./package/build/set/Config-kernel.in   > ./config/Config-kernel.in
 echo  'CONFIG_BINFMT_MISC=y' >> ./package/target/linux/x86/config-5.4
 ##sed -i '/CONFIG_NVME_MULTIPATH /d' ./package/target/linux/x86/config-5.4
 #sed -i '/CONFIG_NVME_TCP /d' ./package/target/linux/x86/config-5.4
-#echo  'CONFIG_EXTRA_FIRMWARE="i915/kbl_dmc_ver1_04.bin"'   >> ./package/target/linux/x86/config-5.4
-#echo  'CONFIG_EXTRA_FIRMWARE_DIR="/lib/firmware"'  >> ./package/target/linux/x86/config-5.4
+echo  'CONFIG_EXTRA_FIRMWARE="i915/kbl_dmc_ver1_04.bin"'   >> ./package/target/linux/x86/config-5.4
+echo  'CONFIG_EXTRA_FIRMWARE_DIR="/lib/firmware"'  >> ./package/target/linux/x86/config-5.4
 #echo  'CONFIG_NVME_FABRICS=y'  >> ./package/target/linux/x86/config-5.4
 #echo  'CONFIG_NVME_FC=y' >> ./package/target/linux/x86/config-5.4
 #echo  'CONFIG_NVME_MULTIPATH=y' >> ./package/target/linux/x86/config-5.4
