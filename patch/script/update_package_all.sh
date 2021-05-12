@@ -44,6 +44,7 @@ rm -rf ./package/lean/automount
 rm -rf ./package/lean/autosamba
 rm -rf ./package/diy/netdata
 rm -rf ./package/build/mwan3
+rm -rf ./package/lean/luci-app-accesscontrol
 rm -rf ./package/lean/autocore
 rm -rf ./package/lean/default-settings
 #curl -fsSL  https://raw.githubusercontent.com/sirpdboy/sirpdboy-package/master/set/sysctl.conf > ./package/base-files/files/etc/sysctl.conf
