@@ -209,9 +209,6 @@ sed -i '/Rust:/d' package/lean/luci-app-ssr-plus/Makefile
 sed -i '/Rust:/d' package/new/luci-app-passwall/Makefile
 sed -i '/Rust:/d' package/lean/luci-app-vssr/Makefile
 
-chmod -R 755 ./
-find ./ -name *.orig | xargs rm -f
-find ./ -name *.rej | xargs rm -f
 ### 最后的收尾工作 ###
 # Lets Fuck
 mkdir package/base-files/files/usr/bin
@@ -219,5 +216,10 @@ cp -f  package/build/set/fuck package/base-files/files/usr/bin/fuck
 cp -f package/build/set/chinadnslist package/base-files/files/usr/bin/chinadnslist
 # 最大连接数
 sed -i 's/16384/65535/g' package/kernel/linux/files/sysctl-nf-conntrack.conf
+
+chmod -R 755 ./
+find ./ -name *.orig | xargs rm -f
+find ./ -name *.rej | xargs rm -f
+
 # 生成默认配置及缓存
 rm -rf .config
