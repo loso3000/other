@@ -1,6 +1,9 @@
 #!/bin/bash
 #=================================================
 # Description: Build OpenWrt using GitHub Actions
+# 使用 O2 级别的优化
+sed -i 's/O3/O2/g' include/target.mk
+
 git clone https://github.com/sirpdboy/build.git package/build
 rm -rf ./package/lean/luci-theme-argon
 rm -rf ./package/lean/luci-theme-opentomcat
@@ -114,21 +117,71 @@ echo  'CONFIG_BINFMT_MISC=y' >> ./package/target/linux/x86/config-5.4
 #git clone https://github.com/garypang13/luci-app-dnsfilter.git package/luci-app-dnsfilter
 #rm -rf package/lean/luci-app-jd-dailybonus && git clone https://github.com/jerrykuku/luci-app-jd-dailybonus.git package/diy/luci-app-jd-dailybonus
 svn co https://github.com/vernesong/OpenClash/trunk/luci-app-openclash package/diy/luci-app-openclash
-git clone https://github.com/xiaorouji/openwrt-passwall package/diy1
+
 #git clone https://github.com/AlexZhuo/luci-app-bandwidthd /package/diy/luci-app-bandwidthd
 git clone -b master --single-branch https://github.com/tty228/luci-app-serverchan ./package/diy/luci-app-serverchan
 git clone -b master --single-branch https://github.com/destan19/OpenAppFilter ./package/diy/OpenAppFilter
 
-svn co https://github.com/fw876/helloworld/trunk/luci-app-ssr-plus  package/diy/luci-app-ssr-plus
+# Passwall
+svn co https://github.com/xiaorouji/openwrt-passwall/trunk/luci-app-passwall package/new/luci-app-passwall
+sed -i 's,default n,default y,g' package/new/luci-app-passwall/Makefile
+sed -i '/V2ray:v2ray/d' package/new/luci-app-passwall/Makefile
+sed -i '/plugin:v2ray/d' package/new/luci-app-passwall/Makefile
+
+svn co https://github.com/xiaorouji/openwrt-passwall/trunk/tcping package/new/tcping
+svn co https://github.com/xiaorouji/openwrt-passwall/trunk/trojan-go package/new/trojan-go
+svn co https://github.com/xiaorouji/openwrt-passwall/trunk/brook package/new/brook
+svn co https://github.com/xiaorouji/openwrt-passwall/trunk/trojan-plus package/new/trojan-plus
+svn co https://github.com/xiaorouji/openwrt-passwall/trunk/ssocks package/new/ssocks
+svn co https://github.com/xiaorouji/openwrt-passwall/trunk/xray-core package/new/xray-core
+svn co https://github.com/xiaorouji/openwrt-passwall/trunk/v2ray-plugin package/new/v2ray-plugin
+svn co https://github.com/xiaorouji/openwrt-passwall/trunk/xray-plugin package/new/xray-plugin
+
+# ShadowsocksR Plus+
+svn co https://github.com/fw876/helloworld/trunk/luci-app-ssr-plus package/lean/luci-app-ssr-plus
+rm -rf ./package/lean/luci-app-ssr-plus/po/zh_Hans
 sed -i '/status/am:section(SimpleSection).template = "openclash/myip"' ./package/diy/luci-app-ssr-plus/luasrc/model/cbi/shadowsocksr/client.lua
+svn co https://github.com/fw876/helloworld/trunk/naiveproxy package/lean/naiveproxy
+svn co https://github.com/fw876/helloworld/trunk/v2ray-core package/lean/v2ray-core
+svn co https://github.com/immortalwrt/packages/trunk/net/shadowsocks-rust package/lean/shadowsocks-rust
+#svn co https://github.com/fw876/helloworld/trunk/shadowsocks-rust package/lean/shadowsocks-rust
+rm -rf package/lean/shadowsocksr-libev  && svn co https://github.com/fw876/helloworld/trunk/shadowsocksr-libev package/lean/shadowsocksr-libev
+pushd package/lean
+#wget -qO - https://github.com/fw876/helloworld/pull/513.patch | patch -p1
+wget -qO - https://github.com/QiuSimons/helloworld-fw876/commit/c1674ad.patch | patch -p1
+popd
+pushd package/lean/luci-app-ssr-plus
+sed -i 's,default n,default y,g' Makefile
+sed -i 's,Xray:xray ,Xray:xray-core ,g' Makefile
+sed -i '/V2ray:v2ray/d' Makefile
+sed -i '/plugin:v2ray/d' Makefile
+#sed -i '/result.encrypt_method/a\result.fast_open = "1"' root/usr/share/shadowsocksr/subscribe.lua
+sed -i 's,ispip.clang.cn/all_cn,cdn.jsdelivr.net/gh/QiuSimons/Chnroute@master/dist/chnroute/chnroute,' root/etc/init.d/shadowsocksr
+sed -i 's,YW5vbnltb3Vz/domain-list-community/release/gfwlist.txt,Loyalsoldier/v2ray-rules-dat/release/gfw.txt,' root/etc/init.d/shadowsocksr luasrc/model/cbi/shadowsocksr/advanced.lua
+sed -i '/Clang.CN.CIDR/a\o:value("https://cdn.jsdelivr.net/gh/QiuSimons/Chnroute@master/dist/chnroute/chnroute.txt", translate("QiuSimons/Chnroute"))' luasrc/model/cbi/shadowsocksr/advanced.lua
+popd
 
-svn co https://github.com/jerrykuku/luci-app-vssr/trunk/  package/diy/luci-app-vssr
+# 订阅转换
+svn co https://github.com/immortalwrt/packages/trunk/net/subconverter package/new/subconverter
+svn co https://github.com/immortalwrt/packages/trunk/libs/jpcre2 package/new/jpcre2
+svn co https://github.com/immortalwrt/packages/trunk/libs/rapidjson package/new/rapidjson
+svn co https://github.com/immortalwrt/packages/trunk/libs/libcron package/new/libcron
+svn co https://github.com/immortalwrt/packages/trunk/libs/quickjspp package/new/quickjspp
 
-#sed -i '/get("@global_other/i\m:section(SimpleSection).template = "openclash/myip"' package/diy1/luci-app-passwall/luasrc/model/cbi/passwall/client/global.lua
-#else
-#	cp -vr package/diy/myip.htm ./package/hw/luci-app-ssr-plus/luasrc/view
-#	sed -i '/status/am:section(SimpleSection).template = "myip"'  ./package/hw/luci-app-ssr-plus/luasrc/model/cbi/shadowsocksr/client.lua
-#	sed -i '/get("@global_other/i\m:section(SimpleSection).template = "myip"'  package/diy1/luci-app-passwall/luasrc/model/cbi/passwall/client/global.lua
+#svn co https://github.com/jerrykuku/luci-app-vssr/trunk/  package/diy/luci-app-vssr
+# VSSR
+git clone -b master --depth 1 https://github.com/jerrykuku/luci-app-vssr.git package/lean/luci-app-vssr
+git clone -b master --depth 1 https://github.com/jerrykuku/lua-maxminddb.git package/lean/lua-maxminddb
+sed -i 's,default n,default y,g' package/lean/luci-app-vssr/Makefile
+sed -i '/V2ray:v2ray/d' package/lean/luci-app-vssr/Makefile
+sed -i '/plugin:v2ray/d' package/lean/luci-app-vssr/Makefile
+sed -i 's,+shadowsocksr-libev-alt ,,g' package/lean/luci-app-vssr/Makefile
+sed -i '/Server:shadowsocksr-libev-server/d' package/lean/luci-app-vssr/Makefile
+sed -i 's,xray\-plugin \\,xray\-plugin,g' package/lean/luci-app-vssr/Makefile
+sed -i '/result.encrypt_method/a\result.fast_open = "1"' package/lean/luci-app-vssr/root/usr/share/vssr/subscribe.lua
+sed -i 's,ispip.clang.cn/all_cn.txt,raw.sevencdn.com/QiuSimons/Chnroute/master/dist/chnroute/chnroute.txt,g' package/lean/luci-app-vssr/luasrc/controller/vssr.lua
+sed -i 's,ispip.clang.cn/all_cn.txt,raw.sevencdn.com/QiuSimons/Chnroute/master/dist/chnroute/chnroute.txt,g' package/lean/luci-app-vssr/root/usr/share/vssr/update.lua
+
 # git clone https://github.com/jerrykuku/luci-app-ttnode.git     package/diy/luci-app-ttnode
 # svn co https://github.com/jerrykuku/luci-app-ttnode/trunk/  package/diy/luci-app-ttnode
 # sed -i 's/KERNEL_PATCHVER:=5.4/KERNEL_PATCHVER:=4.19/g' ./target/linux/x86/Makefile
@@ -142,15 +195,29 @@ svn co https://github.com/jerrykuku/luci-app-vssr/trunk/  package/diy/luci-app-v
 rm -rf package/lean/luci-app-docker
 rm -rf package/lean/luci-app-dockerman
 rm -rf package/lean/luci-lib-docker
-# rm -rf ./package/diy1/trojan
-# rm -rf ./package/diy1/v2ray
-# rm -rf ./package/diy1/v2ray-plugin
 #  rm -rf package/lean/parted
-# rm -rf package/diy1/tcping
-rm -rf ./package/lean/trojan
+# rm -rf ./package/lean/trojan
 rm -rf ./package/lean/v2ray-plugin
 rm -rf package/diy/vssr
 ./scripts/feeds update -i
 #git clone https://github.com/openwrt-dev/po2lmo.git
 #cd po2lmo
 #make && sudo make install
+
+# 在 X86 架构下移除 Shadowsocks-rust
+sed -i '/Rust:/d' package/lean/luci-app-ssr-plus/Makefile
+sed -i '/Rust:/d' package/new/luci-app-passwall/Makefile
+sed -i '/Rust:/d' package/lean/luci-app-vssr/Makefile
+
+chmod -R 755 ./
+find ./ -name *.orig | xargs rm -f
+find ./ -name *.rej | xargs rm -f
+### 最后的收尾工作 ###
+# Lets Fuck
+mkdir package/base-files/files/usr/bin
+cp -f  package/build/set/fuck package/base-files/files/usr/bin/fuck
+cp -f package/build/set/chinadnslist package/base-files/files/usr/bin/chinadnslist
+# 最大连接数
+sed -i 's/16384/65535/g' package/kernel/linux/files/sysctl-nf-conntrack.conf
+# 生成默认配置及缓存
+rm -rf .config
