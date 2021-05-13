@@ -131,8 +131,8 @@ git clone -b master --single-branch https://github.com/destan19/OpenAppFilter ./
 
 # Passwall
 svn co https://github.com/xiaorouji/openwrt-passwall/trunk/package package/passwall
-# svn co https://github.com/xiaorouji/openwrt-passwall/trunk/luci-app-passwall package/new/luci-app-passwall
-sed -i 's,default n,default y,g' package/new/luci-app-passwall/Makefile
+# svn co https://github.com/xiaorouji/openwrt-passwall/trunk/luci-app-passwall package/passwall/luci-app-passwall
+sed -i 's,default n,default y,g' package/passwall/luci-app-passwall/Makefile
 sed -i '/V2ray:v2ray/d' package/passwall/luci-app-passwall/Makefile
 sed -i '/plugin:v2ray/d' package/passwall/luci-app-passwall/Makefile
 
