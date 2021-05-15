@@ -3,8 +3,8 @@
 # Description: Build OpenWrt using GitHub Actions
 # 使用 O2 级别的优化
 sed -i 's/O3/O2/g' include/target.mk
-
 git clone https://github.com/sirpdboy/build.git package/build
+
 rm -rf ./package/lean/luci-theme-argon
 rm -rf ./package/lean/luci-theme-opentomcat
 # echo '替换aria2'
@@ -122,7 +122,17 @@ echo  'CONFIG_EXTRA_FIRMWARE_DIR="/lib/firmware"'  >> ./package/target/linux/x86
 #git clone https://github.com/garypang13/luci-app-dnsfilter.git package/luci-app-dnsfilter
 
 #rm -rf package/lean/luci-app-jd-dailybonus && git clone https://github.com/jerrykuku/luci-app-jd-dailybonus.git package/diy/luci-app-jd-dailybonus
+
 svn co https://github.com/vernesong/OpenClash/trunk/luci-app-openclash package/diy/luci-app-openclash
+#mkdir -p files/etc/openclash/core
+#open_clash_main_url=$(curl -sL https://api.github.com/repos/vernesong/OpenClash/releases/tags/Clash | grep /clash-linux-$1 | sed 's/.*url\": \"//g' | sed 's/\"//g')
+# offical_clash_main_url=$(curl -sL https://api.github.com/repos/Dreamacro/clash/releases/tags/v1.3.5 | grep /clash-linux-$1 | sed 's/.*url\": \"//g' | sed 's/\"//g')
+#clash_tun_url=$(curl -sL https://api.github.com/repos/vernesong/OpenClash/releases/tags/TUN-Premium | grep /clash-linux-$1 | sed 's/.*url\": \"//g' | sed 's/\"//g')
+#clash_game_url=$(curl -sL https://api.github.com/repos/vernesong/OpenClash/releases/tags/TUN | grep /clash-linux-$1 | sed 's/.*url\": \"//g' | sed 's/\"//g')
+#wget -qO- $open_clash_main_url | tar xOvz > files/etc/openclash/core/clash
+#wget -qO- $clash_tun_url | gunzip -c > files/etc/openclash/core/clash_tun
+#wget -qO- $clash_game_url | tar xOvz > files/etc/openclash/core/clash_game
+#chmod +x files/etc/openclash/core/clash*
 
 #git clone https://github.com/AlexZhuo/luci-app-bandwidthd /package/diy/luci-app-bandwidthd
 git clone -b master --single-branch https://github.com/tty228/luci-app-serverchan ./package/diy/luci-app-serverchan
@@ -206,6 +216,21 @@ sed -i 's/16384/65535/g' package/kernel/linux/files/sysctl-nf-conntrack.conf
 
 find ./ -name *.orig | xargs rm -f
 find ./ -name *.rej | xargs rm -f
+
+# Remove some default packages
+# sed -i 's/luci-app-ddns//g;s/luci-app-upnp//g;s/luci-app-adbyby-plus//g;s/luci-app-vsftpd//g;s/luci-app-ssr-plus//g;s/luci-app-unblockmusic//g;s/luci-app-vlmcsd//g;s/luci-app-wol//g;s/luci-app-nlbwmon//g;s/luci-app-accesscontrol//g' include/target.mk
+# Mod zzz-default-settings
+
+#sed -i '/http/d' package/build/default-settings/files/zzz-default-settings
+#sed -i '/openwrt_luci/d' package/build/default-settings/files/zzz-default-settings
+
+# Fix SDK
+sed -i '/$(SDK_BUILD_DIR)\/$(STAGING_SUBDIR_HOST)\/usr\/bin/d;/LICENSE/d' target/sdk/Makefile
+
+# Disable opkg signature check
+sed -i 's/option check_signature/# option check_signature/g' /etc/opkg.conf
+# Add execute permission for ipv6-helper
+#chmod +x /bin/ipv6-helper
 
 ./scripts/feeds update -i
 # 生成默认配置及缓存
