@@ -50,9 +50,10 @@ rm -rf package/lean/luci-app-arpbind
 rm -rf package/lean/luci-app-docker
 rm -rf package/lean/luci-app-dockerman
 rm -rf package/lean/luci-lib-docker
-#  rm -rf package/lean/parted
-# rm -rf ./package/lean/trojan
-rm -rf ./package/lean/v2ray-plugin
+rm -rf ./package/lean/trojan
+rm -rf package/build/openwrt-fullconenat
+rm -rf ./package/build/shortcut-fe
+rm -rf ./package/build/dnsforwarder
 # Boost 通用即插即用
 # sed -i 's,api.ipify.org,myip.ipip.net/s,g' ./package/build/luci-app-boostupnp/root/usr/sbin/boostupnp.sh
 # rm -rf ./feeds/packages/net/miniupnpd   && svn co https://github.com/openwrt/packages/trunk/net/miniupnpd feeds/packages/net/miniupnpd
