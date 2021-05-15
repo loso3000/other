@@ -38,10 +38,10 @@ rm -rf ./feeds/packages/net/mwan3 && svn co https://github.com/sirpdboy/build/tr
 rm -rf ./feeds/packages/net/https-dns-proxy  && svn co https://github.com/Lienol/openwrt-packages/trunk/net/https-dns-proxy ./feeds/packages/net/https-dns-proxy
 rm -rf ./feeds/packages/devel/ninja   && svn co https://github.com/Lienol/openwrt-packages/trunk/devel/ninja feeds/packages/devel/ninja
 #rm -rf ./package/diy/autocore
+rm -rf ./package/build/mwan3
 rm -rf ./package/build/set/autocore
 rm -rf ./package/lean/automount
 rm -rf ./package/lean/autosamba
-rm -rf ./package/build/mwan3
 rm -rf ./package/lean/luci-app-accesscontrol
 rm -rf ./package/lean/autocore
 rm -rf ./package/lean/default-settings
@@ -50,9 +50,11 @@ rm -rf package/lean/luci-app-arpbind
 rm -rf package/lean/luci-app-docker
 rm -rf package/lean/luci-app-dockerman
 rm -rf package/lean/luci-lib-docker
-#  rm -rf package/lean/parted
-# rm -rf ./package/lean/trojan
-rm -rf ./package/lean/v2ray-plugin
+rm -rf ./package/lean/trojan
+rm -rf package/build/openwrt-fullconenat
+rm -rf ./package/build/shortcut-fe
+rm -rf ./package/build/dnsforwarder
+
 # Boost 通用即插即用
 # sed -i 's,api.ipify.org,myip.ipip.net/s,g' ./package/build/luci-app-boostupnp/root/usr/sbin/boostupnp.sh
 # rm -rf ./feeds/packages/net/miniupnpd   && svn co https://github.com/openwrt/packages/trunk/net/miniupnpd feeds/packages/net/miniupnpd
