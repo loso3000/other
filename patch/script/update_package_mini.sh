@@ -51,9 +51,15 @@ rm -rf package/lean/luci-app-docker
 rm -rf package/lean/luci-app-dockerman
 rm -rf package/lean/luci-lib-docker
 rm -rf ./package/lean/trojan
-rm -rf package/build/openwrt-fullconenat
-rm -rf ./package/build/shortcut-fe
-rm -rf ./package/build/dnsforwarder
+rm -rf package/lean/openwrt-fullconenat
+rm -rf ./package/lean/shortcut-fe
+rm -rf ./package/lean/dnsforwarder
+rm -rf feeds/luci/applications/luci-app-samba && svn co https://github.com/sirpdboy/sirpdboy-package/trunk/luci-app-samba feeds/luci/applications/luci-app-samba
+rm -rf ./package/network/services/samba36 && svn co https://github.com/sirpdboy/sirpdboy-package/trunk/samba36 ./package/network/services/samba36
+rm -rf ./package/lean/samba4
+rm -rf ./feeds/package/net/samba4 && svn co https://github.com/sirpdboy/sirpdboy-package/trunk/samba4 ./feeds/package/net/samba4
+rm -rf ./package/lean/luci-app-samba4
+
 # Boost 通用即插即用
 # sed -i 's,api.ipify.org,myip.ipip.net/s,g' ./package/build/luci-app-boostupnp/root/usr/sbin/boostupnp.sh
 # rm -rf ./feeds/packages/net/miniupnpd   && svn co https://github.com/openwrt/packages/trunk/net/miniupnpd feeds/packages/net/miniupnpd
@@ -104,8 +110,8 @@ echo '---------------------------------' >> ./package/base-files/files/etc/banne
 
 
 #内核设置 甜糖
-cat ./package/build/set/Config-kernel.in   > ./config/Config-kernel.in
-echo  'CONFIG_BINFMT_MISC=y' >> ./package/target/linux/x86/config-5.4
+# cat ./package/build/set/Config-kernel.in   > ./config/Config-kernel.in
+# echo  'CONFIG_BINFMT_MISC=y' >> ./package/target/linux/x86/config-5.4
 ##sed -i '/CONFIG_NVME_MULTIPATH /d' ./package/target/linux/x86/config-5.4
 #sed -i '/CONFIG_NVME_TCP /d' ./package/target/linux/x86/config-5.4
 #echo  'CONFIG_EXTRA_FIRMWARE="i915/kbl_dmc_ver1_04.bin"'   >> ./package/target/linux/x86/config-5.4
