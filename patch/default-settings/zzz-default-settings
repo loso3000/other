@@ -8,10 +8,13 @@ uci set system.@system[0].zonename=Asia/Shanghai
 uci commit system
 uci set fstab.@global[0].anon_mount='1'
 uci commit fstab
+uci set upnpd.@upnpd[0].enabled='1'
+uci set upnpd.@upnpd[0].igdv1='1'
+uci commit upnpd
 uci set dhcp.@dnsmasq[0].filter_aaaa='1'
 #  uci set dhcp.@dnsmasq[0].cachesize='10000'
 uci commit dhcp
-uci set network.@globals[0].ula_prefix=''
+# uci set network.@globals[0].ula_prefix=''
 uci set network.@wan[0].mtu=1400
 uci commit network
 uci set sfe.config.enabled=0
