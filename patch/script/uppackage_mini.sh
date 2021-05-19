@@ -2,7 +2,7 @@
 #=================================================
 # Description: Build OpenWrt using GitHub Actions
 # 使用 O2 级别的优化
-sed -i 's/O3/O2/g' include/target.mk
+# sed -i 's/O3/O2/g' include/target.mk
 
 git clone https://github.com/sirpdboy/build.git package/build
 rm -rf ./package/lean/luci-theme-argon
@@ -51,9 +51,15 @@ rm -rf package/lean/luci-app-docker
 rm -rf package/lean/luci-app-dockerman
 rm -rf package/lean/luci-lib-docker
 rm -rf ./package/lean/trojan
-rm -rf package/build/openwrt-fullconenat
-rm -rf ./package/build/shortcut-fe
-rm -rf ./package/build/dnsforwarder
+rm -rf package/lean/openwrt-fullconenat
+rm -rf ./package/lean/shortcut-fe
+rm -rf ./package/lean/dnsforwarder
+rm -rf feeds/luci/applications/luci-app-samba && svn co https://github.com/sirpdboy/sirpdboy-package/trunk/luci-app-samba feeds/luci/applications/luci-app-samba
+rm -rf ./package/network/services/samba36 && svn co https://github.com/sirpdboy/sirpdboy-package/trunk/samba36 ./package/network/services/samba36
+rm -rf ./package/lean/samba4
+rm -rf ./feeds/package/net/samba4 && svn co https://github.com/sirpdboy/sirpdboy-package/trunk/samba4 ./feeds/package/net/samba4
+rm -rf ./package/lean/luci-app-samba4
+
 # Boost 通用即插即用
 # sed -i 's,api.ipify.org,myip.ipip.net/s,g' ./package/build/luci-app-boostupnp/root/usr/sbin/boostupnp.sh
 # rm -rf ./feeds/packages/net/miniupnpd   && svn co https://github.com/openwrt/packages/trunk/net/miniupnpd feeds/packages/net/miniupnpd
