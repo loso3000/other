@@ -51,7 +51,7 @@ rm -rf package/lean/luci-app-docker
 rm -rf package/lean/luci-app-dockerman
 rm -rf package/lean/luci-lib-docker
 rm -rf ./package/lean/trojan
-rm -rf package/lean/openwrt-fullconenat
+rm -rf package/build/openwrt-fullconenat
 rm -rf ./package/lean/shortcut-fe
 rm -rf ./package/lean/dnsforwarder
 rm -rf feeds/luci/applications/luci-app-samba && svn co https://github.com/sirpdboy/sirpdboy-package/trunk/luci-app-samba feeds/luci/applications/luci-app-samba
