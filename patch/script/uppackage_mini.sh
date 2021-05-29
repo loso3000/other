@@ -2,7 +2,7 @@
 #=================================================
 # Description: Build OpenWrt using GitHub Actions
 # 使用 O2 级别的优化
-# sed -i 's/O3/O2/g' include/target.mk
+sed -i 's/O3/O2/g' include/target.mk
 
 git clone https://github.com/sirpdboy/build.git package/build
 rm -rf ./package/lean/luci-theme-argon
@@ -108,12 +108,17 @@ echo '---------------------------------' >> ./package/base-files/files/etc/banne
 
 # cp -f package/build/shortcut-fe ./package/base-files/files/etc/init.d   21.02
 # 默认开启 Irqbalance
-# sed -i "s/enabled '0'/enabled '1'/g" feeds/packages/utils/irqbalance/files/irqbalance.config
+sed -i "s/enabled '0'/enabled '1'/g" feeds/packages/utils/irqbalance/files/irqbalance.config
 
 
 #内核设置 甜糖
 #cat ./package/build/set/Config-kernel.in   > ./config/Config-kernel.in
 #echo  'CONFIG_BINFMT_MISC=y' >> ./package/target/linux/x86/config-5.4
+
+#内核设置 甜糖
+# find target/linux -path "target/linux/*/config-*" | xargs -i sed -i '$a CONFIG_ACPI=y\nCONFIG_X86_ACPI_CPUFREQ=y\n \
+# CONFIG_NR_CPUS=128\nCONFIG_FAT_DEFAULT_IOCHARSET="utf8"\nCONFIG_CRYPTO_CHACHA20_NEON=y\nCONFIG_CRYPTO_CHACHA20POLY1305=y\nCONFIG_BINFMT_MISC=y' {}
+
 ##sed -i '/CONFIG_NVME_MULTIPATH /d' ./package/target/linux/x86/config-5.4
 #sed -i '/CONFIG_NVME_TCP /d' ./package/target/linux/x86/config-5.4
 #echo  'CONFIG_EXTRA_FIRMWARE="i915/kbl_dmc_ver1_04.bin"'   >> ./package/target/linux/x86/config-5.4
