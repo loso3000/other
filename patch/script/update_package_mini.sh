@@ -2,7 +2,7 @@
 #=================================================
 # Description: Build OpenWrt using GitHub Actions
 # 使用 O2 级别的优化
-# sed -i 's/O3/O2/g' include/target.mk
+sed -i 's/O3/O2/g' include/target.mk
 
 git clone https://github.com/sirpdboy/build.git package/build
 rm -rf ./package/lean/luci-theme-argon
@@ -108,7 +108,7 @@ echo '---------------------------------' >> ./package/base-files/files/etc/banne
 
 # cp -f package/build/shortcut-fe ./package/base-files/files/etc/init.d   21.02
 # 默认开启 Irqbalance
-# sed -i "s/enabled '0'/enabled '1'/g" feeds/packages/utils/irqbalance/files/irqbalance.config
+sed -i "s/enabled '0'/enabled '1'/g" feeds/packages/utils/irqbalance/files/irqbalance.config
 
 
 #内核设置 甜糖
@@ -122,6 +122,10 @@ echo '---------------------------------' >> ./package/base-files/files/etc/banne
 #echo  'CONFIG_NVME_FC=y' >> ./package/target/linux/x86/config-5.4
 #echo  'CONFIG_NVME_MULTIPATH=y' >> ./package/target/linux/x86/config-5.4
 #echo  'CONFIG_NVME_TCP=y' >> ./package/target/linux/x86/config-5.4
+
+#内核设置 甜糖
+# find target/linux -path "target/linux/*/config-*" | xargs -i sed -i '$a CONFIG_ACPI=y\nCONFIG_X86_ACPI_CPUFREQ=y\n \
+# CONFIG_NR_CPUS=128\nCONFIG_FAT_DEFAULT_IOCHARSET="utf8"\nCONFIG_CRYPTO_CHACHA20_NEON=y\nCONFIG_CRYPTO_CHACHA20POLY1305=y\nCONFIG_BINFMT_MISC=y' {}
 
 #git clone https://github.com/garypang13/luci-app-bypass.git package/luci-app-bypass
 #find package/*/ feeds/*/ -maxdepth 2 -path "*luci-app-bypass/Makefile" | xargs -i sed -i 's/shadowsocksr-libev-ssr-redir/shadowsocksr-libev-alt/g' {}
