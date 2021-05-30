@@ -48,20 +48,24 @@ jobs:
           REPO_BRANCH: master
         run: |
           git clone --depth 1 $REPO_URL -b $REPO_BRANCH openwrt
+          echo "DATE=$(date "+%Y-%m-%d %H:%M:%S")" >> $GITHUB_ENV
+          echo "tag_name=$(date +%Y%m%d)" >> $GITHUB_ENV
           cd openwrt
           #sed -i 's/coolsnowwolf/sirpdboy/g' ./feeds.conf.default
           git clone https://github.com/sirpdboy/sirpdboy-package package/diy
-          ./scripts/feeds update -a
+      - name: Update feeds
+        working-directory: ./openwrt
+        run: |
+          ./scripts/feeds update -a  && ./scripts/feeds install -a
       - name: Update package
         working-directory: ./openwrt
         run: |
           curl -fsSL https://raw.githubusercontent.com/loso3000/other/master/patch/script/update_package_mini.sh | sh
-          ./scripts/feeds install -a
           chmod -R 775 .
       - name: Generate configuration file
         working-directory: ./openwrt
         run: |
-          curl -fsSL https://raw.githubusercontent.com/loso3000/other/master/patch/x86-64/config-x86mini > .config
+          curl -fsSL https://raw.githubusercontent.com/loso3000/other/master/patch/x86-64/config-x86mini  | sh
           sed -i 's/192.168.1.1/192.168.10.1/g' package/base-files/files/bin/config_generate
           make defconfig
       - name: Make download
