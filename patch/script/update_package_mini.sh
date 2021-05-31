@@ -102,6 +102,7 @@ sed -i '/filter_/d' package/network/services/dnsmasq/files/dhcp.conf   #DHCPç¦ç
 
 cp -f ./package/build/banner ./package/base-files/files/etc/
 date1='${version} Ipv6-Mini-S'`TZ=UTC-8 date +%Y.%m.%d -d +"8"hour`
+date1='Ipv6-Mini-S'`TZ=UTC-8 date +%Y.%m.%d -d +"8"hour`
 sed -i 's/$(VERSION_DIST_SANITIZED)/$(shell TZ=UTC-8 date +%Y%m%d -d +8hour)-Ipv6-Mini/g' include/image.mk
 echo "DISTRIB_REVISION='${date1} by Sirpdboy'" > ./package/base-files/files/etc/openwrt_release1
 echo ${date1}' by Sirpdboy ' >> ./package/base-files/files/etc/banner
