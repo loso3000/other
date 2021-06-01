@@ -100,6 +100,8 @@ sed -i '/mcsub_renew.datatype/d'  feeds/luci/applications/luci-app-udpxy/luasrc/
 sed -i 's/root::0:0:99999:7:::/root:$1$V4UetPzk$CYXluq4wUazHjmCDBCqXF.:0:0:99999:7:::/g' ./package/base-files/files/etc/shadow
 sed -i '/filter_/d' package/network/services/dnsmasq/files/dhcp.conf   #DHCP禁用IPV6问题
 
+echo '默认开启 Irqbalance'
+sed -i "s/enabled '0'/enabled '1'/g" feeds/packages/utils/irqbalance/files/irqbalance.config
 cp -f ./package/build/banner ./package/base-files/files/etc/
 # date1='${version} Ipv6-S'`TZ=UTC-8 date +%Y.%m.%d -d +"8"hour`
 date1='Ipv6-S'`TZ=UTC-8 date +%Y.%m.%d -d +"8"hour`
@@ -109,8 +111,6 @@ echo ${date1}' by Sirpdboy ' >> ./package/base-files/files/etc/banner
 echo '---------------------------------' >> ./package/base-files/files/etc/banner
 
 # cp -f package/build/shortcut-fe ./package/base-files/files/etc/init.d   21.02
-# 默认开启 Irqbalance
-# sed -i "s/enabled '0'/enabled '1'/g" feeds/packages/utils/irqbalance/files/irqbalance.config
 
 
 #内核设置 甜糖
