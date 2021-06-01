@@ -52,15 +52,15 @@ rm -rf package/lean/luci-app-docker
 rm -rf package/lean/luci-app-dockerman
 rm -rf package/lean/luci-lib-docker
 rm -rf ./package/lean/trojan
-rm -rf package/lean/openwrt-fullconenat && svn co https://github.com/sirpdboy/sirpdboy-package/trunk/openwrt-fullconenat package/lean/openwrt-fullconenat
+rm -rf package/lean/openwrt-fullconenat && svn co https://github.com/sirpdboy/build/trunk/openwrt-fullconenat package/lean/openwrt-fullconenat
 rm -rf ./package/lean/shortcut-fe
 rm -rf ./package/lean/dnsforwarder
-rm -rf feeds/luci/applications/luci-app-samba && svn co https://github.com/sirpdboy/sirpdboy-package/trunk/luci-app-samba feeds/luci/applications/luci-app-samba
-rm -rf ./package/network/services/samba36 && svn co https://github.com/sirpdboy/sirpdboy-package/trunk/samba36 ./package/network/services/samba36
+rm -rf feeds/luci/applications/luci-app-samba && svn co https://github.com/sirpdboy/build/trunk/luci-app-samba feeds/luci/applications/luci-app-samba
+rm -rf ./package/network/services/samba36 && svn co https://github.com/sirpdboy/build/trunk/samba36 ./package/network/services/samba36
 rm -rf ./package/lean/samba4
-rm -rf ./feeds/package/net/samba4 && svn co https://github.com/sirpdboy/sirpdboy-package/trunk/samba4 ./feeds/package/net/samba4
+rm -rf ./feeds/package/net/samba4 && svn co https://github.com/sirpdboy/build/trunk/samba4 ./feeds/package/net/samba4
 rm -rf ./package/lean/softethervpn5
-rm -rf  ./feeds/packages/net/wsdd2  && svn co https://github.com/sirpdboy/sirpdboy-package/trunk/wsdd2  ./feeds/packages/net/wsdd2 
+rm -rf  ./feeds/packages/net/wsdd2  && svn co https://github.com/sirpdboy/build/trunk/wsdd2  ./feeds/packages/net/wsdd2 
 rm -rf ./package/lean/luci-app-samba4
 
 # Boost 通用即插即用
@@ -156,7 +156,7 @@ svn co https://github.com/QiuSimons/dragino2-teasiu/trunk/package/teasiu/luci-ap
 #svn co https://github.com/xiaorouji/openwrt-passwall/trunk package/passwall
 git clone https://github.com/xiaorouji/openwrt-passwall package/passwall
 # svn co https://github.com/xiaorouji/openwrt-passwall/trunk/luci-app-passwall package/passwall/luci-app-passwall
-sed -i 's,default n,default y,g' package/passwall/luci-app-passwall/Makefile
+# sed -i 's,default n,default y,g' package/passwall/luci-app-passwall/Makefile
 
 # ShadowsocksR Plus+
 svn co https://github.com/fw876/helloworld/trunk/luci-app-ssr-plus package/lean/luci-app-ssr-plus
@@ -168,14 +168,14 @@ sed -i '/status/am:section(SimpleSection).template = "openclash/myip"' ./package
 # pushd package/lean/luci-app-ssr-plus
 sed -i 's,default n,default y,g' package/lean/luci-app-ssr-plus
 # sed -i 's,Xray:xray ,Xray:xray-core ,g' package/lean/luci-app-ssr-plus
-sed -i '/V2ray:v2ray/d' Makefile
-sed -i '/plugin:v2ray/d' Makefile
+# sed -i '/V2ray:v2ray/d' Makefile
+# sed -i '/plugin:v2ray/d' Makefile
 
 # VSSR
 svn co https://github.com/jerrykuku/luci-app-vssr/trunk/  package/diy/luci-app-vssr
 #git clone -b master --depth 1 https://github.com/jerrykuku/luci-app-vssr.git package/lean/luci-app-vssr
 #git clone -b master --depth 1 https://github.com/jerrykuku/lua-maxminddb.git package/lean/lua-maxminddb
-sed -i 's,default n,default y,g' package/lean/luci-app-vssr/Makefile
+# sed -i 's,default n,default y,g' package/lean/luci-app-vssr/Makefile
 
 # git clone https://github.com/jerrykuku/luci-app-ttnode.git     package/diy/luci-app-ttnode
 # svn co https://github.com/jerrykuku/luci-app-ttnode/trunk/  package/diy/luci-app-ttnode
