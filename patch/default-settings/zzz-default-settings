@@ -8,7 +8,7 @@ uci set system.@system[0].zonename=Asia/Shanghai
 uci commit system
 uci set fstab.@global[0].anon_mount='1'
 uci commit fstab
-uci set upnpd.@upnpd[0].enabled='1'
+uci set upnpd.@upnpd[0].enabled='0'
 uci set upnpd.@upnpd[0].igdv1='1'
 uci commit upnpd
 uci set dhcp.@dnsmasq[0].filter_aaaa='1'
