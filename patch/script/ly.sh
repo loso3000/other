@@ -103,13 +103,15 @@ echo  "默认开启 Irqbalance"
 sed -i "s/enabled '0'/enabled '1'/g" feeds/packages/utils/irqbalance/files/irqbalance.config
 
 cp -f ./package/build/banner ./package/base-files/files/etc/
-# date1='${version} Ipv6-Mini-S'`TZ=UTC-8 date +%Y.%m.%d -d +"8"hour`
 date1='Ipv6-Mini-S'`TZ=UTC-8 date +%Y.%m.%d -d +"8"hour`
 sed -i 's/$(VERSION_DIST_SANITIZED)/$(shell TZ=UTC-8 date +%Y%m%d -d +8hour)-Ipv6-Mini/g' include/image.mk
 echo "DISTRIB_REVISION='${date1} " > ./package/base-files/files/etc/openwrt_release1
 echo ${date1} >> ./package/base-files/files/etc/banner
 echo '---------------------------------' >> ./package/base-files/files/etc/banner
 
+
+sed -i "s/bootstrap/edge/g" feeds/luci/modules/luci-base/root/etc/config/luci
+sed -i 's/bootstrap/edge/g' feeds/luci/collections/luci/Makefile
 # cp -f package/build/shortcut-fe ./package/base-files/files/etc/init.d   21.02
 
 #内核设置 甜糖
