@@ -114,7 +114,7 @@ echo '---------------------------------' >> ./package/base-files/files/etc/banne
 
 
 #内核设置 甜糖
-cat ./package/build/set/Config-kernel.in   > ./config/Config-kernel.in
+# cat ./package/build/set/Config-kernel.in   > ./config/Config-kernel.in
 echo  'CONFIG_BINFMT_MISC=y' >> ./package/target/linux/x86/config-5.4
 ##sed -i '/CONFIG_NVME_MULTIPATH /d' ./package/target/linux/x86/config-5.4
 #sed -i '/CONFIG_NVME_TCP /d' ./package/target/linux/x86/config-5.4
