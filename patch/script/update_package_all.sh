@@ -135,7 +135,8 @@ echo  'CONFIG_EXTRA_FIRMWARE_DIR="/lib/firmware"'  >> ./package/target/linux/x86
 
 #rm -rf package/lean/luci-app-jd-dailybonus && git clone https://github.com/jerrykuku/luci-app-jd-dailybonus.git package/diy/luci-app-jd-dailybonus
 #灰色歌曲
-svn co https://github.com/immortalwrt/luci-app-unblockneteasemusic/trunk/ package/diy/luci-app-unblockneteasemusic
+svn co https://github.com/immortalwrt/luci-app-unblockneteasemusic/trunk/  package/diy/luci-app-unblockneteasemusic
+sed -i 's/解除网易云音乐播放限制/解锁灰色歌曲/g' package/diy/luci-app-unblockneteasemusic/luasrc/controller/unblockneteasemusic.lua
 
 svn co https://github.com/vernesong/OpenClash/trunk/luci-app-openclash package/diy/luci-app-openclash
 #mkdir -p files/etc/openclash/core
