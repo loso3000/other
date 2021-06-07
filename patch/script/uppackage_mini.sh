@@ -137,7 +137,8 @@ echo '---------------------------------' >> ./package/base-files/files/etc/banne
 #rm -rf package/lean/luci-app-jd-dailybonus && git clone https://github.com/jerrykuku/luci-app-jd-dailybonus.git package/diy/luci-app-jd-dailybonus
 svn co https://github.com/vernesong/OpenClash/trunk/luci-app-openclash package/diy/luci-app-openclash
 #灰色歌曲
-svn co https://github.com/immortalwrt/luci-app-unblockneteasemusic/trunk/ package/diy/luci-app-unblockneteasemusic
+svn co https://github.com/immortalwrt/luci-app-unblockneteasemusic/trunk/  package/diy/luci-app-unblockneteasemusic
+sed -i 's/解除网易云音乐播放限制/解锁灰色歌曲/g' package/diy/luci-app-unblockneteasemusic/luasrc/controller/unblockneteasemusic.lua
 
 #git clone https://github.com/AlexZhuo/luci-app-bandwidthd /package/diy/luci-app-bandwidthd
 git clone -b master --single-branch https://github.com/tty228/luci-app-serverchan ./package/diy/luci-app-serverchan
