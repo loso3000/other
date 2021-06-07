@@ -70,7 +70,7 @@ rm -rf ./package/lean/luci-app-samba4
 
 #curl -fsSL https://raw.githubusercontent.com/loso3000/other/master/patch/autocore/files/x86/index.htm > package/lean/autocore/files/x86/index.htm
 #curl -fsSL https://raw.githubusercontent.com/loso3000/other/master/patch/autocore/files/arm/index.htm > package/lean/autocore/files/arm/index.htm
-curl -fsSL  https://raw.githubusercontent.com/loso3000/other/master/patch/default-settings/zzz-default-settings1 > ./package/build/default-settings/files/zzz-default-settings
+# curl -fsSL  https://raw.githubusercontent.com/loso3000/other/master/patch/default-settings/zzz-default-settings1 > ./package/build/default-settings/files/zzz-default-settings
 #curl -fsSL  https://raw.githubusercontent.com/sirpdboy/sirpdboy-package/master/set/sysctl.conf > ./package/base-files/files/etc/sysctl.conf
 echo '添加关机'
 # sed -i '/"action_reboot"/a\    entry({"admin","system","PowerOff"},template("admin_system/poweroff"),_("Power Off"),92)\n    entry({"admin","system","PowerOff","call"},post("PowerOff"))' \
@@ -100,18 +100,18 @@ sed -i '/mcsub_renew.datatype/d'  feeds/luci/applications/luci-app-udpxy/luasrc/
 sed -i 's/root::0:0:99999:7:::/root:$1$V4UetPzk$CYXluq4wUazHjmCDBCqXF.:0:0:99999:7:::/g' ./package/base-files/files/etc/shadow
 sed -i '/filter_/d' package/network/services/dnsmasq/files/dhcp.conf   #DHCP禁用IPV6问题
 echo  "默认开启 Irqbalance"
-sed -i "s/enabled '0'/enabled '1'/g" feeds/packages/utils/irqbalance/files/irqbalance.config
+# sed -i "s/enabled '0'/enabled '1'/g" feeds/packages/utils/irqbalance/files/irqbalance.config
 
 cp -f ./package/build/banner ./package/base-files/files/etc/
+# date1='${version} Ipv6-Mini-S'`TZ=UTC-8 date +%Y.%m.%d -d +"8"hour`
 date1='Ipv6-S'`TZ=UTC-8 date +%Y.%m.%d -d +"8"hour`
 sed -i 's/$(VERSION_DIST_SANITIZED)/$(shell TZ=UTC-8 date +%Y%m%d -d +8hour)-Ipv6/g' include/image.mk
-echo "DISTRIB_REVISION='${date1} " > ./package/base-files/files/etc/openwrt_release1
-echo ${date1} >> ./package/base-files/files/etc/banner
+echo "DISTRIB_REVISION='${date1}'" > ./package/base-files/files/etc/openwrt_release1
+echo ${date1}' by Siropboy ' >> ./package/base-files/files/etc/banner
 echo '---------------------------------' >> ./package/base-files/files/etc/banner
 
-
-sed -i "s/bootstrap/edge/g" feeds/luci/modules/luci-base/root/etc/config/luci
-sed -i 's/bootstrap/edge/g' feeds/luci/collections/luci/Makefile
+sed -i "s/bootstrap/opentopd/g" feeds/luci/modules/luci-base/root/etc/config/luci
+sed -i 's/bootstrap/opentopd/g' feeds/luci/collections/luci/Makefile
 # cp -f package/build/shortcut-fe ./package/base-files/files/etc/init.d   21.02
 
 #内核设置 甜糖
@@ -193,7 +193,7 @@ sed -i 's,default n,default y,g' package/lean/luci-app-vssr/Makefile
 # svn co https://github.com/immortalwrt/immortalwrt/branches/master/package/kernel/rtl8812au-ct package/new/rtl8812au-ct
 # svn co https://github.com/immortalwrt/immortalwrt/branches/master/package/kernel/rtl8812au-ac package/new/rtl8812au-ac
 # svn co https://github.com/immortalwrt/immortalwrt/branches/master/package/kernel/rtl8821cu package/new/rtl8821cu
-# svn co https://github.com/immortalwrt/immortalwrt/branches/master/package/kernel/rtl88x2bu package/new/rtl88x2bu
+svn co https://github.com/immortalwrt/immortalwrt/branches/master/package/kernel/rtl88x2bu package/new/rtl88x2bu
 
 #patch -p1 < ../PATCH/new/main/r8168-fix_LAN_led-for_r4s-from_TL.patch
 
