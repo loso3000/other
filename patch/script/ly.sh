@@ -4,7 +4,7 @@
 # 使用 O2 级别的优化
 # sed -i 's/O3/O2/g' include/target.mk
 
-sed -i "s/192.168.1.1/192.168.10.1/g" package/base-files/files/bin/config_generate
+# sed -i "s/192.168.1.1/192.168.10.1/g" package/base-files/files/bin/config_generate
 # version=$(grep "DISTRIB_REVISION=" package/lean/default-settings/files/zzz-default-settings  | awk -F "'" '{print $2}')
 
 git clone https://github.com/sirpdboy/build.git package/build
