@@ -28,6 +28,9 @@ rm -rf feeds/packages/net/transmission-web-control && svn co https://github.com/
 # rm -rf package/lean/qt5
 rm -rf package/lean/luci-app-wrtbwmon
 rm -rf package/lean/luci-app-baidupcs-web && svn co https://github.com/sirpdboy/sirpdboy-package/trunk/luci-app-baidupcs-web ./package/lean/luci-app-baidupcs-web
+
+# luci-app-kodexplorer
+rm -rf package/lean/luci-app-kodexplorer && svn co https://github.com/sirpdboy/sirpdboy-package/trunk/luci-app-kodexplorer ./package/lean/luci-app-kodexplorer
 #ksmbd
 rm -rf ./feeds/packages/kernel/ksmbd && svn co https://github.com/sirpdboy/build/trunk/ksmbd ./feeds/packages/kernel/ksmbd
 rm -rf ./feeds/packages/net/ksmbd-tools && svn co https://github.com/sirpdboy/build/trunk/ksmbd-tools ./feeds/packages/net/ksmbd-tools
