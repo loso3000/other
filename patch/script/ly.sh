@@ -3,11 +3,11 @@
 # Description: Build OpenWrt using GitHub Actions
 # 使用 O2 级别的优化
 # sed -i 's/O3/O2/g' include/target.mk
+git clone https://github.com/sirpdboy/build.git package/build
 
 # sed -i "s/192.168.1.1/192.168.10.1/g" package/base-files/files/bin/config_generate
 # version=$(grep "DISTRIB_REVISION=" package/lean/default-settings/files/zzz-default-settings  | awk -F "'" '{print $2}')
 
-git clone https://github.com/sirpdboy/build.git package/build
 rm -rf ./package/lean/luci-theme-argon
 rm -rf ./package/lean/luci-theme-opentomcat
 # echo '替换aria2'
@@ -141,7 +141,16 @@ sed -i 's/bootstrap/opentopd/g' feeds/luci/collections/luci/Makefile
 
 #rm -rf package/lean/luci-app-jd-dailybonus && git clone https://github.com/jerrykuku/luci-app-jd-dailybonus.git package/diy/luci-app-jd-dailybonus
 svn co https://github.com/vernesong/OpenClash/trunk/luci-app-openclash package/diy/luci-app-openclash
- 
+#mkdir -p files/etc/openclash/core
+#open_clash_main_url=$(curl -sL https://api.github.com/repos/vernesong/OpenClash/releases/tags/Clash | grep /clash-linux-$1 | sed 's/.*url\": \"//g' | sed 's/\"//g')
+# offical_clash_main_url=$(curl -sL https://api.github.com/repos/Dreamacro/clash/releases/tags/v1.3.5 | grep /clash-linux-$1 | sed 's/.*url\": \"//g' | sed 's/\"//g')
+#clash_tun_url=$(curl -sL https://api.github.com/repos/vernesong/OpenClash/releases/tags/TUN-Premium | grep /clash-linux-$1 | sed 's/.*url\": \"//g' | sed 's/\"//g')
+#clash_game_url=$(curl -sL https://api.github.com/repos/vernesong/OpenClash/releases/tags/TUN | grep /clash-linux-$1 | sed 's/.*url\": \"//g' | sed 's/\"//g')
+#wget -qO- $open_clash_main_url | tar xOvz > files/etc/openclash/core/clash
+#wget -qO- $clash_tun_url | gunzip -c > files/etc/openclash/core/clash_tun
+#wget -qO- $clash_game_url | tar xOvz > files/etc/openclash/core/clash_game
+#chmod +x files/etc/openclash/core/clash*
+
 #git clone https://github.com/AlexZhuo/luci-app-bandwidthd /package/diy/luci-app-bandwidthd
 git clone -b master --single-branch https://github.com/tty228/luci-app-serverchan ./package/diy/luci-app-serverchan
 git clone -b master --single-branch https://github.com/destan19/OpenAppFilter ./package/diy/OpenAppFilter
@@ -187,6 +196,9 @@ sed -i 's,default n,default y,g' package/lean/luci-app-vssr/Makefile
 # sed -i 's/KERNEL_TESTING_PATCHVER:=5.4/KERNEL_TESTING_PATCHVER:=4.19/g' ./target/linux/x86/Makefile
 #sed -i "/mediaurlbase/d" package/*/luci-theme*/root/etc/uci-defaults/*
 #sed -i "/mediaurlbase/d" feed/*/luci-theme*/root/etc/uci-defaults/*
+# 使用默认取消自动
+# sed -i "s/bootstrap/opentopd/g" feeds/luci/modules/luci-base/root/etc/config/luci
+# sed -i 's/bootstrap/opentopd/g' feeds/luci/collections/luci/Makefile
 
 # R8168驱动
 # svn co https://github.com/immortalwrt/immortalwrt/branches/master/package/kernel/r8152 package/new/r8152
