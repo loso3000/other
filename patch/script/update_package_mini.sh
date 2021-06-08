@@ -101,6 +101,10 @@ sed -i 's/root::0:0:99999:7:::/root:$1$V4UetPzk$CYXluq4wUazHjmCDBCqXF.:0:0:99999
 sed -i '/filter_/d' package/network/services/dnsmasq/files/dhcp.conf   #DHCP禁用IPV6问题
 echo  "默认开启 Irqbalance"
 sed -i "s/enabled '0'/enabled '1'/g" feeds/packages/utils/irqbalance/files/irqbalance.config
+#灰色歌曲
+rm -rf .package/lean/luci-app-unblockmusic
+git clone https://github.com/immortalwrt/luci-app-unblockneteasemusic.git  package/diy/luci-app-unblockneteasemusic
+sed -i 's/解除网易云音乐播放限制/解锁灰色歌曲/g' package/diy/luci-app-unblockneteasemusic/luasrc/controller/unblockneteasemusic.lua
 
 
 cp -f ./package/build/banner ./package/base-files/files/etc/
@@ -136,10 +140,7 @@ echo '---------------------------------' >> ./package/base-files/files/etc/banne
 #git clone https://github.com/garypang13/luci-app-dnsfilter.git package/luci-app-dnsfilter
 
 #rm -rf package/lean/luci-app-jd-dailybonus && git clone https://github.com/jerrykuku/luci-app-jd-dailybonus.git package/diy/luci-app-jd-dailybonus
-svn co https://github.com/vernesong/OpenClash/trunk/luci-app-openclash package/diy/luci-app-openclash
-#灰色歌曲
-svn co https://github.com/immortalwrt/luci-app-unblockneteasemusic/trunk/  package/diy/luci-app-unblockneteasemusic
-sed -i 's/解除网易云音乐播放限制/解锁灰色歌曲/g' package/diy/luci-app-unblockneteasemusic/luasrc/controller/unblockneteasemusic.lua
+svn co https://github.com/vernesong/OpenClash/trunk/luci-app-openclash package/diy/luci-app-openclash 
 #git clone https://github.com/AlexZhuo/luci-app-bandwidthd /package/diy/luci-app-bandwidthd
 git clone -b master --single-branch https://github.com/tty228/luci-app-serverchan ./package/diy/luci-app-serverchan
 git clone -b master --single-branch https://github.com/destan19/OpenAppFilter ./package/diy/OpenAppFilter
