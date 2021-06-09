@@ -113,7 +113,7 @@ echo "DISTRIB_REVISION='${date1}'" > ./package/base-files/files/etc/openwrt_rele
 echo ${date1}' by Siropboy ' >> ./package/base-files/files/etc/banner
 echo '---------------------------------' >> ./package/base-files/files/etc/banner
 #灰色歌曲
-rm -rf .package/lean/luci-app-unblockmusic
+rm -rf ./package/lean/luci-app-unblockmusic
 git clone https://github.com/immortalwrt/luci-app-unblockneteasemusic.git  package/diy/luci-app-unblockneteasemusic
 sed -i 's/解除网易云音乐播放限制/解锁灰色歌曲/g' package/diy/luci-app-unblockneteasemusic/luasrc/controller/unblockneteasemusic.lua
 
