@@ -133,7 +133,7 @@ svn co https://github.com/vernesong/OpenClash/trunk/luci-app-openclash ./package
 git clone -b master --single-branch https://github.com/tty228/luci-app-serverchan ./package/diy/luci-app-serverchan
 git clone -b master --single-branch https://github.com/destan19/OpenAppFilter ./package/diy/OpenAppFilter
 # 京东签到 By Jerrykuku
-sed -i 's/wget-ssl/wget/g' package/lean/luci-app-jd-dailybonus/root/usr/share/jd-dailybonus/newapp.sh package/lean/luci-app-jd-dailybonus/luasrc/controller/jd-dailybonus.lua
+# sed -i 's/wget-ssl/wget/g' ./package/lean/luci-app-jd-dailybonus/root/usr/share/jd-dailybonus/newapp.sh ./package/lean/luci-app-jd-dailybonus/luasrc/controller/jd-dailybonus.lua
 # rm -rf ./package/lean/luci-app-jd-dailybonus/root/usr/share/jd-dailybonus/JD_DailyBonus.js
 # wget -P ./package/lean/luci-app-jd-dailybonus/root/usr/share/jd-dailybonus/ https://github.com/NobyDa/Script/raw/master/JD-DailyBonus/JD_DailyBonus.js
 # 花生壳内网穿透
@@ -145,12 +145,12 @@ svn co https://github.com/QiuSimons/dragino2-teasiu/trunk/package/teasiu/luci-ap
 
 # Passwall
 #svn co https://github.com/xiaorouji/openwrt-passwall/trunk package/passwall
-git clone https://github.com/xiaorouji/openwrt-passwall package/passwall
+git clone https://github.com/xiaorouji/openwrt-passwall ./package/passwall
 # svn co https://github.com/xiaorouji/openwrt-passwall/trunk/luci-app-passwall package/passwall/luci-app-passwall
-sed -i 's,default n,default y,g' package/passwall/luci-app-passwall/Makefile
+sed -i 's,default n,default y,g' ./package/passwall/luci-app-passwall/Makefile
 
 # ShadowsocksR Plus+
-svn co https://github.com/fw876/helloworld/trunk/luci-app-ssr-plus package/lean/luci-app-ssr-plus
+svn co https://github.com/fw876/helloworld/trunk/luci-app-ssr-plus ./package/lean/luci-app-ssr-plus
 sed -i '/status/am:section(SimpleSection).template = "openclash/myip"' ./package/lean/luci-app-ssr-plus/luasrc/model/cbi/shadowsocksr/client.lua
 # pushd package/lean
 #wget -qO - https://github.com/fw876/helloworld/pull/513.patch | patch -p1
@@ -164,9 +164,10 @@ sed -i '/plugin:v2ray/d' Makefile
 
 # VSSR
 svn co https://github.com/jerrykuku/luci-app-vssr/trunk/  ./package/diy/luci-app-vssr
+
 #git clone -b master --depth 1 https://github.com/jerrykuku/luci-app-vssr.git package/lean/luci-app-vssr
 #git clone -b master --depth 1 https://github.com/jerrykuku/lua-maxminddb.git package/lean/lua-maxminddb
-sed -i 's,default n,default y,g' ./package/lean/luci-app-vssr/Makefile
+sed -i 's,default n,default y,g' ./package/diy/luci-app-vssr/Makefile
 
 # git clone https://github.com/jerrykuku/luci-app-ttnode.git     package/diy/luci-app-ttnode
 # svn co https://github.com/jerrykuku/luci-app-ttnode/trunk/  package/diy/luci-app-ttnode
