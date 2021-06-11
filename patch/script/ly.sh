@@ -56,9 +56,12 @@ rm -rf package/lean/luci-app-docker
 rm -rf package/lean/luci-app-dockerman
 rm -rf package/lean/luci-lib-docker
 rm -rf ./package/lean/trojan
-rm -rf package/lean/openwrt-fullconenat && svn co https://github.com/sirpdboy/build/trunk/openwrt-fullconenat package/lean/openwrt-fullconenat
-rm -rf ./package/lean/shortcut-fe
-rm -rf ./package/lean/dnsforwarder
+rm -rf ./package/build/openwrt-fullconenat 
+rm -rf ./package/build/shortcut-fe
+rm -rf ./package/build/dnsforwarder
+# rm -rf package/lean/openwrt-fullconenat && svn co https://github.com/sirpdboy/build/trunk/openwrt-fullconenat package/lean/openwrt-fullconenat
+# rm -rf ./package/lean/shortcut-fe
+# rm -rf ./package/lean/dnsforwarder
 rm -rf feeds/luci/applications/luci-app-samba && svn co https://github.com/sirpdboy/build/trunk/luci-app-samba feeds/luci/applications/luci-app-samba
 rm -rf ./package/network/services/samba36 && svn co https://github.com/sirpdboy/build/trunk/samba36 ./package/network/services/samba36
 rm -rf ./package/lean/samba4
@@ -204,14 +207,14 @@ sed -i 's,default n,default y,g' package/lean/luci-app-vssr/Makefile
 # sed -i 's/bootstrap/opentopd/g' feeds/luci/collections/luci/Makefile
 
 # R8168驱动
-# svn co https://github.com/immortalwrt/immortalwrt/branches/master/package/kernel/r8152 package/new/r8152
-# svn co https://github.com/immortalwrt/immortalwrt/branches/master/package/kernel/r8168 package/new/r8168
-# svn co https://github.com/immortalwrt/immortalwrt/branches/master/package/kernel/rtl8188eu package/new/rtl8188eu
-# svn co https://github.com/immortalwrt/immortalwrt/branches/master/package/kernel/rtl8189es package/new/rtl8189es
-# svn co https://github.com/immortalwrt/immortalwrt/branches/master/package/kernel/rtl8192du package/new/rtl8192du
-# svn co https://github.com/immortalwrt/immortalwrt/branches/master/package/kernel/rtl8812au-ct package/new/rtl8812au-ct
-# svn co https://github.com/immortalwrt/immortalwrt/branches/master/package/kernel/rtl8812au-ac package/new/rtl8812au-ac
-# svn co https://github.com/immortalwrt/immortalwrt/branches/master/package/kernel/rtl8821cu package/new/rtl8821cu
+svn co https://github.com/immortalwrt/immortalwrt/branches/master/package/kernel/r8152 package/new/r8152
+svn co https://github.com/immortalwrt/immortalwrt/branches/master/package/kernel/r8168 package/new/r8168
+svn co https://github.com/immortalwrt/immortalwrt/branches/master/package/kernel/rtl8188eu package/new/rtl8188eu
+svn co https://github.com/immortalwrt/immortalwrt/branches/master/package/kernel/rtl8189es package/new/rtl8189es
+svn co https://github.com/immortalwrt/immortalwrt/branches/master/package/kernel/rtl8192du package/new/rtl8192du
+svn co https://github.com/immortalwrt/immortalwrt/branches/master/package/kernel/rtl8812au-ct package/new/rtl8812au-ct
+svn co https://github.com/immortalwrt/immortalwrt/branches/master/package/kernel/rtl8812au-ac package/new/rtl8812au-ac
+svn co https://github.com/immortalwrt/immortalwrt/branches/master/package/kernel/rtl8821cu package/new/rtl8821cu
 svn co https://github.com/immortalwrt/immortalwrt/branches/master/package/kernel/rtl88x2bu package/new/rtl88x2bu
 
 #patch -p1 < ../PATCH/new/main/r8168-fix_LAN_led-for_r4s-from_TL.patch
