@@ -163,11 +163,11 @@ sed -i '/V2ray:v2ray/d' Makefile
 sed -i '/plugin:v2ray/d' Makefile
 
 # VSSR
-svn co https://github.com/jerrykuku/luci-app-vssr/trunk/  ./package/diy/luci-app-vssr
+svn co https://github.com/jerrykuku/luci-app-vssr/trunk/  ./package/lean/luci-app-vssr
 
 #git clone -b master --depth 1 https://github.com/jerrykuku/luci-app-vssr.git package/lean/luci-app-vssr
 #git clone -b master --depth 1 https://github.com/jerrykuku/lua-maxminddb.git package/lean/lua-maxminddb
-sed -i 's,default n,default y,g' ./package/diy/luci-app-vssr/Makefile
+sed -i 's,default n,default y,g' ./package/lean/luci-app-vssr/Makefile
 
 # git clone https://github.com/jerrykuku/luci-app-ttnode.git     package/diy/luci-app-ttnode
 # svn co https://github.com/jerrykuku/luci-app-ttnode/trunk/  package/diy/luci-app-ttnode
@@ -207,10 +207,10 @@ sed -i 's,default n,default y,g' ./package/diy/luci-app-vssr/Makefile
 
 ### 最后的收尾工作 ###
 # Lets  
-mkdir ./package/base-files/files/usr/bin 
-cp -f ./package/build/set/chinadnslist ./package/base-files/files/usr/bin/chinadnslist
+# mkdir ./package/base-files/files/usr/bin 
+# cp -f ./package/build/set/chinadnslist ./package/base-files/files/usr/bin/chinadnslist
 # 最大连接数
-sed -i 's/16384/65535/g' ./package/kernel/linux/files/sysctl-nf-conntrack.conf
+# sed -i 's/16384/65535/g' ./package/kernel/linux/files/sysctl-nf-conntrack.conf
 
 find ./ -name *.orig | xargs rm -f
 find ./ -name *.rej | xargs rm -f
@@ -223,9 +223,9 @@ find ./ -name *.rej | xargs rm -f
 #sed -i '/openwrt_luci/d' package/build/default-settings/files/zzz-default-settings
 
 # Fix SDK
-sed -i '/$(SDK_BUILD_DIR)\/$(STAGING_SUBDIR_HOST)\/usr\/bin/d;/LICENSE/d' ./target/sdk/Makefile
+# sed -i '/$(SDK_BUILD_DIR)\/$(STAGING_SUBDIR_HOST)\/usr\/bin/d;/LICENSE/d' ./target/sdk/Makefile
 
 # Disable opkg signature check
-sed -i 's/option check_signature/# option check_signature/g' /etc/opkg.conf
+# sed -i 's/option check_signature/# option check_signature/g' /etc/opkg.conf
 # Add execute permission for ipv6-helper
 #chmod +x /bin/ipv6-helper
