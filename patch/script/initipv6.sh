@@ -133,7 +133,7 @@ svn co https://github.com/vernesong/OpenClash/trunk/luci-app-openclash ./package
 git clone -b master --single-branch https://github.com/tty228/luci-app-serverchan ./package/diy/luci-app-serverchan
 git clone -b master --single-branch https://github.com/destan19/OpenAppFilter ./package/diy/OpenAppFilter
 # 京东签到 By Jerrykuku
-sed -i 's/wget-ssl/wget/g' package/lean/luci-app-jd-dailybonus/root/usr/share/jd-dailybonus/newapp.sh package/lean/luci-app-jd-dailybonus/luasrc/controller/jd-dailybonus.lua
+# sed -i 's/wget-ssl/wget/g' package/lean/luci-app-jd-dailybonus/root/usr/share/jd-dailybonus/newapp.sh package/lean/luci-app-jd-dailybonus/luasrc/controller/jd-dailybonus.lua
 # rm -rf ./package/lean/luci-app-jd-dailybonus/root/usr/share/jd-dailybonus/JD_DailyBonus.js
 # wget -P ./package/lean/luci-app-jd-dailybonus/root/usr/share/jd-dailybonus/ https://github.com/NobyDa/Script/raw/master/JD-DailyBonus/JD_DailyBonus.js
 # 花生壳内网穿透
@@ -163,7 +163,7 @@ sed -i '/V2ray:v2ray/d' Makefile
 sed -i '/plugin:v2ray/d' Makefile
 
 # VSSR
-svn co https://github.com/jerrykuku/luci-app-vssr/trunk/  ./package/diy/luci-app-vssr
+svn co https://github.com/jerrykuku/luci-app-vssr/trunk/  ./package/lean/luci-app-vssr
 #git clone -b master --depth 1 https://github.com/jerrykuku/luci-app-vssr.git package/lean/luci-app-vssr
 #git clone -b master --depth 1 https://github.com/jerrykuku/lua-maxminddb.git package/lean/lua-maxminddb
 sed -i 's,default n,default y,g' ./package/lean/luci-app-vssr/Makefile
@@ -208,6 +208,7 @@ sed -i 's,default n,default y,g' ./package/lean/luci-app-vssr/Makefile
 # Lets  
 mkdir ./package/base-files/files/usr/bin 
 cp -f ./package/build/set/chinadnslist ./package/base-files/files/usr/bin/chinadnslist
+
 # 最大连接数
 sed -i 's/16384/65535/g' ./package/kernel/linux/files/sysctl-nf-conntrack.conf
 
