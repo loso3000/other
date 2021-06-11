@@ -67,7 +67,7 @@ rm -rf ./package/network/services/samba36 && svn co https://github.com/sirpdboy/
 rm -rf ./package/lean/samba4
 rm -rf ./feeds/package/net/samba4 && svn co https://github.com/sirpdboy/build/trunk/samba4 ./feeds/package/net/samba4
 rm -rf ./package/lean/softethervpn5
-rm -rf  ./feeds/packages/net/wsdd2  && svn co https://github.com/sirpdboy/build/trunk/wsdd2  ./feeds/packages/net/wsdd2 
+# rm -rf  ./feeds/packages/net/wsdd2  && svn co https://github.com/sirpdboy/build/trunk/wsdd2  ./feeds/packages/net/wsdd2 
 rm -rf ./package/lean/luci-app-samba4
 
 # Boost 通用即插即用
@@ -110,10 +110,10 @@ echo  "默认开启 Irqbalance"
 
 cp -f ./package/build/banner ./package/base-files/files/etc/
 # date1='${version} Ipv6-Mini-S'`TZ=UTC-8 date +%Y.%m.%d -d +"8"hour`
-date1='Ipv6-S'`TZ=UTC-8 date +%Y.%m.%d -d +"8"hour`
-sed -i 's/$(VERSION_DIST_SANITIZED)/$(shell TZ=UTC-8 date +%Y%m%d -d +8hour)-Ipv6/g' include/image.mk
+date1='Ipv6-S'`TZ=UTC-8 date +%Y.%m.%d -d +"12"hour`
+sed -i 's/$(VERSION_DIST_SANITIZED)/$(shell TZ=UTC-8 date +%Y%m%d -d +12hour)-Ipv6/g' include/image.mk
 echo "DISTRIB_REVISION='${date1}'" > ./package/base-files/files/etc/openwrt_release1
-echo ${date1}' by Siropboy ' >> ./package/base-files/files/etc/banner
+echo ${date1}  >> ./package/base-files/files/etc/banner
 echo '---------------------------------' >> ./package/base-files/files/etc/banner
 #灰色歌曲
 rm -rf ./package/lean/luci-app-unblockmusic
@@ -191,7 +191,7 @@ sed -i '/V2ray:v2ray/d' Makefile
 sed -i '/plugin:v2ray/d' Makefile
 
 # VSSR
-svn co https://github.com/jerrykuku/luci-app-vssr/trunk/  package/diy/luci-app-vssr
+svn co https://github.com/jerrykuku/luci-app-vssr/trunk/  package/lean/luci-app-vssr
 #git clone -b master --depth 1 https://github.com/jerrykuku/luci-app-vssr.git package/lean/luci-app-vssr
 #git clone -b master --depth 1 https://github.com/jerrykuku/lua-maxminddb.git package/lean/lua-maxminddb
 sed -i 's,default n,default y,g' package/lean/luci-app-vssr/Makefile
