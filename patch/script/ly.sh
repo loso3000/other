@@ -215,9 +215,9 @@ svn co https://github.com/immortalwrt/immortalwrt/branches/master/package/kernel
 svn co https://github.com/immortalwrt/immortalwrt/branches/master/package/kernel/rtl88x2bu package/new/rtl88x2bu
 
 #patch -p1 < ../PATCH/new/main/r8168-fix_LAN_led-for_r4s-from_TL.patch
-git clone https://github.com/garypang13/luci-app-bypass.git package/luci-app-bypass
-find package/*/ feeds/*/ -maxdepth 2 -path "*luci-app-bypass/Makefile" | xargs -i sed -i 's/shadowsocksr-libev-ssr-redir/shadowsocksr-libev-alt/g' {}
-find package/*/ feeds/*/ -maxdepth 2 -path "*luci-app-bypass/Makefile" | xargs -i sed -i 's/shadowsocksr-libev-ssr-server/shadowsocksr-libev-server/g' {}
+# git clone https://github.com/garypang13/luci-app-bypass.git package/luci-app-bypass
+# find package/*/ feeds/*/ -maxdepth 2 -path "*luci-app-bypass/Makefile" | xargs -i sed -i 's/shadowsocksr-libev-ssr-redir/shadowsocksr-libev-alt/g' {}
+# find package/*/ feeds/*/ -maxdepth 2 -path "*luci-app-bypass/Makefile" | xargs -i sed -i 's/shadowsocksr-libev-ssr-server/shadowsocksr-libev-server/g' {}
 rm -rf ./package/diy/luci-app-dnsfilter
 rm -rf ./package/diy/luci-theme-edge 
 git clone https://github.com/garypang13/luci-app-dnsfilter.git ./package/luci-app-dnsfilter
