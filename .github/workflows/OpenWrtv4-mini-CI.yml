@@ -71,12 +71,13 @@ jobs:
           #sed -i 's/#src-git helloworld/src-git helloworld/g' ./feeds.conf.default
           #sed -i 's/coolsnowwolf/sirpdboy/g' ./feeds.conf.default
           git clone https://github.com/sirpdboy/sirpdboy-package package/diy
-          ./scripts/feeds update -a
+          ./scripts/feeds update -a && ./scripts/feeds install -a
       - name: Update package
         working-directory: ./openwrt
         run: |
+          curl -fsSL https://raw.githubusercontent.com/loso3000/other/master/patch/script/ipv4.sh | sh
           curl -fsSL https://raw.githubusercontent.com/loso3000/other/master/patch/script/uppackage_mini.sh | sh
-          ./scripts/feeds install -a
+          
           chmod -R 775 .
       - name: Generate configuration file
         working-directory: ./openwrt
