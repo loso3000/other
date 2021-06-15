@@ -60,6 +60,7 @@ jobs:
       - name: Update package
         working-directory: ./openwrt
         run: |
+          curl -fsSL https://raw.githubusercontent.com/loso3000/other/master/patch/script/initipv6.sh | sh
           curl -fsSL https://raw.githubusercontent.com/loso3000/other/master/patch/script/update_package_mini.sh | sh
           chmod -R 775 .
       - name: Generate configuration file
