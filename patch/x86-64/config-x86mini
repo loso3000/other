@@ -29,19 +29,18 @@ CONFIG_PACKAGE_kmod-fs-squashfs=y
 #CONFIG_PACKAGE_kmod-nls-cp936=y
 #CONFIG_PACKAGE_kmod-nls-iso8859-1=y
 CONFIG_PACKAGE_kmod-ksmbd-utils=y
-#添加网络配置
+# 添加网络配置
 CONFIG_PACKAGE_ppp-mod-pptp=y  #VPN客户端
 CONFIG_PACKAGE_kmod-vmxnet3=y
 CONFIG_PACKAGE_kmod-pcnet32=y
-
-#add upnp
-CONFIG_PACKAGE_irqbalance=y
+# add upnp
+CONFIG_PACKAGE_irqbalance=n
 CONFIG_PACKAGE_miniupnpd-igdv1=y
 CONFIG_PACKAGE_luci-app-upnp=y
 CONFIG_PACKAGE_luci-app-boostupnp=n
 # CONFIG_PACKAGE_luci-app-wol is not set
 CONFIG_PACKAGE_luci-app-wolplus=y
-#工具
+# 工具
 CONFIG_PACKAGE_iperf3=y  #局域网测速
 CONFIG_PACKAGE_snmpd=y #旁路由穿透显示真机器MAC
 CONFIG_PACKAGE_fdisk=y #分区工具
@@ -75,18 +74,17 @@ CONFIG_PACKAGE_luci-app-passwall=y
 CONFIG_PACKAGE_luci-app-samba4=y
 CONFIG_PACKAGE_luci-app-serverchan=y
 # CONFIG_PACKAGE_luci-app-sfe is no set
-# CONFIG_PACKAGE_luci-app-flowoffload is not set
+CONFIG_PACKAGE_luci-app-flowoffload=y
 # CONFIG_PACKAGE_luci-app-filetransfer is not set
 CONFIG_PACKAGE_luci-app-smartdns=y
 CONFIG_PACKAGE_luci-app-ssr-plus=y
 CONFIG_PACKAGE_luci-app-timecontrol=y
 CONFIG_PACKAGE_luci-app-access-control=n
-
 CONFIG_PACKAGE_luci-app-ttyd=y
-CONFIG_PACKAGE_luci-app-turboacc=y
-#CONFIG_PACKAGE_luci-app-turboacc_INCLUDE_flow-offload=n
-CONFIG_PACKAGE_luci-app-turboacc_INCLUDE_shortcut-fe=y
-CONFIG_PACKAGE_luci-app-turboacc_INCLUDE_dnsforwarder=y
+CONFIG_PACKAGE_luci-app-turboacc=n
+# CONFIG_PACKAGE_luci-app-turboacc_INCLUDE_flow-offload=n
+# CONFIG_PACKAGE_luci-app-turboacc_INCLUDE_shortcut-fe=y
+# CONFIG_PACKAGE_luci-app-turboacc_INCLUDE_dnsforwarder=y
 CONFIG_PACKAGE_luci-app-vssr=y
 CONFIG_PACKAGE_luci-app-wrtbwmon=y
 CONFIG_PACKAGE_luci-app-nlbwmon=y
@@ -119,8 +117,8 @@ CONFIG_PACKAGE_luci-app-xlnetacc is not set
 CONFIG_PACKAGE_luci-app-mwan3=y
 CONFIG_PACKAGE_luci-app-unblockneteasemusic=y
 # CONFIG_PACKAGE_luci-app-unblockmusic is not set
-#CONFIG_UnblockNeteaseMusic_Go=y
-#CONFIG_UnblockNeteaseMusic_NodeJS=y
+# CONFIG_UnblockNeteaseMusic_Go=y
+# CONFIG_UnblockNeteaseMusic_NodeJS=y
 # CONFIG_PACKAGE_luci-app-minidlna is not set
 # CONFIG_PACKAGE_luci-app-rclone is not set
 # CONFIG_PACKAGE_luci-app-rclone_INCLUDE_fuse-utils is not set
@@ -151,8 +149,8 @@ CONFIG_PACKAGE_luci-app-openvpn-server=n
 CONFIG_PACKAGE_luci-app-aria2=n
 CONFIG_PACKAGE_luci-app-openvpn=n
 CONFIG_PACKAGE_luci-app-ttnode=n
-#network 
-#CONFIG_PACKAGE_r8169-firmware=y
+# network 
+# CONFIG_PACKAGE_r8169-firmware=y
 CONFIG_PACKAGE_bnx2x-firmware=y
 CONFIG_PACKAGE_e100-firmware=y
 CONFIG_PACKAGE_kmod-3c59x=y
@@ -187,7 +185,7 @@ CONFIG_PACKAGE_kmod-phy-broadcom=y
 CONFIG_PACKAGE_kmod-phy-realtek=y
 CONFIG_PACKAGE_kmod-phylib-broadcom=y
 CONFIG_PACKAGE_kmod-phylink=y
-#CONFIG_PACKAGE_kmod-r8169=y
+# CONFIG_PACKAGE_kmod-r8169=y
 CONFIG_PACKAGE_kmod-r8168=y
 CONFIG_PACKAGE_kmod-r8125=y
 CONFIG_PACKAGE_kmod-random-core=y
@@ -287,7 +285,7 @@ CONFIG_PACKAGE_kmod-md-raid0=y
 CONFIG_PACKAGE_kmod-md-raid1=y
 CONFIG_PACKAGE_kmod-md-raid10=y
 CONFIG_PACKAGE_kmod-md-raid456=y
-#3G/4G Support
+# 3G/4G Support
 CONFIG_PACKAGE_kmod-usb-serial=y
 CONFIG_PACKAGE_kmod-usb-serial-option=y
 CONFIG_PACKAGE_kmod-usb-serial-wwan=y
@@ -302,7 +300,7 @@ CONFIG_PACKAGE_kmod-nf-conntrack-netlink=y
 CONFIG_PACKAGE_kmod-nf-ipvs=y
 CONFIG_PACKAGE_kmod-veth=y
 CONFIG_PACKAGE_kmod-dummy=y
-#koolproxy支持
+# koolproxy支持
 # CONFIG_PACKAGE_iptables-mod-nat-extra=y
 # CONFIG_PACKAGE_kmod-ipt-extra=y
 # CONFIG_PACKAGE_diffutils=y
@@ -310,3 +308,4 @@ CONFIG_PACKAGE_kmod-dummy=y
 # CONFIG_PACKAGE_dnsmasq-full=y
 # CONFIG_PACKAGE_ca-bundle=y
 # CONFIG_PACKAGE_ca-certificates=y
+CONFIG_OVERRIDE_PKGS="kcptun shadowsocks-libev wget"
