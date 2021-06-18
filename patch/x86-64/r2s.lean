@@ -47,7 +47,7 @@ CONFIG_PACKAGE_curl=y
 CONFIG_PACKAGE_autosamba-ksmbd=n
 CONFIG_PACKAGE_autosamba-samba4=y
 # CONFIG_PACKAGE_luci-app-accesscontrol is not set
-CONFIG_PACKAGE_luci-app-adbyby-plus is not set
+# CONFIG_PACKAGE_luci-app-adbyby-plus is not set
 CONFIG_PACKAGE_luci-app-adguardhome=y
 CONFIG_PACKAGE_luci-app-advanced=y
 CONFIG_PACKAGE_luci-app-autotimeset=n
@@ -148,8 +148,6 @@ CONFIG_PACKAGE_luci-app-ttnode=n
 
 CONFIG_TARGET_KERNEL_PARTSIZE=64
 CONFIG_TARGET_ROOTFS_PARTSIZE=960
-
-
 CONFIG_PACKAGE_kmod-ath=y
 CONFIG_PACKAGE_kmod-ath6kl=y
 CONFIG_PACKAGE_kmod-ath6kl-usb=y
