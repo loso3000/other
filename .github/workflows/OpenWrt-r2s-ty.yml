@@ -60,7 +60,7 @@ jobs:
       - name: Update package
         working-directory: ./openwrt
         run: |
-          curl -fsSL https://raw.githubusercontent.com/loso3000/other/master/patch/script/ty.sh | sh
+          curl -fsSL https://raw.githubusercontent.com/loso3000/other/master/patch/script/ty.sh.sh | sh
           chmod -R 775 .
       - name: Generate configuration file
         working-directory: ./openwrt
