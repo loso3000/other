@@ -42,6 +42,15 @@ jobs:
           sudo -E apt-get -y autoremove --purge
           sudo -E apt-get clean
           sudo timedatectl set-timezone "Asia/Shanghai"
+
+      - name: Get current date
+        id: date
+        run: |
+          echo "date=$(date +'%m/%d_%Y_%H/%M')" >> $GITHUB_ENV
+          echo "date2=$(date +'%m/%d %Y')" >> $GITHUB_ENV
+          echo "date3=$(date +'%m.%d')" >> $GITHUB_ENV
+          echo "date4=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
+          
       - name: Update feeds
         env:
           REPO_URL: https://github.com/coolsnowwolf/lede
@@ -85,24 +94,30 @@ jobs:
           du -h --max-depth=1 ./ --exclude=build_dir --exclude=bin
           du -h --max-depth=1 ./build_dir
           du -h --max-depth=1 ./bin
+      - name: Upload BIN ALL
+        uses: actions/upload-artifact@main
+        with:
+          name: OpenWrt-ipv6-bin-ALL
+          path: ./openwrt/bin/targets/
       - name: Prepare Artifact
         run: |
-          mkdir -p ./mini/firmware
-          mkdir -p ./mini/package
-          cp -rf $(find ./openwrt/bin/ -type f -name "*.ipk") ./mini/package
-          find ./openwrt/bin/targets/ -name "*bin*" | xargs -i mv -f {} ./mini/firmware
-          cd ./mini/firmware
-          gzip *.bin
-      - name: Upload Firmware
+          mkdir firmware && find openwrt/bin/targets/*/*/ -maxdepth 1 \
+          -name "*combined*" \
+          -or -name "*sysupgrade*" \ 
+          | xargs -i mv -f {} ./firmware/
+          cp openwrt/.config  ./firmware/r2s.config
+          cd firmware
+          echo ${{ env.date4 }} > version.txt
+          rename -v "s/^openwrt/${{ env.date4 }}-openwrt/" *
+          rename -v "s/friendlyarm_//" *
+          md5=$((md5sum *squashfs-sysupgrade* || md5sum *squashfs-combined*) | awk '{print $1}') 2>/dev/null
+          echo $md5 >> version.txt
+          gzip *.*
+      - name: Upload firmware for artifact
         uses: actions/upload-artifact@main
         with:
-          name: OpenWrt-ipv6-r2s-Firmware
-          path: ./mini/firmware
-      - name: Upload  IPK
-        uses: actions/upload-artifact@main
-        with:
-          name: OpenWrt-ipv6-r2s-Ipk
-          path: ./mini/package
+          name: OpenWrt-ipv6-r2s-firmware
+          path: ./firmware/
       - name: Upload firmware to cowtransfer
         run: |
          curl -fsSL git.io/file-transfer | sh
