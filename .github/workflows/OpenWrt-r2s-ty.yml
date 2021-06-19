@@ -90,18 +90,18 @@ jobs:
           mkdir -p ./mini/firmware
           mkdir -p ./mini/package
           cp -rf $(find ./openwrt/bin/ -type f -name "*.ipk") ./mini/package
-          find ./openwrt/bin/targets/ -name "*combined*img*" | xargs -i mv -f {} ./mini/firmware
+          find ./openwrt/bin/targets/ -name "*bin*" | xargs -i mv -f {} ./mini/firmware
           cd ./mini/firmware
-          gzip *.img
+          gzip *.bin
       - name: Upload Firmware
         uses: actions/upload-artifact@main
         with:
-          name: OpenWrt-ipv6-mini-Firmware
+          name: OpenWrt-ipv6-r2s-Firmware
           path: ./mini/firmware
       - name: Upload  IPK
         uses: actions/upload-artifact@main
         with:
-          name: OpenWrt-ipv6-mini-Ipk
+          name: OpenWrt-ipv6-r2s-Ipk
           path: ./mini/package
       - name: Upload firmware to cowtransfer
         run: |
