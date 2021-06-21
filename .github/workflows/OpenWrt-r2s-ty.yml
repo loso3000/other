@@ -101,11 +101,9 @@ jobs:
           path: ./openwrt/bin/targets/
       - name: Prepare Artifact
         run: |
-          mkdir firmware && find openwrt/bin/targets/*/*/ -maxdepth 1 \
-          -name "*combined*" \
-          -or -name "*sysupgrade*" \ 
-          | xargs -i mv -f {} ./firmware/
-          cp openwrt/.config  ./firmware/r2s.config
+          mkdir firmware
+          find ./openwrt/bin/targets/ -name "*combined*"  -or -name "*sysupgrade*"  | xargs -i mv -f {} ./firmware/
+          # cp openwrt/.config  ./firmware/r2s.config
           cd firmware
           gzip *.*
       - name: Upload firmware for artifact
