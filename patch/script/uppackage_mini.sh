@@ -30,6 +30,8 @@ echo '---------------------------------' >> ./package/base-files/files/etc/banne
 #echo  'CONFIG_NVME_MULTIPATH=y' >> ./package/target/linux/x86/config-5.4
 #echo  'CONFIG_NVME_TCP=y' >> ./package/target/linux/x86/config-5.4
 
+echo '默认开启 Irqbalance'
+sed -i "s/enabled '0'/enabled '1'/g" feeds/packages/utils/irqbalance/files/irqbalance.config
 ./scripts/feeds update -i
 # 生成默认配置及缓存
 # rm -rf .config
