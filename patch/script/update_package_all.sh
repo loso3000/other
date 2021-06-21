@@ -3,7 +3,7 @@
 # Description: Build OpenWrt using GitHub Actions
 
 echo '默认开启 Irqbalance'
-# sed -i "s/enabled '0'/enabled '1'/g" feeds/packages/utils/irqbalance/files/irqbalance.config
+sed -i "s/enabled '0'/enabled '1'/g" feeds/packages/utils/irqbalance/files/irqbalance.config
 
 cp -f ./package/build/banner ./package/base-files/files/etc/
 # date1='${version} Ipv6-S'`TZ=UTC-8 date +%Y.%m.%d -d +"8"hour`
