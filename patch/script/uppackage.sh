@@ -20,6 +20,8 @@ echo '---------------------------------' >> ./package/base-files/files/etc/banne
 # CONFIG_NR_CPUS=128\nCONFIG_FAT_DEFAULT_IOCHARSET="utf8"\nCONFIG_CRYPTO_CHACHA20_NEON=y\nCONFIG_CRYPTO_CHACHA20POLY1305=y\nCONFIG_BINFMT_MISC=y' {}
 
 
+echo '默认开启 Irqbalance'
+sed -i "s/enabled '0'/enabled '1'/g" feeds/packages/utils/irqbalance/files/irqbalance.config
 ./scripts/feeds update -i
 # 生成默认配置及缓存
 # rm -rf .config
