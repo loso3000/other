@@ -9,67 +9,39 @@ git clone https://github.com/sirpdboy/build.git ./package/build
 
 rm -rf ./package/lean/luci-theme-argon
 rm -rf ./package/lean/luci-theme-opentomcat
-echo '替换aria2'
-rm -rf ./feeds/luci/applications/luci-app-aria2 && svn co https://github.com/sirpdboy/sirpdboy-package/trunk/luci-app-aria2 ./feeds/luci/applications/luci-app-aria2
-rm -rf ./feeds/packages/net/aria2 && svn co https://github.com/sirpdboy/sirpdboy-package/trunk/aria2 ./feeds/packages/net/aria2
-rm -rf ./feeds/packages/net/ariang && svn co https://github.com/sirpdboy/sirpdboy-package/trunk/ariang ./feeds/packages/net/ariang
-# rm -rf package/diy/aria2
-# rm -rf package/diy/ariang
-# rm -rf package/diy/luci-app-aria2
-# echo '替换transmission'
-rm -rf ./feeds/luci/applications/luci-app-transmission && svn co https://github.com/sirpdboy/sirpdboy-package/trunk/luci-app-transmission ./feeds/luci/applications/luci-app-transmission
-rm -rf ./feeds/packages/net/transmission && svn co https://github.com/sirpdboy/sirpdboy-package/trunk/transmission ./feeds/packages/net/transmission
-rm -rf ./feeds/packages/net/transmission-web-control && svn co https://github.com/sirpdboy/sirpdboy-package/trunk/transmission-web-control ./feeds/packages/net/transmission-web-control
-# echo 'qBittorrent'
-# rm -rf package/lean/luci-app-qbittorrent
-# rm -rf package/lean/qBittorrent
-# rm -rf package/diy/luci-app-qbittorrent
-# rm -rf package/diy/qBittorrent
-# rm -rf package/lean/qt5
+
 rm -rf ./package/lean/luci-app-wrtbwmon
-rm -rf ./package/lean/luci-app-baidupcs-web && svn co https://github.com/sirpdboy/sirpdboy-package/trunk/luci-app-baidupcs-web ./package/lean/luci-app-baidupcs-web
-# luci-app-kodexplorer
-rm -rf ./package/lean/luci-app-kodexplorer && svn co https://github.com/sirpdboy/sirpdboy-package/trunk/luci-app-kodexplorer ./package/lean/luci-app-kodexplorer
-# ksmbd
-rm -rf ./feeds/packages/kernel/ksmbd && svn co https://github.com/sirpdboy/build/trunk/ksmbd ./feeds/packages/kernel/ksmbd
-rm -rf ./feeds/packages/net/ksmbd-tools && svn co https://github.com/sirpdboy/build/trunk/ksmbd-tools ./feeds/packages/net/ksmbd-tools
+
 echo '替换smartdns'
 rm -rf ./feeds/packages/net/smartdns&& svn co https://github.com/sirpdboy/sirpdboy-package/trunk/smartdns ./feeds/packages/net/smartdns
 rm -rf ./package/lean/luci-app-netdata && svn co https://github.com/sirpdboy/sirpdboy-package/trunk/luci-app-netdata ./package/lean/luci-app-netdata
 rm -rf ./feeds/packages/admin/netdata && svn co https://github.com/sirpdboy/sirpdboy-package/trunk/netdata ./feeds/packages/admin/netdata
-#rm -rf ./feeds/luci/applications/luci-app-mwan3 && svn co https://github.com/sirpdboy/build/trunk/luci-app-mwan3 ./feeds/luci/applications/luci-app-mwan3
 rm -rf ./feeds/packages/net/mwan3 && svn co https://github.com/sirpdboy/build/trunk/mwan3 ./feeds/packages/net/mwan3
-rm -rf ./feeds/packages/net/https-dns-proxy  && svn co https://github.com/Lienol/openwrt-packages/trunk/net/https-dns-proxy ./feeds/packages/net/https-dns-proxy
+# rm -rf ./feeds/packages/net/https-dns-proxy  && svn co https://github.com/Lienol/openwrt-packages/trunk/net/https-dns-proxy ./feeds/packages/net/https-dns-proxy
 rm -rf ./feeds/packages/devel/ninja   && svn co https://github.com/Lienol/openwrt-packages/trunk/devel/ninja feeds/packages/devel/ninja
+rm -rf ./feeds/packages/net/miniupnpd  && svn co https://github.com/sirpdboy/build/trunk/miniupnpd ./feeds/packages/net/miniupnpd
 #rm -rf ./package/diy/autocore
-rm -rf ./package/build/mwan3
-rm -rf ./package/build/set/autocore
 rm -rf ./package/lean/automount
 rm -rf ./package/lean/autosamba
 rm -rf ./package/lean/luci-app-accesscontrol
 rm -rf ./package/lean/autocore
 rm -rf ./package/lean/default-settings
-rm -rf ./package/lean/luci-app-ramfree
+# rm -rf ./package/lean/luci-app-ramfree
 rm -rf ./package/lean/luci-app-arpbind
 rm -rf ./package/lean/luci-app-docker
 rm -rf ./package/lean/luci-app-dockerman
-rm -rf ./package/lean/luci-lib-docker
 rm -rf ./package/lean/trojan
-rm -rf ./feeds/packages/build/wsdd2
-rm -rf ./package/build/openwrt-fullconenat 
 rm -rf ./package/build/shortcut-fe
-rm -rf ./package/build/dnsforwarder
-# rm -rf package/lean/openwrt-fullconenat && svn co https://github.com/sirpdboy/build/trunk/openwrt-fullconenat package/lean/openwrt-fullconenat
-# rm -rf ./package/lean/shortcut-fe
-# rm -rf ./package/lean/dnsforwarder
-# rm -rf  ./feeds/packages/net/wsdd2  && svn co https://github.com/sirpdboy/build/trunk/wsdd2  ./feeds/packages/net/wsdd2 
+
+rm -rf ./package/lean/luci-app-baidupcs-web && svn co https://github.com/sirpdboy/sirpdboy-package/trunk/luci-app-baidupcs-web ./package/lean/luci-app-baidupcs-web
+# ksmbd
+rm -rf ./feeds/packages/net/ksmbd-tools && svn co https://github.com/sirpdboy/build/trunk/ksmbd-tools ./feeds/packages/net/ksmbd-tools
 rm -rf ./feeds/luci/applications/luci-app-samba 
-# svn co https://github.com/sirpdboy/build/trunk/luci-app-samba ./feeds/luci/applications/luci-app-samba
+svn co https://github.com/sirpdboy/build/trunk/luci-app-samba ./feeds/luci/applications/luci-app-samba
 rm -rf ./package/network/services/samba36 
-# svn co https://github.com/sirpdboy/build/trunk/samba36 ./package/network/services/samba36
+svn co https://github.com/sirpdboy/build/trunk/samba36 ./package/network/services/samba36
 rm -rf ./package/lean/samba4
 rm -rf ./feeds/package/net/samba4 && svn co https://github.com/sirpdboy/build/trunk/samba4 ./feeds/package/net/samba4
-rm -rf ./package/lean/softethervpn5
 rm -rf ./package/lean/luci-app-samba4
 
 # Boost 通用即插即用
