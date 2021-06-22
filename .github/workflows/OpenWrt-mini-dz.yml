@@ -96,12 +96,12 @@ jobs:
       - name: Upload Firmware
         uses: actions/upload-artifact@main
         with:
-          name: OpenWrt-ipv6-mini-Firmware
+          name: OpenWrt-ipv6-dz-Firmware
           path: ./mini/firmware
       - name: Upload  IPK
         uses: actions/upload-artifact@main
         with:
-          name: OpenWrt-ipv6-mini-Ipk
+          name: OpenWrt-ipv6-dz-Ipk
           path: ./mini/package
       - name: Upload firmware to cowtransfer
         run: |
