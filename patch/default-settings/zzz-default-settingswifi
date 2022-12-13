@@ -1,0 +1,131 @@
+#!/bin/sh
+setup_ssid()
+{
+    local r="radio$1"
+    
+    if ! uci show wireless.${r} >/dev/null 2>&1; then
+        return
+    fi
+    local s="wlan$1"
+    logger "default-wifi: setup $1's ssid"
+    local mac=`ifconfig ${s} | grep "HWaddr" | awk '{print $5}'`
+    local wifimac=`echo ${mac}|awk -F ":" '{print $4""$5""$6 }'|tr A-Z a-z|cut -c4-`
+    # uci set wireless.${r}.disabled=0
+    uci set wireless.${r}.country=CN
+    # uci set wireless.${r}.channel=149
+    if [ `uci get wireless.${r}.channel` -lt 14 ]; then
+        uci set wireless.${r}.channel=11
+        uci set wireless.default_${r}.ssid=Ez-2.4G
+    else
+        uci set wireless.${r}.channel=149
+        uci set wireless.default_${r}.ssid=Ez-5G
+    fi
+    uci set wireless.default_${r}.encryption='psk2'
+    uci set wireless.default_${r}.key='12345678'
+    uci commit
+}
+WIFI_NUM=`find /sys/class/net/ -name wlan* | wc -l`
+if [ ${WIFI_NUM} -gt 0 ]; then
+    # update /etc/config/wireless
+    for i in `seq 0 ${WIFI_NUM}`; do
+        setup_ssid ${i}
+    done
+fi
+uci set luci.main.lang=auto
+uci commit luci
+uci set system.@system[0].timezone=CST-8
+uci set system.@system[0].zonename=Asia/Shanghai
+uci commit system
+uci set fstab.@global[0].anon_mount=1
+uci commit fstab
+uci set dhcp.@dnsmasq[0].cachesize='10000'
+uci set dhcp.@dnsmasq[0].min_ttl='3600'
+uci set dhcp.@dnsmasq[0].filter_aaaa='0'
+uci set dhcp.@dnsmasq[0].localservice='0'
+uci set dhcp.@dnsmasq[0].nonwildcard='0'
+uci set dhcp.lan.ra='hybrid'
+uci set dhcp.lan.dhcpv6='hybrid'
+uci set dhcp.lan.ndp=''
+uci set dhcp.lan.ignore='0'
+uci set dhcp.lan.ra_management='1'
+uci set dhcp.lan.ra_default='1'
+uci set dhcp.lan.force='1'
+uci commit dhcp
+uci set network.lan.delegate='0'
+uci set network.wan.mtu=1460
+uci set network.wan.metric='41'
+uci set network.wan.delegate='0'
+uci set network.wan.ipv6='auto'
+uci commit network
+uci set turboacc.config.fullcone_nat='1'
+uci set turboacc.config.bbr_cca='1'
+uci set turboacc.config.sfe_flow='0'
+uci set turboacc.config.hw_flow='0'
+uci set turboacc.config.sw_flow='0'
+uci commit turboacc
+uci set fstab.@global[0].anon_mount=1
+uci commit fstab
+uci set upnpd.@upnpd[0].enabled='0' 
+uci set upnpd.@upnpd[0].igdv1='1' 
+uci commit upnpd 
+/etc/init.d/ttyd restart
+/etc/init.d/turboacc restart
+rm -f /usr/lib/lua/luci/view/admin_status/index/ddns.htm
+rm -f /usr/lib/lua/luci/view/admin_status/index/minidlna.htm
+
+sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/aria2.lua
+sed -i 's/services/nas/g' /usr/lib/lua/luci/view/aria2/overview_status.htm
+sed -i 's/\"services\"/\"control\"/g' /usr/lib/lua/luci/controller/hd_idle.lua
+sed -i 's/\"services\"/\"control\"/g' /usr/lib/lua/luci/controller/samba.lua
+
+sed -i 's/\"services\"/\"control\"/g' /usr/lib/lua/luci/controller/samba4.lua
+sed -i 's/\"nas\"/\"control\"/g' /usr/lib/lua/luci/controller/cifsd.lua
+sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/minidlna.lua
+sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/transmission.lua
+sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/mjpg-streamer.lua
+sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/p910nd.lua
+sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/usb_printer.lua
+sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/xunlei.lua
+sed -i 's/services/nas/g'  /usr/lib/lua/luci/view/minidlna_status.htm
+
+ln -sf /sbin/ip /usr/bin/ip
+
+sed -i 's#downloads.openwrt.org#mirrors.cloud.tencent.com/lede#g' /etc/opkg/distfeeds.conf
+
+sed -i '/openwrt_luci/ { s/snapshots/releases\/18.06.9/g; }'  /etc/opkg/distfeeds.conf
+sed -i '/immortalwrt_luci/ { s/snapshots/releases\/18.06.9/g; }'  /etc/opkg/distfeeds.conf
+sed -i "s/# //g" /etc/opkg/distfeeds.conf
+sed -i 's/root::0:0:99999:7:::/root:$1$V4UetPzk$CYXluq4wUazHjmCDBCqXF.:0:0:99999:7:::/g' /etc/shadow
+[ -f '/bin/bash' ] && sed -i 's|root:x:0:0:root:/root:/bin/ash|root:x:0:0:root:/root:/bin/bash|g' /etc/passwd
+
+
+sed -i 's/immortalwrt.org/baidu.com/g'  /etc/config/luci
+sed -i 's/openwrt.org/baidu.com/g'  /etc/config/luci
+sed -i '/REDIRECT --to-ports 53/d' /etc/firewall.user
+echo "# iptables -t nat -I POSTROUTING -o br-lan -j MASQUERADE" > /etc/firewall.user
+echo 'iptables -t nat -A PREROUTING -p udp --dport 53 -j REDIRECT --to-ports 53' >> /etc/firewall.user
+echo 'iptables -t nat -A PREROUTING -p tcp --dport 53 -j REDIRECT --to-ports 53' >> /etc/firewall.user
+echo '[ -n "$(command -v ip6tables)" ] && ip6tables -t nat -A PREROUTING -p udp --dport 53 -j REDIRECT --to-ports 53' >> /etc/firewall.user
+echo '[ -n "$(command -v ip6tables)" ] && ip6tables -t nat -A PREROUTING -p tcp --dport 53 -j REDIRECT --to-ports 53' >> /etc/firewall.user
+
+sed -i '/option disabled/d' /etc/config/wireless
+sed -i '/set wireless.radio${devidx}.disabled/d' /lib/wifi/mac80211.sh
+uci set wireless.radio0.disabled=0
+uci set wireless.radio1.disabled=0
+uci commit wireless
+wifi up
+
+sed -i '/DISTRIB_REVISION/d' /etc/openwrt_release
+echo "DISTRIB_REVISION='R22.5.22'" >> /etc/openwrt_release
+cat /etc/openwrt_release1 >> /etc/openwrt_release
+sed -i '/DISTRIB_DESCRIPTION/d' /etc/openwrt_release
+echo "DISTRIB_DESCRIPTION='OpenWrt '" >> /etc/openwrt_release
+
+sed -i '/log-facility/d' /etc/dnsmasq.conf
+echo "log-facility=/dev/null" >> /etc/dnsmasq.conf
+
+sed -i 's/cbi.submit\"] = true/cbi.submit\"] = \"1\"/g' /usr/lib/lua/luci/dispatcher.lua
+echo 'hsts=0' > /root/.wgetrc
+rm -rf /tmp/luci-*
+
+exit 0

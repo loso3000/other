@@ -1,0 +1,129 @@
+#!/bin/sh
+setup_ssid()
+{
+    local r="radio$1"
+    
+    if ! uci show wireless.${r} >/dev/null 2>&1; then
+        return
+    fi
+    local s="wlan$1"
+    logger "default-wifi: setup $1's ssid"
+    local mac=`ifconfig ${s} | grep "HWaddr" | awk '{print $5}'`
+    local wifimac=`echo ${mac}|awk -F ":" '{print $4""$5""$6 }'|tr A-Z a-z|cut -c4-`
+    # uci set wireless.${r}.disabled=0
+    uci set wireless.${r}.country=CN
+    # uci set wireless.${r}.channel=149
+    if [ `uci get wireless.${r}.channel` -lt 14 ]; then
+        uci set wireless.${r}.channel=11
+        uci set wireless.default_${r}.ssid=Op-2.4G
+    else
+        uci set wireless.${r}.channel=149
+        uci set wireless.default_${r}.ssid=Op-5G
+    fi
+    uci set wireless.default_${r}.encryption='psk2'
+    uci set wireless.default_${r}.key='12345678'
+    uci commit
+}
+WIFI_NUM=`find /sys/class/net/ -name wlan* | wc -l`
+if [ ${WIFI_NUM} -gt 0 ]; then
+    # update /etc/config/wireless
+    for i in `seq 0 ${WIFI_NUM}`; do
+        setup_ssid ${i}
+    done
+fi
+
+uci -q batch <<-EOF
+set luci.main.lang=zh_cn
+set luci.main.mediaurlbase='/luci-static/opentopd'
+set system.@system[0].timezone=CST-8
+set system.@system[0].zonename=Asia/Shanghai
+delete system.ntp.server
+add_list system.ntp.server='time1.cloud.tencent.com'
+add_list system.ntp.server='ntp1.aliyun.com'
+add_list system.ntp.server='ntp.ntsc.ac.cn'
+add_list system.ntp.server='cn.ntp.org.cn'
+set dhcp.@dnsmasq[0].cachesize='10000'
+set dhcp.@dnsmasq[0].min_ttl='3600'
+set dhcp.@dnsmasq[0].filter_aaaa='0'
+set dhcp.@dnsmasq[0].localservice='0'
+set dhcp.@dnsmasq[0].nonwildcard='0'
+set dhcp.lan.ndp=''
+set dhcp.lan.ra='hybrid'
+set dhcp.lan.dhcpv6='hybrid'
+set dhcp.lan.ignore='0'
+set dhcp.lan.ra_management='1'
+set dhcp.lan.ra_default='1'
+set dhcp.lan.force='1'
+set network.lan.delegate='0'
+set network.wan.mtu=1460
+set network.wan.metric='41'
+set network.wan.delegate='0'
+set network.wan.ipv6='auto'
+set turboacc.config.fullcone_nat='1'
+set turboacc.config.bbr_cca='0'
+set turboacc.config.sfe_flow='0'
+set turboacc.config.hw_flow='0'
+set turboacc.config.sw_flow='0'
+set fstab.@global[0].anon_mount=1
+set upnpd.@upnpd[0].enabled='0' 
+set upnpd.@upnpd[0].igdv1='1' 
+EOF
+uci commit luci
+uci commit fstab
+uci commit upnpd
+uci commit dhcp
+uci commit turboacc
+uci commit network
+uci commit system
+/etc/init.d/ttyd restart
+/etc/init.d/turboacc restart
+rm -f /usr/lib/lua/luci/view/admin_status/index/ddns.htm
+rm -f /usr/lib/lua/luci/view/admin_status/index/minidlna.htm
+rm -f /usr/lib/lua/luci/view/admin_status/index/mwan.htm
+rm -f /usr/lib/lua/luci/view/admin_status/index/upnp.htm
+sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/aria2.lua
+sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/view/aria2/overview_status.htm
+sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/hd_idle.lua
+sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/samba4.lua
+sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/minidlna.lua
+sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/transmission.lua
+sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/mjpg-streamer.lua
+sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/p910nd.lua
+sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/usb_printer.lua
+sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/xunlei.lua
+sed -i 's/services/nas/g'  /usr/lib/lua/luci/view/minidlna_status.htm
+
+ln -sf /sbin/ip /usr/bin/ip
+
+# sed -i 's/openwrt.org/baidu.com/g'  /etc/config/luci
+sed -i 's/immortalwrt.org/openwrt.org/g'  /etc/config/luci
+sed -i '/REDIRECT --to-ports 53/d' /etc/firewall.user
+echo "# iptables -t nat -I POSTROUTING -o br-lan -j MASQUERADE" > /etc/firewall.user
+echo 'iptables -t nat -A PREROUTING -p udp --dport 53 -j REDIRECT --to-ports 53' >> /etc/firewall.user
+echo 'iptables -t nat -A PREROUTING -p tcp --dport 53 -j REDIRECT --to-ports 53' >> /etc/firewall.user
+echo '[ -n "$(command -v ip6tables)" ] && ip6tables -t nat -A PREROUTING -p udp --dport 53 -j REDIRECT --to-ports 53' >> /etc/firewall.user
+echo '[ -n "$(command -v ip6tables)" ] && ip6tables -t nat -A PREROUTING -p tcp --dport 53 -j REDIRECT --to-ports 53' >> /etc/firewall.user
+
+sed -i '/option disabled/d' /etc/config/wireless
+sed -i '/set wireless.radio${devidx}.disabled/d' /lib/wifi/mac80211.sh
+uci set wireless.radio0.disabled=0
+uci set wireless.radio1.disabled=0
+uci commit wireless
+wifi up
+
+sed -i '/DISTRIB_REVISION/d' /etc/openwrt_release
+sed -i '/DISTRIB_DESCRIPTION/d' /etc/openwrt_release
+cat /etc/openwrt_release1 >> /etc/openwrt_release
+echo "DISTRIB_DESCRIPTION='OpenWrt '" >> /etc/openwrt_release
+
+sed -i '/lcp-echo/d' /etc/ppp/options
+echo "lcp-echo-failure 10" >>  /etc/ppp/options 
+echo "lcp-echo-interval 200" >>  /etc/ppp/options
+
+sed -i '/log-facility/d' /etc/dnsmasq.conf
+echo "log-facility=/dev/null" >> /etc/dnsmasq.conf
+
+echo 'hsts=0' > /root/.wgetrc
+rm -rf /tmp/luci-*
+
+exit 0

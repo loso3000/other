@@ -1,0 +1,89 @@
+#!/bin/sh
+sed -i '/option disabled/d' /etc/config/wireless
+sed -i '/set wireless.radio${devidx}.disabled/d' /lib/wifi/mac80211.sh
+uci -q batch <<-EOF
+set luci.main.lang=zh_cn
+set system.@system[0].timezone=CST-8
+set system.@system[0].zonename=Asia/Shanghai
+set dhcp.@dnsmasq[0].cachesize='10000'
+set dhcp.@dnsmasq[0].min_ttl='3600'
+set dhcp.@dnsmasq[0].filter_aaaa='0'
+set dhcp.@dnsmasq[0].localservice='0'
+set dhcp.@dnsmasq[0].nonwildcard='0'
+set dhcp.lan.ra='hybrid'
+set dhcp.lan.dhcpv6='hybrid'
+set dhcp.lan.ndp=''
+set dhcp.lan.ignore='0'
+set dhcp.lan.ra_management='1'
+set dhcp.lan.ra_default='1'
+set dhcp.lan.force='1'
+set network.lan.delegate='0'
+set network.wan.mtu=1460
+set network.wan.metric='41'
+set network.wan.delegate='0'
+set network.wan.ipv6='auto'
+set fstab.@global[0].anon_mount=1
+set fstab.@global[0].check_fs=1
+set wireless.radio0.disabled=0
+set wireless.radio1.disabled=0
+EOF
+# uci set network.globals.ula_prefix='fd99:7eed:a606::/48''
+uci commit wireless
+wifi up
+uci commit luci
+uci commit system
+uci commit dhcp
+uci commit fstab
+uci commit network
+/etc/init.d/turboacc restart
+/etc/init.d/ttyd restart
+rm -f /usr/lib/lua/luci/view/admin_status/index/ddns.htm
+rm -f /usr/lib/lua/luci/view/admin_status/index/upnp.htm
+rm -f /usr/lib/lua/luci/view/admin_status/index/minidlna.htm
+
+ln -sf /sbin/ip /usr/bin/ip
+
+if ls -l /local_feed/*.ipk &>/dev/null;then
+    sed -ri 's@^[^#]@#&@' /etc/opkg/distfeeds.conf
+    grep -E '/local_feed' /etc/opkg/customfeeds.conf || echo 'src/gz local file:///local_feed' >> /etc/opkg/customfeeds.conf
+    sed -ri '/check_signature/s@^[^#]@#&@' /etc/opkg.conf
+fi
+sed -i 's#downloads.openwrt.org#mirrors.cloud.tencent.com/lede#g' /etc/opkg/distfeeds.conf
+
+sed -i '/immortalwrt_luci/ { s/snapshots/releases\/18.06.9/g; }'  /etc/opkg/distfeeds.conf
+sed -i 's/immortalwrt.org/openwrt.org/g'  /etc/config/luci
+sed -i '/openwrt_luci/ { s/snapshots/releases\/18.06.9/g; }'  /etc/opkg/distfeeds.conf
+sed -i "s/# //g" /etc/opkg/distfeeds.conf
+
+sed -i '/REDIRECT --to-ports 53/d' /etc/firewall.user
+# sed -i 's/openwrt.org/baidu.com/g'  /etc/config/luci
+# 配合下面的单个端口，或者放行整个段
+# iptables -I input_wan_rule -p tcp -m tcp --dport 22 -j ACCEPT
+# 二级路由的话放行上层的  CIDR 即可
+cat > /etc/firewall.user << EOF
+# iptables -t nat -A PREROUTING -p udp --dport 53 -j REDIRECT --to-ports 53
+# iptables -t nat -A PREROUTING -p tcp --dport 53 -j REDIRECT --to-ports 53
+# [ -n "$(command -v ip6tables)" ] && ip6tables -t nat -A PREROUTING -p udp --dport 53 -j REDIRECT --to-ports 53
+# [ -n "$(command -v ip6tables)" ] && ip6tables -t nat -A PREROUTING -p tcp --dport 53 -j REDIRECT --to-ports 53
+# 设置为旁路由时需要
+# iptables -t nat -I POSTROUTING -o br-lan -j MASQUERADE
+# 允许wan口指定网段访问，一般二级路由下需要
+# iptables -I input_wan_rule -s 192.168.0.0/16  -j ACCEPT
+EOF
+
+sed -i '/DISTRIB_REVISION/d' /etc/openwrt_release
+cat /etc/openwrt_release1 >> /etc/openwrt_release
+sed -i '/DISTRIB_DESCRIPTION/d' /etc/openwrt_release
+echo "DISTRIB_DESCRIPTION='EzOpWrt '" >> /etc/openwrt_release
+
+sed -i '/lcp-echo/d' /etc/ppp/options
+echo "lcp-echo-failure 10" >>  /etc/ppp/options  #30次未响应断开
+echo "lcp-echo-interval 200" >>  /etc/ppp/options   #发送间隔秒
+sed -i '/log-facility/d' /etc/dnsmasq.conf
+echo "log-facility=/dev/null" >> /etc/dnsmasq.conf
+
+sed -i 's/cbi.submit\"] = true/cbi.submit\"] = \"1\"/g' /usr/lib/lua/luci/dispatcher.lua
+echo 'hsts=0' > /root/.wgetrc
+rm -rf /tmp/luci-*
+
+exit 0
