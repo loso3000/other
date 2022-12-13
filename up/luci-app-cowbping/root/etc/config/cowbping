@@ -1,0 +1,7 @@
+
+config cowbping 'cowbping'
+	option enabled '0'
+	option delaytime '60'
+	option time '5'
+	option address1 '163.com'
+	option address2 '114.114.114.114'

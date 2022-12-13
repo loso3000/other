@@ -1,0 +1,81 @@
+#!/bin/sh /etc/rc.common
+ 
+
+START=98
+
+add_rules() {
+mmode=$1
+rulessum=$(grep -c $mmode /etc/config/parentcontrol)
+for i in $(seq 0 $((rulessum-1)))
+do
+enable=$(uci -q get parentcontrol.@$mmode[$i].enable )
+if [ "$enable" == 1 ]; then
+ macaddr=$(uci -q get parentcontrol.@$mmode[$i].macaddr ) && MAC="-m mac --mac-source $macaddr" || MAC=""
+ keyword=$(uci -q get parentcontrol.@$mmode[$i].keyword ) && STG="-m string --string ${keyword} --algo ${algos}" || STG=""
+ proto=$(uci -q get parentcontrol.@$mmode[$i].proto ) || proto="tcp"
+ sport=$(uci -q get parentcontrol.@$mmode[$i].sport ) && SPT="--sport ${sport}" || SPT=""
+ dport=$(uci -q get parentcontrol.@$mmode[$i].dport ) && DPT="--dport ${dport}" || DPT=""
+ havesMPT=`echo "$sport"|grep ","` && sMPT="-m multiport" || sMPT=""
+ havedMPT=`echo "$dport"|grep ","` && dMPT="-m multiport" || dMPT=""
+ [ -z "$sport" -a -z "$dport" ] && PTS="" || PTS="-p ${proto} ${sMPT} ${SPT} ${dMPT} ${DPT}"
+ timestart=$(uci get parentcontrol.@$mmode[$i].timeon 2>/dev/null) || timestart="00:00"
+ timestop=$(uci get parentcontrol.@$mmode[$i].timeoff 2>/dev/null) ||  timestop="00:00"
+ week_days=$(uci get parentcontrol.@$mmode[$i].daysofweek |sed 's/ /,/g' 2>/dev/null)
+ [ -z "$timestart" -o -z "$timestop" -o "$timestart" = "$timestop" ] && TIME="" || TIME="--timestart ${timestart} --timestop ${timestop}"
+ [ -z "$week_days" -o "$week_days" = "Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday" ] && WEEK="" || WEEK="--weekdays ${week_days}"
+ [ -n "$TIME" -o -n "$WEEK" ] && TME="-m time --kerneltz ${TIME} ${WEEK}" || TME=""
+ if [ -n "$MAC" -o -n "$PTS" -o -n "$TME" -o -n "$STG" ]; then
+  iptables  -A PARENTCONTROL ${MAC} ${PTS} ${TME} ${STG} -j REJECT 2>/dev/null
+  ip6tables -A PARENTCONTROL ${MAC} ${PTS} ${TME} ${STG} -j REJECT 2>/dev/null
+ fi
+fi
+done
+}
+
+add_rules_black() {
+
+L=$(cat /etc/parentcontrol/black.list)
+	for i in $L;do
+                 keyword=$i && STG="-m string --string ${keyword} --algo ${algos}" || STG=""
+ 		 if [ -n "$STG" ]; then
+  			iptables  -A PARENTCONTROL ${STG} -j REJECT 2>/dev/null
+  			ip6tables -A PARENTCONTROL ${STG} -j REJECT 2>/dev/null
+ 		 fi
+	done
+}
+
+start(){
+enabled=`uci -q get parentcontrol.@basic[0].enabled `
+if [ "$enabled" == 1 ]; then
+	ENsum=`grep -c 'enable .1.' /etc/config/parentcontrol`
+	if [ "$ENsum" -gt 0 -o $control_mode=="black_mode" ]; then
+
+	     
+ 	     algos=`uci -q get parentcontrol.@basic[0].algos `
+	     iptables  -N PARENTCONTROL 2>/dev/null || iptables  -F PARENTCONTROL 2>/dev/null
+	     ip6tables -N PARENTCONTROL 2>/dev/null || ip6tables -F PARENTCONTROL 2>/dev/null
+	     iptables  -C FORWARD -j PARENTCONTROL 2>/dev/null || iptables  -I FORWARD -j PARENTCONTROL
+	     ip6tables -C FORWARD -j PARENTCONTROL 2>/dev/null || ip6tables -I FORWARD -j PARENTCONTROL
+
+	     add_rules macbind
+	     add_rules macbind3
+	     control_mode=`uci -q get parentcontrol.@basic[0].control_mode `
+    	     case $control_mode in
+		custom_mode)  
+			add_rules macbind2;;
+ 	     	black_mode) 
+     			add_rules_black;;
+ 		esac
+      fi
+fi
+}
+
+stop(){
+	iptables  -D FORWARD -j PARENTCONTROL 2>/dev/null
+	ip6tables -D FORWARD -j PARENTCONTROL 2>/dev/null
+	iptables  -F PARENTCONTROL 2>/dev/null
+	ip6tables -F PARENTCONTROL 2>/dev/null
+	iptables - X PARENTCONTROL 2>/dev/null
+	ip6tables -X PARENTCONTROL 2>/dev/null
+}
+

@@ -1,0 +1,21 @@
+<script type="text/javascript">//<![CDATA[
+XHR.poll(3, '<%=url([[admin]], [[network]], [[bridge]], [[status]])%>', null,
+	function(x, data) {
+		var tb = document.getElementById('bridge_status');
+		if (data && tb) {
+			if (data.running) {
+				tb.innerHTML = '<em><b><font color=green><%:网络已修改%></font>';
+			} else {
+				tb.innerHTML = '<em><b><font color=red><%:网络未修改%></font>';
+			}
+		}
+	}
+);
+//]]>
+</script>
+<style>.mar-10 {margin-left: 50px; margin-right: 10px;}</style>
+<fieldset class="cbi-section">
+	<p id="bridge_status">
+		<em><%:Collecting data...%></em>
+	</p>
+</fieldset>

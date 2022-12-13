@@ -1,0 +1,46 @@
+<%+cbi/valueheader%>
+<%local ping_host = luci.config.diag and luci.config.diag.ping or "dev.openwrt.org"%>
+
+<script type="text/javascript">//<![CDATA[
+	var stxhr = new XHR();
+	function ping_status(field, proto)
+	{
+		var tool = field.name;
+		var addr = field.value;
+		var legend = document.getElementById('diag-rc-legend');
+		var output = document.getElementById('diag-rc-output');
+		if (legend && output)
+		{
+			output.innerHTML =
+				'<img src="<%=resource%>/icons/loading.gif" alt="<%:Loading%>" style="vertical-align:middle" /> ' +
+				'<%:等待命令执行完成...%>'
+			;
+
+			legend.parentNode.style.display = 'block';
+			legend.style.display = 'inline';
+
+			stxhr.post('<%=url('admin/network')%>/diag_' + tool + '/' + addr, { token: '<%=token%>' },
+				function(x)
+				{
+					if (x.responseText)
+					{
+						legend.style.display = 'none';
+						output.innerHTML = String.format('<pre>%h</pre>', x.responseText);
+					}
+					else
+					{
+						legend.style.display = 'none';
+						output.innerHTML = '<span class="error"><%:指定的地址错误！%></span>';
+					}
+				}
+			);
+		}
+	}
+//]]></script>
+<input type="text" value="<%=ping_host%>" name="ping">&nbsp;&nbsp;&nbsp;&nbsp;
+<input type="button" value="<%:运行 Ping%>" class="btn cbi-button cbi-button-apply" onclick="ping_status(this.form.ping)" style="clear:both">
+<fieldset class="cbi-section" style="display:none">
+	<legend id="diag-rc-legend"></legend>
+	<span id="diag-rc-output"></span>
+</fieldset>
+<%+cbi/valuefooter%>

@@ -1,0 +1,167 @@
+#!/bin/sh /etc/rc.common
+
+START=99
+
+firewall_user="/etc/firewall.user"
+dhcp_backup="/etc/config/dhcp_backup"
+network_backup="/etc/config/network_backup"
+firewall_backup="/etc/config/firewall_backup"
+
+save_apply() {
+	uci commit dhcp && /etc/init.d/dnsmasq reload 2>/dev/null &
+	uci commit network && /etc/init.d/network restart 2>/dev/null &
+	uci commit firewall && /etc/init.d/firewall restart 2>/dev/null &
+}
+
+run_bridge() {
+
+	bridge_by_type="dhcp dhcpv6 dns enabled firewall fullcone gateway ip_tables ipaddr masq netmask network omasq syn_flood wan"
+	for x in $bridge_by_type; do
+		config_get $x bridge $x
+	done
+
+	if [[ "$enabled" == "1" ]]; then
+		#备份配置
+		if [[ ! -s "$network_backup" ]] || [[ "$(grep lan $network_backup)" == "" ]]; then
+			echo -e "delete network.@lan[-1]\ndelete network.lan" >$network_backup
+			uci show network.lan | sed 's/^/set &/g' >>$network_backup
+		fi
+
+		if [[ "$dhcp" == "0" && ! -s "$dhcp_backup" ]]; then
+			echo -e "delete dhcp.@lan[-1]\ndelete dhcp.lan" >$dhcp_backup
+			uci show dhcp.lan | sed 's/^/set &/g' >>$dhcp_backup
+		fi
+
+		if [[ "$firewall" == "1" && ! -s "$firewall_backup" ]]; then
+			uci show firewall.@zone[0] | sed 's/^/set &/g' >>$firewall_backup
+			uci show firewall.@defaults[0] | sed 's/^/set &/g' >>$firewall_backup
+		fi
+
+		#模拟输入
+		if [[ "$network" == "0" || "$network" == "" ]]; then
+			eth=$(ls /sys/class/net | grep -E 'eth[0-9]+' | xargs | sed 's/[ ]*$//g')
+		else
+			eth=$(ETH $network | xargs | sed 's/[ ]*$//g')
+		fi
+
+		#写入network网络接口
+		if ! uci get network.lan.gateway 1>/dev/null 2>&1; then
+			uci -q batch <<-EOF
+				set network.lan.dns="$dns"
+				set network.lan.ifname="$eth"
+				set network.lan.ipaddr="$ipaddr"
+				set network.lan.netmask="$netmask"
+				set network.lan.gateway="$gateway"
+			EOF
+		fi
+
+		#删除wan接口
+		if [[ "$wan" == "" ]]; then
+			if [[ -s "$network_backup" && $(grep -E 'wan|switch_vlan' $network_backup) != "" ]]; then
+				while read line; do
+					[[ "$(echo $line | grep -E 'wan|switch_vlan')" ]] && uci -q batch $line
+				done <$network_backup
+				sed -r "/wan|switch_vlan/d" $network_backup -i
+			fi
+		else
+			if ! grep wan $network_backup 1>/dev/null 2>&1; then
+				echo -e "delete network.wan" >>$network_backup
+				uci show network.wan | sed 's/^/set &/g' >>$network_backup
+				uci show network.wan6 | sed 's/^/set &/g' >>$network_backup
+
+				if [[ "$(grep switch_vlan /etc/config/network)" =~ "vlan" && "$(grep switch_vlan $network_backup)" = "" ]]; then
+					echo -e "delete network.@switch_vlan[0]\ndelete network.@switch_vlan[1]" >>$network_backup
+					uci show network.@switch_vlan[0] | sed 's/^/set &/g' >>$network_backup
+					uci show network.@switch_vlan[1] | sed 's/^/set &/g' >>$network_backup
+					uci -q set network.@switch_vlan[0].ports="$(uci get network.@switch_vlan[0].ports | sed 's/0 //g')"
+					uci -q set network.@switch_vlan[1].ports="$(uci get network.@switch_vlan[1].ports | sed 's/^/0 /g')"
+				fi
+			fi
+			if uci show network.wan 1>/dev/null 2>&1; then
+				uci -q batch <<-EOF
+					delete network.wan
+					delete network.wan6
+				EOF
+			fi
+		fi
+
+		#写入dhcp
+		if [[ "$dhcp" -eq "0" ]]; then
+			if ! uci get dhcp.lan.ignore 1>/dev/null 2>&1; then
+				uci -q batch <<-EOF
+					set dhcp.lan.ignore=1
+					set dhcp.lan.interface=lan
+					delete dhcp.lan.start
+					delete dhcp.lan.limit
+					delete dhcp.lan.leasetime
+				EOF
+			fi
+			if [[ "x$dhcpv6" == "x1" ]]; then
+				if uci get dhcp.lan.dhcpv6 1>/dev/null 2>&1; then
+					uci -q batch <<-EOF
+						delete dhcp.lan.ra
+						delete dhcp.lan.ndp
+						delete dhcp.lan.dhcpv6
+						delete dhcp.lan.ra_management
+					EOF
+				fi
+			else
+				if ! uci get dhcp.lan.dhcpv6 1>/dev/null 2>&1; then
+					while read line; do 
+						[[ "$(echo $line | grep -E 'ra|dhcpv6|ra_management|ndp')" ]] && uci -q batch $line
+					done <"$dhcp_backup"
+				fi
+			fi
+		else
+			[[ -s "$dhcp_backup" ]] && {
+				while read line; do uci -q batch $line; done <"$dhcp_backup"
+				rm "$dhcp_backup"
+			}
+			uci -q set dhcp.lan.force=1
+		fi
+
+		#写入firewall防火墙
+		if [[ "x$firewall" == "x" ]]; then
+			[[ -s $firewall_backup ]] && {
+			# sed -i "/$ip_tables/d" $firewall_user
+			while read line; do uci -q batch $line; done <"$firewall_backup"
+			rm "$firewall_backup"
+			}
+		else
+			[[ "x$masq" == "x" ]] && uci -q set firewall.@zone[0].masq='0' || uci -q set firewall.@zone[0].masq='1'
+			[[ "x$fullcone" == "x" ]] && uci -q set firewall.@defaults[0].fullcone='1' || uci -q set firewall.@defaults[0].fullcone='0'
+			[[ "x$syn_flood" == "x" ]] && uci -q set firewall.@defaults[0].syn_flood='1' || uci -q set firewall.@defaults[0].syn_flood='0'
+			# [[ "$wan" -eq "1" ]] && uci -q delete firewall.@zone[1]
+			if [[ "x$omasq" != "x" ]]; then
+				[[ "$(grep -c "$ip_tables" $firewall_user)" -eq "0" ]] && echo "$ip_tables" >>$firewall_user
+			# else
+				# sed -i "/$ip_tables/d" $firewall_user
+			fi
+		fi
+		uci -q set firewall.@zone[0].name='bridge'
+		save_apply
+	else
+		#恢复配置&删除备份
+		sed -i "/$ip_tables/d" $firewall_user
+		for p in /etc/config/*_backup; do
+			while read line; do uci -q batch $line; done <"$p"
+			rm $p
+		done
+		uci -q set firewall.@zone[0].name='lan'
+		save_apply
+	fi
+}
+
+ETH() {
+	eth=0
+	while [[ $eth -le $(expr "$1" - 1) ]]; do
+		eth=$(expr $eth + 1)
+		a=$(expr $eth - 1)
+		echo "eth$a"
+	done
+}
+
+start() {
+	config_load bridge
+	config_foreach run_bridge
+}

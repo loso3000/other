@@ -1,0 +1,7 @@
+
+config bridge 'bridge'
+	option gateway ''
+	option ipaddr ''
+	option dhcpv6 '1'
+	option netmask '255.255.255.0'
+
