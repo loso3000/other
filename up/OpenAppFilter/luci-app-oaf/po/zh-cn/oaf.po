@@ -35,6 +35,18 @@ msgstr "购物"
 msgid "working"
 msgstr "办公"
 
+msgid "user"
+msgstr "自定义"
+
+msgid "Work Space"
+msgstr "工作区域"
+
+msgid "Domestic"
+msgstr "国内"
+
+msgid "Overseas"
+msgstr "国外"
+
 msgid "employee"
 msgstr "招聘"
 
@@ -79,8 +91,6 @@ msgstr "过滤状态"
 
 msgid "Data Statistics"
 msgstr "数据统计"
-
-
 
 msgid "Current Version"
 msgstr "当前版本"
@@ -189,14 +199,9 @@ msgstr "网关模式"
 msgid "Bypass Mode"
 msgstr "旁路模式"
 
-msgid "Bypass Mode"
-msgstr "旁路模式"
-
 msgid "Current version"
 msgstr "当前版本"
-
-msgid "Current version"
-msgstr "当前版本"
+ 
 
 msgid "App number"
 msgstr "App个数"

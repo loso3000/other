@@ -24,6 +24,11 @@ o.default=0
 o:value(0, translate("Gateway Mode"))
 o:value(1,translate("Bypass Mode"))
 
+o=s:option(ListValue, "work_space", translate("Work Space"),translate("")) 
+o.default=0
+o:value(0, translate("Domestic"))
+o:value(1,translate("Overseas"))
+
 local rule_count = 0
 local version = ""
 
