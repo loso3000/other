@@ -1,11 +1,11 @@
 local m,s,o
-local name="bypass"
+local bypass="bypass"
 local uci=luci.model.uci.cursor()
 local server_count=0
 local SYS=require"luci.sys"
 
 function url(...)
-    local url = string.format("admin/services/%s", name)
+    local url = string.format("admin/services/%s", bypass)
     local args = { ... }
     for i, v in pairs(args) do
         if v ~= "" then
@@ -33,7 +33,7 @@ end
 
 table.sort(key_table)
 
-m=Map(name)
+m=Map("bypass")
 
 s=m:section(TypedSection,"global",translate("Server failsafe auto swith settings"))
 s.anonymous=true
@@ -71,7 +71,7 @@ o:value("https://fastly.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/gfw
 o:value("https://fastly.jsdelivr.net/gh/Loukky/gfwlist-by-loukky/gfwlist.txt", translate("Loukky/gfwlist-by-loukky"))
 o:value("https://fastly.jsdelivr.net/gh/gfwlist/gfwlist/gfwlist.txt", translate("gfwlist/gfwlist"))
 o:value("https://fastly.jsdelivr.net/gh/sirpdboy/iplist@main/gfwlist.txt", translate("sirpdboy/gfwlist"))
-o:value("https://supes.top/bypass/gfwlist.txt", translate(supes/gfwlist"))
+o:value("https://supes.top/bypass/gfwlist.txt", translate("supes/gfwlist"))
 o.default = "https://fastly.jsdelivr.net/gh/sirpdboy/iplist@main/gfwlist.txt"
 
 ----chnroute  URL

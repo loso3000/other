@@ -14,7 +14,7 @@ function index()
 	entry({"admin","services","bypass","servers"},arcombine(cbi("bypass/servers",{autoapply=true}),cbi("bypass/client-config")),_("Severs Nodes"),20).leaf=true
 	entry({"admin","services","bypass","control"},cbi("bypass/control"),_("Access Control"),40).leaf=true
 	entry({"admin","services","bypass","advanced"},cbi("bypass/advanced"),_("Advanced Settings"),60).leaf=true
-	if CALL("which ssr-server >/dev/null")==0 or CALL("which ss-server >/dev/null")==0 or CALL("which microsocks >/dev/null")==0 then
+	if luci.sys.call("which ssr-server >/dev/null")==0 or luci.sys.call("which ss-server >/dev/null")==0 or luci.sys.call("which microsocks >/dev/null")==0 then
 	      entry({"admin","services","bypass","server"},arcombine(cbi("bypass/server"),cbi("bypass/server-config")),_("Server"),70).leaf=true
 	end
 	entry({"admin","services","bypass","log"},form("bypass/log"),_("Log"),80).leaf=true

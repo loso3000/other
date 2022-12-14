@@ -4,15 +4,16 @@ config global
 	option threads '0'
 	option run_mode 'router'
 	option dns_mode_o 'tcp'
-	option doh_dns_o '8.8.8.8,8.8.4.4'
 	option gfw_mode '1'
 	option dns_mode_d 'doh'
-	option doh_dns_d 'alidns'
 	option monitor_enable '1'
 	option enable_switch '1'
 	option switch_time '300'
 	option switch_timeout '5'
 	option switch_try_count '3'
+	option udp_relay_server 'same'
+	option tcp_dns_o '8.8.8.8,8.8.4.4'
+	option doh_dns_d 'dnspod'
 
 config socks5_proxy
 
@@ -22,6 +23,9 @@ config access_control
 config server_global
 
 config global_rules
+	option gfwlist_url 'https://supes.top/bypass/gfwlist.txt'
+	option chnroute_url 'https://supes.top/bypass/all_cn.txt'
+	option chnroute6_url 'https://ispip.clang.cn/all_cn_ipv6.txt'
 
 
 config server_subscribe
