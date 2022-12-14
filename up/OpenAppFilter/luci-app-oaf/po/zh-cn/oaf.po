@@ -41,10 +41,10 @@ msgstr "自定义"
 msgid "Work Space"
 msgstr "工作区域"
 
-msgid "Domestic"
+msgid "Work Domestic"
 msgstr "国内"
 
-msgid "Overseas"
+msgid "Work Overseas"
 msgstr "国外"
 
 msgid "employee"
