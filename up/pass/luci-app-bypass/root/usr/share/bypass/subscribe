@@ -31,11 +31,8 @@ local packet_encoding = luci.model.ipkg.installed("sagernet-core") and ucic:get_
 local v2_ss = SYS.exec('type -t -p ss-redir sslocal') ~= "" and "ss" or "v2ray"
 local v2_ssr = SYS.exec('type -t -p ssr-redir') ~= "" and "ssr" or "v2ray"
 local v2_tj = SYS.exec('type -t -p trojan') ~= "" and "trojan" or "v2ray"
-local log=function(...)
-	local file=io.open("/var/log/bypass.log","a")
-	io.output(file)
-	io.write(os.date("%Y-%m-%d %H:%M:%S ").."Subscribe       : "..table.concat({...}," ").."\n")
-	io.close(file)
+local log = function(...)
+	print(os.date("%Y-%m-%d %H:%M:%S ") .. table.concat({...}, " "))
 end
 local encrypt_methods_ss = {
 	-- plain
@@ -606,25 +603,21 @@ local execute = function()
 			local firstServer = ucic:get_first(name, uciType)
 			if firstServer then
 				if not ucic:get(name, globalServer) then
+					luci.sys.call("/etc/init.d/" .. name .. " stop > /dev/null 2>&1 &")
 					ucic:commit(name)
 					ucic:set(name, ucic:get_first(name, 'global'), 'global_server', ucic:get_first(name, uciType))
-					C='1'
+					ucic:commit(name)
 					log('当前主服务器节点已被删除，正在自动更换为第一个节点。')
+					luci.sys.call("/etc/init.d/" .. name .. " start > /dev/null 2>&1 &")
 				else
 					log('维持当前主服务器节点。')
+					luci.sys.call("/etc/init.d/" .. name .. " restart > /dev/null 2>&1 &")
 				end
-
-					SYS.call("/etc/init.d/" .. name .. " restart > /dev/null 2>&1 &")
 			else
 				log('没有服务器节点了，停止服务')
-				SYS.call("/etc/init.d/" .. name .. " stop > /dev/null 2>&1 &")
+				luci.sys.call("/etc/init.d/" .. name .. " stop > /dev/null 2>&1 &")
 			end
 		end
-	SYS.call("touch /var/lock/bypass-uci.lock")
-	ucic:commit(name)
-	if proxy=='0' or C then
-		SYS.call("/etc/init.d/bypass restart > /dev/null 2>&1 &")
-	end
 		log('新增节点数量: ' .. add, '删除节点数量: ' .. del)
 		log('订阅更新成功')
 	end

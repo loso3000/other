@@ -14,7 +14,6 @@ DNS_T=$SDNS/smartdns.conf
 CON_T=$SDNS/rules.conf
 PID=/var/run/smartdns.pid
 LOG=/var/log/bypass.log
-K=/tmp/bypass
 BIN_DIR=/usr/share/bypass
 DNS_FILE=/tmp/dnsmasq.d/dnsmasq-by.conf
 DNS_DIR=/tmp/dnsmasq.by
@@ -199,7 +198,19 @@ start_dns(){
 	fi
 }
 
-
+preload(){
+	if [ "$dns_a" = 1 -o "$dns_b" = 1 ];then
+		[ "$dns_a" = 1 ] || doh_o_dom=
+		[ "$dns_b" = 1 ] || doh_nf_dom=
+		X=ns
+		Y=$doh_o_dom
+		Z=$doh_nf_dom
+	elif [ $run_mode = all -a "$dns_c" = 1 ];then
+		X=ns
+		Y=$doh_d_dom
+	fi
+	service_start $BIN_DIR/by-preload $run_mode $X $Y $Z
+}
 
 check_net(){
 	if ! curl -so /dev/null -m 3 www.baidu.com;then
@@ -242,7 +253,7 @@ rules(){
 	check_net
 	cat $LOG 2>/dev/null | sed -n '$p' | grep -q 'Download IP/GFW files...' || (log "Check IP/GFW files...")
 	mkdir -p /var/run $VAR
-	if [ ! -s $K/china.txt ] || [ $run_mode = router -a ! -s $K/china_v6.txt ] || ([ $run_mode = gfw -o $gfw_mode = 1 ] && [ ! -s $K/gfw.list ]);then
+	if [ ! -s $T_FILE/china.txt ] || [ $run_mode = router -a ! -s $T_FILE/china_v6.txt ] || ([ $run_mode = gfw -o $gfw_mode = 1 ] && [ ! -s $T_FILE/gfw.list ]);then
 		log "Download IP/GFW files..."
 		firstdown 2;exit 0;
 	fi
@@ -802,19 +813,7 @@ gen_dns(){
 	killall -q -9 smartdns
 	start_dns
 	/etc/init.d/dnsmasq restart >/dev/null 2>&1
-
-	if [ "$dns_a" = 1 -o "$dns_b" = 1 ];then
-		[ "$dns_a" = 1 ] || doh_o_dom=
-		[ "$dns_b" = 1 ] || doh_nf_dom=
-		X=ns
-		Y=$doh_o_dom
-		Z=$doh_nf_dom
-	elif [ $run_mode = all -a "$dns_c" = 1 ];then
-		X=ns
-		Y=$doh_d_dom
-	fi
-	service_start $BIN_DIR/by-preload $run_mode $X $Y $Z
-
+	preload
 }
 
 start_switch(){
