@@ -50,7 +50,8 @@ SO_SERVER=$(uci_get_by_type socks5_proxy server 0)
 dns_mode_d=$(uci_get_by_type global dns_mode_d doh)
 
 gen_log()(
-	[ -s $LOG ] && echo '------------------------------------------------------------------------------------------------------------------------------------------------------------' >> $LOG
+
+	[ -s $LOG ] && echo '----------------------------------------------------------start-----------------------------------------------------------' >> $LOG
 	log "Check network status..."
 )
 
@@ -189,7 +190,7 @@ start_dns(){
 		;;
 	esac
 	if [ $run_mode = router ];then
-		service_start $(which chinadns-ng) -l 5337 -c '127.0.0.1#5336' -t '127.0.0.1#5335' -4 china_v4 -6 china_v6 -f -n $([ $gfw_mode = 1 ] && echo -g $T_FILE/gfw.list)
+		service_start $(which chinadns-ng) -l 5337 -c '127.0.0.1#5336' -t '127.0.0.1#5335' -4 china_v4  -p 3 -6 china_v6 -f -n $([ $gfw_mode = 1 ] && echo -g $T_FILE/gfw.list)
 		log "ChinaDNS : Start ChinaDNS-NG successful!"
 	fi
 	if [[ "$(uci -q get dhcp.@dnsmasq[0].cachesize)" == "0" && $adguardhome == 0 ]]; then
@@ -214,7 +215,8 @@ preload(){
 
 check_net(){
 	if ! curl -so /dev/null -m 3 www.baidu.com;then
-		/etc/init.d/dnsmasq restart
+		log "Rules : Wait for network to connect..."
+		# /etc/init.d/dnsmasq restart
 		firstdown 1;exit 0;
 	fi
 }
@@ -224,6 +226,7 @@ get_soip(){
 		if [ "$1" = 1 ];then
 			cat $LOG 2>/dev/null | sed -n '$p' | grep -q 'Check network status...' || gen_log
 			check_net
+			cat $LOG 2>/dev/null | sed -n '$p' | grep -q 'Check network status successful!' || log "Rules     :Check network status successful!"
 		fi
 		socks5_ip=$(uci_get_by_name $SO_SERVER server)
 		if ! echo $socks5_ip | grep -E "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$">/dev/null;then
@@ -987,6 +990,8 @@ start(){
 		log "请确保系统中存在luci-app-adguardhome以及adg主程序!"
 	fi
 	rm -f $LOCK $LOC
+	[ -s $LOG ] && echo '-----------------------------------------------------------end------------------------------------------------------------' >> $LOG
+
 }
 
 stop(){
@@ -1051,6 +1056,7 @@ stop(){
 			sleep 1
 		done
 	fi
+
 }
 
 restart(){

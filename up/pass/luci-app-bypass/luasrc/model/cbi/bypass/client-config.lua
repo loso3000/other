@@ -130,7 +130,7 @@ local tls_flows = {
 	"xtls-rprx-vision-udp443"
 }
 
-m = Map("bypass", translate("Edit Bypass Server"))
+m = Map("bypass", translate("Edit Server"))
 m.redirect = luci.dispatcher.build_url("admin/services/bypass/servers")
 if m.uci:get("bypass", sid) ~= "servers" then
 	luci.http.redirect(m.redirect)

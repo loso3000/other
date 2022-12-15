@@ -14,7 +14,7 @@ msgid "Bypass NOT RUNNING"
 msgstr "Bypass 客户端未运行"
 
 msgid "Main Server"
-msgstr "主服务器"
+msgstr "TCP主服务器"
 
 msgid "Client"
 msgstr "客户端"
@@ -25,16 +25,9 @@ msgstr "启用"
 msgid "Disable"
 msgstr "停用"
 
-
-
-msgid "Game Mode"
-msgstr "游戏模式"
-
 msgid "UDP Server"
-msgstr "UDP服务器"
+msgstr "游戏模式UDP服务器"
 
-msgid "Game Mode UDP Server"
-msgstr "游戏模式UDP中继服务器"
 
 msgid "Same as Global Server"
 msgstr "与全局服务器相同"
@@ -282,6 +275,7 @@ msgstr "使用"
 
 msgid "Auto Switch"
 msgstr "故障转移"
+
 
 msgid "Edit Server"
 msgstr "编辑服务器配置"

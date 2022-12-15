@@ -1,6 +1,5 @@
 #!/bin/sh
 [ "$1" = --First ] && A=Y || A=N
-# ∑¿÷π÷ÿ∏¥∆Ù∂Ø
 [ -f /var/lock/bypass.lock -a $A = N ] && exit 1
 LOCKU=/var/lock/bypass-update.lock
 [ -f $LOCKU ] && exit 1

@@ -28,8 +28,6 @@ function index()
 	entry({"admin","services","bypass","getlog"},call("getlog"))
 	entry({"admin", "services", "bypass", "connect_status"}, call("connect_status")).leaf = true
 	entry({"admin","services","bypass","dellog"},call("dellog"))
-
-	
 end
 
 function subscribe()
@@ -42,9 +40,8 @@ function act_status()
 	local e = {}
 	e.tcp = CALL('busybox ps -w | grep by-retcp | grep -v grep  >/dev/null ') == 0
 	e.udp = CALL('busybox ps -w | grep by-reudp | grep -v grep  >/dev/null ') == 0
-	e.smartdns = CALL("pidof smartdns >/dev/null")==0
-
-	e.chinadns=CALL("ps -w | grep chinadns-ng | grep -v grep >/dev/null")==0
+	e.smartdns = CALL("ps -w | grep smartdns | grep -v grep   >/dev/null")==0
+	e.chinadns=CALL("ps -w | grep 'chinadns-ng -l 5337 -c 127.0.0.1' | grep -v grep >/dev/null")==0
 	http.prepare_content("application/json")
 	http.write_json(e)
 end
@@ -55,9 +52,9 @@ function check_net()
 	local p
 	if CALL("nslookup www."..u..".com >/dev/null 2>&1")==0 then
 	if u=="google" then p="/generate_204" else p="" end
-		local use_time = EXEC("curl --connect-timeout 3 -o /dev/null -I -skL -w %{time_starttransfer}  https://www."..u..".com"..p)
+		local use_time = EXEC("curl --connect-timeout 3 -o /dev/null -I -skL -w %{time_starttransfer}  http://www."..u..".com"..p)
 		if use_time~="0" then
-     		 	r=string.format("%.1f", use_time * 1000/2)
+     		 	r=string.format("%.1f", use_time * 1000)
 			if r=="0" then r="0.1" end
 		end
 	end
@@ -68,34 +65,17 @@ end
 
 
 function act_ping()
-	local e = {}
-	local domain = luci.http.formvalue("domain")
-	local port = luci.http.formvalue("port")
-	local transport = luci.http.formvalue("transport")
-	local wsPath = luci.http.formvalue("wsPath")
-	local tls = luci.http.formvalue("tls")
-	e.index = luci.http.formvalue("index")
-	local iret = luci.sys.call("ipset add ss_spec_wan_ac " .. domain .. " 2>/dev/null")
-	if transport == "ws" then
-		local prefix = tls=='1' and "https://" or "http://"
-		local address = prefix..domain..':'..port..wsPath
-		local result = luci.sys.exec("curl --http1.1 -m 3 -s  -i -N -o /dev/null -w 'time_connect=%{time_connect}\nhttp_code=%{http_code}' -H 'Connection: Upgrade' -H 'Upgrade: websocket' -H 'Sec-WebSocket-Key: SGVsbG8sIHdvcmxkIQ==' -H 'Sec-WebSocket-Version: 13' "..address)
-		e.socket = string.match(result,"http_code=(%d+)")=="101"
-		e.ping = tonumber(string.match(result, "time_connect=(%d+.%d%d%d)"))*1000
-	else
-		local socket = nixio.socket("inet", "stream")
-		socket:setopt("socket", "rcvtimeo", 3)
-		socket:setopt("socket", "sndtimeo", 3)
-		e.socket = socket:connect(domain, port)
-		socket:close()
-		-- 	e.ping = luci.sys.exec("ping -c 1 -W 1 %q 2>&1 | grep -o 'time=[0-9]*.[0-9]' | awk -F '=' '{print$2}'" % domain)
-		-- 	if (e.ping == "") then
-		e.ping = luci.sys.exec(string.format("echo -n $(tcping -q -c 1 -i 1 -t 2 -p %s %s 2>&1 | grep -o 'time=[0-9]*' | awk -F '=' '{print $2}') 2>/dev/null", port, domain))
-		-- 	end
-												
-	end
-	if (iret == 0) then
-		luci.sys.call(" ipset del ss_spec_wan_ac " .. domain)
+	local e={}
+	local domain=http.formvalue("domain")
+	local port=http.formvalue("port")
+	local dp=EXEC("netstat -unl | grep 5336 >/dev/null && echo -n 5336 || echo -n 53")
+	local ip=EXEC("echo "..domain.." | grep -E ^[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}$ || nslookup "..domain.." 2>/dev/null | grep Address | awk -F' ' '{print$NF}' | grep -E ^[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}$ | sed -n 1p")
+	ip=EXEC("echo -n "..ip)
+	local iret=luci.sys.call("ipset add ss_spec_wan_ac "..ip.." 2>/dev/null")
+	e.ping = luci.sys.exec(string.format("tcping -q -c 1 -i 1 -t 2 -p %s %s 2>&1 | awk -F 'time=' '{print $2}' | awk -F ' ' '{print $1}'",port,ip))
+
+	if (iret==0) then
+		luci.sys.call(" ipset del ss_spec_wan_ac " .. ip)
 	end
 	luci.http.prepare_content("application/json")
 	luci.http.write_json(e)

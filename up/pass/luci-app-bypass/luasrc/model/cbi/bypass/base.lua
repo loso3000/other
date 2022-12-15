@@ -26,7 +26,7 @@ o=s:option(ListValue,"global_server",translate("Main Server"))
 o:value("",translate("Disable"))
 for _,key in pairs(key_table) do o:value(key,server_table[key]) end
 
-o=s:option(ListValue,"udp_relay_server",translate("Game Mode UDP Server"))
+o=s:option(ListValue,"udp_relay_server",translate("UDP Server"))
 o:value("",translate("Disable"))
 o:value("same",translate("Same as Global Server"))
 for _,key in pairs(key_table) do o:value(key,server_table[key]) end
@@ -59,12 +59,9 @@ o:value("gfw",translate("GFW List Mode"))
 o:value("all",translate("Global Mode"))
 o:value("oversea",translate("Oversea Mode"))
 
-if luci.sys.call("test `grep MemTotal /proc/meminfo | awk '{print $2}'` -le 233000") == 0 then
 o=s:option(Flag,"gfw_mode",translate("Load GFW List"),
 translate("If the domestic DNS does not hijack foreign domain name to domestic IP, No need to be enabled"))
 o:depends("run_mode","router")
-o.default=1
-end
 
 if luci.sys.call("test `grep MemTotal /proc/meminfo | awk '{print $2}'` -gt 233000") == 0 then
 o=s:option(Flag,"adguardhome",translate("Used with AdGuardHome"),
@@ -100,7 +97,7 @@ o:value("1.1.1.1,1.0.0.1","1.1.1.1,1.0.0.1 (Cloudflare DNS)")
 o:value("8.8.8.8,8.8.4.4","8.8.8.8,8.8.4.4 (Google DNS)")
 o:value("9.9.9.9,149.112.112.112","9.9.9.9,149.112.112.112 (Quad9 DNS)")
 o:value("208.67.222.222,208.67.220.220","208.67.222.222,208.67.220.220 (OpenDNS)")
-o.default="8.8.8.8,8.8.4.4"
+o.default="1.1.1.1,1.0.0.1"
 o:depends("dns_mode_o","tcp")
 
 o=s:option(ListValue,"dns_mode_d",translate("Domestic Resolve Dns Mode"),
@@ -113,7 +110,7 @@ o=s:option(Value,"doh_dns_d",translate("Domestic DoH"),
 translate("Custom DNS format is https://dns.alidns.com/dns-query or https://223.5.5.5/dns-query"))
 o:value("alidns",""..translate("Ali").." DoH")
 o:value("dnspod","Dnspod DoH")
-o.default="alidns"
+o.default="dnspod"
 o:depends("dns_mode_d","doh")
 
 o=s:option(Value,"udp_dns_d",translate("Domestic DNS"),
