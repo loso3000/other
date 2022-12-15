@@ -38,13 +38,13 @@ msgstr "办公"
 msgid "user"
 msgstr "自定义"
 
-msgid "Work Space"
-msgstr "工作区域"
+msgid "Filter Space"
+msgstr "过滤区域"
 
-msgid "Work Domestic"
+msgid "Filter Domestic"
 msgstr "国内"
 
-msgid "Work Overseas"
+msgid "Filter Overseas"
 msgstr "国外"
 
 msgid "employee"

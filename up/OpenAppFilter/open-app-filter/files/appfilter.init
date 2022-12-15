@@ -15,7 +15,6 @@ add_crond() {
 	echo "$updatetime * * * /usr/bin/appfilterupdate " >> /etc/crontabs/root
 }
 
-
 service_triggers()
 {
 	procd_add_reload_trigger "appfilter"
@@ -23,7 +22,7 @@ service_triggers()
 
 stop_service(){
 	killall -9 oafd
-	rmmod oaf
+	rmmod oafd
 }
 
 start_service(){
@@ -32,23 +31,20 @@ start_service(){
 	add_crond
 	rm -rf /tmp/appfilter
 	space=$(uci -q get appfilter.global.work_space)
-	if [ "$space" ];then
+	if [ $space -eq 1 ];then
 		cat  /etc/appfilter/feature_en.cfg > $FEATURE_FILE ; echo "" >> $FEATURE_FILE
 	        cat /etc/appfilter/feature.cfg.user >> $FEATURE_FILE ; echo "" >> $FEATURE_FILE
-
 	else
 		cat  /etc/appfilter/feature_cn.cfg > $FEATURE_FILE ; echo "" >> $FEATURE_FILE
 		cat /etc/appfilter/feature.cfg.user >> $FEATURE_FILE ; echo "" >> $FEATURE_FILE
 	fi
-	
 	oafenable=$(uci -q get appfilter.global.enable)
-	if [ $oafenable -eq 1 ]; then
-		uci del firewall.@defaults[0].fullcone
-		uci del firewall.@defaults[0].flow_offloading
-		uci commit firewall
-	fi
-	gen_class.sh /tmp/feature.cfg
-	insmod oaf
+	if [ "x$oafenable" == "x1" ] ;then
+	 stop_service
+	 exit 1
+ 	fi
+	gen_class.sh /tmp/feature.cfg  > /dev/null 2>/dev/null
+	insmod oafd
 	/usr/bin/oaf_rule reload
 	procd_open_instance
 	procd_set_param respawn 60 5 5
