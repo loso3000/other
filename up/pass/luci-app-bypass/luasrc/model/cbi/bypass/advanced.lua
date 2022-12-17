@@ -82,7 +82,7 @@ o:value("https://fastly.jsdelivr.net/gh/soffchen/GeoIP2-CN@release/CN-ip-cidr.tx
 o:value("https://fastly.jsdelivr.net/gh/Hackl0us/GeoIP2-CN@release/CN-ip-cidr.txt", translate("Hackl0us/GeoIP2-CN"))
 o:value("https://fastly.jsdelivr.net/gh/sirpdboy/iplist@main/all_cn.txt", translate("sirpdboy/all_cn"))
 o:value("https://supes.top/bypass/all_cn.txt", translate("supes/all_cn"))
-o.default = "https://supes.top/bypass/all_cn.txt"
+o.default = "https://fastly.jsdelivr.net/gh/sirpdboy/iplist@main/all_cn.txt"
 
 ----chnroute6 URL
 o = s:option(ListValue, "chnroute6_url", translate("China IPv6s(chnroute6) Update URL"))

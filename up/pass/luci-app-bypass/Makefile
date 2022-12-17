@@ -1,6 +1,9 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-bypass
+PKG_VERSION:=1.4
+PKG_RELEASE:=33
+PKG_DATE:=20221217
 
 PKG_CONFIG_DEPENDS:= \
 	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_Shadowsocks_Libev_Server \
@@ -20,7 +23,8 @@ PKG_CONFIG_DEPENDS:= \
 
 LUCI_TITLE:=SS/SSR/Xray/Trojan/NaiveProxy/Socks5/Tun LuCI interface
 LUCI_PKGARCH:=all
-LUCI_DEPENDS:=+ipset +kmod-ipt-nat +ip-full +iptables-mod-tproxy +lua-neturl +dnsmasq-full +smartdns +coreutils +coreutils-base64 +curl +tcping +chinadns-ng +lua +luci-compat +luci-lib-ipkg +unzip \
+LUCI_DEPENDS:=+ipset +kmod-ipt-nat +ip-full +iptables-mod-tproxy +lua-neturl +dnsmasq-full +smartdns +coreutils \
+	+coreutils-base64 +curl +tcping +resolveip +chinadns-ng +lua +luci-compat +luci-lib-ipkg +unzip \
 	+PACKAGE_$(PKG_NAME)_INCLUDE_Shadowsocks_Libev_Server:shadowsocks-libev-ss-server \
 	+PACKAGE_$(PKG_NAME)_INCLUDE_Shadowsocks_Libev_Client:shadowsocks-libev-ss-local \
 	+PACKAGE_$(PKG_NAME)_INCLUDE_Shadowsocks_Libev_Client:shadowsocks-libev-ss-redir \

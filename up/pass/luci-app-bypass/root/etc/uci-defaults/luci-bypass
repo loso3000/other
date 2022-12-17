@@ -14,20 +14,5 @@ EOF
 chmod +x /etc/init.d/bypass /usr/share/bypass/* >/dev/null 2>&1
 rm -rf /tmp/luci-*
 
-if [[ "$(grep "option uuid" /etc/config/bypass)" ]]; then
-idsum=$(grep -c "config servers" /etc/config/bypass)
-sed -i "s/option uuid/option vmess_id/" /etc/config/bypass
-for i in $(seq 0 $((idsum-1)))
-do
-	if [ "$(uci -q get bypass.@servers[$i].type)" == 'vless' ];then
-		uci -q set bypass.@servers[$i].type='v2ray'
-		uci -q set bypass.@servers[$i].v2ray_protocol='vless'
-	elif [ "$(uci -q get bypass.@servers[$i].type)" == 'vmess' ];then
-		uci -q set bypass.@servers[$i].type='v2ray'
-		uci -q set bypass.@servers[$i].v2ray_protocol='vmess'
-	fi
-done
-uci commit bypass
-fi
 
 exit 0
