@@ -14,7 +14,7 @@ if [ -z "$(uci -q get $NAME.@global[0].global_server)" ];then
 	/etc/init.d/$NAME start &
 elif [ ! -s /tmp/$NAME/china.txt ] || ([ "$(uci -q get $NAME.@global[0].run_mode)" = gfw -o "$(uci -q get $NAME.@global[0].gfw_mode)" = 1 ] && [ ! -s /tmp/$NAME/gfw.list ]);then
 	log "Download First files checknetwork..."
-	/usr/share/$NAME/update --First &
+	/usr/share/$NAME/update --F &
 else
 	/etc/init.d/$NAME start &
 fi

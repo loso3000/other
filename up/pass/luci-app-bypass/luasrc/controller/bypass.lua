@@ -31,7 +31,7 @@ function index()
 end
 
 function subscribe()
-	luci.sys.call("/usr/share/bypass/subscribe >> /var/log/bypass.log 2>&1")
+	luci.sys.call("/usr/share/bypass/subscribe")
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({ret=1})
 end

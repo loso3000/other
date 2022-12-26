@@ -1,5 +1,5 @@
 #!/bin/sh
-[ "$1" = --First ] && A=Y || A=N
+[ "$1" = --F ] && A=Y || A=N
 [ -f /var/lock/bypass.lock -a $A = N ] && exit 1
 LOCKU=/var/lock/bypass-update.lock
 [ -f $LOCKU ] && exit 1
@@ -73,7 +73,6 @@ if [ "$C" = gfw -o "$(uci -q get bypass.@global[0].gfw_mode)" = 1 ];then
 	   fi
 	fi
 fi
-
-rm -f $LOCKU /tmp/china*.txt /tmp/gfwnew.txt
+rm -f $LOCKU /tmp/china*.txt /tmp/gfwnew.txt /tmp/gfw.b64
 
 [ $A = Y ] && /etc/init.d/bypass start &

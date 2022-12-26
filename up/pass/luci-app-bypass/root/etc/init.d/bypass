@@ -66,7 +66,7 @@ log(){
 
 firstdown(){
 	[ $1 = 1 ] && A=$BIN_DIR/checknetwork && B=check
-	[ $1 = 2 ] && A=$BIN_DIR/update && B=--First
+	[ $1 = 2 ] && A=$BIN_DIR/update && B=--F
 	service_start ${A} ${B}
 }
 
@@ -367,10 +367,8 @@ start_retcp(){
 	rtype=tcp
 	if [ $kcp_enable = 1 ];then
 		cmd=$(which kcptun-client) || cmd=0
-		if [ ! -x $cmd ];then
-			log "Main Node: Can't find KCPTUN program, start failed!"
-			return 1
-		fi
+		[ ! $cmd ] && 	log "Main Node: Can't find KCPTUN program, start failed!" && return 1
+
 		[ $($cmd -v 2>/dev/null | grep kcptun | wc -l) = 0 ] && return 1
 		kcp_port=$(uci_get_by_name $GLOBAL_SERVER kcp_port)
 		server_port=$(uci_get_by_name $GLOBAL_SERVER server_port)
@@ -382,10 +380,7 @@ start_retcp(){
 	threads=$(uci_get_by_type global threads 0)
 	[ $threads = 0 ] && threads=$(cat /proc/cpuinfo | grep 'processor' | wc -l)
 	cmd=$(f_bin $ttype)
-	if [ ! -x $cmd ];then
-		log "Main Node: Can't find $(echo $ttype | tr a-z A-Z) program, start failed!"
-		return 1
-	fi
+	[ ! $cmd ] && log "Main Node: Can't find $(echo $ttype | tr a-z A-Z) program, start failed!"  && return 1
 	redir_tcp=1
 	case $ttype in
 	ss|ssr)

@@ -2,6 +2,7 @@
 TAG="_SS_SPEC_RULE_"
 IPT="iptables -t nat"
 FWI=$(uci -q get firewall.bypass.path) || FWI=/var/etc/bypass.include
+LFILE=/tmp/by_local.ipset
 A=0
 B=0
 C=0
@@ -52,7 +53,7 @@ ipset_r(){
 	fi
 	[ $A = 1 -o $C = 1 ] && /usr/share/bypass/chinaipset
 	[ $MODE = router ] && /usr/share/bypass/chinaipset v6
-	cat > /tmp/by_local.ipset  <<EOF
+	cat > $LFILE  <<EOF
 0.0.0.0/8
 10.0.0.0/8
 100.64.0.0/10
@@ -69,11 +70,11 @@ ipset_r(){
 224.0.0.0/4
 240.0.0.0/4
 EOF
-	sed -i 's/^/add ss_spec_wan_ac /' /tmp/by_local.ipset
-	sed -i '1i\create ss_spec_wan_ac hash:net' /tmp/by_local.ipset
+	sed -i 's/^/add ss_spec_wan_ac /' $LFILE 
+	sed -i '1i\create ss_spec_wan_ac hash:net' $LFILE 
 	ipset -F ss_spec_wan_ac 2>/dev/null
-	ipset -R < /tmp/by_local.ipset 2>/dev/null
-	rm -f /tmp/by_local.ipset
+	ipset -R < $LFILE  2>/dev/null
+	rm -f $LFILE 
 	for ip in $WAN_BP_IP;do ipset -! add ss_spec_wan_ac $ip;done
 	$IPT -N SS_SPEC_WAN_AC
 	$IPT -A SS_SPEC_WAN_AC -d $server -j RETURN
@@ -128,9 +129,12 @@ tp_rule(){
 	esac
 
 	ipset -N bypass_all hash:net 2>/dev/null
-	for i in $(ip -4 add show | grep -v $(uci -qP /tmp/state get network.wan.device || echo 127.0.0.1) | grep inet | grep -v 127.0.0.1 | awk '{print$2}');do
+	net=$(uci -qP /tmp/state get  network.wan.device) || net=$(uci -qP /tmp/state get network.wan.ifname)
+	[ $net ] || net=127.0.0.1
+	for i in $(ip -4 add show | grep -v $net | grep inet | grep -v 127.0.0.1 | awk '{print$2}');do
 		ipset -! add bypass_all $i
 	done
+
 	$ipt -I PREROUTING 1 -p udp $MATCH_SET -m set --match-set bypass_all src -m comment --comment "$TAG" -j SS_SPEC_TPROXY
 }
 
