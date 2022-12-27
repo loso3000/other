@@ -24,8 +24,7 @@ o.default=0
 o:value(0, translate("Gateway Mode"))
 o:value(1,translate("Bypass Mode"))
 
-o=s:option(ListValue, "filter_space", translate("Filter Space"),translate("")) 
-o.default=0
+o=s:option(ListValue, "filter_space", translate("Filter Space"),translate(""))
 o:value(0, translate("Filter Domestic"))
 o:value(1,translate("Filter Overseas"))
 

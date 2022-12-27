@@ -30,7 +30,7 @@ start_service(){
 	# test -f $CLASS_FILE && rm $CLASS_FILE
 	add_crond
 	rm -rf /tmp/appfilter
-	space=$(uci -q get appfilter.global.work_space)
+	space=$(uci -q get appfilter.global.filter_space)
 	if [ $space -eq 1 ];then
 		cat  /etc/appfilter/feature_en.cfg > $FEATURE_FILE ; echo "" >> $FEATURE_FILE
 	        cat /etc/appfilter/feature.cfg.user >> $FEATURE_FILE ; echo "" >> $FEATURE_FILE
