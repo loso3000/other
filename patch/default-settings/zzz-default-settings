@@ -42,6 +42,7 @@ rm -f /usr/lib/lua/luci/view/admin_status/index/ddns.htm
 rm -f /usr/lib/lua/luci/view/admin_status/index/upnp.htm
 rm -f /usr/lib/lua/luci/view/admin_status/index/minidlna.htm
 
+sed -i 's/\"nas\"/\"services\"/g' /usr/lib/lua/luci/controller/samba4.lua
 ln -sf /sbin/ip /usr/bin/ip
 
 # sed -i 's/root::0:0:99999:7:::/root:$1$V4UetPzk$CYXluq4wUazHjmCDBCqXF.:0:0:99999:7:::/g' /etc/shadow
