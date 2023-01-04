@@ -44,6 +44,7 @@ ln -sf /sbin/ip /usr/bin/ip
 
 sed -i 's/immortalwrt.org/openwrt.org/g'  /etc/config/luci
 
+sed -i 's/\"nas\"/\"services\"/g' /usr/lib/lua/luci/controller/samba4.lua
 sed -i '/DISTRIB_REVISION/d' /etc/openwrt_release
 cat /etc/openwrt_release1 >> /etc/openwrt_release
 sed -i '/DISTRIB_DESCRIPTION/d' /etc/openwrt_release
