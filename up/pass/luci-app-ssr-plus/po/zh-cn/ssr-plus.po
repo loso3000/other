@@ -494,7 +494,7 @@ msgid "Update time (every day)"
 msgstr "更新时间 (每天)"
 
 msgid "Auto Update Server subscription, GFW list and CHN route"
-msgstr "自动更新服务器订阅、GFW列表和 CHN路由表"
+msgstr "自动更新服务器订阅、GFW 列表和中国大陆 IP 段"
 
 msgid "Subscribe URL"
 msgstr "SS/SSR/V2/TROJAN订阅URL"
@@ -575,15 +575,15 @@ msgid "Game Mode UDP Relay"
 msgstr "游戏模式UDP中继"
 
 msgid "Server failsafe auto swith and custom update settings"
-msgstr "服务器节点故障自动切换/广告屏蔽/国内IP段数据库更新设置"
+msgstr "服务器节点故障自动切换/广告屏蔽/中国大陆 IP 段数据库更新设置"
 
 msgid "Support AdGuardHome and DNSMASQ format list"
 msgstr "同时支持 AdGuard Home 和 DNSMASQ 格式的过滤列表"
 
-msgid "Delete All Subscribe Severs"
+msgid "Delete All Subscribe Servers"
 msgstr "删除所有订阅服务器节点"
 
-msgid "Severs Nodes"
+msgid "Servers Nodes"
 msgstr "服务器节点"
 
 msgid "Use Local DNS Service listen port 5335"
@@ -655,7 +655,7 @@ msgstr "更新订阅URL列表"
 msgid "Update subscribe url list first"
 msgstr "修改订阅URL和节点关键字后，请先点击更新"
 
-msgid "Update All Subscribe Severs"
+msgid "Update All Subscribe Servers"
 msgstr "更新所有订阅服务器节点"
 
 msgid "Plugin"
