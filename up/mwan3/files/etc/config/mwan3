@@ -15,6 +15,7 @@ config member 'wan_m1_w1'
 
 config policy 'balanced'
 	list use_member 'wan_m1_w1'
+	option last_resort 'default'
 
 config rule 'https'
 	option sticky '1'
