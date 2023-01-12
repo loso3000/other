@@ -114,4 +114,10 @@ if class_fd then
     class_fd:close()
 end
 
+m.apply_on_parse = true
+m.on_after_apply = function(self,map)
+	luci.sys.exec("/etc/init.d/appfilter restart")
+	luci.http.redirect(luci.dispatcher.build_url("admin", "control", "appfilter", "base_setting"))
+end
+
 return m
