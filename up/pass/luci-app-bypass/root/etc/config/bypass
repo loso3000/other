@@ -5,7 +5,7 @@ config global
 	option run_mode 'router'
 	option dns_mode_o 'tcp'
 	option tcp_dns_o '1.1.1.1,1.0.0.1'
-	option gfw_mode '0'
+	option gfw_mode '1'
 	option dns_mode_d 'doh'
 	option doh_dns_d 'dnspod'
 	option monitor_enable '1'
