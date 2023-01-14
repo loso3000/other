@@ -4,8 +4,8 @@ module("luci.controller.netspeedtest", package.seeall)
 local fs=require"nixio.fs"
 local sys  = require "luci.sys"
 function index()
-	entry({"admin","network","netspeedtest"},alias("admin", "network", "netspeedtest", "speedtestweb"),_("Net Speedtest"), 90).dependent = true
-	entry({"admin","network","netspeedtest","speedtestweb"},cbi("netspeedtest/speedtestweb"),_("Lan Speedtest Web"),20).leaf = true
+	entry({"admin","network","netspeedtest"},alias("admin", "network", "netspeedtest", "homebox"),_("Net Speedtest"), 90).dependent = true
+	entry({"admin","network","netspeedtest","homebox"},cbi("netspeedtest/homebox"),_("Lan homebox Web"),20).leaf = true
 	entry({"admin","network","netspeedtest","speedtestiperf3"},cbi("netspeedtest/speedtestiperf3", {hideapplybtn=true, hidesavebtn=true, hideresetbtn=true}),_("Lan Speedtest Iperf3"),30).leaf = true
         entry({"admin","network","netspeedtest","speedtestwan"},cbi("netspeedtest/speedtestwan", {hideapplybtn=true, hidesavebtn=true, hideresetbtn=true}),_("Wan Speedtest"), 40).leaf = true
         entry({"admin","network","netspeedtest","netperftestwan"},cbi("netspeedtest/netperftestwan", {hideapplybtn=true, hidesavebtn=true, hideresetbtn=true}),_("Netperf Speedtest"), 40).leaf = true
@@ -27,7 +27,7 @@ end
 
 function homebox_status()
 	local e = {
-		running = (sys.call("pidof homebox >/dev/null") == 0),
+		run = (sys.call("pidof homebox >/dev/null") == 0),
 		port = 3300
 	}
 	luci.http.prepare_content("application/json")

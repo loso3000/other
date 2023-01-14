@@ -17,8 +17,9 @@ o = s:option(DummyValue, '', '')
 o.rawhtml = true
 o.template ='netspeedtest/homebox'
 
-local o=luci.http.formvalue("cbi.apply")
-if o then
+m.apply_on_parse = true
+m.on_after_apply = function(self,map)
   io.popen("/etc/init.d/netspeedtest start")
 end
+
 return m
