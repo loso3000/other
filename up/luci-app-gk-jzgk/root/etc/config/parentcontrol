@@ -1,0 +1,49 @@
+
+config basic
+	option algos 'kmp'
+	option control_mode 'black_mode'
+	option enabled '0'
+
+config time
+	option enable '0'
+	option timestart '00:00'
+	option timeend '00:00'
+	option week '1,2,3,4,5'
+
+config weburl
+	option enable '0'
+	option word 'baidu'
+	option timestart '00:00'
+	option timeend '00:00'
+	option week '*'
+
+config weburl
+	option enable '0'
+	option word 'www'
+	option timestart '00:00'
+	option timeend '00:00'
+	option week '*'
+
+config protocol
+	option proto 'tcp'
+	option enable '0'
+	option timestart '00:00'
+	option timeend '00:00'
+	option week '*'
+	option portd '80'
+
+config protocol
+	option proto 'tcp'
+	option enable '0'
+	option timestart '00:00'
+	option timeend '00:00'
+	option week '*'
+	option portd '443'
+
+config protocol
+	option proto 'tcp'
+	option enable '0'
+	option timestart '00:00'
+	option timeend '00:00'
+	option week '1,2,3,4,5'
+
