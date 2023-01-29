@@ -5,9 +5,8 @@ userinfo() {
 }
 
 memory() {
-free | grep Mem | awk '{a=$2/1024;b=(a>800)?a/1024:a;c=(a>800)?"G":"M"} {printf("%0.f%s\n",b,c)}' 
+free | grep Mem | awk '{a=$2/1000;b=(a>800)?a/1000:a;c=(a>800)?"G":"M"} {printf("%0.f%s\n",b,c)}' 
 }
-
 
 cntime() {
     awk '{a=$1/86400;b=($1%86400)/3600;c=($1%3600)/60;d=($1%60)} {printf("%d 天 %d 小时 %d 分钟 %d 秒\n",a,b,c,d)}' /proc/uptime
@@ -16,7 +15,6 @@ cntime() {
 time() {
 date "+%A [%W] | [%j] %Y/%m/%d-%X %Z"
 }
-
 
 cpuinfo() {
     cpu_arch="$(awk -F ': ' '/model name/ {print $2}' "/proc/cpuinfo" | head -n1)"

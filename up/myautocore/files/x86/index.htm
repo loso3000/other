@@ -16,6 +16,7 @@
 	local has_dhcp = fs.access("/etc/config/dhcp")
 	local has_boot = fs.access("/sys/firmware/efi")
 
+	local has_wizard = fs.access("/etc/config/wizarded")
 	local has_wifi = ((fs.stat("/etc/config/wireless", "size") or 0) > 0)
 
 	local sysinfo = luci.util.ubus("system", "info") or { }
@@ -153,6 +154,8 @@ end
 
 <script type="text/javascript" src="<%=resource%>/cbi.js?v=git-19.167.54478-71e2af4"></script>
 <script type="text/javascript">//<![CDATA[
+
+
 	function progressbar(v, m)
 	{
 		var vn = parseInt(v) || 0;
@@ -799,6 +802,10 @@ end
 	
 //]]></script>
 
+<% if has_wizard then %>
+<script type="text/javascript">document.location="<%=controller%>admin/system/wizard";</script>
+<%=luci.sys.exec("rm -rf /etc/config/wizarded")  %>
+<% end %>
 <h2 name="content"><%:Status%></h2>
 
 <fieldset class="cbi-section">
