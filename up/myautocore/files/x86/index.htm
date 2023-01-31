@@ -16,7 +16,7 @@
 	local has_dhcp = fs.access("/etc/config/dhcp")
 	local has_boot = fs.access("/sys/firmware/efi")
 
-	local has_wizard = fs.access("/etc/config/wizarded")
+	local has_wizard = fs.access("/etc/config/wizarde")
 	local has_wifi = ((fs.stat("/etc/config/wireless", "size") or 0) > 0)
 
 	local sysinfo = luci.util.ubus("system", "info") or { }
