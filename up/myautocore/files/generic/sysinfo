@@ -95,8 +95,8 @@ tempinfo(){
 
     if grep -q "x86" "/etc/openwrt_release"; then
 	# Intel
-	cmd=$(sensorsbin sensors)
-	[ ! -x $cmd ] && retun ${cpu_temp}
+	# cmd=$(sensorsbin sensors)
+	# [ ! -x $cmd ] && retun ${cpu_temp}
 	cpu_temp="$(sensors "coretemp-*" 2>"/dev/null" | grep -E "(Core )" | grep -Eo "\+[0-9]*" | head -n1 | tr -d "+")"
 	# AMD
 	[ -n "${cpu_temp}" ] || cpu_temp="$(sensors "k*temp-*" 2>"/dev/null" | awk '/Tdie/ {print $2}' | head -n1 | tr -d "+")"
