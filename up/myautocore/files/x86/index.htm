@@ -16,7 +16,7 @@
 	local has_dhcp = fs.access("/etc/config/dhcp")
 	local has_boot = fs.access("/sys/firmware/efi")
 
-	local has_wizard = fs.access("/etc/config/wizarde")
+	local has_wizard = fs.access("/etc/config/wizarded")
 	local has_wifi = ((fs.stat("/etc/config/wireless", "size") or 0) > 0)
 
 	local sysinfo = luci.util.ubus("system", "info") or { }
@@ -68,11 +68,11 @@ end
 			"sysctl -n -e net.nf_conntrack_max net.ipv4.netfilter.ip_conntrack_max"
 		):match("%d+")) or 4096
 
-		eth_info = luci.sys.exec("sysinfo ethinfo")
+ 		local eth_info = luci.sys.exec("sysinfo ethinfo")
 
 		local cpu_speed = luci.sys.exec("sysinfo cpuspeed")
 		local user_info = luci.sys.exec("cat /proc/net/arp | grep 'br-lan' | grep '0x2' | wc -l") or "0"
-		local cpu_wd ="+".. (luci.sys.exec("sysinfo tempinfo")) .. "°C"
+		local cpu_wd ="+".. (luci.sys.exec("sysinfo tempinfo 2>/dev/null ")) .. "°C"
         if  cpu_wd == "+0°C" or cpu_wd == "+°C"   then
 		    cpu_wd= "+0°C （无温控或虚拟机）"
        	end
