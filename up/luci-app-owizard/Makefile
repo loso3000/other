@@ -3,7 +3,7 @@
 
 include $(TOPDIR)/rules.mk
 
-PKG_NAME:=luci-app-wizard
+PKG_NAME:=luci-app-owizard
 PKG_VERSION:=1.5
 PKG_RELEASE:=22
 
@@ -16,16 +16,16 @@ LUCI_DEPENDS:=+luci-compat
 LUCI_PKGARCH:=all
 
 define Package/$(PKG_NAME)/conffiles
-/etc/config/wizard
+/etc/config/owizard
 endef
 
 include $(TOPDIR)/feeds/luci/luci.mk
 
-define Package/luci-app-wizard/postinst
+define Package/luci-app-owizard/postinst
 #!/bin/sh
 if [ -z "$$IPKG_INSTROOT" ]; then
-  ( . /etc/uci-defaults/99-uci-wizard-defaults )
-  rm -f /etc/uci-defaults/99-uci-wizard-defaults
+  ( . /etc/uci-defaults/99-uci-owizard-defaults )
+  rm -f /etc/uci-defaults/99-uci-owizard-defaults
   rm -rf /tmp/luci*
 fi
 exit 0
