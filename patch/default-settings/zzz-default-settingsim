@@ -43,7 +43,7 @@ ln -sf /sbin/ip /usr/bin/ip
 # [ -f '/bin/bash' ] && sed -i 's|root:x:0:0:root:/root:/bin/ash|root:x:0:0:root:/root:/bin/bash|g' /etc/passwd
 
 echo 'iptables -I zone_lan_forward -t filter -m conntrack --ctstate DNAT -j ACCEPT' >> /etc/firewall.user
-[ "x$(uci -q get wizard.default.display)" = "x1"  ] &&  echo ' ' > /etc/config/wizarded
+[ "x$(uci -q get netwizard.netwizard.display)" = "x1"  ] &&  echo ' ' > /etc/config/netwizarded
 sed -i 's/immortalwrt.org/openwrt.org/g'  /etc/config/luci
 sed -i 's/\"nas\"/\"services\"/g' /usr/lib/lua/luci/controller/samba4.lua
 sed -i '/DISTRIB_REVISION/d' /etc/openwrt_release
