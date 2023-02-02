@@ -1,0 +1,14 @@
+#!/bin/sh
+[  -n  "$(uci -q get netwizard.netwizard=netwizard)" ] && uci set netwizard.netwizard=netwizard
+uci -q set netwizard.netwizard.wifi_ssid="$(uci -q get wireless.@wifi-iface[0].ssid)"
+uci -q set netwizard.netwizard.wifi_key="$(uci -q get wireless.@wifi-iface[0].key)"
+[ "$(uci -q get network.wan.proto)" ] && uci -q set netwizard.netwizard.wan_proto="$(uci -q get network.wan.proto)" || uci -q set netwizard.netwizard.wan_proto="siderouter"
+uci -q set netwizard.netwizard.lan_ipaddr="$(uci -q get network.lan.ipaddr)"
+uci -q set netwizard.netwizard.lan_netmask="$(uci -q get network.lan.netmask)"
+uci -q set netwizard.netwizard.lan_gateway="$(uci -q get network.lan.gateway)"
+uci -q set netwizard.netwizard.lan_dns="$(uci -q get network.lan.dns)"
+[ "x$(uci -q get dhcp.lan.ignore)" = "x"  ] && uci -q set netwizard.netwizard.lan_dhcp="0" || uci -q set netwizard.netwizard.lan_dhcp="1" 
+[ "x$(uci -q get netwizard.netwizard.display)" = "x1"  ] &&  echo ' ' > /etc/config/netwizarded || rm -rf /etc/config/netwizarded
+uci commit wizard
+
+exit 0
