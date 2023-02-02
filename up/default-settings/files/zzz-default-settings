@@ -98,7 +98,7 @@ sed -i "s/# //g" /etc/opkg/distfeeds.conf
 sed -i '/openwrt_luci/ { s/snapshots/releases\/18.06.9/g; }'  /etc/opkg/distfeeds.conf
 ln -sf /sbin/ip /usr/bin/ip
 
-[ "x$(uci -q get wizard.default.display)" = "x1"  ] &&  echo ' ' > /etc/config/wizarded
+[ "x$(uci -q get netwizard.netwizard.display)" = "x1"  ] &&  echo ' ' > /etc/config/netwizarded
 # sed -i 's/openwrt.org/baidu.com/g'  /etc/config/luci
 sed -i 's/immortalwrt.org/openwrt.org/g'  /etc/config/luci
 sed -i '/REDIRECT --to-ports 53/d' /etc/firewall.user
