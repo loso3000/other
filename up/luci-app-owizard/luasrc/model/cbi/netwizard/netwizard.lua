@@ -119,5 +119,9 @@ end
 
 e = s:taboption("othersetup", Flag, "display",translate('Enable Wizard'), translate('Enable/disable the wizard (next login to enter the setup wizard)'))
 
+m.apply_on_parse = true
+m.on_after_apply = function(self,map)
+	luci.sys.exec("/etc/init.d/netwizard start")
+end
 
 return m
