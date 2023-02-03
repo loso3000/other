@@ -12,8 +12,6 @@ chnroute6_url=$(uci -q get bypass.@global_rules[0].chnroute6_url)
 log(){
 	echo "$(date +'%Y-%m-%d %H:%M:%S') $*" >> /var/log/bypass.log
 }
-
-
 [ ! -d $TMP ] && mkdir -p $TMP 2>/dev/null
 	if [ $A = Y ];then
 
@@ -32,9 +30,7 @@ log(){
 	else
 			log "By Update  : China IPv4 List is up to date :"  $( cat /etc/bypass/china.txt | wc -l)
 	fi
-	}
-C=$(uci -q get bypass.@global[0].run_mode)
-if [ "$C" = router ];then
+
 	if [ $A = Y ];then
 
 		while ! (curl -kLfsm 3 -o /tmp/china_v6.txt ${chnroute6_url} ||curl -kLfsm 3 -o /tmp/china_v6.txt https://ispip.clang.cn/all_cn_ipv6.txt || curl -kLfsm 3 -o /tmp/china_v6.txt https://fastly.jsdelivr.net/gh/sirpdboy/iplist@main/all_cn_ipv6.txt);do
@@ -52,9 +48,6 @@ if [ "$C" = router ];then
 			log "By Update  : China IPv6 List is up to date :" $( cat /etc/bypass/china_v6.txt | wc -l)
 	fi
 	}
-fi
-
-if [ "$C" = gfw -o "$(uci -q get bypass.@global[0].gfw_mode)" = 1 ];then
 	if [ $A = Y ];then
 		while ! (curl -kLfsm 5 -o /tmp/gfw.b64 ${gfwlist_url} || curl -kLfsm 3 -o /tmp/gfw.b64 https://supes.top/bypass/gfwlist.txt || curl -kLfsm 5 -o /tmp/gfw.b64 https://cdn.jsdelivr.net/gh/gfwlist/gfwlist/gfwlist.txt);do
 			sleep 2
@@ -72,7 +65,7 @@ if [ "$C" = gfw -o "$(uci -q get bypass.@global[0].gfw_mode)" = 1 ];then
 			log "By Update  : GFW List is up to date :" $( cat /etc/bypass/gfw.list | wc -l)
 	   fi
 	fi
-fi
+
 rm -f $LOCKU /tmp/china*.txt /tmp/gfwnew.txt /tmp/gfw.b64
 
 [ $A = Y ] && /etc/init.d/bypass start &
