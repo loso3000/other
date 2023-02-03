@@ -19,7 +19,7 @@ boot() {
 
 add_netwizard() {
 	[ "x$XBOOT" = "x1" ] && return 0
-	[ "x$(uci -q get netwizard.netwizard.display)" = "x1"  ] &&  echo ' ' > /etc/config/netwizarded || rm -rf /etc/config/netwizarded return 0 
+	[ "x$(uci -q get netwizard.netwizard.display)" = "x1"  ] &&  echo ' ' > /etc/config/netwizarded || rm -rf /etc/config/netwizarded ;return 0 
 	local cfg="$1"
 	local wan_proto wan_ipaddr wan_netmask wan_gateway wan_dns wan_pppoe_user wan_pppoe_pass 
 	local ipv6 wifi_ssid wifi_key old_wifi_ssid old_wifi_key
