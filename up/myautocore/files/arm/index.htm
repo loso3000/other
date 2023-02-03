@@ -17,7 +17,7 @@
 	local has_wifi = ((fs.stat("/etc/config/wireless", "size") or 0) > 0)
 	local has_temp = fs.access("/sbin/tempinfo")
 
-	local has_wizard = fs.access("/etc/config/wizarded")
+	local has_wizard = fs.access("/etc/config/netwizarded")
 	local sysinfo = luci.util.ubus("system", "info") or { }
 	local boardinfo = luci.util.ubus("system", "board") or { }
 	local unameinfo = nixio.uname() or { }
@@ -799,8 +799,8 @@ end
 //]]></script>
 
 <% if has_wizard then %>
-<script type="text/javascript">document.location="<%=controller%>admin/system/wizard";</script>
-<%=luci.sys.exec("rm -rf /etc/config/wizarded")  %>
+<script type="text/javascript">document.location="<%=controller%>admin/system/netwizard";</script>
+<%=luci.sys.exec("rm -rf /etc/config/netwizarded")  %>
 <% end %>
 <h2 name="content"><%:Status%></h2>
 
