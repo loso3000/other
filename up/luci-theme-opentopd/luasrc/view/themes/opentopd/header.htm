@@ -6,8 +6,20 @@
 
 	luci-theme-material: 
 	Copyright 2015 Lutty Yang <lutty@wcan.in>
+	luci-theme-bootstrap:
+	Copyright 2008 Steven Barth <steven@midlink.org>
+	Copyright 2008-2016 Jo-Philipp Wich <jow@openwrt.org>
+	Copyright 2012 David Menting <david@nut-bolt.nl>
+	Copyright 2020 Jerryk <jerrykuku@gmail.com>
+	MUI:
+	https://github.com/muicss/mui
+	
+	Agron Theme
+	https://demos.creative-tim.com/argon-dashboard/index.html
+
 	Licensed to the public under the Apache License 2.0
 -%>
+
 
 <%
 	local sys  = require "luci.sys"
@@ -211,6 +223,20 @@
 	if bgcount > 0 then
 		currentBg = bgs[math.random(1,bgcount)]
 		bg_url = currentBg.url
+	-- Custom settings
+	local mode = 'normal'
+	local dark_css = fs.readfile('/www/luci-static/opentopd/css/dark.css')
+	local bar_color = '#6c757d'
+	local primary, dark_primary, blur_radius, blur_radius_dark, blur_opacity
+	if fs.access('/etc/config/advanced') then
+		primary = uci:get_first('advanced', 'themes', 'primary')
+		dark_primary = uci:get_first('advanced', 'themes', 'dark_primary')
+		blur_radius = uci:get_first('advanced', 'themes', 'blur')
+		blur_radius_dark = uci:get_first('advanced', 'themes', 'blur_dark')
+		blur_opacity = uci:get_first('advanced', 'themes', 'transparency')
+		blur_opacity_dark = uci:get_first('advanced', 'themes', 'transparency_dark')
+		mode = uci:get_first('advanced', 'themes', 'mode')
+		bar_color = mode == 'dark' and dark_primary or primary
 	end
 
 
@@ -244,10 +270,9 @@
         <meta name="full-screen" content="yes">
         <meta name="x5-page-mode" content="app">
         <meta name="browsermode" content="application">
-        <meta name="theme-color" content="#5e72e4">
         <meta name="msapplication-tap-highlight" content="no">
-        <meta name="msapplication-TileColor" content="#f36c21">
-
+        <meta name="msapplication-TileColor" content="<%=bar_color%>">
+        <meta name="theme-color" content="<%=bar_color%>">
         <meta name="application-name" content="<%=striptags( (boardinfo.hostname or "?") ) %> - LuCI">
         <meta name="apple-mobile-web-app-title" content="<%=striptags( (boardinfo.hostname or "?") ) %> - LuCI">
         <meta name="msapplication-TileImage" content="<%=media%>/logo.png"/>
@@ -255,13 +280,36 @@
         <link rel="apple-touch-icon-precomposed" href="<%=media%>/logo.png" sizes="144x144">
 	<link rel="stylesheet" href="<%=media%>/css/style.css?v=<%=math.random(1,100000)%>">
 	<link rel="stylesheet" href="<%=media%>/css/pure-min.css?v=<%=math.random(1,100000)%>">
+	<% if mode == 'normal' then %>
+		@media (prefers-color-scheme: dark) {
+			<%=dark_css%>
+		}
+	<% elseif mode == 'dark' then %>
+		<%=dark_css%>
+	<% end -%>
+	<% if fs.access('/etc/config/advanced') then %>
+	:root {
+		--primary: <%=primary%>;
+		--dark-primary: <%=dark_primary%>;
+		--blur-radius:<%=blur_radius%>px;
+		--blur-opacity:<%=blur_opacity%>;
+		--blur-radius-dark:<%=blur_radius_dark%>px;
+		--blur-opacity-dark:<%=blur_opacity_dark%>;
+	}
+	<% end -%>
+	</style>
 	<link rel="shortcut icon" href="<%=media%>/favicon.ico"> 
-	
+	<% if node and node.css then %>
+	<link rel="stylesheet" href="<%=resource%>/<%=node.css%>">
+	<% end -%>
+	<% if css then %>
+	<style title="text/css"><%=css %></style>
+	<% end -%>
 	<script src="<%=resource%>/cbi.js<%# ?v=PKG_VERSION %>"></script>
 	<script src="<%=resource%>/xhr.js<%# ?v=PKG_VERSION %>"></script>
 	<script src="<%=media%>/js/jquery.min.js<%# ?v=PKG_VERSION %>"></script>
 </head>
-<body class="lang_<%=luci.i18n.context.lang%> <%- if node then %><%= striptags( node.title ) %><%- end %> <% if luci.dispatcher.context.authsession then %>logged-in<% end %>">
+<body class="lang_<%=luci.i18n.context.lang%> <%=mode %><%- if node then %><%= striptags( node.title ) %><%- end %> <% if luci.dispatcher.context.authsession then %>logged-in<% end %>">
 
 <div class="main">
     <div class="main-left">
