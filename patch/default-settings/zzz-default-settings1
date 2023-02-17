@@ -32,6 +32,7 @@ uci commit fstab
 uci commit network
 /etc/init.d/turboacc restart
 /etc/init.d/ttyd restart
+/etc/init.d/mwan3 restart
 rm -f /usr/lib/lua/luci/view/admin_status/index/ddns.htm
 rm -f /usr/lib/lua/luci/view/admin_status/index/minidlna.htm
 rm -f /usr/lib/lua/luci/view/admin_status/index/upnp.htm
