@@ -818,10 +818,10 @@ msgid "QUIC Key"
 msgstr "QUIC 密钥"
 
 msgid "VideoCall (SRTP)"
-msgstr "视频通话 (SRTP)"
+msgstr "视频通话（SRTP）"
 
 msgid "BitTorrent (uTP)"
-msgstr "BT下载 (uTP)"
+msgstr "BT 下载（uTP）"
 
 msgid "WechatVideo"
 msgstr "微信视频通话"

@@ -4,6 +4,7 @@
 
 local m, s, sec, o
 local uci = luci.model.uci.cursor()
+
 local validation = require "luci.cbi.datatypes"
 local function is_finded(e)
 	return luci.sys.exec('type -t -p "%s"' % e) ~= "" and true or false
