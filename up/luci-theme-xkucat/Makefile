@@ -6,7 +6,7 @@ include $(TOPDIR)/rules.mk
 
 THEME_NAME:=xkucat
 THEME_TITLE:=xkucat Theme
-PKG_VERSION:=1.2.0
+PKG_VERSION:=1.2.2
 PKG_RELEASE:=20230220
 
 include $(TOPDIR)/feeds/luci/luci.mk
