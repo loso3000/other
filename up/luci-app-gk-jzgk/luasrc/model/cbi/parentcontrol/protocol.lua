@@ -100,6 +100,8 @@ e = t:option(Flag, "enable", translate("开启"))
 e.rmempty = false
 e.default = '1'
 
+e = t:option(Value, 'remarks', translate('Remarks'))
+
 a.apply_on_parse = true
 a.on_after_apply = function(self,map)
 	luci.sys.exec("/etc/init.d/parentcontrol restart")
