@@ -1,0 +1,115 @@
+#!/bin/sh /etc/rc.common
+#  Copyright 2019-2023 sirpdboy <sirpdboy@qq.com>
+START=98
+LOCK=/var/lock/advancedplus
+
+start(){
+
+[ -f $LOCK ] && exit
+touch  $LOCK  
+sum=$(grep -c 'theme' /etc/config/advancedplus)
+useset=0
+for i in $(seq 0 $((sum-1)))
+do
+    use=$(uci -q get advancedplus.@theme[$i].use )
+    if [ "x$use" == "x1" ]; then
+	mode=`uci -q get advancedplus.@theme[$i].mode `
+	primary=`uci -q get advancedplus.@theme[$i].primary `
+	uci set advancedplus.@basic[0].mode=${mode}
+	uci set advancedplus.@basic[0].primary=${primary}
+	case "${primary}" in
+		blue)
+			uci set advancedplus.@basic[0].primary='#146db3'
+		     if  [ ${mode} == 'drak' ] ; then 
+			uci set advancedplus.@basic[0].primary_body='#333'
+			uci set advancedplus.@basic[0].primary_rgb='20,109,179'
+			uci set advancedplus.@basic[0].primary_rgb_ts='0.2'
+			uci set advancedplus.@basic[0].primary_rgbs='205,79,57'
+		     else
+			uci set advancedplus.@basic[0].primary_body='#fff'
+			uci set advancedplus.@basic[0].primary_rgb='20,109,179'
+			uci set advancedplus.@basic[0].primary_rgb_ts='0.2'
+			uci set advancedplus.@basic[0].primary_rgbs='205,79,57'
+		     fi
+		;;
+		green)
+			uci set advancedplus.@basic[0].primary='#1a8361'
+		    if  [ ${mode}= 'drak' ]; then  
+			uci set advancedplus.@basic[0].primary_body='#333'
+			uci set advancedplus.@basic[0].primary_rgb='26,131,97'
+			uci set advancedplus.@basic[0].primary_rgb_ts='0.2'
+			uci set advancedplus.@basic[0].primary_rgbs='225,112,88'
+		     else
+			uci set advancedplus.@basic[0].primary_body='#fff'
+			uci set advancedplus.@basic[0].primary_rgb='26,131,97'
+			uci set advancedplus.@basic[0].primary_rgb_ts='0.2'
+			uci set advancedplus.@basic[0].primary_rgbs='225,112,88'
+		     fi
+		;;
+		orange)
+		
+			uci set advancedplus.@basic[0].primary='#a34706'
+		    if  [ ${mode} == 'drak' ]; then 
+			uci set advancedplus.@basic[0].primary_body='#333'
+			uci set advancedplus.@basic[0].primary_rgb='163,71,6'
+			uci set advancedplus.@basic[0].primary_rgb_ts='0.2'
+			uci set advancedplus.@basic[0].primary_rgbs='60,179,113'
+		     else
+			uci set advancedplus.@basic[0].primary_body='#fff'
+			uci set advancedplus.@basic[0].primary_rgb='163,71,6'
+			uci set advancedplus.@basic[0].primary_rgb_ts='0.2'
+			uci set advancedplus.@basic[0].primary_rgbs='60,179,113'
+		     fi
+		;;
+		red)
+			uci set advancedplus.@basic[0].primary='#b3351f'
+		    if  [ ${mode} == 'drak' ]; then 
+			uci set advancedplus.@basic[0].primary_body='#333'
+			uci set advancedplus.@basic[0].primary_rgb='143,32,13'
+			uci set advancedplus.@basic[0].primary_rgb_ts='0.2'
+			uci set advancedplus.@basic[0].primary_rgbs='33,150,243'
+		     else
+			uci set advancedplus.@basic[0].primary_body='#eee'
+			uci set advancedplus.@basic[0].primary_rgb='143,32,13'
+			uci set advancedplus.@basic[0].primary_rgb_ts='0.2'
+			uci set advancedplus.@basic[0].primary_rgbs='33,150,243'
+		     fi
+		;;
+		*)
+			uci set advancedplus.@basic[0].primary=`uci -q get advancedplus.@theme[$i].primary `
+			uci set advancedplus.@basic[0].primary_body=`uci -q get advancedplus.@theme[$i].primary_body `
+			uci set advancedplus.@basic[0].primary_rgb=`uci -q get advancedplus.@theme[$i].primary_rgb `
+			uci set advancedplus.@basic[0].primary_rgb_ts=`uci -q get advancedplus.@theme[$i].primary_rgb_ts `
+			uci set advancedplus.@basic[0].primary_rgbs=`uci -q get advancedplus.@theme[$i].primary_rgbs `
+		;;
+	esac
+	useset=1
+	equit 
+    fi
+done
+if [ $useset== 0 ] ; then
+	uci set advancedplus.@basic[0].mode='light'
+	uci set advancedplus.@basic[0].primary='#4aa185'
+       	if  [ ${mode}= 'drak' ]; then 
+			uci set advancedplus.@basic[0].primary_body='#fff'
+			uci set advancedplus.@basic[0].primary_rgb='74,161,133'
+			uci set advancedplus.@basic[0].primary_rgb_ts='0.2'
+			uci set advancedplus.@basic[0].primary_rgbs='225,112,88'
+	else
+			uci set advancedplus.@basic[0].primary_body='#333'
+			uci set advancedplus.@basic[0].primary_rgb='74,161,133'
+			uci set advancedplus.@basic[0].primary_rgb_ts='0.2'
+			uci set advancedplus.@basic[0].primary_rgbs='225,112,88'
+	 fi
+fi
+equit
+}
+
+equit () {
+rm -rf /tmp/luci*
+rm -f $LOCK  2>/dev/null
+exit
+}
+stop(){
+equit
+}
