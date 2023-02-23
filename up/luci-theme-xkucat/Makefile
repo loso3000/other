@@ -1,11 +1,13 @@
+# LuCI Theme Theme
 
 # Copyright 2019-2023 sirpdboy <sirpdboy@qq.com>
 # This is free software, licensed under the Apache License, Version 2.0 .
 
 include $(TOPDIR)/rules.mk
 
-THEME_NAME:=xkucat
-THEME_TITLE:=xkucat Theme
+LUCI_TITLE:=Advanced xkucat Theme
+LUCI_PKGARCH:=all
+PKG_NAME:=luci-theme-xkucat
 PKG_VERSION:=1.1.2
 PKG_RELEASE:=20230220
 
