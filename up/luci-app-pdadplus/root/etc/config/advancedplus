@@ -1,9 +1,29 @@
-config global
-	option primary '#5e72e4'
-	option dark_primary '#483d8b'
-	option blur '10'
-	option blur_dark '10'
-	option transparency '0.5'
-	option transparency_dark '0.5'
-	option mode 'normal'
-	option bing_background '0'
+config basic
+	option gossr 'bypass'
+	option background '0'
+	option primary_rgb_ts '0.2'
+	option primary_rgbs '225,112,88'
+	option mode 'light'
+	option primary '#2d6693'
+	option primary_body '#ffffff'
+	option primary_rgb '45,102,147'
+
+config theme
+	option primary_rgb '74,161,133'
+	option primary_rgbs '179, 179, 179'
+	option mode 'light'
+	option primary_body '#fff'
+	option primary_rgb_ts '0.2'
+	option use '0'
+	option primary 'blue'
+
+config theme
+	option primary_body '#ffffff'
+	option primary_rgbs '225,112,88'
+	option primary_rgb_ts '0.2'
+	option primary '#2d6693'
+	option use '1'
+	option primary_rgb '45,102,147'
+	option remarks ''
+	option mode 'light'
+
