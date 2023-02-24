@@ -5,7 +5,7 @@ config basic
 	option primary_rgbs '225,112,88'
 	option mode 'light'
 	option primary '#2d6693'
-	option primary_body '#ffffff'
+	option primary_body '#fff'
 	option primary_rgb '45,102,147'
 
 config theme
@@ -18,7 +18,7 @@ config theme
 	option primary 'blue'
 
 config theme
-	option primary_body '#ffffff'
+	option primary_body '#fff'
 	option primary_rgbs '225,112,88'
 	option primary_rgb_ts '0.2'
 	option primary '#2d6693'
@@ -27,3 +27,11 @@ config theme
 	option remarks ''
 	option mode 'light'
 
+config theme
+	option primary_rgbs '225,112,88'
+	option primary_rgb_ts '0.2'
+	option use '1'
+	option primary_rgb '45,102,147'
+	option mode 'dark'
+	option primary '#212d3c'
+	option primary_body '#212d3c'
