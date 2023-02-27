@@ -19,9 +19,9 @@ start() {
 		echo "$rfc" > "$fileRfc"
 	done
 	
-	uci set network.@globals[0].packet_steering="1"
+	uci set network.@globals[0].packet_steering=1
 	uci commit network
-	g=$(dmesg | grep 'DMI:' | awk -F ', B' '{print $1 }' | awk -F ':' '{print $2 }')
+	g=$(dmesg | grep 'DMI:' | awk -F ',' '{print $1 }' | awk -F ':' '{print $2 }')
 
 	[ -d /tmp/sysinfo ] || mkdir -p /tmp/sysinfo
 	echo $g > /tmp/sysinfo/model

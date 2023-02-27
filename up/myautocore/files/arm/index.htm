@@ -16,8 +16,14 @@
 	local has_dhcp = fs.access("/etc/config/dhcp")
 	local has_wifi = ((fs.stat("/etc/config/wireless", "size") or 0) > 0)
 	local has_temp = fs.access("/sbin/tempinfo")
+	local has_switch = false
+	
+	uci:foreach("network", "switch",
+			function(s)
+				has_switch = true
+				return false
+			end)
 
-	local has_wizard = fs.access("/etc/config/netwizarded")
 	local sysinfo = luci.util.ubus("system", "info") or { }
 	local boardinfo = luci.util.ubus("system", "board") or { }
 	local unameinfo = nixio.uname() or { }
@@ -69,10 +75,12 @@ end
  		local eth_info = luci.sys.exec("sysinfo ethinfo")
 		local cpu_speed = luci.sys.exec("sysinfo cpuspeed")
 		local user_info = luci.sys.exec("cat /proc/net/arp | grep 'br-lan' | grep '0x2' | wc -l") or "0"
-		local cpu_wd ="+".. (luci.sys.exec("sysinfo armtempinfo 2>/dev/null ")) .. "°C"
-        if  cpu_wd == "+0°C" or cpu_wd == "+°C"   then
-		    cpu_wd= "+0°C （无温控或虚拟机）"
-       	end
+        if has_temp then
+		local cpu_wd =(luci.sys.exec("tempinfo"))
+        	if  cpu_wd == "+0°C" or cpu_wd == "+°C"   then
+		    	cpu_wd= "+0°C （无温控或虚拟机）"
+       		end
+		end
 		local upnp_info = luci.sys.exec("sysinfo upnpinfo") or 0
 		local cpu_usage = luci.sys.exec("top -n1 | awk '/^CPU/ {printf(\"%d%\", 100 - $8)}'") or "6%"
 		local up_time = luci.sys.exec("sysinfo cntime")
@@ -808,11 +816,13 @@ end
 	<legend><%:System%></legend>
 	<table width="100%" cellspacing="10">
 		<tr><td width="33%"><%:Hostname%></td><td><%=luci.sys.hostname() or "?"%></td></tr>
-		<tr><td width="33%"><%:Model%></td><td><%=pcdata(boardinfo.model or "?")%>  <%=luci.sys.exec("cat /etc/bench.log") or " "%></td></tr>
+		<tr><td width="33%"><%:Model%></td><td><%=pcdata(boardinfo.model or "?")%>   <%=luci.sys.exec("cat /etc/bench.log |awk -F '.' '{print $1}'") or " "%></td></tr>
 		<tr><td width="33%"><%:Architecture%></td><td><%=pcdata(boardinfo.system or "?")%> x <%=luci.sys.exec("cat /proc/cpuinfo | grep 'processor' | wc -l") or "1"%></td></tr>
 		<tr><td width="33%"><%:Target Platform%></td><td><%=pcdata(boardinfo.release.target or "?")%></td></tr>
 		<tr><td width="33%"><%:CPU主频%></td><td id="cpuspeed">-</td></tr>
+		<% if has_temp then %>
 		<tr><td width="33%"><%:CPU Temperature%></td><td id="cpuwd">-</td></tr>
+		<% end %>
 		<tr><td width="33%"><%:CPU负载%></td><td id="cpuusage">-</td></tr>
         <tr><td width="33%"><%:RAM Size%></td><td ><%=luci.sys.exec("sysinfo memory")%></td></tr>
 		<tr><td width="33%"><%:Firmware Version%></td><td>

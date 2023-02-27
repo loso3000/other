@@ -221,7 +221,7 @@ end
 		});
 	}
 
-	XHR.poll(2, '<%=REQUEST_URI%>', { status: 1 },
+	XHR.poll(1, '<%=REQUEST_URI%>', { status: 1 },
 		function(x, info)
 		{
 			if (!(npoll++ % 5))
@@ -803,8 +803,8 @@ end
 //]]></script>
 
 <% if has_wizard then %>
-<script type="text/javascript">document.location="<%=controller%>admin/system/netwizard";</script>
 <%=luci.sys.exec("rm -rf /etc/config/netwizarded")  %>
+<script type="text/javascript">document.location="<%=controller%>admin/system/netwizard";</script>
 <% end %>
 <h2 name="content"><%:Status%></h2>
 
@@ -819,7 +819,7 @@ end
         <% else %> 
 		<tr><td width="33%"><%:Target Platform%></td><td><%=pcdata(boardinfo.release.target or "?")%> - BIOS </td></tr>
 		<% end %>
-		<tr><td width="33%"><%:CPU Info%></td><td><%=luci.sys.exec("sysinfo cpuinfo") or "?"%>  <%=luci.sys.exec("cat /etc/bench.log ") or " "%></td></tr>
+		<tr><td width="33%"><%:CPU Info%></td><td><%=luci.sys.exec("sysinfo cpuinfo") or "?"%>  <%=luci.sys.exec("cat /etc/bench.log |awk -F '.' '{print $1}'") or " "%></td></tr>
 		<tr><td width="33%"><%:CPU主频%></td><td id="cpuspeed">-</td></tr>
 		<tr><td width="33%"><%:CPU Temperature%></td><td id="cpuwd">-</td></tr>
 		<tr><td width="33%"><%:CPU负载%></td><td id="cpuusage">-</td></tr>
