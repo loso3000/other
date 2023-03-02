@@ -28,6 +28,183 @@ Grey="\e[36m"
 Green="\e[32m"
 Div="${Grey}|${White}"
 
+function EY() {
+  echo -e "${Yellow} $1 ${Font}"
+}
+function ER() {
+  echo
+  echo -e "${Red} $1 ${Font}"
+}
+function EB() {
+  echo
+  echo -e "${Blue} $1 ${Font}"
+  echo
+}
+function EG() {
+  echo -e "${Green} $1 ${Font}"
+}
+function EW() {
+  echo -e "${White} $1 ${Font}"
+}
+
+function k_theme() {
+echo
+while :; do
+read -p "是否确定恢复默认主题？（恢复后会重启）[Y/n]：" YN
+case ${YN} in
+[Yy]) 
+    ER "恢复默认主题中，将重启系统。"
+    uci set luci.main.mediaurlbase='/luci-static/bootstrap'
+    uci commit luci
+    reboot -f
+    goreboot
+break
+;;
+[Nn])
+    EW "取消返回主菜单"
+    . /etc/profile
+;;
+*)
+    ER "输入正确选择[Y/n]"
+;;
+esac
+done
+}
+
+function k_poweroff() {
+echo
+while :; do
+read -p "是否确定关闭系统？[Y/n]：" YN
+case ${YN} in
+[Yy]) 
+    ER "正在关闭系统中，请稍等..."
+    sync && poweroff
+    break
+;;
+[Nn])
+    EW "取消返回主菜单"
+    . /etc/profile
+;;
+*)
+    ER "输入正确选择[Y/n]"
+;;
+esac
+done
+}
+
+function k_change_ip() {
+  echo
+  export k_ip="请输入您想要更改成的后台IP[q返回]:"
+  echo
+  while :; do
+  domainy=""
+  read -p " ${k_ip}：" keyip
+  if [[ -n "${keyip}" ]] && [[ "$(echo ${keyip} |grep -Eoc '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+')" == '1' ]]; then
+    keyipy="Y"
+  fi 
+    if [[ -n "${keyip}" ]] && [[ ${keyip} == 'q'  ||  ${keyip} == 'Q'  ]]; then
+    keyipy="Q"
+  fi
+  case $keyipy in
+  Y)
+    export keyipn="${keyip}"
+    uci set network.lan.ipaddr="${keyip}"
+    ER "您的IP已经改为：${keyip},已经生效！"
+    uci commit network
+    /etc/init.d/network restart
+    break
+  ;; 
+  Q)
+    . /etc/profile
+  ;;
+  *)
+    export k_ip="请输入正确格式的IP地址[q返回]"
+  ;;
+  esac
+  done
+}
+
+function k_clear() {
+while :; do
+read -p "否清空密码并重启？[Y/n]：" YN
+case ${YN} in
+[Yy]) 
+    if [[ "$USER" == "admin" ]]; then
+      sed -i 's/admin:.*/admin::0:0:99999:7:::/g' /etc/shadow
+      passwd -d root
+    else
+      passwd -d root
+    fi
+    goreboot
+break
+;;
+[Nn])
+    EW "取消返回主菜单"
+    . /etc/profile
+;;
+*)
+    ER "输入正确选择!"
+;;
+esac
+done
+}
+
+function k_reboot() {
+echo
+while :; do
+read -p "是否重启系统[Y/n]：" YN
+case ${YN} in
+[Yy]) 
+    ER "系统重启中..."
+    uci set argon.@global[0].bing_background=0
+    uci commit argon
+    reboot -f
+    goreboot
+break
+;;
+[Nn])
+    EW "取消返回主菜单"
+    . /etc/profile
+;;
+*)
+    ER "输入正确选择!"
+;;
+esac
+done
+}
+
+function k_firstboot() {
+echo
+while :; do
+read -p "是否恢复出厂设置?按[Y/y]执行,按[N/n]退出：" YN
+case ${YN} in
+[Yy]) 
+    ER "已经恢复出厂设置,系统重启中..." 
+    firstboot -y
+    reboot -f
+    goreboot
+break
+;;
+[Nn])
+    EW "取消返回主菜单"
+    . /etc/profile
+;;
+*)
+    ER "输入正确选择!"
+;;
+esac
+done
+}
+
+goreboot() {
+  if [[ 0 -eq $? ]]; then
+    ER "$1 完成,正在为您重启系统"
+    reboot -f
+  else
+    ER "$1 失败"
+    exit 0
+  fi
+}
 clear
 [ -e /tmp/.failsafe ] && export FAILSAFE=1
 [ -f /etc/banner ] && echo -e "${Skyb}$(cat /etc/banner)${White}"
@@ -76,12 +253,61 @@ in order to prevent unauthorized SSH logins.
 ------------------------------------------------
 EOF
 fi
-alias reload='. /etc/profile'
+function mainmenu() {
+  echo  
+  EB "   Sirdpboy快捷命令菜单  "
+  EG " menu ->重进菜单   top ->查看进程 "
+  EY " 1. 修改后台IPV4地址(set IPv4)"
+  EY " 2. 清除密码并重启(clear password)"
+  EY " 3. 恢复默认主题(restore_theme)"
+  EY " 4. 重启系统(reboot)"
+  EY " 5. 强制关机(shutdown)"
+  EY " 6. 恢复出厂设置(firstboot)"
+  ER " 9. 退出菜单(exit)"
+  echo
+  KEY="请输入数字"
+  while :; do
+  read -p " ${KEY}： " CHOOSE
+  case $CHOOSE in
+    1)
+      k_change_ip
+    break
+    ;;
+    2)
+      k_clear
+    break
+    ;;
+    3)
+      k_theme
+    break
+    ;;
+    4)
+      k_reboot
+    break
+    ;;
+    5)
+      k_poweroff
+    break
+    ;;
+    6)
+      k_firstboot
+    break
+    ;;
+    9)
+      EW "您选择了退出程序"
+      break
+    ;;
+    *)
+      KEY="请输入正确的数字编号:"
+    ;;
+    esac
+    done
+}
+
+alias menu='. /etc/profile'
 alias shutdown='sync && poweroff'
 alias dh='df -h'
 alias ls='ls --color=auto'
-alias l='ls -CF'
-alias cls='clear'
-alias syslog='cat $(uci get system.@system[0].log_file) 2> /dev/null'
-alias ramfree='sync && echo 3 > /proc/sys/vm/drop_caches'
 alias top='top -d 1'
+
+mainmenu
