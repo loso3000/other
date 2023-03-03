@@ -1,6 +1,6 @@
 # 
 # Copyright (C) 2010-2011 OpenWrt.org
-#  2021-2022 by sirpdboy  (sirpdboy@qq.com)
+#  2021-2023 by sirpdboy  (sirpdboy@qq.com)
 #  2020  by lean
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
@@ -10,7 +10,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=myautocore
 PKG_VERSION:=2
-PKG_RELEASE:=14
+PKG_RELEASE:=15
 
 include $(INCLUDE_DIR)/package.mk
 define Package/myautocore-arm
@@ -47,9 +47,8 @@ define Package/myautocore-arm/install
 
 	$(INSTALL_DATA) ./files/arm/index.htm $(1)/etc/
 	$(INSTALL_BIN) ./files/generic/090-cover-index_htm $(1)/etc/uci-defaults/
-ifneq ($(filter ipq% %mt7622, $(TARGETID)),)
 	$(INSTALL_BIN) ./files/arm/tempinfo $(1)/sbin/
-endif
+
 endef
 
 define Package/myautocore-x86/install

@@ -1,7 +1,7 @@
 <%#
  Copyright 2008 Steven Barth <steven@midlink.org>
  Copyright 2008-2011 Jo-Philipp Wich <jow@openwrt.org>
- Copyright 2021-2022 sirpdboy
+ Copyright 2021-2023 sirpdboy
  Licensed to the public under the Apache License 2.0.
 -%>
 
@@ -76,9 +76,9 @@ end
 		local cpu_speed = luci.sys.exec("sysinfo cpuspeed")
 		local user_info = luci.sys.exec("cat /proc/net/arp | grep 'br-lan' | grep '0x2' | wc -l") or "0"
         if has_temp then
-		local cpu_wd =(luci.sys.exec("tempinfo"))
+		    local cpu_wd ="+".. (luci.sys.exec("sysinfo tempinfo 2>/dev/null ")) .. "°C"
         	if  cpu_wd == "+0°C" or cpu_wd == "+°C"   then
-		    	cpu_wd= "+0°C （无温控或虚拟机）"
+		    	cpu_wd= "+0°C （无温控或检测问题）"
        		end
 		end
 		local upnp_info = luci.sys.exec("sysinfo upnpinfo") or 0
@@ -807,8 +807,8 @@ end
 //]]></script>
 
 <% if has_wizard then %>
-<script type="text/javascript">document.location="<%=controller%>admin/system/netwizard";</script>
 <%=luci.sys.exec("rm -rf /etc/config/netwizarded")  %>
+<script type="text/javascript">document.location="<%=controller%>admin/system/netwizard";</script>
 <% end %>
 <h2 name="content"><%:Status%></h2>
 
