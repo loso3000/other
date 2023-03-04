@@ -15,7 +15,6 @@
 	local has_ipv6 = fs.access("/usr/sbin/ip6tables")
 	local has_dhcp = fs.access("/etc/config/dhcp")
 	local has_wifi = ((fs.stat("/etc/config/wireless", "size") or 0) > 0)
-	local has_temp = fs.access("/sbin/tempinfo")
 	local has_switch = false
 	
 	uci:foreach("network", "switch",
@@ -65,22 +64,12 @@ end
 		local ntm = require "luci.model.network".init()
 		local wan = ntm:get_wannet()
 		local wan6 = ntm:get_wan6net()
-
-		local conn_count = tonumber(
-			fs.readfile("/proc/sys/net/netfilter/nf_conntrack_count") or "") or 0
-
-		local conn_max = tonumber(luci.sys.exec(
-			"sysctl -n -e net.nf_conntrack_max net.ipv4.netfilter.ip_conntrack_max"
-		):match("%d+")) or 4096
+		local conn_count = tonumber(fs.readfile("/proc/sys/net/netfilter/nf_conntrack_count") or "") or 0
+		local conn_max = tonumber(luci.sys.exec("sysctl -n -e net.nf_conntrack_max net.ipv4.netfilter.ip_conntrack_max"	):match("%d+")) or 4096
  		local eth_info = luci.sys.exec("sysinfo ethinfo")
 		local cpu_speed = luci.sys.exec("sysinfo cpuspeed")
 		local user_info = luci.sys.exec("cat /proc/net/arp | grep 'br-lan' | grep '0x2' | wc -l") or "0"
-        if has_temp then
-		    local cpu_wd ="+".. (luci.sys.exec("sysinfo tempinfo")) .. "°C"
-        	if  cpu_wd == "+0°C" or cpu_wd == "+°C"   then
-		    	cpu_wd= "+0°C （无温控或检测问题）"
-       		end
-		end
+		local cpu_wd ="+" .. luci.sys.exec("sysinfo armtempinfo") .. "°C"
 		local upnp_info = luci.sys.exec("sysinfo upnpinfo") or 0
 		local cpu_usage = luci.sys.exec("top -n1 | awk '/^CPU/ {printf(\"%d%\", 100 - $8)}'") or "6%"
 		local up_time = luci.sys.exec("sysinfo cntime")
@@ -104,7 +93,6 @@ end
 			wifinets   = stat.wifi_networks(),
 			onlines   = online_data()
 		}
-
 		if wan then
 			rv.wan = {
 				ipaddr  = wan:ipaddr(),
@@ -820,9 +808,7 @@ end
 		<tr><td width="33%"><%:Architecture%></td><td><%=pcdata(boardinfo.system or "?")%> x <%=luci.sys.exec("cat /proc/cpuinfo | grep 'processor' | wc -l") or "1"%></td></tr>
 		<tr><td width="33%"><%:Target Platform%></td><td><%=pcdata(boardinfo.release.target or "?")%></td></tr>
 		<tr><td width="33%"><%:CPU主频%></td><td id="cpuspeed">-</td></tr>
-		<% if has_temp then %>
 		<tr><td width="33%"><%:CPU Temperature%></td><td id="cpuwd">-</td></tr>
-		<% end %>
 		<tr><td width="33%"><%:CPU负载%></td><td id="cpuusage">-</td></tr>
         <tr><td width="33%"><%:RAM Size%></td><td ><%=luci.sys.exec("sysinfo memory")%></td></tr>
 		<tr><td width="33%"><%:Firmware Version%></td><td>

@@ -43,11 +43,8 @@ endef
 define Package/myautocore-arm/install
 	$(INSTALL_DIR) $(1)/etc/init.d/ $(1)/sbin $(1)/etc/uci-defaults $(1)/etc/
 	$(INSTALL_BIN) ./files/generic/sysinfo $(1)/sbin/
-
-
 	$(INSTALL_DATA) ./files/arm/index.htm $(1)/etc/
 	$(INSTALL_BIN) ./files/generic/090-cover-index_htm $(1)/etc/uci-defaults/
-	$(INSTALL_BIN) ./files/arm/tempinfo $(1)/sbin/
 
 endef
 
