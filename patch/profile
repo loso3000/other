@@ -325,6 +325,7 @@ function mainmenu() {
   EY " 5. 关闭服务器(Shutdown)"
   EY " 6. 恢复出厂设置(Restore factory settings)"
   EY " 7. 网络连接检查(Check network connectivity)"
+  EY " 8. 刷新释放内存(Refresh to free memory)"
   ER " 9. 退出菜单(Exit)"
   echo
   KEY="请输入数字(please enter a number)"
@@ -373,6 +374,13 @@ function mainmenu() {
 		ER " "
 		sleep 2
 	;;
+    8)
+        EY " 刷新状态清除内存完成!(Refresh status clear memory completed!)"
+        sync && echo 3 > /proc/sys/vm/drop_caches
+        rm -rf /tmp/luci*
+	ER " "
+	sleep 2
+    ;;
     9)
       EW " 退出程序成功(Exit the program successfully)"
       echo
