@@ -42,6 +42,7 @@ elif grep -q "ramips" "/etc/openwrt_release"; then
 	cpu_freq="$(cat "$CPUINFO_PATH" | awk -F':' '/BogoMIPS/ {print $2}' | head -n1 | awk -F '.' '{print $1}' )MHz" 
 elif grep -q "x86" "/etc/openwrt_release"; then
 	cpu_freq="$(cat "$CPUINFO_PATH" | awk -F':' '/MHz/ {print $2}' | head -n1 | awk -F '.' '{print $1}' )MHz" 
+        # cpu_freq=`grep 'MHz' /proc/cpuinfo | cut -c11- |sed -n '1p' | awk -F '.' '{print $1}' `MHz
 elif ! grep -q "filogic" "/etc/openwrt_release"; then
 	cpu_freq="$(expr $(cat /sys/devices/system/cpu/cpufreq/policy0/cpuinfo_cur_freq) / 1000)MHz"
 	big_cpu_freq="$(expr $(cat /sys/devices/system/cpu/cpufreq/policy4/cpuinfo_cur_freq 2>"/dev/null") / 1000 2>"/dev/null")"
@@ -87,18 +88,21 @@ sensorsbin(){
 	ret=$(which sensors)
 	echo ${ret:=0}
 }
+
 tempinfo(){
     THERMAL_PATH="/sys/class/thermal/thermal_zone0/temp"
 
     if grep -q "x86" "/etc/openwrt_release"; then
-	# Intel
-	# cmd=$(sensorsbin sensors)
-	# [ ! -x $cmd ] && retun ${cpu_temp}
-	cpu_temp="$(sensors "coretemp-*" 2>"/dev/null" | grep -E "(Core )" | grep -Eo "\+[0-9]*" | head -n1 | tr -d "+")"
+	
+	if [ "$(grep 'AMD' /proc/cpuinfo)" != "" ]; then
 	# AMD
-	[ -n "${cpu_temp}" ] || cpu_temp="$(sensors "k*temp-*" 2>"/dev/null" | awk '/Tdie/ {print $2}' | head -n1 | tr -d "+")"
-	[ -n "${cpu_temp}" ] || cpu_temp="$(sensors | grep -E 'temp1'  | grep -Eo "\+[0-9]*.[0-9]" | head -n1 | tr -d "+")"
-	[ -n "${cpu_temp}" ] || cpu_temp="$(sensors | grep -E 'Tctl'  | grep -Eo "\+[0-9]*.[0-9]" | head -n1 | tr -d "+")"
+		[ -n "${cpu_temp}" ] || cpu_temp="$(sensors "k*temp-*" 2>"/dev/null" | awk '/Tdie/ {print $2}' | head -n1 | tr -d "+")"
+		[ -n "${cpu_temp}" ] || cpu_temp="$(sensors | grep -E 'temp1'  | grep -Eo "\+[0-9]*.[0-9]" | head -n1 | tr -d "+")"
+		[ -n "${cpu_temp}" ] || cpu_temp="$(sensors | grep -E 'Tctl'  | grep -Eo "\+[0-9]*.[0-9]" | head -n1 | tr -d "+")"
+	else
+	
+		cpu_temp="$(sensors "coretemp-*" 2>"/dev/null" | grep -E "(Core )" | grep -Eo "\+[0-9]*" | head -n1 | tr -d "+")"
+	fi
     else
 	[ ! -e "$THERMAL_PATH" ] || \
 		cpu_temp="$(awk '{printf("%.f, $0 / 1000)}' "$THERMAL_PATH")"
