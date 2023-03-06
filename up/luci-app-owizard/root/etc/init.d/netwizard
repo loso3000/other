@@ -27,12 +27,11 @@ add_netwizard() {
  	config_get display "$cfg" display
 	config_get wan_proto "$cfg" wan_proto
 	config_get wan_interface "$cfg" wan_interface
-	
 	ifname=$(uci -q get network.lan.ifname ) 
 	[ "x$ifname" = "x" ] && ifname="device" || ifname="ifname" 
  	[ -n "$wan_interface" ] || wan_interface=$(uci -q get network.wan.$ifname 2>/dev/null) 
  	[ "$display" = 1 ] && return 0
-  uci -q delete network.lan.gateway
+ 	uci -q delete network.lan.gateway
 	uci -q delete dhcp.lan.ignore
 	uci -q delete network.lan.dns
 	uci -q delete firewall.@zone[0].masq
@@ -128,8 +127,22 @@ add_netwizard() {
 		uci -q set network.lan.ipaddr="${lan_ipaddr}"
 		uci -q set network.lan.netmask="${lan_netmask}"
 	}
+	# Set mwan3 balance strategy to default
+	if [ -f "/etc/config/mwan3" ]; then
+        	uci set mwan3.balanced.last_resort=default
+	fi
+
+	# Commit changes
+	uci commit
+	# Remove mwan3 ip6tables rules
+	if [ -f "/lib/mwan3/mwan3.sh" ]; then
+       	 	cp /lib/mwan3/mwan3.sh /lib/mwan3/mwan3.sh.orig
+        	sed -i 's/ip6tables -t manle -w/\/bin\/true/g' /lib/mwan3/mwan3.sh
+	fi
+
 	config_get ipv6 "$cfg" ipv6
-		if [ -n "${ipv6}" ]; then
+	case "$ipv6" in
+		0) 
 			uci -q delete network.wan6
 			uci -q set dhcp.lan.ra=''
 			uci -q set dhcp.lan.dhcpv6=''
@@ -140,9 +153,10 @@ add_netwizard() {
 			uci -q set network.wan.delegate='0'
 			uci -q set network.lan.delegate='0'
 			uci -q delete network.globals.ula_prefix
-		else
-			uci -q set dhcp.lan.ra='hybrid'
-			uci -q set dhcp.lan.dhcpv6='hybrid'
+		;;
+		1)
+			uci -q set dhcp.lan.ra='server'
+			uci -q set dhcp.lan.dhcpv6='server'
 			uci -q delete dhcp.@dnsmasq[0].filter_aaaa
 			uci -q set dhcp.lan.ndp=''
 			uci -q set dhcp.lan.ra_management='1'
@@ -151,7 +165,80 @@ add_netwizard() {
 			uci -q set network.wan.ipv6='auto'
 			uci -q set network.wan.delegate='0'
 			uci -q set network.lan.delegate='0'
-		fi
+			# Set server mode to wan6
+			uci -q set dhcp.wan6=dhcp
+			uci -q set dhcp.wan6.interface=wan
+			uci -q set dhcp.wan6.ra=server
+			uci -q set dhcp.wan6.dhcpv6=server
+			uci -q set dhcp.wan6.master=1
+			uci -q set dhcp.lan.ndp=''
+		;;
+		2)
+			uci -q set dhcp.lan.ra='relay'
+			uci -q set dhcp.lan.dhcpv6='relay'
+			uci -q set dhcp.lan.ndp='relay'
+			uci -q delete dhcp.@dnsmasq[0].filter_aaaa
+			uci -q set dhcp.lan.ndp=''
+			uci -q set dhcp.lan.ra_management='1'
+			uci -q set dhcp.lan.ra_default='1'
+			uci -q set dhcp.lan.force='1'
+			uci -q set network.wan.ipv6='auto'
+			uci -q set network.wan.delegate='0'
+			uci -q set network.lan.delegate='0'
+			# Set server mode to wan6
+			uci -q set dhcp.wan6=dhcp
+			uci -q set dhcp.wan6.interface=wan
+			uci -q set dhcp.wan6.ra='relay'
+			uci -q set dhcp.wan6.ndp='relay'
+			uci -q set dhcp.wan6.dhcpv6='relay'
+			uci -q set dhcp.wan6.master=1
+			uci -q set dhcp.lan.ndp=''
+		;;
+		3)
+			uci -q set dhcp.lan.ra='hybrid'
+			uci -q set dhcp.lan.dhcpv6='hybrid'
+			uci -q set dhcp.lan.ndp='hybrid'
+			uci -q delete dhcp.@dnsmasq[0].filter_aaaa
+			uci -q set dhcp.lan.ndp=''
+			uci -q set dhcp.lan.ra_management='1'
+			uci -q set dhcp.lan.ra_default='1'
+			uci -q set dhcp.lan.force='1'
+			uci -q set network.wan.ipv6='auto'
+			uci -q set network.wan.delegate='0'
+			uci -q set network.lan.delegate='0'
+			# Set server mode to wan6
+			uci -q set dhcp.wan6=dhcp
+			uci -q set dhcp.wan6.interface=wan
+			uci -q set dhcp.wan6.ra='hybrid'
+			uci -q set dhcp.wan6.ndp='hybrid'
+			uci -q set dhcp.wan6.dhcpv6='hybrid'
+			uci -q set dhcp.wan6.master=1
+			uci -q set dhcp.lan.ndp=''
+		;;
+		4)
+		    opkg update
+		    opkg remove --force-depends kmod-nf-reject6 kmod-nf-nat6 kmod-nf-ipt6 kmod-ip6tables odhcp6c luci-proto-ipv6 ip6tables kmod-ipt-nat6 ip6tables-mod-nat odhcpd-ipv6only ipv6helper
+		    uci -q delete dhcp.lan.dhcpv6
+		    uci -q delete dhcp.lan.ndp
+		    uci -q delete dhcp.lan.ra
+		    uci -q delete dhcp.lan.ra_management
+		    uci -q delete dhcp.lan.ra_default
+		    uci -q delete network.wan6
+		    # Enable IPV6 ula prefix
+		    sed -i 's/#.*\toption ula/\toption ula/g' /etc/config/network
+		    # Enable IPV6 dns resolution
+		    uci -q set dhcp.@dnsmasq[0].filter_aaaa=1
+		     # Restore mwan3 balance strategy
+		    if [ -f "/etc/config/mwan3" ]; then
+		       uci -q set mwan3.balanced.last_resort=unreachable
+		    fi
+		    # Restore mwan3 ip6tables rules
+		    if [ -f "/lib/mwan3/mwan3.sh" ]; then
+		       rm /lib/mwan3/mwan3.sh
+		       cp /lib/mwan3/mwan3.sh.orig /lib/mwan3/mwan3.sh
+		    fi
+		;;
+	esac
 	wifi_setup_radio(){
 	local radio=$1
 	uci get wireless.${radio} >/dev/null 2>&1 && {
@@ -183,6 +270,7 @@ add_netwizard() {
 	uci -q set netwizard.default.old_wifi_ssid="${wifi_ssid}"
 	uci -q set netwizard.default.old_wifi_key="${wifi_ssid}"
 	fi
+	uci commit 
 	uci commit netwizard
 	uci commit dhcp
 	uci commit firewall
