@@ -36,7 +36,7 @@ e:value("255.255.255.0")
 e:value("255.255.0.0")
 e:value("255.0.0.0")
 
-e = s:taboption("wansetup", ListValue, "ipv6",translate('Select IPv6 Mode'),translate("Caution: If you delete IPV6 related plug-ins completely, you will not be able to recover"))
+e = s:taboption("wansetup", ListValue, "ipv6",translate('Select IPv6 mode'),translate("Caution: If you delete IPV6 related plug-ins completely, you will not be able to recover"))
 e:value('0', translate('Disable IPv6'))
 e:value('1', translate('IPv6 Server mode'))
 e:value('2', translate('IPv6 Relay mode'))
