@@ -61,11 +61,11 @@ msgstr "不选择默认为禁用DHCP，如使用DHCP，需关闭主路由DHCP。
 msgid "Disable IPv6"
 msgstr "禁用IPv6"
 
-msgid "Select IPV6 mode"
+msgid "Select IPv6 mode"
 msgstr "选择IPv6模式"
 
 msgid "IPv6 Server mode"
-msgstr "IPv6服务器模式"
+msgstr "IPv6服务模式"
 
 msgid "IPv6 Relay mode"
 msgstr "IPv6中继模式"
