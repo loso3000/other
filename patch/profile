@@ -233,6 +233,7 @@ read -p "是否重启系统(Whether to restart the system)[Y/n]:" YN
 case ${YN} in
 [Yy]) 
     ER "系统重启中(System is restarting)..."
+    rm -rf /etc/config/wizard
     uci set argon.@global[0].bing_background=0
     uci commit argon
     reboot -f
@@ -371,7 +372,7 @@ function mainmenu() {
   EG " menu->重进菜单(Reentry menu)   top->查看进程(View Processes) "
   EY " 1. 修改后台IPv4地址(Modify IPv4 address)"
   EY " 2. 清除密码并重启(Clear password and Reboot)"
-  EY " 3. 恢复默认主题(Restore default theme)"
+  EY " 3. 修复向导默认主题(Restore wizard default theme)"
   EY " 4. 重启服务器(Reboot)"
   EY " 5. 关闭服务器(Shutdown)"
   EY " 6. 恢复出厂设置(Restore factory settings)"
