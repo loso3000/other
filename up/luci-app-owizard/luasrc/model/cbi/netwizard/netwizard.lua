@@ -42,6 +42,7 @@ e:value('1', translate('IPv6 Server mode'))
 e:value('2', translate('IPv6 Relay mode'))
 e:value('3', translate('IPv6 Hybird mode'))
 e:value('4', translate('Remove IPv6'))
+e.default = '3'
 
 e = s:taboption("wansetup", ListValue, "wan_proto", translate("Network protocol mode selection"), translate("Four different ways to access the Internet, please choose according to your own situation.</br>"))
 e:value("dhcp", translate("DHCP client"))
