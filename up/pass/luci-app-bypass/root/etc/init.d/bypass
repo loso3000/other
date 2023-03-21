@@ -56,7 +56,7 @@ dns_mode_d=$(uci_get_by_type global dns_mode_d doh)
 
 gen_log()(
 
-	[ -s $LOG ] && echo '----------------------------------------------------------start-----------------------------------------------------------' >> $LOG
+	[ -s $LOG ] && echo '------------start------------' >> $LOG
 	log "Check network status..."
 )
 
@@ -959,7 +959,8 @@ start(){
 	start_local
 	start_server
 	start_monitor
-	if [[ -x /etc/init.d/AdGuardHome && "$(which AdGuardHome)" ]]; then
+	adbin="$(uci -q get AdGuardHome.AdGuardHome.binpath)"
+	if [[ -x /etc/init.d/AdGuardHome && -x "$adbin" ]]; then
 		if [[ $adguardhome == 1 && -n "$GLOBAL_SERVER" ]]; then
 			if [[ ! "$(netstat -tunlp | grep 53 | grep -i AdGuardHome)" ]]; then
 				uci -q del dhcp.@dnsmasq[0].dns_redirect
