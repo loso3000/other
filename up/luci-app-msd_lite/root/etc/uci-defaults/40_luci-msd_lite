@@ -1,6 +1,7 @@
 #!/bin/sh
 
 # needed for "Save and Apply" to restart msd_lite
+chmod +x /etc/init.d/msd_lite
 uci -q batch <<-EOF >/dev/null
 	delete ucitrack.@msd_lite[-1]
 	add ucitrack msd_lite

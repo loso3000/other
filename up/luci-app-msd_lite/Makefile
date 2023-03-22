@@ -14,6 +14,10 @@ LUCI_TITLE:=LuCI support for Multi Stream Daemon Lite
 LUCI_DEPENDS:=+msd_lite +luci-compat
 LUCI_PKGARCH:=all
 
+define Package/msd_lite/conffiles
+/etc/config/msd_lite
+endef
+
 include $(TOPDIR)/feeds/luci/luci.mk
 
 # call BuildPackage - OpenWrt buildroot signature
