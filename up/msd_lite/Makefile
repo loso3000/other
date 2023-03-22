@@ -33,22 +33,11 @@ define Package/msd_lite/description
   on the network via HTTP.
 endef
 
-define Package/msd_lite/conffiles
-/etc/config/msd_lite
-endef
-
 CMAKE_OPTIONS+= -DCONFDIR=../etc/msd_lite
 
 define Package/msd_lite/install
 	$(INSTALL_DIR) $(1)/usr/bin
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/msd_lite $(1)/usr/bin/
-
-	$(INSTALL_DIR) $(1)/etc/msd_lite
-	$(CP) $(CURDIR)/files/msd_lite.sample $(1)/etc/msd_lite/msd_lite.conf.sample
-	$(INSTALL_DIR) $(1)/etc/config
-	$(INSTALL_CONF) $(CURDIR)/files/msd_lite.config $(1)/etc/config/msd_lite
-	$(INSTALL_DIR) $(1)/etc/init.d
-	$(INSTALL_BIN) $(CURDIR)/files/msd_lite.init $(1)/etc/init.d/msd_lite
 endef
 
 $(eval $(call BuildPackage,msd_lite))
