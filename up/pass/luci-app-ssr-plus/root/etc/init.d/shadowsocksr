@@ -210,7 +210,7 @@ start_dns() {
 
 				ln_start_bin $(first_type chinadns-ng) chinadns-ng -l $china_dns_port -4 china -p 3 -c ${chinadns/:/#} -t 127.0.0.1#$dns_port -N -f -r
 
-				cat <<-EOF > "$TMP_DNSMASQ_PATH/chinadns_fixed_server.conf"
+				cat <<-EOF >> "$TMP_DNSMASQ_PATH/chinadns_fixed_server.conf"
 					no-poll
 					no-resolv
 					server=127.0.0.1#$china_dns_port
@@ -984,7 +984,6 @@ reset() {
 		set shadowsocksr.@global[0].switch_time='667'
 		set shadowsocksr.@global[0].switch_timeout='5'
 		set shadowsocksr.@global[0].switch_try_count='3'
-		set shadowsocksr.@global[0].default_packet_encoding='xudp'
 		set shadowsocksr.@global[0].gfwlist_url='https://fastly.jsdelivr.net/gh/YW5vbnltb3Vz/domain-list-community@release/gfwlist.txt'
 		set shadowsocksr.@global[0].chnroute_url='https://ispip.clang.cn/all_cn.txt'
 		set shadowsocksr.@global[0].nfip_url='https://fastly.jsdelivr.net/gh/QiuSimons/Netflix_IP/NF_only.txt'

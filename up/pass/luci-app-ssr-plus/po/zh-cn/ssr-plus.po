@@ -80,7 +80,7 @@ msgid "Socks Version"
 msgstr "Socks 版本"
 
 msgid "Flow"
-msgstr "流控 (Flow)"
+msgstr "流控（Flow）"
 
 msgid "Transport"
 msgstr "传输协议"
@@ -120,6 +120,9 @@ msgstr "QUIC 连接接收窗口"
 
 msgid "QUIC stream receive window"
 msgstr "QUIC 流接收窗口"
+
+msgid "Lazy Start"
+msgstr "延迟启动"
 
 msgid "Disable Path MTU discovery"
 msgstr "禁用 MTU 探测"
@@ -464,7 +467,7 @@ msgid "Anti-pollution DNS Server"
 msgstr "访问国外域名DNS服务器"
 
 msgid "Custom DNS Server format as IP:PORT (default: 8.8.4.4:53)"
-msgstr "格式为 IP:PORT (默认: 8.8.4.4:53)"
+msgstr "格式为 IP:Port（默认：8.8.4.4:53）"
 
 msgid "Use DNS2TCP query"
 msgstr "使用 DNS2TCP 查询"
@@ -488,10 +491,10 @@ msgid "Use DNS from WAN and 114DNS"
 msgstr "使用WAN下发的DNS和114DNS"
 
 msgid "Custom DNS Server format as IP:PORT (default: disabled)"
-msgstr "格式为 IP:PORT (默认: 禁用)"
+msgstr "格式为 IP:PORT（默认：禁用）"
 
 msgid "Update time (every day)"
-msgstr "更新时间 (每天)"
+msgstr "更新时间（每天）"
 
 msgid "Auto Update Server subscription, GFW list and CHN route"
 msgstr "自动更新服务器订阅、GFW 列表和中国大陆 IP 段"
@@ -554,7 +557,7 @@ msgid "GFW Custom List"
 msgstr "GFW 用户自定义列表"
 
 msgid "Please refer to the following writing"
-msgstr "每行一个域名，无需写前面的 HTTP(S):// ，提交后即时生效"
+msgstr "每行一个域名，无需写前面的 http(s)://，提交后即时生效"
 
 msgid "Servers subscription and manage"
 msgstr "服务器节点订阅与管理"
@@ -828,9 +831,6 @@ msgstr "微信视频通话"
 
 msgid "DTLS 1.2"
 msgstr "DTLS 1.2 数据包"
-
-msgid "WireGuard"
-msgstr "WireGuard 数据包"
 
 msgid "MTU"
 msgstr "最大传输单元"
