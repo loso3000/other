@@ -7,8 +7,7 @@ config global 'global'
 
 config appfilter appfilter
 
-
-config feature 'feature'
+config feature feature
 	option update 0
 	option format 'v2.0'
 
