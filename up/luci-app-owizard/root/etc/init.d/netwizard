@@ -195,6 +195,7 @@ add_netwizard() {
 		    uci -q set dhcp.@dnsmasq[0].filter_aaaa=1
 		;;
 	esac
+
 	wifi_setup_radio(){
 	local radio=$1
 	uci get wireless.${radio} >/dev/null 2>&1 && {
@@ -227,6 +228,9 @@ add_netwizard() {
 	uci -q set netwizard.default.old_wifi_key="${wifi_ssid}"
 	fi
 	uci commit netwizard
+	sed -i "/dhcp_option '6/d" /etc/config/dhcp
+	uci -q add_list dhcp.lan.dhcp_option="6,$(lan_ipaddr)"
+	uci -q add_list dhcp.lan.dhcp_option="6,fd00:1"
 	uci commit dhcp
 	uci commit firewall
 	uci commit network
