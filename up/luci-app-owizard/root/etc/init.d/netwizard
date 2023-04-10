@@ -231,7 +231,8 @@ add_netwizard() {
 	sed -i "/dhcp_option '6/d" /etc/config/dhcp
 	sed -i "/list dns/d" /etc/config/dhcp
 	uci -q add_list dhcp.lan.dhcp_option="6,$(uci -q get network.lan.ipaddr)"
-	uci -q add_list dhcp.lan.dns="6,$(ip a | grep 'inet6' |grep 'deprecated' | awk -F ' ' '{printf $2}')"
+	#uci -q add_list dhcp.lan.dns="6,$(ip a | grep 'inet6' |grep 'deprecated' | awk -F ' ' '{printf $2}')"
+	uci -q add_list dhcp.lan.dns="fd00::1"
 	uci commit dhcp
 	uci commit firewall
 	uci commit network
