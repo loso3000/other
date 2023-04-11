@@ -59,5 +59,9 @@ m5.uci:foreach("mwan3", "policy",
 policy:value("unreachable", translate("unreachable (reject)"))
 policy:value("blackhole", translate("blackhole (drop)"))
 policy:value("default", translate("default (use main routing table)"))
+m5.apply_on_parse = true
+m5.on_after_apply = function(self,map)
+	luci.sys.exec("/etc/init.d/mwan3 restart")
+end
 
 return m5

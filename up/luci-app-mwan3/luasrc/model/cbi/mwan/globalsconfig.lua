@@ -27,5 +27,10 @@ mask = s:option(
 	translate("Enter value in hex, starting with <code>0x</code>"))
 mask.datatype = "hex(4)"
 mask.default = "0xff00"
+local e=luci.http.formvalue("cbi.apply")
+if e then
+  io.popen("/etc/init.d/mwan3 restart")
+end
+
 
 return m

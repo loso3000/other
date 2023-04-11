@@ -83,5 +83,9 @@ function last_resort.cfgvalue(self, s)
 		return translate("unreachable (reject)")
 	end
 end
+local e=luci.http.formvalue("cbi.apply")
+if e then
+  io.popen("/etc/init.d/mwan3 restart")
+end
 
 return m5

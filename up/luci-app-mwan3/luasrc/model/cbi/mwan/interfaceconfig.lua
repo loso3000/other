@@ -226,5 +226,9 @@ function metric.cfgvalue(self, s)
 		return "&#8212;"
 	end
 end
+m5.apply_on_parse = true
+m5.on_after_apply = function(self,map)
+	luci.sys.exec("/etc/init.d/mwan3 restart")
+end
 
 return m5

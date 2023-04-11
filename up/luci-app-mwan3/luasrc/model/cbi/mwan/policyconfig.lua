@@ -26,5 +26,9 @@ last_resort.default = "unreachable"
 last_resort:value("unreachable", translate("unreachable (reject)"))
 last_resort:value("blackhole", translate("blackhole (drop)"))
 last_resort:value("default", translate("default (use main routing table)"))
+m5.apply_on_parse = true
+m5.on_after_apply = function(self,map)
+	luci.sys.exec("/etc/init.d/mwan3 restart")
+end
 
 return m5

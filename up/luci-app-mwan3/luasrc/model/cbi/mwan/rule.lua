@@ -100,5 +100,9 @@ use_policy.rawhtml = true
 function use_policy.cfgvalue(self, s)
 	return self.map:get(s, "use_policy") or "&#8212;"
 end
+local e=luci.http.formvalue("cbi.apply")
+if e then
+  io.popen("/etc/init.d/mwan3 restart")
+end
 
 return m5
