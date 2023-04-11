@@ -10,7 +10,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=myautocore
 PKG_VERSION:=2
-PKG_RELEASE:=16
+PKG_RELEASE:=17
 
 include $(INCLUDE_DIR)/package.mk
 define Package/myautocore-arm
@@ -41,21 +41,23 @@ define Build/Compile
 endef
 
 define Package/myautocore-arm/install
-	$(INSTALL_DIR) $(1)/etc/init.d/ $(1)/sbin $(1)/etc/uci-defaults $(1)/etc/
+	$(INSTALL_DIR) $(1)/etc/init.d/ $(1)/sbin $(1)/etc/uci-defaults $(1)/etc/ $(1)/www
 	$(INSTALL_BIN) ./files/generic/sysinfo $(1)/sbin/
 	$(INSTALL_DATA) ./files/arm/index.htm $(1)/etc/
 	$(INSTALL_BIN) ./files/generic/090-cover-index_htm $(1)/etc/uci-defaults/
+	$(CP) ./htdocs/* $(1)/www
 
 endef
 
 define Package/myautocore-x86/install
 
-	$(INSTALL_DIR) $(1)/etc/init.d/ $(1)/sbin $(1)/etc/ $(1)/etc/uci-defaults 
+	$(INSTALL_DIR) $(1)/etc/init.d/ $(1)/sbin $(1)/etc/ $(1)/etc/uci-defaults $(1)/www
 
 	$(INSTALL_BIN) ./files/x86/autocore $(1)/etc/init.d/
 	$(INSTALL_DATA) ./files/x86/index.htm $(1)/etc/index.htm
 	$(INSTALL_BIN) ./files/generic/090-cover-index_htm $(1)/etc/uci-defaults/
 	$(INSTALL_BIN) ./files/generic/sysinfo $(1)/sbin/
+	$(CP) ./htdocs/* $(1)/www
 endef
 
 $(eval $(call BuildPackage,myautocore-arm))
