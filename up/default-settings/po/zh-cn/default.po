@@ -19,6 +19,9 @@ msgstr "CPU负载"
 msgid "Model"
 msgstr "机器型号"
 
+msgid "Logo"
+msgstr "品牌"
+
 msgid "CPU Model"
 msgstr "处理器型号"
 
