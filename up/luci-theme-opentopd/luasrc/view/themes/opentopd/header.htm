@@ -193,7 +193,7 @@
 	local bgcount = 0
 	local currentBg = {}
 	local bgs,attr = {}
-	local theme_dir = media .. "/background/"
+	local theme_dir = resource .. "/background/"
 	for i, f in ipairs(glob("/www" .. theme_dir .. "*")) do
 		attr = fs.stat(f)
 		if attr then
