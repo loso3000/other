@@ -69,7 +69,7 @@ end
 		local conn_max = tonumber(luci.sys.exec("sysctl -n -e net.nf_conntrack_max net.ipv4.netfilter.ip_conntrack_max"	):match("%d+")) or 4096
  		local eth_info = luci.sys.exec("sysinfo ethinfo")
 		local cpu_speed = luci.sys.exec("sysinfo cpuspeed")
-		local user_info = luci.sys.exec("cat /proc/net/arp | grep 'br-lan' | grep '0x2' | wc -l") or "0"
+		local user_info = luci.sys.exec("cat /proc/net/arp | grep -E 'br-lan|eth0' | grep '0x2' | wc -l")
 		local cpu_wd =luci.sys.exec("sysinfo armtempinfo")
 		local upnp_info = luci.sys.exec("sysinfo upnpinfo") or 0
 		local cpu_usage = luci.sys.exec("top -n1 | awk '/^CPU/ {printf(\"%d%\", 100 - $8)}'") or "6%"
@@ -477,7 +477,7 @@ end
 						tr.className = 'cbi-section-table-row';
 
 					var td = tr.insertCell(-1);
-						td.colSpan = 4;
+						td.colSpan = 5;
 						td.innerHTML = '<em><br /><%:There are no active leases.%></em>';
 				}
 			}
@@ -883,8 +883,15 @@ end
 //]]></script>
 
 <% if has_wizard then %>
-<%=luci.sys.exec("rm -rf /etc/config/netwizarded")  %>
-<script type="text/javascript">document.location="<%=controller%>admin/system/netwizard";</script>
+
+<%=luci.sys.exec("rm -rf /etc/config/netwizarded") %>
+<%=luci.sys.exec("rm -rf /tmp/luci-*") %>
+<%=luci.sys.exec("/etc/init.d/rpcd restart >/dev/null") %>
+<script type="text/javascript">
+	var origin = window.location.origin;
+	var url = origin + "<%=luci.dispatcher.build_url("admin/system/netwizard")%>";
+	window.location.href = url;
+	</script>
 <% end %>
 <h2 name="content"><%:Status%></h2>
 
@@ -1060,5 +1067,17 @@ end
 	</table>
 </fieldset>
 <% end %>
+
+<%-
+	local incdir = util.libpath() .. "/view/admin_status/index/"
+	if fs.access(incdir) then
+		local inc
+		for inc in fs.dir(incdir) do
+			if inc:match("%.htm$") then
+				include("admin_status/index/" .. inc:gsub("%.htm$", ""))
+			end
+		end
+	end
+-%>
 
 <%+footer%>
