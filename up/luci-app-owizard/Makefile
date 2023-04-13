@@ -1,11 +1,11 @@
 # Copyright 2019 X-WRT <dev@x-wrt.com>
-# Copyright 2022 sirpdboy  
+# Copyright 2022-2023 sirpdboy  
 
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-owizard
 PKG_VERSION:=1.6
-PKG_RELEASE:=24
+PKG_RELEASE:=25
 
 PKG_LICENSE:=GPLv3
 PKG_LICENSE_FILES:=LICENSE

@@ -24,18 +24,20 @@ add_netwizard() {
 	local ipv6 wifi_ssid wifi_key old_wifi_ssid old_wifi_key
 	local lan_ipaddr lan_netmask lan_gateway lan_dns lan_dhcp wan_interface
 	local ifname lannet a b i
- 	config_get display "$cfg" display
+ 	config_get showhide "$cfg" showhide
 	config_get wan_proto "$cfg" wan_proto
 	config_get ipv6 "$cfg" ipv6
 	config_get dnsset "$cfg" dnsset
 	config_get wan_interface "$cfg" wan_interface
+ 	if [ "x$showhide" = "x1" ] ;then  
+	     touch /etc/config/netwizard_hide
+	     return 0
+	else
+	    rm -rf  /etc/config/netwizard_hide
+	}
 	ifname=$(uci -q get network.lan.ifname ) 
 	[ "x$ifname" = "x" ] && ifname="device" || ifname="ifname" 
  	[ -n "$wan_interface" ] || wan_interface=$(uci -q get network.wan.$ifname 2>/dev/null) 
- 	[ "x$display" = "x1" ] && {
-	     touch /etc/config/netwizard_hide
-	     return 0
-	}
  	uci -q delete network.lan.gateway
 	uci -q delete dhcp.lan.ignore
 	uci -q delete network.lan.dns
@@ -245,8 +247,7 @@ add_netwizard() {
 	(sleep 3
 	 /etc/init.d/network restart
 	 /etc/init.d/dnsmasq reload
-	 rm -rf /tmp/luci-*
-	 /etc/init.d/rpcd restart >/dev/null)&
+	 rm -rf /tmp/luci-* )&
 }
 
 start() {
@@ -254,8 +255,4 @@ start() {
 	config_load netwizard
 	config_foreach add_netwizard netwizard
 	unset_lock
-}
-
-restart() {
-	XRELOAD=1 start
 }
