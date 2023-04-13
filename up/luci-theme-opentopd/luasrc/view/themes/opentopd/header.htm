@@ -194,6 +194,10 @@
 	local currentBg = {}
 	local bgs,attr = {}
 	local theme_dir = resource .. "/background/"
+	if fs.access("/www" .. theme_dir) then
+	else
+	   theme_dir = media .. "/background/"
+	end
 	for i, f in ipairs(glob("/www" .. theme_dir .. "*")) do
 		attr = fs.stat(f)
 		if attr then
@@ -201,7 +205,7 @@
 			if ext == "jpg" or ext == "png" or ext == "gif"  then
 				local bg = {}
 				bg.type = ext
-				bg.url = theme_dir .. fs.basename(f)
+					bg.url = theme_dir .. urlencode(fs.basename(f))
 				table.insert(bgs,bg)
 				bgcount = bgcount + 1
 			end

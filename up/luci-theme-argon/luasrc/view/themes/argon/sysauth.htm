@@ -29,7 +29,7 @@
 	local sys 	= require "luci.sys"
 	local json 	= require "luci.jsonc"
 	local uci 	= require 'luci.model.uci'.cursor()
-	
+	local urlencode = luci.http.protocol and luci.http.protocol.urlencode or luci.util.urlencode
 	-- Fetch Local Background Media
 
 	function glob(...)
@@ -51,7 +51,7 @@
 				if ext == "jpg" or ext == "png" or ext == "gif" or ext == "mp4" then
 					local bg = {}
 					bg.type = ext
-					bg.url = themeDir .. fs.basename(f)
+					bg.url = themeDir .. urlencode(fs.basename(f))
 					table.insert(backgroundTable,bg)
 					backgroundCount = backgroundCount + 1
 				end
@@ -63,7 +63,11 @@
 	local boardinfo			= util.ubus("system", "board")
 	local bingUrl 			= "http://www.bing.com/"
 	local bingApiUrl 		= bingUrl .. "HPImageArchive.aspx?format=js&idx=0&n=1&mkt=en-US"
-	local themeDir			= resource .. "/background/"
+	local themeDir = resource .. "/background/"
+	if fs.access("/www" .. themeDir) then
+	else
+	   themeDir = media .. "/background/"
+	end
 	local bgUrl 			= media .. "/img/bg1.jpg"
 	local useBing			= fs.access('/etc/config/argon') and uci:get_first('argon', 'global', 'bing_background') or "0"
 	local backgroundTable, backgroundCount 		= fetchMedia("/www" .. themeDir .. "*",themeDir)
