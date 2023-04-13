@@ -18,7 +18,6 @@
 	local has_wizard = fs.access("/etc/config/netwizarded")
 	local has_wifi = ((fs.stat("/etc/config/wireless", "size") or 0) > 0)
 	local has_switch = false
-
 	uci:foreach("network", "switch",
 			function(s)
 				has_switch = true
@@ -73,10 +72,7 @@ end
 
 		local cpu_speed = luci.sys.exec("sysinfo cpuspeed")
 		local user_info = luci.sys.exec("cat /proc/net/arp | grep -E 'br-lan|eth0' | grep '0x2' | wc -l")
-		local cpu_wd ="+".. (luci.sys.exec("sysinfo tempinfo 2>/dev/null ")) .. "°C"
-        if  cpu_wd == "+0°C" or cpu_wd == "+°C"   then
-		    cpu_wd= "+0°C （无温控或虚拟机）"
-       	end
+		local cpu_wd =luci.sys.exec("sysinfo tempinfo")
 		local upnp_info = luci.sys.exec("sysinfo upnpinfo") or 0
 		local cpu_usage = (luci.sys.exec("expr 100 - $(top -n 1 | grep 'CPU:' | awk -F '%' '{print$4}' | awk -F ' ' '{print$2}')") or "6") .. "%"
 
@@ -434,15 +430,15 @@ end
 						tr.className = 'cbi-section-table-row cbi-rowstyle-' + ((i % 2) + 1);
 					tr.insertCell(-1).innerHTML = (function(devmac) {
 									var devmac = info.onlines[i].macaddr.substring(0,8);
-									if (devmac == "10:3f:44" || devmac == "2c:d0:66" || devmac == "58:20:59" || devmac == "64:cc:2e" || devmac == "98:f6:21" || devmac == "a4:50:46" || devmac == "ec:41:18" || devmac == "e8:ca:c8" || devmac == "f4:f5:db")
+									if (devmac == "10:3f:44" || devmac == "2c:d0:66" || devmac == "58:20:59" || devmac == "64:cc:2e" || devmac == "98:f6:21" || devmac == "a4:50:46" || devmac == "ec:41:18" || devmac == "e8:ca:c8" || devmac == "f4:f5:db" || devmac == "32:12:e7")
 										return String.format('<img src="<%=resource%>/icons/devices/mi.png" />')
 									else if (devmac == "00:5b:94" || devmac == "34:a8:eb" | devmac == "64:20:0c" | devmac == "7a:51:e7" || devmac == "80:be:05" || devmac == "ae:0b:09"  || devmac == "b8:c1:11"  || devmac == "dc:a9:04")
 										return String.format('<img src="<%=resource%>/icons/devices/apple.png" />')
 									else if (devmac == "02:5f:84" || devmac == "02:f8:ea" || devmac == "12:65:e3" || devmac == "18:3c:b7" || devmac == "30:a2:c2" || devmac == "32:bc:0e" || devmac == "3c:cd:5d" || devmac == "7c:a1:77" || devmac == "82:51:80" || devmac == "82:a0:d3" || devmac == "82:a5:6b" || devmac == "90:2b:d2" || devmac == "96:c9:cb" || devmac == "9c:b2:b2" || devmac == "a8:e5:44" || devmac == "b2:3d:8c" || devmac == "c2:56:e7" || devmac == "c2:d0:55" || devmac == "d2:7e:7b"  || devmac == "f2:49:84")
 										return String.format('<img src="<%=resource%>/icons/devices/huawei.png" />')
-									else if (devmac == "e4:a7:c5")
+									else if (devmac == "e4:a7:c5" || devmac == "f2:99:22")
 										return String.format('<img src="<%=resource%>/icons/devices/huawei.png" />')
-									else if (devmac == "b4:20:5b" || devmac == "08:4a:cf")
+									else if (devmac == "b4:20:5b" || devmac == "08:4a:cf" || devmac == "ce:93:76" )
 										return String.format('<img src="<%=resource%>/icons/devices/oppo.png" />')
 									else if (devmac == "d0:5a:fd")
 										return String.format('<img src="<%=resource%>/icons/devices/default.png" />')
@@ -463,7 +459,7 @@ end
 									else if (devmac == "04:5f:a7" || devmac == "20:76:93" || devmac == "38:83:45" || devmac == "78:a3:51" || devmac == "78:d3:8d" || devmac == "cc:08:fb" || devmac == "d4:ee:07" || devmac == "dc:d8:7c")
 										return String.format('<img src="<%=resource%>/icons/devices/router.png" />')
 									else if (devmac == "9c:ae:d3")
-										return String.format('<img src="<%=resource%>/icons/devices/printer.png" />')
+										return String.format('<img src="<%=resource%>/icons/devices/default.png" />')
 									else if (devmac == "00:07:63" || devmac == "00:ac:1f" || devmac == "04:95:73" || devmac == "0c:56:5c" || devmac == "30:50:fd" || devmac == "74:c9:a3" || devmac == "74:ff:4c" || devmac == "90:d8:f3" || devmac == "ac:00:d0" || devmac == "c8:64:c7" || devmac == "f4:4c:70")
 										return String.format('<img src="<%=resource%>/icons/devices/iptv.png" />')
 									else if (devmac == "00:11:32")
@@ -513,7 +509,48 @@ end
 
 					var tr = ls6.rows[0].parentNode.insertRow(-1);
 						tr.className = 'cbi-section-table-row cbi-rowstyle-' + ((i % 2) + 1);
-
+					tr.insertCell(-1).innerHTML = (function(devmac) {
+									var devmac = info.onlines[i].macaddr.substring(0,8);
+									if (devmac == "10:3f:44" || devmac == "2c:d0:66" || devmac == "58:20:59" || devmac == "64:cc:2e" || devmac == "98:f6:21" || devmac == "a4:50:46" || devmac == "ec:41:18" || devmac == "e8:ca:c8" || devmac == "f4:f5:db" || devmac == "32:12:e7")
+										return String.format('<img src="<%=resource%>/icons/devices/mi.png" />')
+									else if (devmac == "00:5b:94" || devmac == "34:a8:eb" | devmac == "64:20:0c" | devmac == "7a:51:e7" || devmac == "80:be:05" || devmac == "ae:0b:09"  || devmac == "b8:c1:11"  || devmac == "dc:a9:04")
+										return String.format('<img src="<%=resource%>/icons/devices/apple.png" />')
+									else if (devmac == "02:5f:84" || devmac == "02:f8:ea" || devmac == "12:65:e3" || devmac == "18:3c:b7" || devmac == "30:a2:c2" || devmac == "32:bc:0e" || devmac == "3c:cd:5d" || devmac == "7c:a1:77" || devmac == "82:51:80" || devmac == "82:a0:d3" || devmac == "82:a5:6b" || devmac == "90:2b:d2" || devmac == "96:c9:cb" || devmac == "9c:b2:b2" || devmac == "a8:e5:44" || devmac == "b2:3d:8c" || devmac == "c2:56:e7" || devmac == "c2:d0:55" || devmac == "d2:7e:7b"  || devmac == "f2:49:84")
+										return String.format('<img src="<%=resource%>/icons/devices/huawei.png" />')
+									else if (devmac == "e4:a7:c5" || devmac == "f2:99:22")
+										return String.format('<img src="<%=resource%>/icons/devices/huawei.png" />')
+									else if (devmac == "b4:20:5b" || devmac == "08:4a:cf" || devmac == "ce:93:76")
+										return String.format('<img src="<%=resource%>/icons/devices/oppo.png" />')
+									else if (devmac == "d0:5a:fd")
+										return String.format('<img src="<%=resource%>/icons/devices/default.png" />')
+									else if (devmac == "2a:da:93")
+										return String.format('<img src="<%=resource%>/icons/devices/vivo.png" />')
+									else if (devmac == "02:81:eb")
+										return String.format('<img src="<%=resource%>/icons/devices/default.png" />')
+									else if (devmac == "00:22:5f")
+										return String.format('<img src="<%=resource%>/icons/devices/dell.png" />')
+									else if (devmac == "3e:54:f7" || devmac == "8e:a3:3b")
+										return String.format('<img src="<%=resource%>/icons/devices/default.png" />')
+									else if (devmac == "64:90:c1" || devmac == "5c:e5:0c" || devmac == "44:23:7c")
+										return String.format('<img src="<%=resource%>/icons/devices/mijia.png" />')
+									else if (devmac == "84:44:af" || devmac == "8c:6d:50" || devmac == "78:da:07")
+										return String.format('<img src="<%=resource%>/icons/devices/default.png" />')
+									else if (devmac == "e0:76:d0")
+										return String.format('<img src="<%=resource%>/icons/devices/default.png" />')
+									else if (devmac == "04:5f:a7" || devmac == "20:76:93" || devmac == "38:83:45" || devmac == "78:a3:51" || devmac == "78:d3:8d" || devmac == "cc:08:fb" || devmac == "d4:ee:07" || devmac == "dc:d8:7c")
+										return String.format('<img src="<%=resource%>/icons/devices/router.png" />')
+									else if (devmac == "9c:ae:d3")
+										return String.format('<img src="<%=resource%>/icons/devices/default.png" />')
+									else if (devmac == "00:07:63" || devmac == "00:ac:1f" || devmac == "04:95:73" || devmac == "0c:56:5c" || devmac == "30:50:fd" || devmac == "74:c9:a3" || devmac == "74:ff:4c" || devmac == "90:d8:f3" || devmac == "ac:00:d0" || devmac == "c8:64:c7" || devmac == "f4:4c:70")
+										return String.format('<img src="<%=resource%>/icons/devices/iptv.png" />')
+									else if (devmac == "00:11:32")
+										return String.format('<img src="<%=resource%>/icons/devices/default.png" />')
+									else if (devmac == "f0:c9:d1")
+										return String.format('<img src="<%=resource%>/icons/devices/default.png" />')
+									else
+										return String.format('<img src="<%=resource%>/icons/devices/pc.png" />')
+									end
+									})();
 					var host = hosts[duid2mac(info.leases6[i].duid)];
 					if (!info.leases6[i].hostname)
 						tr.insertCell(-1).innerHTML =
@@ -537,7 +574,7 @@ end
 						tr.className = 'cbi-section-table-row';
 
 					var td = tr.insertCell(-1);
-						td.colSpan = 4;
+						td.colSpan = 5;
 						td.innerHTML = '<em><br /><%:There are no active leases.%></em>';
 				}
 			}
@@ -558,15 +595,15 @@ end
 
 					tr.insertCell(-1).innerHTML = (function(devmac) {
 									var devmac = info.onlines[i].macaddr.substring(0,8);
-									if (devmac == "10:3f:44" || devmac == "2c:d0:66" || devmac == "58:20:59" || devmac == "64:cc:2e" || devmac == "98:f6:21" || devmac == "a4:50:46" || devmac == "ec:41:18" || devmac == "e8:ca:c8" || devmac == "f4:f5:db")
+									if (devmac == "10:3f:44" || devmac == "2c:d0:66" || devmac == "58:20:59" || devmac == "64:cc:2e" || devmac == "98:f6:21" || devmac == "a4:50:46" || devmac == "ec:41:18" || devmac == "e8:ca:c8" || devmac == "f4:f5:db" || devmac == "32:12:e7")
 										return String.format('<img src="<%=resource%>/icons/devices/mi.png" />')
 									else if (devmac == "00:5b:94" || devmac == "34:a8:eb" | devmac == "64:20:0c" | devmac == "7a:51:e7" || devmac == "80:be:05" || devmac == "ae:0b:09"  || devmac == "b8:c1:11"  || devmac == "dc:a9:04")
 										return String.format('<img src="<%=resource%>/icons/devices/apple.png" />')
 									else if (devmac == "02:5f:84" || devmac == "02:f8:ea" || devmac == "12:65:e3" || devmac == "18:3c:b7" || devmac == "30:a2:c2" || devmac == "32:bc:0e" || devmac == "3c:cd:5d" || devmac == "7c:a1:77" || devmac == "82:51:80" || devmac == "82:a0:d3" || devmac == "82:a5:6b" || devmac == "90:2b:d2" || devmac == "96:c9:cb" || devmac == "9c:b2:b2" || devmac == "a8:e5:44" || devmac == "b2:3d:8c" || devmac == "c2:56:e7" || devmac == "c2:d0:55" || devmac == "d2:7e:7b"  || devmac == "f2:49:84")
 										return String.format('<img src="<%=resource%>/icons/devices/huawei.png" />')
-									else if (devmac == "e4:a7:c5")
+									else if (devmac == "e4:a7:c5" || devmac == "f2:99:22")
 										return String.format('<img src="<%=resource%>/icons/devices/huawei.png" />')
-									else if (devmac == "b4:20:5b" || devmac == "08:4a:cf")
+									else if (devmac == "b4:20:5b" || devmac == "08:4a:cf" || devmac == "ce:93:76" )
 										return String.format('<img src="<%=resource%>/icons/devices/oppo.png" />')
 									else if (devmac == "d0:5a:fd")
 										return String.format('<img src="<%=resource%>/icons/devices/default.png" />')
@@ -826,7 +863,7 @@ end
 				e.innerHTML = info.cpuspeed;
 
 			if (e = document.getElementById('cpuwd'))
-				e.innerHTML = info.cpuwd;
+				e.innerHTML = String.format('+ %0.0f °C ',info.cpuwd);
 				
 			if (e = document.getElementById('cpuusage'))
 				e.innerHTML = info.cpuusage;
@@ -888,8 +925,6 @@ end
 
 <% if has_wizard then %>
 <%=luci.sys.exec("rm -rf /etc/config/netwizarded") %>
-<%=luci.sys.exec("rm -rf /tmp/luci-*") %>
-<%=luci.sys.exec("/etc/init.d/rpcd restart >/dev/null") %>
 <script type="text/javascript">
 	var origin = window.location.origin;
 	var url = origin + "<%=luci.dispatcher.build_url("admin/system/netwizard")%>";
@@ -900,7 +935,6 @@ end
 
 <fieldset class="cbi-section">
 	<legend><%:System%></legend>
-
 	<table width="100%" cellspacing="10">
 		<tr><td width="33%"><%:Hostname%></td><td><%=luci.sys.hostname() or "?"%></td></tr>
 		<tr><td width="33%"><%:Model%></td><td><%=pcdata(boardinfo.model or "?")%></td></tr>
@@ -909,13 +943,13 @@ end
         <% else %> 
 		<tr><td width="33%"><%:Target Platform%></td><td><%=pcdata(boardinfo.release.target or "?")%> - BIOS </td></tr>
 		<% end %>
-		<tr><td width="33%"><%:CPU Info%></td><td><%=luci.sys.exec("sysinfo cpuinfo") or "?"%>  <%=luci.sys.exec("cat /etc/bench.log |awk -F '.' '{print $1}'") or " "%></td></tr>
+		<tr><td width="33%"><%:CPU Info%></td><td><%=luci.sys.exec("sysinfo cpuinfo") or "?"%>  <%=luci.sys.exec("cat /etc/bench.log | awk -F '.' '{print $1}'") or " "%></td></tr>
 		<tr><td width="33%"><%:CPU主频%></td><td id="cpuspeed">-</td></tr>
+		<% if luci.sys.exec("sysinfo tempinfo") > "0"  then %> 
 		<tr><td width="33%"><%:CPU Temperature%></td><td id="cpuwd">-</td></tr>
+		<% end %>
 		<tr><td width="33%"><%:CPU负载%></td><td id="cpuusage">-</td></tr>
-
         <tr><td width="33%"><%:RAM Size%></td><td ><%=luci.sys.exec("sysinfo memory")%></td></tr>
-
 		<tr><td width="33%"><%:Firmware Version%></td><td>
 			<%=pcdata(ver.distname)%> <%=pcdata(ver.distversion)%>
 		</td></tr>
@@ -1020,14 +1054,13 @@ end
 		</tr>
 	</table>
 </fieldset>
-
-
 <% if has_ipv6 then %>
 <fieldset class="cbi-section" style="display:none">
 	<legend><%:DHCPv6 Leases%></legend>
 
 	<table class="cbi-section-table" id="lease6_status_table">
 		<tr class="cbi-section-table-titles">
+			<th class="cbi-section-table-cell"><%:Logo%></th>
 			<th class="cbi-section-table-cell"><%:Host%></th>
 			<th class="cbi-section-table-cell"><%:IPv6-Address%></th>
 			<th class="cbi-section-table-cell"><%:DUID%></th>
@@ -1040,7 +1073,6 @@ end
 </fieldset>
 <% end %>
 <% end %>
-
 
 <% if has_dsl then %>
 <fieldset class="cbi-section">
@@ -1082,7 +1114,6 @@ end
 	</table>
 </fieldset>
 <% end %>
-
 <%-
 	local incdir = util.libpath() .. "/view/admin_status/index/"
 	if fs.access(incdir) then
@@ -1094,5 +1125,4 @@ end
 		end
 	end
 -%>
-
 <%+footer%>
