@@ -386,7 +386,7 @@ msgid "adblock_url"
 msgstr "广告屏蔽更新URL"
 
 msgid "gfwlist Update url"
-msgstr "GFWList更新URL"
+msgstr "GFW 列表更新 URL"
 
 msgid "Chnroute Update url"
 msgstr "国内IP段更新URL"
