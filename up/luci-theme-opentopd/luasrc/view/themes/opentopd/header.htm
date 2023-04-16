@@ -18,7 +18,7 @@
 	local nutil = require "nixio.util"
 	local uci = require 'luci.model.uci'.cursor()
 	local boardinfo = util.ubus("system", "board")
-
+	local urlencode = luci.http.protocol and luci.http.protocol.urlencode or luci.util.urlencode
 	local request  = disp.context.path
 	local request2 = disp.context.request
 
@@ -194,8 +194,7 @@
 	local currentBg = {}
 	local bgs,attr = {}
 	local theme_dir = resource .. "/background/"
-	if fs.access("/www" .. theme_dir) then
-	else
+	if not fs.access("/www" .. theme_dir) then
 	   theme_dir = media .. "/background/"
 	end
 	for i, f in ipairs(glob("/www" .. theme_dir .. "*")) do
