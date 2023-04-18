@@ -10,7 +10,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=myautocore
 PKG_VERSION:=2
-PKG_RELEASE:=18
+PKG_RELEASE:=19
 
 include $(INCLUDE_DIR)/package.mk
 define Package/myautocore-arm

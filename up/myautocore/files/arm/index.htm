@@ -13,7 +13,6 @@
 	local uci = require("luci.model.uci").cursor()
 	local has_ipv6 = fs.access("/usr/sbin/ip6tables")
 	local has_dhcp = fs.access("/etc/config/dhcp")
-	local has_wizard = fs.access("/etc/config/netwizarded")
 	local has_wifi = ((fs.stat("/etc/config/wireless", "size") or 0) > 0)
 	local has_switch = false
 	
@@ -41,25 +40,26 @@
 	}
 
 	local has_dsl = fs.access("/etc/init.d/dsl_control")
-local function online_data()
-	local rv = { }
-	local fd = util.execi('/usr/bin/awk \'BEGIN{while ((getline < "/tmp/dhcp.leases") > 0){a[$2]=$4;}while ((getline < "/proc/net/arp") > 0){if (!a[$4]){a[$4]="\?";}if (match($3,"0x[26]")){"ping -q -c 1 "$1" &";if (b[$4]){b[$4]=b[$4]"/"$1;}else{b[$4]=$1;}c[$4]=$6;}}for (mac in b){print(a[mac],b[mac],mac,c[mac]);}}\' ')
-	while true do
-		local ln = fd()
-		if ln == nil then break end
-		local name,ip,mac,dev = ln:match("^(%S+) (%S+) (%S+) (%S+)")
+	local function online_data()
+		local rv = { }
+		local fd = util.execi('/usr/bin/awk \'BEGIN{while ((getline < "/tmp/dhcp.leases") > 0){a[$2]=$4;}while ((getline < "/proc/net/arp") > 0){if (!a[$4]){a[$4]="\?";}if (match($3,"0x[26]")){"ping -q -c 1 "$1" &";if (b[$4]){b[$4]=b[$4]"/"$1;}else{b[$4]=$1;}c[$4]=$6;}}for (mac in b){print(a[mac],b[mac],mac,c[mac]);}}\' ')
+		while true do
+			local ln = fd()
+			if ln == nil then break end
+			local name,ip,mac,dev = ln:match("^(%S+) (%S+) (%S+) (%S+)")
 
-		if mac and ip and name and dev then
-			rv[#rv+1] = {
+			if mac and ip and name and dev then
+				rv[#rv+1] = {
 				hostname = name,
 				device  = dev,
 				macaddr  = mac,
 				ipaddr   = ip
-			}
+				}
+			end
 		end
+		return rv
 	end
-	return rv
-end
+
 	if luci.http.formvalue("status") == "1" then
 		local ntm = require "luci.model.network".init()
 		local wan = ntm:get_wannet()
@@ -68,9 +68,9 @@ end
 		local conn_max = tonumber(luci.sys.exec("sysctl -n -e net.nf_conntrack_max net.ipv4.netfilter.ip_conntrack_max"	):match("%d+")) or 4096
  		local eth_info = luci.sys.exec("sysinfo ethinfo")
 		local cpu_speed = luci.sys.exec("sysinfo cpuspeed")
-		local user_info = luci.sys.exec("cat /proc/net/arp | grep -E 'br-lan|eth0' | grep '0x2' | wc -l")
+		local user_info = tonumber(luci.sys.exec("cat /proc/net/arp | grep '0x2' | wc -l")) or 0
 		local cpu_wd =luci.sys.exec("sysinfo armtempinfo")
-		local upnp_info = luci.sys.exec("sysinfo upnpinfo") or 0
+		local upnp_info = tonumber(luci.sys.exec("sysinfo upnpinfo")) or 0
 		local cpu_usage = luci.sys.exec("top -n1 | awk '/^CPU/ {printf(\"%d%\", 100 - $8)}'") or "6%"
 		local up_time = luci.sys.exec("sysinfo cntime")
 		local rv = {
@@ -145,7 +145,7 @@ end
 
 <%+header%>
 
-<script type="text/javascript" src="<%=resource%>/cbi.js?v=git-22.223.76261-af77cc5"></script>
+<script type="text/javascript" src="<%=resource%>/cbi.js"></script>
 <script type="text/javascript">//<![CDATA[
 	function progressbar(v, m)
 	{
@@ -211,6 +211,19 @@ end
 			hosts = data;
 		});
 	}
+	var compare = function (prop) {
+		return function (obj1, obj2) {
+			var val1 = Number(obj1[prop].replaceAll(".",""));
+			var val2 = Number(obj2[prop].replaceAll(".",""));
+			if (val1 < val2) {
+				return -1;
+			} else if (val1 > val2) {
+				return 1;
+			} else {
+				return 0;
+			}
+		}
+	};
 
 	XHR.poll(5, '<%=REQUEST_URI%>', { status: 1 },
 		function(x, info)
@@ -405,6 +418,7 @@ end
 			var ls = document.getElementById('lease_status_table');
 			if (ls)
 			{
+				info.leases = info.leases.sort(compare("ipaddr"));
 				/* clear all rows */
 				while( ls.rows.length > 1 )
 					ls.rows[0].parentNode.deleteRow(1);
@@ -917,16 +931,6 @@ end
 	);
 	
 //]]></script>
-
-<% if has_wizard then %>
-
-<%=luci.sys.exec("rm -rf /etc/config/netwizarded") %>
-<script type="text/javascript">
-	var origin = window.location.origin;
-	var url = origin + "<%=luci.dispatcher.build_url("admin/system/netwizard")%>";
-	window.location.href = url;
-	</script>
-<% end %>
 <h2 name="content"><%:Status%></h2>
 
 <fieldset class="cbi-section">
@@ -977,12 +981,14 @@ end
 </fieldset>
 <% end %>
 
- <fieldset class="cbi-section">
+<% if not has_switch then %>
+<fieldset class="cbi-section">
 	<legend><%:Interfaces%></legend>
 
 	<table width="100%" cellspacing="10" id="ethinfo">
 	</table>
 </fieldset>
+<% end %>
 
 <fieldset class="cbi-section">
 	<legend><%:Network%></legend>
@@ -1084,22 +1090,6 @@ end
 		<tr><td><em><%:Collecting data...%></em></td></tr>
 	</table>
 </fieldset>
-<fieldset class="cbi-section">
-	<legend><%:Associated Stations%></legend>
-
-	<table class="cbi-section-table valign-middle" id="wifi_assoc_table">
-		<tr class="cbi-section-table-titles">
-			<th class="cbi-section-table-cell">&#160;</th>
-			<th class="cbi-section-table-cell"><%:Network%></th>
-			<th class="cbi-section-table-cell"><%:MAC-Address%></th>
-			<th class="cbi-section-table-cell"><%:Host%></th>
-			<th class="cbi-section-table-cell"><%:Signal%> / <%:Noise%></th>
-			<th class="cbi-section-table-cell"><%:RX Rate%> / <%:TX Rate%></th>
-		</tr>
-		<tr class="cbi-section-table-row">
-			<td colspan="6"><em><br /><%:Collecting data...%></em></td>
-		</tr>
-	</table>
-</fieldset>
 <% end %>
+
 <%+footer%>

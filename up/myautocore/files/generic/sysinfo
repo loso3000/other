@@ -1,7 +1,7 @@
 #!/bin/sh
 
 userinfo() {
-    grep 'br-lan' /proc/net/arp | grep '0x2' | grep -v '0x0' | wc -l
+    grep '' /proc/net/arp | grep '0x2' | grep -v '0x0' | wc -l
 }
 
 memory() {
@@ -25,13 +25,11 @@ cpuinfo() {
 	cpu_cores="$(grep -c "processor" "/proc/cpuinfo")核"
     fi
     echo -n "${cpu_arch} x ${cpu_cores}"
-
 }
 
 cpuspeed() {
 CPUINFO_PATH="/proc/cpuinfo"
 CPUFREQ_PATH="/sys/devices/system/cpu/cpufreq"
-
 if grep -q "bcm27xx" "/etc/openwrt_release"; then
 	cpu_freq="$( $(vcgencmd measure_clock arm | awk -F '=' '{print $2}') / 1000000  | awk -F '.' '{print $1}' ) )Mhz" 
 elif grep -q "bcm53xx" "/etc/openwrt_release"; then
@@ -48,8 +46,6 @@ elif ! grep -q "filogic" "/etc/openwrt_release"; then
 	big_cpu_freq="$(expr $(cat /sys/devices/system/cpu/cpufreq/policy4/cpuinfo_cur_freq 2>"/dev/null") / 1000 2>"/dev/null")"
 	[ -n "${big_cpu_freq}" ] && big_cpu_freq="${big_cpu_freq}MHz "
 fi
-
-
 if grep -Eq "ipq|mt7622" "/etc/openwrt_release" ; then
 	echo -n "${cpu_freq}"
 else
@@ -91,16 +87,12 @@ sensorsbin(){
 
 tempinfo(){
     THERMAL_PATH="/sys/class/thermal/thermal_zone0/temp"
-
     if grep -q "x86" "/etc/openwrt_release"; then
-	
 	if [ "$(grep 'AMD' /proc/cpuinfo)" != "" ]; then
-	# AMD
 		[ -n "${cpu_temp}" ] || cpu_temp="$(sensors "k*temp-*" 2>"/dev/null" | awk '/Tdie/ {print $2}' | head -n1 | tr -d "+")"
 		[ -n "${cpu_temp}" ] || cpu_temp="$(sensors | grep -E 'temp1'  | grep -Eo "\+[0-9]*.[0-9]" | head -n1 | tr -d "+")"
 		[ -n "${cpu_temp}" ] || cpu_temp="$(sensors | grep -E 'Tctl'  | grep -Eo "\+[0-9]*.[0-9]" | head -n1 | tr -d "+")"
 	else
-	
 		cpu_temp="$(sensors "coretemp-*" 2>"/dev/null" | grep -E "(Core )" | grep -Eo "\+[0-9]*" | head -n1 | tr -d "+")"
 	fi
     else
