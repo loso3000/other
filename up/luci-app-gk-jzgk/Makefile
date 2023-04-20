@@ -7,8 +7,8 @@ include $(TOPDIR)/rules.mk
 
 
 PKG_NAME:=luci-app-gk-jzgk
-PKG_VERSION:=1.5
-PKG_RELEASE:=20230115
+PKG_VERSION:=1.6
+PKG_RELEASE:=20230421
 PKG_LICENSE:=Apache-2.0
 LUCI_TITLE:=LuCI support for Parent Control
 LUCI_DEPENDS:=+iptables-mod-filter +kmod-ipt-filter

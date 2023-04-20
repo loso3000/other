@@ -17,16 +17,10 @@ e.value = translate("Collecting data...")
 e = t:option(Flag, "enabled", translate("开启"))
 e.rmempty = false
 
-e = t:option(ListValue, "algos", translate("过滤力度"))
-e:value("bm", "一般过滤")
-e:value("kmp", "强效过滤")
-e.default = "kmp"
-
-e = t:option(ListValue, "control_mode",translate("管控模式"), translate("黑名单模式，列表中的客户端设置将被禁止；白名单模式：仅有列表中的客户端设置允许。"))
+e = t:option(ListValue, "control_mode",translate("管控强度"), translate("普通管控：管控国内网站端口，出国插件的国外端口无法管控！"))
 e.rmempty = false
-e:value("white_mode", "白名单")
-e:value("black_mode", "黑名单")
-e.default = "black_mode"
+e:value("0", "普通管控")
+e.default = "0"
 
 t = a:section(TypedSection, "protocol", translate("协议过滤列表"))
 t.template = "cbi/tblsection"
@@ -101,12 +95,6 @@ e.rmempty = false
 e.default = '1'
 
 e = t:option(Value, 'remarks', translate('Remarks'))
-
-
-local e=luci.http.formvalue("cbi.apply")
-if e then
-	luci.sys.exec("/etc/init.d/parentcontrol restart")
-end
 
 return a
 

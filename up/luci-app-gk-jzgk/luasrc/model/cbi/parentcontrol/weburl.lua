@@ -8,7 +8,6 @@ local a, t, e
 a = Map("parentcontrol", translate("Parent Control"), translate("<b><font color=\"green\">利用iptables来管控数据包过滤以禁止符合设定条件的用户连接互联网的工具软件。</font> </b></br>\
 网址过滤：指定“关键词/URL”过滤,可以是字符串或网址.包括IPV4和IPV6</br>不指定MAC就是代表限制所有机器,星期用1-7表示，多个日期用自定义：1,5表示星期一和星期五" ))
 
-
 a.template = "parentcontrol/index"
 t = a:section(TypedSection, "basic", translate(""))
 t.anonymous = true
@@ -24,11 +23,10 @@ e:value("bm", "一般过滤")
 e:value("kmp", "强效过滤")
 e.default = "kmp"
 
-e = t:option(ListValue, "control_mode",translate("管控模式"), translate("黑名单模式，列表中的客户端设置将被禁止；白名单模式：仅有列表中的客户端设置允许。"))
+e = t:option(ListValue, "control_mode",translate("管控强度"), translate("普通管控：管控国内网站，出国插件的国外网站无法管控"))
 e.rmempty = false
-e:value("white_mode", "白名单")
-e:value("black_mode", "黑名单")
-e.default = "black_mode"
+e:value("0", "普通管控")
+e.default = "0"
 
 t = a:section(TypedSection, "weburl", translate("网址过滤列表"))
 t.template = "cbi/tblsection"
@@ -80,14 +78,7 @@ e = t:option(Flag, "enable", translate("开启"))
 e.rmempty = false
 e.default = '1'
 
-e = t:option(Value, 'remarks', translate('Remarks'))
-
-local e=luci.http.formvalue("cbi.apply")
-if e then
-	luci.sys.exec("/etc/init.d/parentcontrol restart")
-end
 
 return a
-
 
 
