@@ -453,6 +453,7 @@
 			var ls6 = document.getElementById('lease6_status_table');
 			if (ls6 && info.leases6)
 			{
+				info.leases6 = info.leases6.sort(compare("ipaddr"));
 				ls6.parentNode.style.display = 'block';
 
 				/* clear all rows */
@@ -506,9 +507,9 @@
 			if (ls)
 			{
 				/* clear all rows */
+				info.onlines = info.onlines.sort(compare("ipaddr"));
 				while( ls.rows.length > 1 )
 					ls.rows[0].parentNode.deleteRow(1);
-
 				for( var i = 0; i < info.onlines.length; i++ )
 				{
 
