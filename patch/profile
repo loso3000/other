@@ -365,7 +365,6 @@ alias menu='. /etc/profile'
 alias shutdown='sync && poweroff'
 alias dh='df -h'
 alias ls='ls --color=auto'
-alias top='top -d 1'
 
 function mainmenu() {
   EB "     Sirdpboy快捷命令菜单(Shortcut Command Menu)   "
@@ -378,7 +377,9 @@ function mainmenu() {
   EY " 6. 恢复出厂设置(Restore factory settings)"
   EY " 7. 网络连接检查(Check network connectivity)"
   EY " 8. 刷新释放内存(Refresh and free memory)"
-  ER " 9. 退出菜单(Exit)"
+  EY " 9. 停止家长控制(Stop Parentcontrol)"
+  
+  ER " 0. 退出菜单(Exit)"
   echo
   KEY="请输入数字(please enter a number)"
   while :; do
@@ -432,6 +433,12 @@ function mainmenu() {
 	sleep 2
     ;;
     9)
+      EY " 停卡家长控制插件成功!(Stop Parentcontrol completed!)"
+      EW " "
+      /etc/init.d/parentcontrol stop
+      sleep 2
+    ;;
+    0)
       EW " 退出程序成功(Exit the program successfully)"
       EW " "
       break
