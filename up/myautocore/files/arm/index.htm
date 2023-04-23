@@ -68,7 +68,7 @@
 		local conn_max = tonumber(luci.sys.exec("sysctl -n -e net.nf_conntrack_max net.ipv4.netfilter.ip_conntrack_max"	):match("%d+")) or 4096
  		local eth_info = luci.sys.exec("sysinfo ethinfo")
 		local cpu_speed = luci.sys.exec("sysinfo cpuspeed")
-		local user_info = tonumber(luci.sys.exec("cat /proc/net/arp | grep '0x2' | wc -l")) or 0
+		local user_info = luci.sys.exec("cat /proc/net/arp | grep '0x2' | wc -l") or "0"
 		local cpu_wd =luci.sys.exec("sysinfo armtempinfo")
 		local upnp_info = luci.sys.exec("sysinfo upnpinfo")
 		local cpu_usage = (luci.sys.exec("expr 100 - $(top -n 1 | grep 'CPU:' | awk -F '%' '{print$4}' | awk -F ' ' '{print$2}')") or "6") .. "%"
@@ -146,7 +146,7 @@
 
 <%+header%>
 
-<script type="text/javascript" src="<%=resource%>/cbi.js?v=git-19.167.54478-71e2af4"></script>
+<script type="text/javascript" src="<%=resource%>/cbi.js?v=git-22.223.76261-af77cc5"></script>
 <script type="text/javascript">//<![CDATA[
 	function progressbar(v, m)
 	{
@@ -212,19 +212,6 @@
 			hosts = data;
 		});
 	}
-	var compare = function (prop) {
-		return function (obj1, obj2) {
-			var val1 = Number(obj1[prop].replaceAll(".",""));
-			var val2 = Number(obj2[prop].replaceAll(".",""));
-			if (val1 < val2) {
-				return -1;
-			} else if (val1 > val2) {
-				return 1;
-			} else {
-				return 0;
-			}
-		}
-	};
 
 	XHR.poll(5, '<%=REQUEST_URI%>', { status: 1 },
 		function(x, info)
@@ -415,11 +402,91 @@
 				);
 			<% end %>
 
+			var ls = document.getElementById('online_status_table');
+			if (ls)
+			{
+				/* clear all rows */
+				while( ls.rows.length > 1 )
+					ls.rows[0].parentNode.deleteRow(1);
+
+				for( var i = 0; i < info.onlines.length; i++ )
+				{
+					var tr = ls.rows[0].parentNode.insertRow(-1);
+						tr.className = 'cbi-section-table-row cbi-rowstyle-' + ((i % 2) + 1);
+						tr.insertCell(-1).innerHTML = (function(dname) {
+									var aname = info.onlines[i].hostname.toLowerCase();
+									var dname;
+									var index1 = aname.indexOf("-"); 
+									
+									if ( index1 == -1  )
+									     index1 = aname.indexOf("_");
+									if (  index1 != -1 ) 
+									     dname = aname.substring(0,index1) 
+									else
+									     dname = aname.substring(0);
+									if ( dname == "openwrt" )
+										return String.format('<img src="<%=resource%>/icons/devices/router.png" />')
+									else if ( dname == "oppo" )
+										return String.format('<img src="<%=resource%>/icons/devices/oppo.png" />')
+									else if ( dname == "redmi" || dname == "xiaomi"  || dname == "miwifi" || dname == "mijia" )
+										return String.format('<img src="<%=resource%>/icons/devices/mi.png" />')
+									else if ( dname == "honor"  || dname == "huawei"  )
+										return String.format('<img src="<%=resource%>/icons/devices/huawei.png" />')
+									else if ( dname == "samsung"   )
+										return String.format('<img src="<%=resource%>/icons/devices/samsung.png" />')
+									else if ( dname == "asus"   )
+										return String.format('<img src="<%=resource%>/icons/devices/asus.png" />')
+									else if ( dname == "desktop"   )
+										return String.format('<img src="<%=resource%>/icons/devices/pc.png" />')
+									else if ( dname == "dapple" || dname == "iphone" )
+										return String.format('<img src="<%=resource%>/icons/devices/apple.png" />')
+									else if ( dname == "lg")
+										return String.format('<img src="<%=resource%>/icons/devices/lg.png" />')
+									else if ( dname == "philips")
+										return String.format('<img src="<%=resource%>/icons/devices/philips.png" />')
+									else if ( dname == "zte")
+										return String.format('<img src="<%=resource%>/icons/devices/zte.png" />')
+									else if ( dname == "sony")
+										return String.format('<img src="<%=resource%>/icons/devices/sony.png" />')
+									else if ( dname == "bbg")
+										return String.format('<img src="<%=resource%>/icons/devices/bbg.png" />')
+									else if ( dname == "coolpad")
+										return String.format('<img src="<%=resource%>/icons/devices/coolpad.png" />')
+									else if ( dname == "lenovo")
+										return String.format('<img src="<%=resource%>/icons/devices/lenovo.png" />')
+									else if ( dname == "dell")
+										return String.format('<img src="<%=resource%>/icons/devices/dell.png" />')
+									else if ( dname == "hp")
+										return String.format('<img src="<%=resource%>/icons/devices/hp.png" />')
+									else if ( dname == "htc")
+										return String.format('<img src="<%=resource%>/icons/devices/htc.png" />')
+									else if ( dname == "toshiba")
+										return String.format('<img src="<%=resource%>/icons/devices/toshiba.png" />')
+
+
+									else
+									      return String.format('<img src="<%=resource%>/icons/devices/default.png" />');
+									})();
+					tr.insertCell(-1).innerHTML = info.onlines[i].hostname ? info.onlines[i].hostname : '?';
+					tr.insertCell(-1).innerHTML = info.onlines[i].ipaddr.split("/").join("<br>");
+					tr.insertCell(-1).innerHTML = info.onlines[i].macaddr;
+					tr.insertCell(-1).innerHTML = info.onlines[i].device;
+				}
+				if( ls.rows.length == 1 )
+				{
+					var tr = ls.rows[0].parentNode.insertRow(-1);
+						tr.className = 'cbi-section-table-row';
+
+					var td = tr.insertCell(-1);
+						td.colSpan = 5;
+						td.innerHTML = '<em><br /><%:There is no one online now.%></em>';
+				}
+			}
+
 			<% if has_dhcp then %>
 			var ls = document.getElementById('lease_status_table');
 			if (ls)
 			{
-				info.leases = info.leases.sort(compare("ipaddr"));
 				/* clear all rows */
 				while( ls.rows.length > 1 )
 					ls.rows[0].parentNode.deleteRow(1);
@@ -437,7 +504,6 @@
 
 					var tr = ls.rows[0].parentNode.insertRow(-1);
 						tr.className = 'cbi-section-table-row cbi-rowstyle-' + ((i % 2) + 1);
-
 					tr.insertCell(-1).innerHTML = info.leases[i].hostname ? info.leases[i].hostname : '?';
 					tr.insertCell(-1).innerHTML = info.leases[i].ipaddr;
 					tr.insertCell(-1).innerHTML = info.leases[i].macaddr;
@@ -505,78 +571,6 @@
 				}
 			}
 			<% end %>
-
-			var ls = document.getElementById('online_status_table');
-			if (ls)
-			{
-				/* clear all rows */
-				while( ls.rows.length > 1 )
-					ls.rows[0].parentNode.deleteRow(1);
-
-				for( var i = 0; i < info.onlines.length; i++ )
-				{
-
-					var tr = ls.rows[0].parentNode.insertRow(-1);
-						tr.className = 'cbi-section-table-row cbi-rowstyle-' + ((i % 2) + 1);
-
-					tr.insertCell(-1).innerHTML = (function(devmac) {
-									var devmac = info.onlines[i].macaddr.substring(0,8);
-									if (devmac == "10:3f:44" || devmac == "2c:d0:66" || devmac == "58:20:59" || devmac == "64:cc:2e" || devmac == "98:f6:21" || devmac == "a4:50:46" || devmac == "ec:41:18" || devmac == "e8:ca:c8" || devmac == "f4:f5:db" || devmac == "32:12:e7")
-										return String.format('<img src="<%=resource%>/icons/devices/mi.png" />')
-									else if (devmac == "00:5b:94" || devmac == "34:a8:eb" | devmac == "64:20:0c" | devmac == "7a:51:e7" || devmac == "80:be:05" || devmac == "ae:0b:09"  || devmac == "b8:c1:11"  || devmac == "dc:a9:04")
-										return String.format('<img src="<%=resource%>/icons/devices/apple.png" />')
-									else if (devmac == "02:5f:84" || devmac == "02:f8:ea" || devmac == "12:65:e3" || devmac == "18:3c:b7" || devmac == "30:a2:c2" || devmac == "32:bc:0e" || devmac == "3c:cd:5d" || devmac == "7c:a1:77" || devmac == "82:51:80" || devmac == "82:a0:d3" || devmac == "82:a5:6b" || devmac == "90:2b:d2" || devmac == "96:c9:cb" || devmac == "9c:b2:b2" || devmac == "a8:e5:44" || devmac == "b2:3d:8c" || devmac == "c2:56:e7" || devmac == "c2:d0:55" || devmac == "d2:7e:7b"  || devmac == "f2:49:84")
-										return String.format('<img src="<%=resource%>/icons/devices/huawei.png" />')
-									else if (devmac == "e4:a7:c5" || devmac == "f2:99:22")
-										return String.format('<img src="<%=resource%>/icons/devices/huawei.png" />')
-									else if (devmac == "b4:20:5b" || devmac == "08:4a:cf" || devmac == "ce:93:76" )
-										return String.format('<img src="<%=resource%>/icons/devices/oppo.png" />')
-									else if (devmac == "d0:5a:fd")
-										return String.format('<img src="<%=resource%>/icons/devices/default.png" />')
-									else if (devmac == "2a:da:93")
-										return String.format('<img src="<%=resource%>/icons/devices/vivo.png" />')
-									else if (devmac == "02:81:eb")
-										return String.format('<img src="<%=resource%>/icons/devices/default.png" />')
-									else if (devmac == "00:22:5f")
-										return String.format('<img src="<%=resource%>/icons/devices/dell.png" />')
-									else if (devmac == "3e:54:f7" || devmac == "8e:a3:3b")
-										return String.format('<img src="<%=resource%>/icons/devices/default.png" />')
-									else if (devmac == "64:90:c1" || devmac == "5c:e5:0c" || devmac == "44:23:7c")
-										return String.format('<img src="<%=resource%>/icons/devices/mijia.png" />')
-									else if (devmac == "84:44:af" || devmac == "8c:6d:50" || devmac == "78:da:07")
-										return String.format('<img src="<%=resource%>/icons/devices/default.png" />')
-									else if (devmac == "e0:76:d0")
-										return String.format('<img src="<%=resource%>/icons/devices/default.png" />')
-									else if (devmac == "04:5f:a7" || devmac == "20:76:93" || devmac == "38:83:45" || devmac == "78:a3:51" || devmac == "78:d3:8d" || devmac == "cc:08:fb" || devmac == "d4:ee:07" || devmac == "dc:d8:7c")
-										return String.format('<img src="<%=resource%>/icons/devices/router.png" />')
-									else if (devmac == "9c:ae:d3")
-										return String.format('<img src="<%=resource%>/icons/devices/default.png" />')
-									else if (devmac == "00:07:63" || devmac == "00:ac:1f" || devmac == "04:95:73" || devmac == "0c:56:5c" || devmac == "30:50:fd" || devmac == "74:c9:a3" || devmac == "74:ff:4c" || devmac == "90:d8:f3" || devmac == "ac:00:d0" || devmac == "c8:64:c7" || devmac == "f4:4c:70")
-										return String.format('<img src="<%=resource%>/icons/devices/iptv.png" />')
-									else if (devmac == "00:11:32")
-										return String.format('<img src="<%=resource%>/icons/devices/default.png" />')
-									else if (devmac == "f0:c9:d1")
-										return String.format('<img src="<%=resource%>/icons/devices/default.png" />')
-									else
-										return String.format('<img src="<%=resource%>/icons/devices/pc.png" />')
-									})();
-					tr.insertCell(-1).innerHTML = info.onlines[i].hostname ? info.onlines[i].hostname : '?';
-					tr.insertCell(-1).innerHTML = info.onlines[i].ipaddr.split("/").join("<br>");
-					tr.insertCell(-1).innerHTML = info.onlines[i].macaddr;
-					tr.insertCell(-1).innerHTML = info.onlines[i].device;
-				}
- 
-				if( ls.rows.length == 1 )
-				{
-					var tr = ls.rows[0].parentNode.insertRow(-1);
-						tr.className = 'cbi-section-table-row';
-
-					var td = tr.insertCell(-1);
-						td.colSpan = 5;
-						td.innerHTML = '<em><br /><%:There is no one online now.%></em>';
-				}
-			}
-
 
 			<% if has_wifi then %>
 			var assoclist = [ ];
@@ -1004,6 +998,23 @@
 
 	<table id="wifi_status_table" width="100%" cellspacing="10">
 		<tr><td><em><%:Collecting data...%></em></td></tr>
+	</table>
+</fieldset>
+<fieldset class="cbi-section">
+	<legend><%:Associated Stations%></legend>
+
+	<table class="cbi-section-table valign-middle" id="wifi_assoc_table">
+		<tr class="cbi-section-table-titles">
+			<th class="cbi-section-table-cell">&#160;</th>
+			<th class="cbi-section-table-cell"><%:Network%></th>
+			<th class="cbi-section-table-cell"><%:MAC-Address%></th>
+			<th class="cbi-section-table-cell"><%:Host%></th>
+			<th class="cbi-section-table-cell"><%:Signal%> / <%:Noise%></th>
+			<th class="cbi-section-table-cell"><%:RX Rate%> / <%:TX Rate%></th>
+		</tr>
+		<tr class="cbi-section-table-row">
+			<td colspan="6"><em><br /><%:Collecting data...%></em></td>
+		</tr>
 	</table>
 </fieldset>
 <% end %>
