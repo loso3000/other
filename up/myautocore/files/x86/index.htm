@@ -414,52 +414,87 @@ end
 						tr.insertCell(-1).innerHTML = (function(dname) {
 									var aname = info.onlines[i].hostname.toLowerCase();
 									var dname;
-									var index1 = aname.indexOf("-"); 
-									
+									var index1 = aname.indexOf("_"); 
 									if ( index1 == -1  )
-									     index1 = aname.indexOf("_");
+									     index1 = aname.indexOf("-");
+									else if ( index1 == -1  )
+									     index1 = aname.indexOf("@");
+									else if ( index1 == -1  )
+									     index1 = aname.indexOf("1");
+									else if ( index1 == -1  )
+									     index1 = aname.indexOf("2");
+									else if ( index1 == -1  )
+									     index1 = aname.indexOf("3");
+									else if ( index1 == -1  )
+									     index1 = aname.indexOf("4");
+									else if ( index1 == -1  )
+									     index1 = aname.indexOf("5");
+									else if ( index1 == -1  )
+									     index1 = aname.indexOf("6");
+									else if ( index1 == -1  )
+									     index1 = aname.indexOf("7");
+									else if ( index1 == -1  )
+									     index1 = aname.indexOf("8");
+									else if ( index1 == -1  )
+									     index1 = aname.indexOf("9");
+									else if ( index1 == -1  )
+									     index1 = aname.indexOf("0");
 									if (  index1 != -1 ) 
-									     dname = aname.substring(0,index1) 
+									     dname = aname.substring(0,index1) ;
 									else
 									     dname = aname.substring(0);
-									if ( dname == "openwrt" )
-										return String.format('<img src="<%=resource%>/icons/devices/router.png" />')
+									if ( dname == "rpi" ||dname == "r" || dname == "raspberrypi" ||dname == "openwrt" )
+										return String.format('<img src="<%=resource%>/icons/devices/router.png" />');
+									if ( dname == "ap" ||dname == "miwifi" || dname == "linksys" || dname == "tp" || dname == "dlink" || dname == "mercury" || dname == "ruijie" || dname == "tenda")
+										return String.format('<img src="<%=resource%>/icons/devices/router.png" />');
 									else if ( dname == "oppo" )
-										return String.format('<img src="<%=resource%>/icons/devices/oppo.png" />')
-									else if ( dname == "redmi" || dname == "xiaomi"  || dname == "miwifi" || dname == "mijia" )
-										return String.format('<img src="<%=resource%>/icons/devices/mi.png" />')
-									else if ( dname == "honor"  || dname == "huawei"  )
-										return String.format('<img src="<%=resource%>/icons/devices/huawei.png" />')
-									else if ( dname == "samsung"   )
-										return String.format('<img src="<%=resource%>/icons/devices/samsung.png" />')
-									else if ( dname == "asus"   )
-										return String.format('<img src="<%=resource%>/icons/devices/asus.png" />')
-									else if ( dname == "desktop"   )
-										return String.format('<img src="<%=resource%>/icons/devices/pc.png" />')
-									else if ( dname == "dapple" || dname == "iphone" )
-										return String.format('<img src="<%=resource%>/icons/devices/apple.png" />')
-									else if ( dname == "lg")
-										return String.format('<img src="<%=resource%>/icons/devices/lg.png" />')
-									else if ( dname == "philips")
-										return String.format('<img src="<%=resource%>/icons/devices/philips.png" />')
-									else if ( dname == "zte")
-										return String.format('<img src="<%=resource%>/icons/devices/zte.png" />')
+										return String.format('<img src="<%=resource%>/icons/devices/oppo.png" />');
+									else if ( dname == "redmi" || dname == "xiaomi" )
+										return String.format('<img src="<%=resource%>/icons/devices/mi.png" />');
+									else if (  dname == "mijia" || dname == "mi")
+										return String.format('<img src="<%=resource%>/icons/devices/mijia.png" />');
+									else if ( dname == "honor" || dname == "huawei" )
+										return String.format('<img src="<%=resource%>/icons/devices/huawei.png" />');
+									else if ( dname == "nas" || dname == "downloadstation" )
+										return String.format('<img src="<%=resource%>/icons/devices/synology.png" />');
+									else if ( dname == "samsung" )
+										return String.format('<img src="<%=resource%>/icons/devices/samsung.png" />');
+									else if ( dname == "asus" )
+										return String.format('<img src="<%=resource%>/icons/devices/asus.png" />');
+									else if ( dname == "desktop" ||dname == "pc" )
+										return String.format('<img src="<%=resource%>/icons/devices/pc.png" />');
+									else if ( dname == "apple" || dname == "iphone" || dname == "ipadmini" || dname == "ipad" || dname == "ipadpro")
+										return String.format('<img src="<%=resource%>/icons/devices/apple.png" />');
+									else if ( dname == "touch")
+										return String.format('<img src="<%=resource%>/icons/devices/touch.png" />');
+									else if ( dname == "dc")
+										return String.format('<img src="<%=resource%>/icons/devices/dc.png" />');
 									else if ( dname == "sony")
-										return String.format('<img src="<%=resource%>/icons/devices/sony.png" />')
+										return String.format('<img src="<%=resource%>/icons/devices/sony.png" />');
+									else if ( dname == "philips")
+										return String.format('<img src="<%=resource%>/icons/devices/philips.png" />');
+									else if ( dname == "iptv")
+										return String.format('<img src="<%=resource%>/icons/devices/miwifi_repeater.png" />');
+									else if ( dname == "lg")
+										return String.format('<img src="<%=resource%>/icons/devices/lg.png" />');
+									else if ( dname == "zte")
+										return String.format('<img src="<%=resource%>/icons/devices/zte.png" />');
 									else if ( dname == "bbg")
-										return String.format('<img src="<%=resource%>/icons/devices/bbg.png" />')
+										return String.format('<img src="<%=resource%>/icons/devices/bbg.png" />');
 									else if ( dname == "coolpad")
-										return String.format('<img src="<%=resource%>/icons/devices/coolpad.png" />')
+										return String.format('<img src="<%=resource%>/icons/devices/coolpad.png" />');
 									else if ( dname == "lenovo")
-										return String.format('<img src="<%=resource%>/icons/devices/lenovo.png" />')
+										return String.format('<img src="<%=resource%>/icons/devices/lenovo.png" />');
 									else if ( dname == "dell")
-										return String.format('<img src="<%=resource%>/icons/devices/dell.png" />')
+										return String.format('<img src="<%=resource%>/icons/devices/dell.png" />');
 									else if ( dname == "hp")
-										return String.format('<img src="<%=resource%>/icons/devices/hp.png" />')
+										return String.format('<img src="<%=resource%>/icons/devices/hp.png" />');
 									else if ( dname == "htc")
-										return String.format('<img src="<%=resource%>/icons/devices/htc.png" />')
+										return String.format('<img src="<%=resource%>/icons/devices/htc.png" />');
 									else if ( dname == "toshiba")
-										return String.format('<img src="<%=resource%>/icons/devices/toshiba.png" />')
+										return String.format('<img src="<%=resource%>/icons/devices/toshiba.png" />');
+									else if ( dname == "nokia")
+										return String.format('<img src="<%=resource%>/icons/devices/nokia.png" />');
 									else
 									      return String.format('<img src="<%=resource%>/icons/devices/default.png" />');
 									})();

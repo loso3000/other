@@ -10,7 +10,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=myautocore
 PKG_VERSION:=2
-PKG_RELEASE:=19
+PKG_RELEASE:=20
 
 include $(INCLUDE_DIR)/package.mk
 define Package/myautocore-arm
@@ -21,7 +21,6 @@ define Package/myautocore-arm
     +TARGET_bcm53xx:nvram +ethtool
   VARIANT:=arm
 endef
-
 define Package/myautocore-x86
   TITLE:=x86/x64 auto core loadbalance script.
   MAINTAINER:=Lean

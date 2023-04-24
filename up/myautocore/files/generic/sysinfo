@@ -64,9 +64,9 @@ url() {
 armtempinfo() {
 if grep -q "ipq" "/etc/openwrt_release"; then
 	if grep -q "ipq40xx" "/etc/openwrt_release"; then
-		sys_temp="$(awk '{ printf("%.1f ", $0 / 1000) }' /sys/class/ieee80211/phy*/device/hwmon/hwmon*/temp1_input)"
+		sys_temp="$(awk '{ printf("%.1f", $0 / 1000) }' /sys/class/ieee80211/phy*/device/hwmon/hwmon*/temp1_input)"
 	else
-		sys_temp="$(awk '{ printf("%.1f ", $0 / 1000) }' /sys/class/thermal/thermal_zone0/temp)"
+		sys_temp="$(awk '{ printf("%.1f", $0 / 1000) }' /sys/class/thermal/thermal_zone0/temp)"
 	fi
 	echo -n "${sys_temp}"
 else
@@ -97,7 +97,7 @@ tempinfo(){
 	fi
     else
 	[ ! -e "$THERMAL_PATH" ] || \
-		cpu_temp="$(awk '{printf("%.f, $0 / 1000)}' "$THERMAL_PATH")"
+		cpu_temp="$(awk '{printf("%.1f, $0 / 1000)}' "$THERMAL_PATH")"
     fi
     echo -n "${cpu_temp}"
 
