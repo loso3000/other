@@ -87,7 +87,7 @@ echo "DISTRIB_DESCRIPTION='EzOpWrt '" >> /etc/openwrt_release
 sed -i '/REDIRECT --to-ports 53/d' /etc/firewall.user
 echo "iptables -t nat -I POSTROUTING -o br-lan -j MASQUERADE" >> /etc/firewall.user
 echo 'iptables -I zone_lan_forward -t filter -m conntrack --ctstate DNAT -j ACCEPT' >> /etc/firewall.user
-echo 'iptables -A OUTPUT -m string --string "api.installer.xiaomi.cn" --algo bm --to 65535 -j DROP' >> /etc/firewall.user
+echo "iptables -A OUTPUT -m string --string 'api.installer.xiaomi.cn' --algo bm --to 65535 -j DROP" >> /etc/firewall.user
 sed -i '/lcp-echo/d' /etc/ppp/options
 echo "lcp-echo-failure 10" >>  /etc/ppp/options
 echo "lcp-echo-interval 200" >>  /etc/ppp/options
