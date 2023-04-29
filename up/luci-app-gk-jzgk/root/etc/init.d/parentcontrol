@@ -11,7 +11,10 @@ LOCK_FILE_DIR=/var/lock
 LOCK_FILE=${LOCK_FILE_DIR}/${CONFIG}.lock
 ipt=$(command -v iptables-legacy || command -v iptables)
 ipt6=$(command -v ip6tables-legacy || command -v ip6tables)
-TAG="PARENTCONTROL" 
+
+TAG="PARENTCONTROL_TIME" 
+TAGP="PARENTCONTROL_PROTOCOL" 
+TAGW="PARENTCONTROL_WEBURL" 
 FWI="/var/etc/$CONFIG.include"
 elog() {
 	local d="$(date "+%Y-%m-%d %H:%M:%S")"
@@ -50,31 +53,49 @@ unlock() {
 	done
 }
 
-dst() {
-	echo "-m set $2 --match-set $1 dst"
-}
-
-comment() {
-	local name=$(echo $1 | sed 's/ /_/g')
-	echo "-m comment --comment '$name'"
-}
-
 set_rules() {
 mmode=$1
+   case $mmode in
+    time)
+	  controlmode=`uci -q get $CONFIG.@basic[0].control_mode`
+	  [ "x$controlmode" == 'x1' ] && chain=INPUT || chain=FORWARD
+          for ip in "$ipt" "$ipt6" ; do
+                  $ip -N $TAG 2>/dev/null || $i -F $TAG 2>/dev/null 
+                  $ip -C $chain -j  $TAG 2>/dev/null ||  $ip -I $chain -j  $TAG 2>/dev/null
+	  done
+    ;;
+    protocol)
+       chain=FORWARD
+       for ip in "$ipt" "$ipt6" ; do
+                  $ip -N $TAGP 2>/dev/null || $i -F $TAGP 2>/dev/null 
+                  $ip -C $chain -j  $TAGP 2>/dev/null ||  $ip -I $chain -j  $TAGP 2>/dev/null
+      done
+    
+    ;;
+    weburl)
+      chain=OUTPUT
+      algos=`uci -q get $CONFIG.@basic[0].algos` 
+      for ip in "$ipt" "$ipt6" ; do
+                  $ip -N $TAGW 2>/dev/null || $i -F $TAGW 2>/dev/null 
+                  $ip -C $chain -j  $TAGW 2>/dev/null ||  $ip -I $chain -j  $TAGW 2>/dev/null
+      done
+    
+    ;;
+esac  
 idlist=`uci show $CONFIG | grep "enable='1'" | grep "$mmode" | grep -oE '\[.*?\]' | grep -o '[0-9]'`
 elog "set_rules:$mmode" 
 for i in $idlist ;do
     mac=$(uci -q get $CONFIG.@$mmode[$i].mac ) && MAC="-m mac --mac-source $mac" || MAC=""
     timestart=$(uci get $CONFIG.@$mmode[$i].timestart 2>/dev/null) || timestart="00:00"
     timeend=$(uci get $CONFIG.@$mmode[$i].timeend 2>/dev/null) ||  timeend="00:00"
-    week=$(uci get $CONFIG.@$mmode[$i].week |sed 's/ /,/g' 2>/dev/null)
+    wweek=$(uci get $CONFIG.@$mmode[$i].week |sed 's/ /,/g' 2>/dev/null)
     [ -z "$timestart" -o -z "$timeend" -o "$timestart" = "$timeend" ] && TIME="" || TIME="--timestart ${timestart} --timestop ${timeend}"
     [ -z "$wweek" -o "$wweek" = "*" ] && WEEK="" || WEEK="--weekdays ${wweek}"
     [ -n "$TIME" -o -n "$WEEK" ] && WT="-m time --kerneltz ${TIME} ${WEEK}" || WT=""
    case $mmode in
     time)
           for pt in "$ipt" "$ipt6" ; do
-		$pt -A $TAG ${MAC} ${WT} -j REJECT 2>/dev/null 
+		$pt -I $TAG ${MAC} ${WT} -j REJECT 2>/dev/null 
 		elog "$mmode:$pt -- ${MAC} -- ${WT}  "
 	done
     ;;
@@ -86,14 +107,14 @@ for i in $idlist ;do
 	mMPT=`echo "$portd"|grep ","` && mDPO="-m multiport" || mDPO=""
 	[ -z "$ports" -a -z "$portd" ] && PTO="" || PTO="-p ${proto} ${mSPO} ${SPO} ${mDPO} ${DPO}"
         for pt in "$ipt" "$ipt6" ; do
-		$pt -A $TAG ${MAC} ${WT} ${PTO} -j REJECT 2>/dev/null 
+		$pt -I $TAGP ${MAC} ${WT} ${PTO} -j REJECT 2>/dev/null 
 		elog "$mmode: $pt -- ${MAC} -- ${WT} -- ${PTO}"
 	done
     ;;
     weburl)
 	word=$(uci -q get $CONFIG.@$mmode[$i].word ) && STR="-m string --string ${word} --algo ${algos}" || STR=""
           for pt in "$ipt" "$ipt6" ; do
-		$pt -A $TAG ${MAC} ${WT} ${STR} -j REJECT 2>/dev/null
+		$pt -I $TAGW  -p tcp ${MAC} ${WT} ${STR} -j REJECT 2>/dev/null
 		elog "$mmode: $pt -- ${MAC} -- ${WT} -- ${STR}"
 	  done
     ;; 
@@ -109,12 +130,16 @@ flush_include() {
 
 del_rule() {
   for ip in "$ipt" "$ipt6" ; do
-	 for chain in "FORWARD" "OUTPUT" "INPUT" ; do
-	     	$ip -D  $chain -j $TAG 2>/dev/null
+      for ta in "$TAG" "$TAGW" "$TAGP" ; do
+	 for chain in "PREROUTING" "FORWARD" "OUTPUT" "INPUT" ; do
+	     	$ip -D  $chain -j $ta 2>/dev/null
+		
+		elog "delrule: $ip -- $ta -- ${chain} "
 	 done
-	 $ip -F $TAG 2>/dev/null
-	 $ip -X $TAG 2>/dev/null
-     done
+	 $ip -F $ta 2>/dev/null
+	 $ip -X $ta 2>/dev/null
+      done
+  done
 }
 
 start(){
@@ -123,17 +148,8 @@ start(){
      del_rule
      enabled=`uci -q get $CONFIG.@basic[0].enabled`
      [ "x$enabled" == "x1" ] || exit 1
-
      allsum=`grep -c 'enable .1.' /etc/config/$CONFIG`
      [ "$allsum" -gt 0 ] && {
-          algos=`uci -q get $CONFIG.@basic[0].algos` 
-	  controlmode=`uci -q get $CONFIG.@basic[0].control_mode`
-	  elog "parentcontrol start: $controlmode $allsum $algos" 
-	  [ "x$controlmode" == 'x1' ] && chain=INPUT || chain=FORWARD
-          for ip in "$ipt" "$ipt6" ; do
-                  $ip -N $TAG 2>/dev/null || $i -F $TAG 2>/dev/null 
-                  $ip -C $chain -j  $TAG 2>/dev/null ||  $ip -I $chain -j  $TAG 2>/dev/null
-	  done
         set_rules time
 	set_rules protocol
 	set_rules weburl
@@ -149,4 +165,5 @@ stop(){
      del_rule
      unset_lock
 }
+
 
