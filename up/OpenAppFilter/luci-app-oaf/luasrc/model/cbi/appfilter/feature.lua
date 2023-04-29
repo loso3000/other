@@ -16,8 +16,8 @@ local rule_count = 0
 local version = ""
 local format = ""
 if fs.access("/tmp/feature.cfg") then
-    rule_count = tonumber(SYS.exec("cat /etc/appfilter/feature_cn.cfg | grep -v '#'|awk NF|wc -l"))
-    version = SYS.exec("cat /etc/appfilter/feature_cn.cfg | grep '#version' | awk '{print $2}'")
+    rule_count = tonumber(SYS.exec("cat /tmp/feature.cfg | grep -v '#'|awk NF|wc -l"))
+    version = SYS.exec("cat /tmp/feature.cfg | grep '#version' | awk '{print $2}'")
 end
 format=SYS.exec("uci get appfilter.feature.format")
 if format == "" then
@@ -33,8 +33,10 @@ s.addremove = false
 s.anonymous = true
 
 o = s:option(DynamicList, "update_url", translate('更新特征库地址'))
-o:value("http://www.openappfilter.com/assets/feature/feature2.0_cn_22.12.01.cfg", translate("openappfilter-v221201"))
-o:value("https://gh.404delivr.workers.dev/https://raw.githubusercontent.com/destan19/OpenAppFilter/master/open-app-filter/files/feature_cn.cfg", translate("github-v220621"))
+o:value("http://www.openappfilter.com/assets/feature/feature2.0_cn_22.12.01.cfg", translate("openappfilter_cn-v221201"))
+o:value("https://gh.404delivr.workers.dev/https://raw.githubusercontent.com/destan19/OpenAppFilter/master/open-app-filter/files/feature_cn.cfg", translate("github-feature_cn"))
+o:value("https://gh.404delivr.workers.dev/https://raw.githubusercontent.com/destan19/OpenAppFilter/master/open-app-filter/files/feature_en.cfg", translate("github-feature_en"))
+o:value("http://www.openappfilter.com/assets/feature/feature2.0_en_22.12.01.cfg", translate("openappfilter_cn-v221201"))
 o.default = "http://www.openappfilter.com/assets/feature/feature2.0_cn_22.12.01.cfg"
 
 o = s:option(Button, "Update", translate("手动更新官方特征库"))
