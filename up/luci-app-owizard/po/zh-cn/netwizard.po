@@ -22,9 +22,6 @@ msgstr "网络设置"
 msgid "wan_interface"
 msgstr "WAN口接口"
 
-msgid "Enable DNS notifications (ipv4/ipv6)"
-msgstr "开启DNS通告(ipv4/ipv6)"
-
 msgid "Wireless Settings"
 msgstr "无线设置"
 
@@ -120,24 +117,3 @@ msgstr "开启动态伪装转发"
 
 msgid "Select to enable dynamic camouflage forwarding,It is enabled when Xiaomi Huawei's primary route cannot be used normally"
 msgstr "选择表示开启动态伪装转发,当小米华为做主路由无法正常使用时开启"
-
-msgid "About wizard issues:"
-msgstr "关于向导问题："
-
-msgid "Hide menu method, input example in the address bar:"
-msgstr "隐藏菜单方法，地址栏输入例："
-
-msgid "After the hidden to the display, input example in the address bar:"
-msgstr "当你隐藏后想再次显示，地址栏输入例："
-
-msgid "Are you sure to reset?"
-msgstr "你确定要恢复吗？"
-
-msgid "Are you sure to hide?"
-msgstr "你确定要隐藏吗？"
-
-msgid "Show or hide the setup wizard menu"
-msgstr "显示或者隐藏设置向导菜单"
-
-msgid "Hide Wizard"
-msgstr "隐藏设置向导"

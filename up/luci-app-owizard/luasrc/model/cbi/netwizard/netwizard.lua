@@ -114,8 +114,6 @@ e:depends({wan_proto="siderouter"})
 e = s:taboption("wansetup", Flag, "lan_dhcp", translate("Enable DHCP Server"), translate("If not selected, DHCP is disabled by default. If DHCP is used, the main route DHCP needs to be turned off. To disable DHCP, you need to manually change all Internet device gateways and DNS to this routing IP"))
 e:depends({wan_proto="siderouter"})
 
-e = s:taboption("wansetup", Flag, "dnsset", translate("Enable DNS notifications (ipv4/ipv6)"))
-
 if has_wifi then
 	e = s:taboption("wifisetup", Value, "wifi_ssid", translate("<abbr title=\"Extended Service Set Identifier\">ESSID</abbr>"))
 	e.datatype = "maxlength(32)"
@@ -125,6 +123,7 @@ if has_wifi then
 	e.password = true
 end
 
-e = s:taboption("othersetup", Flag, "showhide",translate('Hide Wizard'), translate('Show or hide the setup wizard menu'))
+e = s:taboption("othersetup", Flag, "display",translate('Disable Wizard'), translate('Enable/Disable Wizard'))
+
 
 return m
