@@ -3,9 +3,9 @@
 
 include $(TOPDIR)/rules.mk
 
-PKG_NAME:=luci-app-owizard
+PKG_NAME:=owizard
 PKG_VERSION:=1.7
-PKG_RELEASE:=26
+PKG_RELEASE:=27
 
 PKG_LICENSE:=GPLv3
 PKG_LICENSE_FILES:=LICENSE
@@ -15,17 +15,17 @@ LUCI_TITLE:=LuCI Support for Wizard
 LUCI_DEPENDS:=+luci-compat
 LUCI_PKGARCH:=all
 
-define Package/$(PKG_NAME)/conffiles
-/etc/config/owizard
+define Package/luci-app-$(PKG_NAME)/conffiles
+/etc/config/$(PKG_NAME)
 endef
 
 include $(TOPDIR)/feeds/luci/luci.mk
 
-define Package/luci-app-owizard/postinst
+define Package/luci-app-$(PKG_NAME)/postinst
 #!/bin/sh
 if [ -z "$$IPKG_INSTROOT" ]; then
-  ( . /etc/uci-defaults/99-uci-owizard-defaults )
-  rm -f /etc/uci-defaults/99-uci-owizard-defaults
+  ( . /etc/uci-defaults/99-uci-$(PKG_NAME)-defaults )
+  rm -f /etc/uci-defaults/99-uci-$(PKG_NAME)-defaults
   rm -rf /tmp/luci*
 fi
 exit 0
