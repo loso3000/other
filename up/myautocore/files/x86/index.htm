@@ -63,7 +63,7 @@ end
  		local eth_info = luci.sys.exec("sysinfo ethinfo")
 
 		local cpu_speed = luci.sys.exec("sysinfo cpuspeed")
-		local user_info = luci.sys.exec("cat /proc/net/arp | grep '0x2' | wc -l") or "0"
+		local user_info = tonumber(luci.sys.exec("cat /proc/net/arp | grep '0x2' | wc -l")) or 0
 		local cpu_wd =luci.sys.exec("sysinfo tempinfo")
 		local upnp_info = luci.sys.exec("sysinfo upnpinfo")
 		local cpu_usage = (luci.sys.exec("expr 100 - $(top -n 1 | grep 'CPU:' | awk -F '%' '{print$4}' | awk -F ' ' '{print$2}')") or "6") .. "%"
@@ -410,7 +410,7 @@ end
 				{
 					var tr = ls.rows[0].parentNode.insertRow(-1);
 						tr.className = 'cbi-section-table-row cbi-rowstyle-' + ((i % 2) + 1);
-						
+
 						tr.insertCell(-1).innerHTML = (function(dname) {
 									var aname = info.onlines[i].hostname.toLowerCase();
 									var dname;
@@ -934,7 +934,6 @@ end
 
 <fieldset class="cbi-section">
 	<legend><%:Interfaces%></legend>
-
 	<table width="100%" cellspacing="10" id="ethinfo">
 	</table>
 </fieldset>
@@ -964,10 +963,7 @@ end
 </fieldset>
 
 <fieldset class="cbi-section">
-	<table width="100%" cellspacing="10" id="ethinfo">
-		<tr><td width="33%"><%:Online Users%></td><td id="userinfo">0</td></tr>
-	</table>
-
+	<legend><%:Online Users%></legend>
 	<table class="cbi-section-table" id="online_status_table">
 		<tr class="cbi-section-table-titles">
 
@@ -981,7 +977,11 @@ end
 			<td colspan="5"><em><br /><%:Collecting data...%></em></td>
 		</tr>
 	</table>
+	<table width="100%" cellspacing="10" id="online">
+		<tr><td width="33%"><%:Online Users%></td><td id="userinfo">0</td></tr>
+	</table>
 </fieldset>
+
 
 <% if has_dhcp then %>
 <fieldset class="cbi-section">
