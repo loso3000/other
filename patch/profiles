@@ -57,21 +57,21 @@ function k_theme() {
 echo
 while :; do
 echo -e "\n q. 返回(return)"
-read -p "是否恢复默认主题?(Do you want to restore the default theme?)[Y/n]:" YN
+read -p "是否恢复向导和默认主题?(Do you want to restore the wizard and default theme?)[Y/n]:" YN
 
 case ${YN} in
 [Yy]) 
-    ER "已恢复默认主题(The default theme has been restored.)..."
+    ER "已恢复向导和默认主题(The wizard and default theme has been restored.)..."
 
 cat <<EOF  >>/etc/config/advancedplus
-    config basic
+config basic
 	option gossr 'bypass'
 	option gouser 'admin'
 	option gohome 'overview'
-	option background '0'
+	option background '3'
 	option mode 'light'
 	option primary_rgbs '225,112,88'
-	option primary_body '#f8f8f8'
+	option primary_body '#fff'
 	option primary '#2d6693'
 	option primary_rgb '45,102,147'
 	option primary_rgb_ts '0.3'
@@ -82,7 +82,7 @@ cat <<EOF  >>/etc/config/advancedplus
 
 config theme
 	option primary_rgb '74,161,133'
-	option primary_body '#f8f8f8'
+	option primary_body '#fff'
 	option primary_rgbs '38,12,6'
 	option mode 'light'
 	option primary 'green'
@@ -90,7 +90,7 @@ config theme
 	option use '1'
 
 config theme
-	option primary_body '#f8f8f8'
+	option primary_body '#fff'
 	option primary_rgbs '225,112,88'
 	option primary '#2d6693'
 	option primary_rgb '45,102,147'
@@ -109,18 +109,21 @@ config theme
 
 config theme
 	option primary 'green'
-	option primary_body '#f8f8f8'
+	option primary_body '#ffffff'
 	option primary_rgb '74,161,133'
 	option primary_rgbs '225,112,88'
 	option mode 'dark'
 	option use '0'
 	option primary_rgb_ts '0.3'
+
 EOF
     uci set luci.main.mediaurlbase='/luci-static/kucat'
     uci set luci.themes.KuCat=/luci-static/kucat
     uci set luci.themes.Bootstrap='/luci-static/bootstrap'
     uci commit luci
     /etc/init.d/system restart
+    rm -rf /etc/config/wizard
+    rm -rf /etc/config/netwizard_hide
     return
 ;;
 [Nn])
@@ -233,7 +236,6 @@ read -p "是否重启系统(Whether to restart the system)[Y/n]:" YN
 case ${YN} in
 [Yy]) 
     ER "系统重启中(System is restarting)..."
-    rm -rf /etc/config/wizard
     uci set argon.@global[0].bing_background=0
     uci commit argon
     reboot -f
@@ -361,12 +363,6 @@ in order to prevent unauthorized SSH logins.
 EOF
 fi
 
-alias menu='. /etc/profile'
-alias shutdown='sync && poweroff'
-alias dh='df -h'
-alias ls='ls --color=auto'
-alias top='top -d 1'
-
 function mainmenu() {
   EB "     Sirdpboy快捷命令菜单(Shortcut Command Menu)   "
   EG " menu->重进菜单(Reentry menu)   top->查看进程(View Processes) "
@@ -378,7 +374,9 @@ function mainmenu() {
   EY " 6. 恢复出厂设置(Restore factory settings)"
   EY " 7. 网络连接检查(Check network connectivity)"
   EY " 8. 刷新释放内存(Refresh and free memory)"
-  ER " 9. 退出菜单(Exit)"
+  EY " 9. 停止家长控制(Stop Parentcontrol)"
+  
+  ER " 0. 退出菜单(Exit)"
   echo
   KEY="请输入数字(please enter a number)"
   while :; do
@@ -432,6 +430,12 @@ function mainmenu() {
 	sleep 2
     ;;
     9)
+      EY " 停卡家长控制插件成功!(Stop Parentcontrol completed!)"
+      EW " "
+      /etc/init.d/parentcontrol stop
+      sleep 2
+    ;;
+    0)
       EW " 退出程序成功(Exit the program successfully)"
       EW " "
       break
