@@ -68,10 +68,10 @@ config basic
 	option gossr 'bypass'
 	option gouser 'admin'
 	option gohome 'overview'
-	option background '3'
+	option background '0'
 	option mode 'light'
 	option primary_rgbs '225,112,88'
-	option primary_body '#fff'
+	option primary_body '#f8f8f8'
 	option primary '#2d6693'
 	option primary_rgb '45,102,147'
 	option primary_rgb_ts '0.3'
@@ -82,7 +82,7 @@ config basic
 
 config theme
 	option primary_rgb '74,161,133'
-	option primary_body '#fff'
+	option primary_body '#f8f8f8'
 	option primary_rgbs '38,12,6'
 	option mode 'light'
 	option primary 'green'
@@ -90,7 +90,7 @@ config theme
 	option use '1'
 
 config theme
-	option primary_body '#fff'
+	option primary_body '#f8f8f8'
 	option primary_rgbs '225,112,88'
 	option primary '#2d6693'
 	option primary_rgb '45,102,147'
@@ -109,13 +109,12 @@ config theme
 
 config theme
 	option primary 'green'
-	option primary_body '#ffffff'
+	option primary_body '#f8f8f8'
 	option primary_rgb '74,161,133'
 	option primary_rgbs '225,112,88'
 	option mode 'dark'
 	option use '0'
 	option primary_rgb_ts '0.3'
-
 EOF
     uci set luci.main.mediaurlbase='/luci-static/kucat'
     uci set luci.themes.KuCat=/luci-static/kucat
