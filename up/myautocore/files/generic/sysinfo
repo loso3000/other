@@ -1,4 +1,5 @@
 #!/bin/sh
+RELEASE_PATH="/etc/openwrt_release"
 
 userinfo() {
     cat /proc/net/arp | grep '0x2'  | grep -v '0x0'| wc -l
@@ -19,7 +20,7 @@ date "+%A [%W] | [%j] %Y/%m/%d-%X %Z"
 cpuinfo() {
     cpu_arch="$(awk -F ': ' '/model name/ {print $2}' "/proc/cpuinfo" | head -n1)"
     [ -n "${cpu_arch}" ] || cpu_arch="ARMv8 Processor"
-    if grep -q "x86" "/etc/openwrt_release"; then
+    if grep -q "x86" "${RELEASE_PATH}"; then
 	cpu_cores="$(grep "core id" "/proc/cpuinfo" | sort -u | wc -l)核 $(grep -c "processor" "/proc/cpuinfo")线程" 
     else
 	cpu_cores="$(grep -c "processor" "/proc/cpuinfo")核"
@@ -30,23 +31,23 @@ cpuinfo() {
 cpuspeed() {
 CPUINFO_PATH="/proc/cpuinfo"
 CPUFREQ_PATH="/sys/devices/system/cpu/cpufreq"
-if grep -q "bcm27xx" "/etc/openwrt_release"; then
+if grep -q "bcm27xx" "${RELEASE_PATH}"; then
 	cpu_freq="$( $(vcgencmd measure_clock arm | awk -F '=' '{print $2}') / 1000000  | awk -F '.' '{print $1}' ) )Mhz" 
-elif grep -q "bcm53xx" "/etc/openwrt_release"; then
+elif grep -q "bcm53xx" "${RELEASE_PATH}"; then
 	cpu_freq="$(nvram get clkfreq | awk -F ',' '{print $1}')MHz"
-elif grep -q "mvebu" "/etc/openwrt_release"; then
+elif grep -q "mvebu" "${RELEASE_PATH}"; then
 	cpu_freq="$(cat "$CPUINFO_PATH" | awk -F':' '/BogoMIPS/ {print $2}' | head -n1 | awk -F '.' '{print $1}' )MHz" 
-elif grep -q "ramips" "/etc/openwrt_release"; then
+elif grep -q "ramips" "${RELEASE_PATH}"; then
 	cpu_freq="$(cat "$CPUINFO_PATH" | awk -F':' '/BogoMIPS/ {print $2}' | head -n1 | awk -F '.' '{print $1}' )MHz" 
-elif grep -q "x86" "/etc/openwrt_release"; then
+elif grep -q "x86" "${RELEASE_PATH}"; then
 	cpu_freq="$(cat "$CPUINFO_PATH" | awk -F':' '/MHz/ {print $2}' | head -n1 | awk -F '.' '{print $1}' )MHz" 
         # cpu_freq=`grep 'MHz' /proc/cpuinfo | cut -c11- |sed -n '1p' | awk -F '.' '{print $1}' `MHz
-elif ! grep -q "filogic" "/etc/openwrt_release"; then
-	cpu_freq="$(expr $(cat /sys/devices/system/cpu/cpufreq/policy0/cpuinfo_cur_freq) / 1000)MHz"
-	big_cpu_freq="$(expr $(cat /sys/devices/system/cpu/cpufreq/policy4/cpuinfo_cur_freq 2>"/dev/null") / 1000 2>"/dev/null")"
+elif ! grep -q "filogic" "${RELEASE_PATH}"; then
+	[ -e "${CPUFREQ_PATH}/policy0/cpuinfo_cur_freq" ] && cpu_freq="$(expr $(cat /sys/devices/system/cpu/cpufreq/policy0/cpuinfo_cur_freq) / 1000)MHz"
+	[ -e "${CPUFREQ_PATH}/policy4/cpuinfo_cur_freq " ] && big_cpu_freq="$(expr $(cat /sys/devices/system/cpu/cpufreq/policy4/cpuinfo_cur_freq 2>"/dev/null") / 1000 2>"/dev/null")"
 	[ -n "${big_cpu_freq}" ] && big_cpu_freq="${big_cpu_freq}MHz "
 fi
-if grep -Eq "ipq|mt7622" "/etc/openwrt_release" ; then
+if grep -Eq "ipq|mt7622" "${RELEASE_PATH}" ; then
 	echo -n "${cpu_freq}"
 else
 	echo -n "${big_cpu_freq}${cpu_freq}"
@@ -62,18 +63,19 @@ url() {
 }
 
 armtempinfo() {
-if grep -q "ipq" "/etc/openwrt_release"; then
-	if grep -q "ipq40xx" "/etc/openwrt_release"; then
+THERMAL_PATH="/sys/class/thermal/thermal_zone0/temp"
+if grep -q "ipq" "${RELEASE_PATH}"; then
+	if grep -q "ipq40xx" "${RELEASE_PATH}"; then
 		 [ -e "/sys/class/ieee80211/phy*/device/hwmon/hwmon*/temp1_input" ] && sys_temp="$(awk '{ printf("%.1f", $0 / 1000) }' /sys/class/ieee80211/phy*/device/hwmon/hwmon*/temp1_input  2>/dev/null) "
 	else
-		 [ -e "/sys/class/thermal/thermal_zone0/temp" ] && sys_temp="$(awk '{ printf("%.1f", $0 / 1000) }' /sys/class/thermal/thermal_zone0/temp 2>/dev/null) "
+		 [ -e "${THERMAL_PATH}" ] && sys_temp=`awk '{ printf("%.1f", $0 / 1000) }' /sys/class/thermal/thermal_zone0/temp 2>/dev/null`
 	fi
 	echo -n "${sys_temp}"
 else
-	if grep -q "bcm27xx" "/etc/openwrt_release"; then
+	if grep -q "bcm27xx" "${RELEASE_PATH}"; then
 		cpu_temp="$(vcgencmd measure_temp | awk -F '=' '{print $2}' | awk -F "'" '{print $1}')  2>/dev/null"
 	else
-	     [ -e "/sys/class/thermal/thermal_zone0/temp" ] &&	cpu_temp="$(awk "BEGIN{printf (\"%.1f\n\",$(cat /sys/class/thermal/thermal_zone0/temp)/1000) }"  2>/dev/null) " 
+	     [ -e "${THERMAL_PATH}" ] && cpu_temp=`awk "BEGIN{printf (\"%.1f\n\",$(cat /sys/class/thermal/thermal_zone0/temp)/1000) }"  2>/dev/null`
 	fi
 	echo -n "${cpu_temp}"
 fi
@@ -86,9 +88,8 @@ sensorsbin(){
 }
 
 tempinfo(){
-    THERMAL_PATH="/sys/class/thermal/thermal_zone0/temp"
-    # [ `which sensors` ] || return
-    if grep -q "x86" "/etc/openwrt_release"; then
+    [ `which sensors` ] || return
+    if grep -q "x86" "${RELEASE_PATH}"; then
 	if [ "$(grep 'AMD' /proc/cpuinfo)" != "" ]; then
 		[ -n "${cpu_temp}" ] || cpu_temp=`sensors 'k*temp-*' 2>/dev/null | awk '/Tdie/ {print $2}' | head -n1 | tr -d "+"`
 		[ -n "${cpu_temp}" ] || cpu_temp=`sensors 2>/dev/null | grep -E 'temp1'  | grep -Eo "\+[0-9]*.[0-9]" | head -n1 | tr -d "+"`
@@ -117,7 +118,6 @@ upnpinfo() {
 ethinfo() {
     [ ! -d /tmp/state ] && mkdir -p /tmp/state 2>/dev/null
     sed -i '/_orig_ifname/d' /etc/config/network
-    # [ `which ethtool` ] || return
     {
     echo -n "["
     for i in $(ip address | awk -F ': ' '/eth[0-9]+/ {print $2}' | awk -F '@' {'print $1'} | awk '{ if ( length($0) <=7 ) print $0}' | xargs)
