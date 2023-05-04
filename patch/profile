@@ -102,8 +102,7 @@ in order to prevent unauthorized SSH logins.
 EOF
 fi
 
-alias menu='. /etc/profile'
-alias shutdown='sync && poweroff'
-alias dh='df -h'
-alias ls='ls --color=auto'
-alias top='top -d 1'
+# alias shutdown='sync && poweroff'
+# alias dh='df -h'
+# alias ls='ls --color=auto'
+# alias top='top -d 1'
