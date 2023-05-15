@@ -1,6 +1,5 @@
 #!/bin/sh
 [ "$1" = --F ] && A=Y || A=N
-[ -f /var/lock/bypass.lock -a $A = N ] && exit 1
 LOCKU=/var/lock/bypass-update.lock
 [ -f $LOCKU ] && exit 1
 touch $LOCKU
@@ -17,11 +16,11 @@ log(){
 [ ! -d $TMP ] && mkdir -p $TMP 2>/dev/null
 	if [ $A = Y ];then
 
-		while ! (curl -kLfsm 5 -o /tmp/china.txt ${chnroute_url}  || curl -kLfsm 3 -o /tmp/china.txt https://supes.top/bypass/all_cn.txt || curl -kLfsm 5 -o /tmp/china.txt https://fastly.jsdelivr.net/gh/sirpdboy/iplist@main/all_cn.txt );do
+		while ! (curl -kLfsm 5 -o /tmp/china.txt ${chnroute_url}  || curl -kLfsm 5 -o /tmp/china.txt https://fastly.jsdelivr.net/gh/sirpdboy/iplist@main/all_cn.txt );do
 			sleep 1
 		done
 	else
-		curl -kLfsm 5 -o /tmp/china.txt  ${chnroute_url} || curl -kLfsm 3 -o /tmp/china.txt https://supes.top/bypass/all_cn.txt || curl -kLfsm 5 -o /tmp/china.txt https://fastly.jsdelivr.net/gh/sirpdboy/iplist@main/all_cn.txt 
+		curl -kLfsm 5 -o /tmp/china.txt  ${chnroute_url} ||  curl -kLfsm 5 -o /tmp/china.txt https://fastly.jsdelivr.net/gh/sirpdboy/iplist@main/all_cn.txt 
 	fi
 	[[ -f /tmp/china.txt && $? == 0 ]] && {
 		if ! cmp -s /tmp/china.txt $TMP/china.txt;then
@@ -56,23 +55,23 @@ fi
 
 if [ "$C" = gfw -o "$(uci -q get bypass.@global[0].gfw_mode)" = 1 ];then
 	if [ $A = Y ];then
-		while ! (curl -kLfsm 5 -o /tmp/gfw.b64 ${gfwlist_url} || curl -kLfsm 3 -o /tmp/gfw.b64 https://supes.top/bypass/gfwlist.txt || curl -kLfsm 5 -o /tmp/gfw.b64 https://cdn.jsdelivr.net/gh/gfwlist/gfwlist/gfwlist.txt);do
+		while ! (curl -kLfsm 5 -o /tmp/gfw.b64 ${gfwlist_url} || curl -kLfsm 5 -o /tmp/gfw.b64 https://cdn.jsdelivr.net/gh/gfwlist/gfwlist/gfwlist.txt);do
 			sleep 2
 		done
 	else
-		curl -kLfsm 5 -o /tmp/gfw.b64 ${gfwlist_url} || curl -kLfsm 3 -o /tmp/gfw.b64 https://supes.top/bypass/gfwlist.txt || curl -kLfsm 5 -o /tmp/gfw.b64 https://cdn.jsdelivr.net/gh/gfwlist/gfwlist/gfwlist.txt
+		curl -kLfsm 5 -o /tmp/gfw.b64 ${gfwlist_url} || curl -kLfsm 5 -o /tmp/gfw.b64 https://cdn.jsdelivr.net/gh/gfwlist/gfwlist/gfwlist.txt
 	fi
 	if [[ -f /tmp/gfw.b64 && $? == 0 ]];then
 	   $DIR/by-gfw
-	if ! cmp -s /tmp/gfwnew.txt  $TMP/gfw.list ;then
+	   if ! cmp -s /tmp/gfwnew.txt  $TMP/gfw.list ;then
 			cp -f /tmp/gfwnew.txt $TMP/gfw.list 
 			log "By Update  : Updated GFW List :" $( cat /etc/bypass/gfw.list | wc -l)
 			[ $A = N ] && /etc/init.d/bypass restart
-	else
+	   else
 			log "By Update  : GFW List is up to date :" $( cat /etc/bypass/gfw.list | wc -l)
 	   fi
 	fi
 fi
-rm -f $LOCKU /tmp/china*.txt /tmp/gfwnew.txt /tmp/gfw.b64
+rm -rf /tmp/china*.txt /tmp/gfwnew.txt /tmp/gfw.b64
 
 [ $A = Y ] && /etc/init.d/bypass start &
