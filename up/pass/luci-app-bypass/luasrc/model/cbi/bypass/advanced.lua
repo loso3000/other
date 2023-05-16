@@ -65,35 +65,34 @@ s.anonymous = true
 
 
 ---- gfwlist URL
-o = s:option(ListValue, "gfwlist_url", translate("GFW domains(gfwlist) Update URL"))
+o = s:option(Value, "gfwlist_url", translate("GFW domains(gfwlist) Update URL"))
 o:value("https://fastly.jsdelivr.net/gh/YW5vbnltb3Vz/domain-list-community@release/gfwlist.txt", translate("v2fly/domain-list-community"))
-o:value("https://fastly.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/gfw.txt", translate("Loyalsoldier/v2ray-rules-dat"))
 o:value("https://fastly.jsdelivr.net/gh/Loukky/gfwlist-by-loukky/gfwlist.txt", translate("Loukky/gfwlist-by-loukky"))
 o:value("https://fastly.jsdelivr.net/gh/gfwlist/gfwlist/gfwlist.txt", translate("gfwlist/gfwlist"))
-o:value("https://fastly.jsdelivr.net/gh/sirpdboy/iplist@main/gfwlist.txt", translate("sirpdboy/gfwlist"))
-o:value("https://supes.top/bypass/gfwlist.txt", translate("supes/gfwlist"))
-o.default = "https://fastly.jsdelivr.net/gh/sirpdboy/iplist@main/gfwlist.txt"
+o:value("https://fastly.jsdelivr.net/gh/sirpdboy/iplist@release/gfwlist.txt", translate("sirpdboy/gfwlist"))
+o.default = "https://fastly.jsdelivr.net/gh/sirpdboy/iplist@release/gfwlist.txt"
 
 ----chnroute  URL
-o = s:option(ListValue, "chnroute_url", translate("China IPs(chnroute) Update URL"))
+o = s:option(Value, "chnroute_url", translate("China IPs(chnroute) Update URL"))
 o:value("https://ispip.clang.cn/all_cn.txt", translate("Clang.CN"))
 o:value("https://ispip.clang.cn/all_cn_cidr.txt", translate("Clang.CN.CIDR"))
+o:value("https://fastly.jsdelivr.net/gh/Loyalsoldier/geoip@release/text/cn.txt", translate("Loyalsoldier/geoip-CN"))
+o:value("https://fastly.jsdelivr.net/gh/gaoyifan/china-operator-ip@ip-lists/china.txt", translate("gaoyifan/china-cn"))
 o:value("https://fastly.jsdelivr.net/gh/soffchen/GeoIP2-CN@release/CN-ip-cidr.txt", translate("soffchen/GeoIP2-CN"))
 o:value("https://fastly.jsdelivr.net/gh/Hackl0us/GeoIP2-CN@release/CN-ip-cidr.txt", translate("Hackl0us/GeoIP2-CN"))
-o:value("https://fastly.jsdelivr.net/gh/sirpdboy/iplist@main/all_cn.txt", translate("sirpdboy/all_cn"))
-o:value("https://supes.top/bypass/all_cn.txt", translate("supes/all_cn"))
-o.default = "https://fastly.jsdelivr.net/gh/sirpdboy/iplist@main/all_cn.txt"
+o:value("https://fastly.jsdelivr.net/gh/sirpdboy/iplist@release/all_cn.txt", translate("sirpdboy/all_cn"))
+o.default = "https://fastly.jsdelivr.net/gh/sirpdboy/iplist@release/all_cn.txt"
 
 ----chnroute6 URL
-o = s:option(ListValue, "chnroute6_url", translate("China IPv6s(chnroute6) Update URL"))
+o = s:option(Value, "chnroute6_url", translate("China IPv6s(chnroute6) Update URL"))
 o:value("https://ispip.clang.cn/all_cn_ipv6.txt", translate("Clang.CN.IPv6"))
-o:value("https://fastly.jsdelivr.net/gh/sirpdboy/iplist@main/all_cn_ipv6.txt", translate("sirpdboy/all_cn_ipv6"))
-o.default = "https://ispip.clang.cn/all_cn_ipv6.txt"
-
+o:value("https://fastly.jsdelivr.net/gh/gaoyifan/china-operator-ip@ip-lists/china6.txt", translate("gaoyifan/china-ipv6"))
+o:value("https://fastly.jsdelivr.net/gh/sirpdboy/iplist@release/all_cn_ipv6.txt", translate("sirpdboy/all_cn_ipv6"))
+o.default = "https://fastly.jsdelivr.net/gh/sirpdboy/iplist@release/all_cn_ipv6.txt"
 o = s:option(Button, "UpdateRule", translate("Update All Rule List"))
 o.inputstyle = "apply"
 function o.write(t, n)
-    luci.sys.call("/usr/share/bypass/update  > /dev/null 2>&1 &")
+    luci.sys.call("/usr/share/bypass/update > /dev/null 2>&1 &")
     luci.http.redirect(url("log"))
 end
 
@@ -107,6 +106,6 @@ for _,key in pairs(key_table) do o:value(key,server_table[key]) end
 
 o=s:option(Value,"local_port",translate("Local Port"))
 o.datatype="port"
+o.default = 1080
 o.placeholder=1080
-
 return m

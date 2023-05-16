@@ -22,11 +22,11 @@ table.sort(key_table)
 s = m:section(TypedSection, 'global')
 s.anonymous=true
 
-o=s:option(ListValue,"global_server",translate("Main Server"))
-o:value("",translate("Disable"))
+o=s:option(ListValue,"global_server","<a style='color: red'>" .. translate("Main Server").. "</a>")
+o:value("", translate("Disable"))
 for _,key in pairs(key_table) do o:value(key,server_table[key]) end
 
-o=s:option(ListValue,"udp_relay_server",translate("UDP Server"))
+o=s:option(ListValue,"udp_relay_server","<a style='color: red'>" .. translate("UDP Server").. "</a>")
 o:value("",translate("Disable"))
 o:value("same",translate("Same as Global Server"))
 for _,key in pairs(key_table) do o:value(key,server_table[key]) end
@@ -58,10 +58,6 @@ o:value("router",translate("Smart Mode"))
 o:value("gfw",translate("GFW List Mode"))
 o:value("all",translate("Global Mode"))
 o:value("oversea",translate("Oversea Mode"))
-
-o=s:option(Flag,"gfw_mode",translate("Load GFW List"),
-translate("If the domestic DNS does not hijack foreign domain name to domestic IP, No need to be enabled"))
-o:depends("run_mode","router")
 
 if luci.sys.call("test `grep MemTotal /proc/meminfo | awk '{print $2}'` -gt 233000") == 0 then
 o=s:option(Flag,"adguardhome",translate("Used with AdGuardHome"),

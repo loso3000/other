@@ -3,18 +3,11 @@
 NAME=bypass
 
 log(){
-	 echo "$(date +'%Y-%m-%d %H:%M:%S')By Rules : $*" >> /var/log/$NAME.log
+	 echo "$(date +'%Y-%m-%d %H:%M:%S') By Rules     : $*" >> /tmp/$NAME.log
 }
 
 while ! curl -so /dev/null -m 3 www.baidu.com;do
+	log "Please Check network ..."
 	sleep 1
 done
-log "Check network status successful!"
-if [ -z "$(uci -q get $NAME.@global[0].global_server)" ];then
-	/etc/init.d/$NAME start &
-elif [ ! -s /tmp/$NAME/china.txt ] || ([ "$(uci -q get $NAME.@global[0].run_mode)" = gfw -o "$(uci -q get $NAME.@global[0].gfw_mode)" = 1 ] && [ ! -s /tmp/$NAME/gfw.list ]);then
-	log "Download First files checknetwork..."
-	/usr/share/$NAME/update --F &
-else
-	/etc/init.d/$NAME start &
-fi
+/etc/init.d/$NAME start &
