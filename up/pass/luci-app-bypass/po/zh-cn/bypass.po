@@ -770,6 +770,48 @@ msgstr "清除"
 msgid "To Top"
 msgstr "置顶"
 
+msgid "Taiwan"
+msgstr "台湾"
+
+msgid "Foreign DoT"
+msgstr "国外DoT"
+
+msgid "Domestic DoT"
+msgstr "国内DoT"
+
+msgid "Singapore"
+msgstr "新加坡"
+
+msgid "Japan"
+msgstr "日本"
+
+msgid "India"
+msgstr "印度"
+
+msgid "New York"
+msgstr "纽约"
+
+msgid "Germany"
+msgstr "德国"
+
+msgid "Main"
+msgstr "主要"
+
+msgid "IPV6 parsing mode"
+msgstr "IPV6解析模式"
+
+msgid "Choose the appropriate IPV6 parsing method, as the network is complex and not widely used. It is recommended to disable IPV6 parsing when the network is poor"
+msgstr "选择合适的IPV6解析方式，因网络复杂并未普及，网络不好时IPV6解析建议禁用"
+
+msgid "Only IPV6 parsing"
+msgstr "纯IPV6解析"
+
+msgid "IPv4 and IPv6 dual stack IP automatic optimization"
+msgstr "IPv4、IPv6双栈IP自动优选"
+
+msgid "Only IPV6 parsing"
+msgstr "纯IPV4解析"
+
 msgid "Used with AdGuardHome"
 msgstr "与AdGuardHome搭配使用"
 
