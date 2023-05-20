@@ -1,0 +1,75 @@
+#!/bin/sh
+[ "$1" = --F ] && A=Y || A=N
+LOCKU=/var/lock/bypass-update.lock
+[ -f $LOCKU ] && exit 1
+touch $LOCKU
+DIR=/usr/share/bypass
+TMP=/etc/bypass
+
+chnroute_url=$(uci -q get bypass.@global_rules[0].chnroute_url)
+chnroute6_url=$(uci -q get bypass.@global_rules[0].chnroute6_url)
+gfwlist_url="$(uci -q get bypass.@global_rules[0].gfwlist_url)"
+
+log(){
+	echo "$(date +'%Y-%m-%d %H:%M:%S') $*" >> /var/log/bypass.log
+}
+
+
+echo '------------Update start------------' >> /var/log/bypass.log
+[ ! -d $TMP ] && mkdir -p $TMP 2>/dev/null
+	if [ $A = Y ];then
+		while ! (curl -kLfsm 5 -o /tmp/china.txt "${chnroute_url}"  || curl -kLfsm 3 -o /tmp/china.txt https://ispip.clang.cn/all_cn.txt);do
+			sleep 1
+		done
+	else
+		curl -kLfsm 5 -o /tmp/china.txt  "${chnroute_url}" || curl -kLfsm 3 -o /tmp/china.txt https://ispip.clang.cn/all_cn.txt
+	fi
+	[[ -f /tmp/china.txt && $? == 0 ]] && {
+	if ! cmp -s /tmp/china.txt $TMP/china.txt;then
+			cp -f /tmp/china.txt $TMP/china.txt
+			log "By Update  : Updated China IPv4 List Total Number of Items :`cat /etc/bypass/china.txt | wc -l` "
+		[ $A = N ] && ipset list china_v4 >/dev/null 2>&1 && $DIR/chinaipset
+
+	else
+			log "By Update  : China IPv4 List Total Number of Items  :` cat /etc/bypass/china.txt | wc -l` "
+	fi
+	}
+	if [ $A = Y ];then
+		while ! (curl -kLfsm 3 -o /tmp/gfw.b64 "${gfwlist_url}" || curl -kLfsm 3 -o /tmp/gfw.b64 https://supes.top/bypass/gfwlist.txt );do
+			sleep 1
+		done
+	else
+		curl -kLfsm 3 -o /tmp/gfw.b64 "${gfwlist_url}" || curl -kLfsm 3 -o /tmp/gfw.b64 https://supes.top/bypass/gfwlist.txt
+	fi
+	[[ -f /tmp/gfw.b64 && $? == 0 ]] && {
+	   $DIR/by-gfw  >/dev/null 2>&1
+	   if ! cmp -s /tmp/gfwnew.txt  $TMP/gfw.list ;then
+			cp -f /tmp/gfwnew.txt $TMP/gfw.list   >/dev/null 2>&1
+			log "By Update  : Updated GFW List Total Number of Items : `cat /etc/bypass/gfw.list | wc -l` "
+	   else
+			log "By Update  : GFW List Total Number of Items : `cat /etc/bypass/gfw.list | wc -l` "
+	   fi
+	}
+	if [ $A = Y ];then
+
+		while ! (curl -kLfsm 3 -o /tmp/china_v6.txt "${chnroute6_url}" || curl -kLfsm 3 -o /tmp/china_v6.txt https://ispip.clang.cn/all_cn_ipv6.txt );do
+			sleep 1
+		done
+	else
+		curl -kLfsm 3 -o /tmp/china_v6.txt "${chnroute6_url}" || curl -kLfsm 3 -o /tmp/china_v6.txt https://ispip.clang.cn/all_cn_ipv6.txt
+	fi
+	[[ -f /tmp/china_v6.txt && $? == 0 ]] && {
+	if ! cmp -s /tmp/china_v6.txt $TMP/china_v6.txt;then
+			cp -f /tmp/china_v6.txt $TMP/china_v6.txt 
+			log "By Update  : Updated China IPv6 List Total Number of Items :` cat /etc/bypass/china_v6.txt | wc -l` "
+		[ $A = N ] && ipset list china_v6 >/dev/null 2>&1 && $DIR/chinaipset v6
+	else
+			log "By Update  : China IPv6 List Total Number of Items :`cat /etc/bypass/china_v6.txt | wc -l)` "
+	fi
+	}
+
+log  "By Update  : Check or update IPV4/IPV6/GFW list complete!  "
+echo '------------Update  end------------' >> /var/log/bypass.log
+rm -f $LOCKU /tmp/china*.txt /tmp/gfwnew.txt /tmp/gfw.b64
+
+[ $A = Y ] && /etc/init.d/bypass start &
