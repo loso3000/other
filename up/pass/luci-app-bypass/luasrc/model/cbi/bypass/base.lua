@@ -64,8 +64,15 @@ o:value("oversea",translate("Oversea Mode"))
 o = s:taboption("Main",Flag,"gfw_mode",translate("Load GFW List"),
 translate("If the domestic DNS does not hijack foreign domain name to domestic IP, No need to be enabled"))
 o:depends("run_mode","router")
+
+
+o = s:taboption("Main",ListValue,"dports",translate("Proxy Ports"))
+o:value("1",translate("All Ports"))
+o:value("2",translate("Only Common Ports"))
+
+s:tab("DNS", translate("DNS"))
 if luci.sys.call("test `grep MemTotal /proc/meminfo | awk '{print $2}'` -gt 233000") == 0 then
-o = s:taboption("Main",Flag,"adguardhome",translate("Used with AdGuardHome"),
+o = s:taboption("DNS",Flag,"adguardhome",translate("Used with AdGuardHome"),
 translate("Luci-app-adguardhome require"))
 if luci.sys.call("test `which AdGuardHome` && test -r /etc/init.d/AdGuardHome") == 0 then
 o.default=1
@@ -73,12 +80,6 @@ else
 o.default=0
 end
 end
-
-o = s:taboption("Main",ListValue,"dports",translate("Proxy Ports"))
-o:value("1",translate("All Ports"))
-o:value("2",translate("Only Common Ports"))
-
-s:tab("DNS", translate("DNS"))
 
 o = s:taboption("DNS",ListValue,"proxy_ipv6_mode",translate("IPV6 parsing mode"), translate("Choose the appropriate IPV6 parsing method, as the network is complex and not widely used. It is recommended to disable IPV6 parsing when the network is poor"))
 o:value(1,translate("Only IPV4 parsing"))

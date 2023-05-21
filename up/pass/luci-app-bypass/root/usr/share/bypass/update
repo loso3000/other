@@ -9,7 +9,7 @@ TMP=/etc/bypass
 chnroute_url=$(uci -q get bypass.@global_rules[0].chnroute_url)
 chnroute6_url=$(uci -q get bypass.@global_rules[0].chnroute6_url)
 gfwlist_url="$(uci -q get bypass.@global_rules[0].gfwlist_url)"
-
+ad_smartdns_url="$(uci -q get bypass.@global_rules[0].ad_smartdns_url)"
 log(){
 	echo "$(date +'%Y-%m-%d %H:%M:%S') $*" >> /var/log/bypass.log
 }
@@ -28,7 +28,7 @@ echo '------------Update start------------' >> /var/log/bypass.log
 	if ! cmp -s /tmp/china.txt $TMP/china.txt;then
 			cp -f /tmp/china.txt $TMP/china.txt
 			log "By Update  : Updated China IPv4 List Total Number of Items :`cat /etc/bypass/china.txt | wc -l` "
-		[ $A = N ] && ipset list china_v4 >/dev/null 2>&1 && $DIR/chinaipset
+			[ $A = N ] && ipset list china_v4 >/dev/null 2>&1 && $DIR/chinaipset
 
 	else
 			log "By Update  : China IPv4 List Total Number of Items  :` cat /etc/bypass/china.txt | wc -l` "
@@ -67,9 +67,25 @@ echo '------------Update start------------' >> /var/log/bypass.log
 			log "By Update  : China IPv6 List Total Number of Items :`cat /etc/bypass/china_v6.txt | wc -l)` "
 	fi
 	}
+	
+	if [ $A = Y ];then
 
-log  "By Update  : Check or update IPV4/IPV6/GFW list complete!  "
-echo '------------Update  end------------' >> /var/log/bypass.log
+		while ! (curl -kLfsm 3 -o /tmp/ad_smartdns.txt "${ad_smartdns_url}" || curl -kLfsm 3 -o /tmp/china_v6.txt https://fastly.jsdelivr.net/gh/privacy-protection-tools/anti-AD/anti-ad-smartdns.conf );do
+			sleep 1
+		done
+	else
+		curl -kLfsm 3 -o /tmp/ad_smartdns.txt "${ad_smartdns_url}" || curl -kLfsm 3 -o /tmp/china_v6.txt https://fastly.jsdelivr.net/gh/privacy-protection-tools/anti-AD/anti-ad-smartdns.conf
+	fi
+	[[ -f /tmp/ad_smartdns.txt && $? == 0 ]] && {
+	if ! cmp -s /tmp/ad_smartdns.txt $TMP/ad_smartdns.txt;then
+			cp -f /tmp/ad_smartdns.txt $TMP/ad_smartdns.txt
+			log "By Update  : Smartdns anti-AD Update List Total Number of Items :` cat /etc/bypass/ad_smartdns.txt | wc -l` "
+	else
+			log "By Update  : Smartdns anti-AD List Total Number of Items :`cat /etc/bypass/ad_smartdns.txt | wc -l)` "
+	fi
+	}
+log  "By Update  : Check or update IPV4/IPV6/GFW/AD list complete!  "
+echo '------------Update end------------' >> /var/log/bypass.log
 rm -f $LOCKU /tmp/china*.txt /tmp/gfwnew.txt /tmp/gfw.b64
 
 [ $A = Y ] && /etc/init.d/bypass start &

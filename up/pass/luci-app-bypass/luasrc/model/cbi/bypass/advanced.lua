@@ -59,21 +59,29 @@ o.datatype="uinteger"
 o.default=3
 o:depends("enable_switch",1)
 
+o=s:option(Flag,"ad_smartdns",translate("Enable anti-AD smartdns"))
+o.default=1
+
 -- [[ Rule Settings ]]--
 s = m:section(TypedSection, "global_rules", translate("Rule status"))
 s.anonymous = true
 
-
+----ad_smartdns URL
+o = s:option(Value, "ad_smartdns_url", translate("Smartdns anti-AD Update URL"))
+o:value("https://anti-ad.net/anti-ad-for-smartdns.conf", translate("privacy-protection-tools/anti-AD"))
+o:value("https://fastly.jsdelivr.net/gh/sirpdboy/iplist@release/ad_smartdns.txt", translate("sirpdboy/ad_smartdns"))
+o.default = "https://fastly.jsdelivr.net/gh/sirpdboy/iplist@release/ad_smartdns.txt"
 ---- gfwlist URL
-o = s:option(Value, "gfwlist_url", translate("GFW domains(gfwlist) Update URL"))
+o = s:option(Value, "gfwlist_url", translate("GFW domains Update URL"))
 o:value("https://fastly.jsdelivr.net/gh/YW5vbnltb3Vz/domain-list-community@release/gfwlist.txt", translate("v2fly/domain-list-community"))
 o:value("https://fastly.jsdelivr.net/gh/Loukky/gfwlist-by-loukky/gfwlist.txt", translate("Loukky/gfwlist-by-loukky"))
 o:value("https://fastly.jsdelivr.net/gh/gfwlist/gfwlist/gfwlist.txt", translate("gfwlist/gfwlist"))
 o:value("https://fastly.jsdelivr.net/gh/sirpdboy/iplist@release/gfwlist.txt", translate("sirpdboy/gfwlist"))
 o.default = "https://fastly.jsdelivr.net/gh/sirpdboy/iplist@release/gfwlist.txt"
 
+
 ----chnroute  URL
-o = s:option(Value, "chnroute_url", translate("China IPs(chnroute) Update URL"))
+o = s:option(Value, "chnroute_url", translate("China IPv4 Update URL"))
 o:value("https://ispip.clang.cn/all_cn.txt", translate("Clang.CN"))
 o:value("https://ispip.clang.cn/all_cn_cidr.txt", translate("Clang.CN.CIDR"))
 o:value("https://fastly.jsdelivr.net/gh/Loyalsoldier/geoip@release/text/cn.txt", translate("Loyalsoldier/geoip-CN"))
@@ -84,7 +92,7 @@ o:value("https://fastly.jsdelivr.net/gh/sirpdboy/iplist@release/all_cn.txt", tra
 o.default = "https://fastly.jsdelivr.net/gh/sirpdboy/iplist@release/all_cn.txt"
 
 ----chnroute6 URL
-o = s:option(Value, "chnroute6_url", translate("China IPv6s(chnroute6) Update URL"))
+o = s:option(Value, "chnroute6_url", translate("China IPv6 Update URL"))
 o:value("https://ispip.clang.cn/all_cn_ipv6.txt", translate("Clang.CN.IPv6"))
 o:value("https://fastly.jsdelivr.net/gh/gaoyifan/china-operator-ip@ip-lists/china6.txt", translate("gaoyifan/china-ipv6"))
 o:value("https://fastly.jsdelivr.net/gh/sirpdboy/iplist@release/all_cn_ipv6.txt", translate("sirpdboy/all_cn_ipv6"))

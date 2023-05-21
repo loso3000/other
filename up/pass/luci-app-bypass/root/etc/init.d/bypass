@@ -12,6 +12,7 @@ LOC=/var/lock/bypass.lock
 SDNS=/var/etc/smartdns
 DNS_T=$SDNS/smartdns.conf
 CON_T=$SDNS/rules.conf
+CON_AD=$T_FILE/ad_smartdns.txt
 PID=/var/run/smartdns.pid
 LOG=/var/log/bypass.log
 
@@ -66,8 +67,7 @@ log(){
 }
 
 clean_log() {
-	local logsnum=$(cat $LOG  | wc -l)
-	[ "$logsnum" -gt 500 ] && {
+	[ `cat $LOG  | wc -l ` -gt 500 ] && {
 		echo "$(date "+%Y-%m-%d %H:%M:%S") LOG long ,clear log!" >$LOG
 	}
 }
@@ -249,17 +249,11 @@ preload(){
 	service_start $BIN_DIR/by-preload $run_mode $X $Y $Z
 }
 
-firstdown(){
-	[ $1 = 1 ] && A=$BIN_DIR/checknetwork && B=check
-	[ $1 = 2 ] && A=$BIN_DIR/update && B=--F
-	service_start ${A} ${B}
-}
-
 check_net(){
 	if ! curl -so /dev/null -m 3 www.baidu.com;then
 		log "Rules     :Wait for network to connect..."
 		/etc/init.d/dnsmasq restart
-		firstdown 1
+		$BIN_DIR/checknetwork check
 		exit 0
 	fi
 }
@@ -290,7 +284,7 @@ rules(){
 	mkdir -p /var/run $VAR
 	if [ ! -s $T_FILE/china.txt ] || [ ! -s $T_FILE/china_v6.txt ] || [ ! -s $T_FILE/gfw.list ];then
 		log "Download IP/GFW files..."
-		firstdown 2;exit 0;
+		$BIN_DIR/update --f ;exit 0;
 	fi
 	log "Rules      : Check IP/GFW files success!"
 	kcp_enable=$(uci_get_by_name $GLOBAL_SERVER kcp_enable 0)
@@ -886,17 +880,19 @@ gen_dns(){
 		        echo "force-AAAA-SOA no" >> $DNS_T
 			echo "dualstack-ip-selection yes" >> $DNS_T
 			echo "dualstack-ip-selection-threshold 100" >> $DNS_T
-			BINDIPV6=" -no-rule-addr  "
+			BINDIPV6=" "
 			BIND="bind [::]"
 			;;
 		 3)
 		        echo "force-AAAA-SOA no" >> $DNS_T
+			echo "dualstack-ip-selection no" >> $DNS_T
 			echo "dualstack-ip-allow-force-AAAA yes" >> $DNS_T
 			# echo "force-qtype-SOA 1" >> $DNS_T
 			BIND="bind [::]"
 			BINDIPV6=" -no-dualstack-selection "
 			;;
 	 	esac
+	[ `uci_get_by_type global ad_samrtdns 1 ` ] && echo "conf-file $CON_AD" >>$DNS_T || BINDIPV6="$BINDIPV6 -no-rule-addr"   # no AD
 	echo "${BIND}:5335 -group a -no-speed-check ${BINDIPV6} " >>$DNS_T
 	echo "${BIND}:5336 -group e ${BINDIPV6} " >>$DNS_T
 	if [ $dns_mode_o = "doh" ];then
@@ -955,7 +951,7 @@ gen_dns(){
 		awk '!/^$/&&!/^#/{printf("server=/%s/'"127.0.0.1#5335"'\n",$0)}' $T_FILE/oversea.list >$DNS_DIR/oversea.conf
 		[ "$dns_a" = 1 ] && echo "server=/$doh_o_dom/127.0.0.1#5335" >>$DNS_DIR/oversea.conf
 	else
-		[ $run_mode != gfw ] && echo -e "server=/msftconnecttest.com/127.0.0.1#5336\nserver=/msftncsi.com/127.0.0.1#5336" >> $DNS_FILE
+		# [ $run_mode != gfw ] && echo -e "server=/msftconnecttest.com/127.0.0.1#5336\nserver=/msftncsi.com/127.0.0.1#5336" >> $DNS_FILE  
 		if [ $run_mode != all ];then
 			cp -f $T_FILE/black.list $O
 			awk '!/^$/&&!/^#/{printf("server=/%s/'"127.0.0.1#5335"'\n",$0)}' $O >$DNS_DIR/black.conf
@@ -963,7 +959,7 @@ gen_dns(){
 				[ "$dns_a" = 1 ] && echo "server=/$doh_o_dom/127.0.0.1#5335" >>$DNS_DIR/black.conf
 				cp -f $T_FILE/gfw.list $O
 				awk '!/^$/&&!/^#/{printf("server=/%s/'"127.0.0.1#5335"'\n",$0)}' $O >>$DNS_DIR/black.conf
-				echo domain-set -name gfw-domain-rule-list -file $T_FILE/gfw.list >>$DNS_T
+				echo domain-set -name gfw-domain-rule-list -file $T_FILE/gfw.list >>$DNS_T   #gfw
 				echo domain-rules /domain-set:gfw-domain-rule-list/  -nameserver a -dualstack-ip-selection no -address #6 -ipset blacklist >>$DNS_T
 
 			fi
@@ -1006,7 +1002,8 @@ gen_dns(){
 	fi
 	[ -s $CON_T ] && echo "conf-file $CON_T" >>$DNS_T
 	rm -f $O
-	[ $(find $DNS_DIR -name \* -exec cat {} \; 2>/dev/null | wc -l) = 0 ] && rm -rf $DNS_DIR || echo "conf-dir=${DNS_DIR}" >>$DNS_FILE
+	[ $(find $DNS_DIR -name \* -exec cat {} \; 2>/dev/null | wc -l) = 0 ] && rm -rf $DNS_DIR
+	echo "conf-dir=${DNS_DIR}" >$DNS_FILE
 	[ $run_mode = router ] && chinadns_flag=1
 	killall -q -9 smartdns
 	start_dns
@@ -1088,7 +1085,7 @@ run_server(){
 	ss|ssr)
 		timeout=$(uci_get_by_name $1 timeout 60)
 		gen_service_file $1 $type $VAR/$name.json
-		$cmd -c $VAR/$name.json -u >>$log_file 2>&1 &
+		$cmd -c $VAR/$name.json -u >/dev/null 2>&1 &
 		[ $type = ss ] && name=Shadowsocks || name=ShadowsocksR
 		log "By server: $name Server$server_count Started!"
 		;;
@@ -1102,7 +1099,7 @@ run_server(){
 				return 1
 			fi
 		fi
-		$cmd -p $port $param $name >>$log_file 2>&1 &
+		$cmd -p $port $param $name >/dev/null 2>&1 &
 		log "By server: Socks5 Server$server_count Started!"
 		;;
 	esac

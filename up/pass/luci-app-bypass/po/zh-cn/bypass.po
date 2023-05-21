@@ -95,17 +95,20 @@ msgstr "加载GFW列表"
 msgid "GFW domains Update URL"
 msgstr "防火墙域名列表更新链接"
 
-msgid "China IPs Update URL"
+msgid "China IPv4 Update URL"
 msgstr "中国IPv4段更新链接"
 
-msgid "China IPv6s Update URL"
+msgid "China IPv6 Update URL"
 msgstr "中国IPv6段更新链接"
 
 msgid "If the domestic DNS does not hijack foreign domain name to domestic IP, No need to be enabled"
 msgstr "如果国内DNS未劫持国外域名返回国内的IP，不需要启用"
 
-msgid "Preload IP"
-msgstr "预加载IP"
+msgid "Smartdns anti-AD Update URL"
+msgstr "Smartdns去广告更新链接"
+
+msgid "Enable anti-AD smartdns"
+msgstr "启用Smartdns去广告功能"
 
 msgid "Preload Google and Telegram IP segments (GFW mode only)"
 msgstr "预加载谷歌与Telegram IP段(仅GFW模式生效)"
