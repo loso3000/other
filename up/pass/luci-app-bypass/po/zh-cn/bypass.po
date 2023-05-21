@@ -803,14 +803,14 @@ msgstr "IPV6解析模式"
 msgid "Choose the appropriate IPV6 parsing method, as the network is complex and not widely used. It is recommended to disable IPV6 parsing when the network is poor"
 msgstr "选择合适的IPV6解析方式，因网络复杂并未普及，网络不好时IPV6解析建议禁用"
 
-msgid "Only IPV6 parsing"
-msgstr "纯IPV6解析"
+msgid "Only IPV4 parsing"
+msgstr "纯IPV4解析"
 
 msgid "IPv4 and IPv6 dual stack IP automatic optimization"
 msgstr "IPv4、IPv6双栈IP自动优选"
 
 msgid "Only IPV6 parsing"
-msgstr "纯IPV4解析"
+msgstr "纯IPV6解析"
 
 msgid "Used with AdGuardHome"
 msgstr "与AdGuardHome搭配使用"

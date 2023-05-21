@@ -385,7 +385,7 @@ start_retcp(){
 		gen_config_file $GLOBAL_SERVER $rtype
 		redir_tcp=$threads
 		for i in $(seq 1 $threads);do
-			$cmd -c $config_file >$log_file 2>&1 &
+			$cmd -c $config_file >>$log_file 2>&1 &
 		done
 		[ $ttype = ss ] && name=Shadowsocks || name=ShadowsocksR
 		log "Main Node: $name $threads Threads Started!"
@@ -398,7 +398,7 @@ start_retcp(){
 			port=0
 		fi
 		gen_config_file $GLOBAL_SERVER $rtype $port $server
-		$cmd run -c $config_file >$log_file 2>&1 &
+		$cmd run -c $config_file >>$log_file 2>&1 &
 		log "Main Node: $($cmd -version | head -1 | awk '{print$1,$2}') Started!"
 		if [ "$socks5_start" = 1 ];then
 			log "Socks5 Node: $($cmd -version | head -1 | awk '{print$1,$2}') $ttype Started!"
@@ -413,7 +413,7 @@ start_retcp(){
 		fi
 		gen_config_file $GLOBAL_SERVER $rtype $port $server
 		sed -i 's/\\//g' $config_file
-		$cmd -c $config_file >$log_file 2>&1 &
+		$cmd -c $config_file >>$log_file 2>&1 &
 
 		log "Main Node: $($cmd -version | head -1 | awk '{print$1,$2}') Started!"
 		if [ "$socks5_start" = 1 ];then
@@ -429,7 +429,7 @@ start_retcp(){
 		fi
 		gen_config_file $GLOBAL_SERVER $rtype $port
 		
-		$cmd tuic-client --config $config_file >$log_file 2>&1 &
+		$cmd tuic-client --config $config_file >>$log_file 2>&1 &
 		$cmd ipt2socks -R -b 0.0.0.0 -4 -s 127.0.0.1 -p $tmp_tcp_local_port -l $port
 		log "Tuic   Node: $($cmd -version | head -1 | awk '{print$1,$2}') $ttype Started!"
 		;;
@@ -438,7 +438,7 @@ start_retcp(){
 		redir_tcp=$threads
 		sed -i 's/\\//g' $config_file
 		for i in $(seq 1 $threads);do
-			$cmd --config $config_file >$log_file 2>&1 &
+			$cmd --config $config_file >>$log_file 2>&1 &
 		done
 		name=Trojan-Plus
 		ver="$($cmd --version 2>&1 | head -1 | awk '{print$3}')"
@@ -446,7 +446,7 @@ start_retcp(){
 		;;
 	naiveproxy)
 		gen_config_file $GLOBAL_SERVER $rtype
-		$cmd --config $config_file >$log_file 2>&1 &
+		$cmd --config $config_file >>$log_file 2>&1 &
 		log "Main Node: $($cmd --version | head -1) Threads Started!"
 		;;
 	socks5)
@@ -454,7 +454,7 @@ start_retcp(){
 		$BIN_DIR/genred2config $VAR/redsocks-by-retcp.json socks5 tcp $local_port $server $(uci_get_by_name $GLOBAL_SERVER server_port) \
 		$(uci_get_by_name $GLOBAL_SERVER auth_enable 0) $(uci_get_by_name $GLOBAL_SERVER username) $(uci_get_by_name $GLOBAL_SERVER password)
 		for i in $(seq 1 $threads);do
-			$cmd -c $VAR/redsocks-by-retcp.json >$VAR/redsocks-by-retcp.log 2>&1
+			$cmd -c $VAR/redsocks-by-retcp.json >>$log_file 2>&1
 		done
 		log "Main Node: Socks5 $threads Threads Started!"
 		;;
@@ -462,7 +462,7 @@ start_retcp(){
 		redir_tcp=$threads
 		$BIN_DIR/genred2config $VAR/redsocks-by-retcp.json vpn $(uci_get_by_name $GLOBAL_SERVER iface br-lan) $local_port
 		for i in $(seq 1 $threads);do
-			$cmd -c $VAR/redsocks-by-retcp.json >$VAR/redsocks-by-retcp.log 2>&1
+			$cmd -c $VAR/redsocks-by-retcp.json >>$log_file 2>&1
 		done
 		log "Main Node: Network Tunnel $threads Threads Started!"
 		;;
@@ -482,18 +482,18 @@ start_reudp(){
 	case $utype in
 	ss|ssr)
 		gen_config_file $UDP_RELAY_SERVER $rtype
-		$cmd -c $config_file -U >$log_file 2>&1 &
+		$cmd -c $config_file -U >>$log_file 2>&1 &
 		[ $utype = ss ] && name=Shadowsocks || name=ShadowsocksR
 		log "UDP Node: $name  $utype Started!"
 		;;
 	v2ray)
 		gen_config_file $UDP_RELAY_SERVER $rtype 0 $udp_server
-		$cmd  run -c $config_file >$log_file 2>&1 &
+		$cmd  run -c $config_file >>$log_file 2>&1 &
 		log "UDP Node: $($cmd -version | head -1 | awk '{print$1,$2}') $utype Started!"
 		;;
 	trojan)
 		gen_config_file $UDP_RELAY_SERVER $rtype "" $udp_server
-		$cmd --config $config_file >$log_file 2>&1 &
+		$cmd --config $config_file >>$log_file 2>&1 &
 		name=Trojan-Plus
 		ver="$($cmd --version 2>&1 | head -1 | awk '{print$3}')"
 		log "UDP Node: $name (Ver $ver) $utype Started!"
@@ -507,7 +507,7 @@ start_reudp(){
 	hysteria)
 	
 		gen_config_file $UDP_RELAY_SERVER $rtype 0 $udp_server
-		$cmd -c $config_file >$log_file 2>&1 &
+		$cmd -c $config_file >>$log_file 2>&1 &
 		log "UDP Node: $($cmd -version | head -1 | awk '{print$1,$2}') $utype Started!"
 		;;
 	tuic)
@@ -522,7 +522,7 @@ start_reudp(){
 	socks5)
 		$BIN_DIR/genred2config $VAR/redsocks-by-reudp.json socks5 udp $udp_local_port $udp_server \
 		$(uci_get_by_name $UDP_RELAY_SERVER server_port) $(uci_get_by_name $UDP_RELAY_SERVER auth_enable 0) $(uci_get_by_name $UDP_RELAY_SERVER username) $(uci_get_by_name $UDP_RELAY_SERVER password)
-		$cmd --config $VAR/redsocks-by-reudp.json >$VAR/redsocks-by-reudp.log 2>&1
+		$cmd --config $VAR/redsocks-by-reudp.json >>$log_file 2>&1
 		log "UDP Node: Socks5 Started!"
 		;;
 	tun)
@@ -544,23 +544,23 @@ start_renf(){
 	case $ntype in
 	ss|ssr)
 		gen_config_file $NF_SERVER $rtype
-		$cmd -c $config_file >$log_file 2>&1 &
+		$cmd -c $config_file >>$log_file 2>&1 &
 		[ $ntype = ss ] && name=Shadowsocks || name=ShadowsocksR
 		log "NF  Shunt : $name $ntype Started!"
 		;;
 	v2ray)
 		gen_config_file $NF_SERVER $rtype 0 $nf_ip
-		$cmd run -c $config_file >$log_file 2>&1 &
+		$cmd run -c $config_file >>$log_file 2>&1 &
 		log "NF  Shunt : $($cmd -version | head -1 | awk '{print$1,$2}') $ntype Started!"
 		;;
 	hysteria)
 		gen_config_file $NF_SERVER $rtype 0 $nf_ip
-		$cmd -c $config_file >$log_file 2>&1 &
+		$cmd -c $config_file >>$log_file 2>&1 &
 		log "NF  Shunt : $($cmd -version | head -1 | awk '{print$1,$2}') $ntype Started!"
 		;;
 	tuic)
 		gen_config_file $NF_SERVER $rtype 0 $nf_ip
-		$cmd tuic-client --config $config_file >$log_file 2>&1 &
+		$cmd tuic-client --config $config_file >>$log_file 2>&1 &
 		#ln_start_bin $(first_type ipt2socks) ipt2socks -R -b 0.0.0.0 -4 -s 127.0.0.1 -p $tmp_port -l $tmp_shunt_port
 		#ln_start_bin $(first_type dns2socks) dns2socks 127.0.0.1:$tmp_port 8.8.8.8:53 127.0.0.1:$tmp_shunt_dns_port -q
 		log "NF  Shunt : $($cmd -version | head -1 | awk '{print$1,$2}') $ntype Started!"
@@ -568,7 +568,7 @@ start_renf(){
 		;;
 	trojan)
 		gen_config_file $NF_SERVER $rtype "" $nf_ip
-		$cmd --config $config_file >$log_file 2>&1 &
+		$cmd --config $config_file >>$log_file 2>&1 &
 		[ $ntype = trojan ] && {
 			name=Trojan-Plus
 			ver="$($cmd --version 2>&1 | head -1 | awk '{print$3}')"
@@ -577,18 +577,18 @@ start_renf(){
 		;;
 	naiveproxy)
 		gen_config_file $NF_SERVER $rtype
-		$cmd --config $config_file >$log_file 2>&1 &
+		$cmd --config $config_file >>$log_file 2>&1 &
 		log "NF  Shunt : $($cmd --version | head -1) $ntype Started!"
 		;;
 	socks5)
 		$BIN_DIR/genred2config $VAR/redsocks-by-nf.json socks5 tcp $nf_local_port $nf_ip $(uci_get_by_name $NF_SERVER server_port) \
 		$(uci_get_by_name $NF_SERVER auth_enable 0) $(uci_get_by_name $NF_SERVER username) $(uci_get_by_name $NF_SERVER password)
-		$cmd -c $VAR/redsocks-by-nf.json >$VAR/redsocks-by-nf.log 2>&1
+		$cmd -c $VAR/redsocks-by-nf.json >>$log_file 2>&1
 		log "NF  Shunt : $ntype Started!"
 		;;
 	tun)
 		$BIN_DIR/genred2config $VAR/redsocks-by-nf.json vpn $(uci_get_by_name $NF_SERVER iface "br-lan") $nf_local_port
-		$cmd -c $VAR/redsocks-by-nf.json >$VAR/redsocks-by-nf.log 2>&1
+		$cmd -c $VAR/redsocks-by-nf.json >>$log_file 2>&1
 		log "NF  Shunt : Network Tunnel REDIRECT $ntype Started!"
 		;;
 	esac
@@ -609,23 +609,23 @@ start_local(){
 	case $type in
 	ss|ssr)
 		gen_config_file $SO_SERVER $rtype
-		$cmd -c $config_file -u >/dev/null 2>&1 &
+		$cmd -c $config_file -u >>$log_file 2>&1 &
 		[ $type = ss ] && name=Shadowsocks || name=ShadowsocksR
 		log "Socks5 Node: $name $type Started!"
 		;;
 	v2ray)
 		gen_config_file $SO_SERVER $rtype $socks5_port $socks5_ip
-		$cmd run -c $config_file >$log_file 2>&1 &
+		$cmd run -c $config_file >>$log_file 2>&1 &
 		log "Socks5 Node: $($cmd -version | head -1 | awk '{print$1,$2}') $type Started!"
 		;;
 	hysteria)
 		gen_config_file $SO_SERVER $rtype $socks5_port $socks5_ip
-		$cmd -c $config_file >$log_file 2>&1 &
+		$cmd -c $config_file >>$log_file 2>&1 &
 		log "Socks5 Node: $($cmd -version | head -1 | awk '{print$1,$2}') $type Started!"
 		;;
 	trojan)
 		gen_config_file $SO_SERVER $rtype "" $socks5_ip
-		$cmd --config $config_file >$log_file 2>&1 &
+		$cmd --config $config_file >>$log_file 2>&1 &
 		[ $type = trojan ] && {
 			name=Trojan-Plus
 			ver="$($cmd --version 2>&1 | head -1 | awk '{print$3}')"
@@ -634,12 +634,12 @@ start_local(){
 		;;
 	tuic)
 		gen_config_file $SO_SERVER $rtype $socks5_port $socks5_ip
-		$cmd tuic-client --config $config_file >$log_file 2>&1 &
+		$cmd tuic-client --config $config_file >>$log_file 2>&1 &
 		log "Tuic   Node: $($cmd -version | head -1 | awk '{print$1,$2}') $type Started!"
 		;;
 	naiveproxy)
 		gen_config_file $SO_SERVER $rtype
-		$cmd --config $config_file >$log_file 2>&1 &
+		$cmd --config $config_file >>$log_file 2>&1 &
 		log "Socks5 Node: $($cmd --version | head -1) $type Started!"
 		;;
 	esac
@@ -928,17 +928,17 @@ gen_dns(){
 	fi
 
 	if [ $dns_mode_d = "doh" ];then
-			echo $doh_d_a| sed 's/,/\n/g' | sed -e 's/^/server-https /g' -e 's/$/ -group e-bootstrap-dns/g' >> $DNS_T
+			#echo $doh_d_a| sed 's/,/\n/g' | sed -e 's/^/server-https /g' -e 's/$/ -group e-bootstrap-dns/g' >> $DNS_T
 			echo $doh_d_a| sed 's/,/\n/g' | sed -e 's/^/server-https /g' -e 's/$/ -group e -exclude-default-group/g' >> $DNS_T
-			for i in $doh_d_b;do echo "server $i -group f -bootstrap-dns -exclude-default-group" >>$DNS_T;done
+			#for i in $doh_d_b;do echo "server $i -group f -bootstrap-dns -exclude-default-group" >>$DNS_T;done
 			doh_d_dom=$(echo $doh_d_a | awk -'F[/:]' '{print$4}')
 			echo "domain-rules /$doh_d_dom/ -nameserver f -ipset ss_spec_wan_ac" >>$DNS_T
 	elif [ $dns_mode_d = "dot" ];then
-			echo $dot_d_a| sed 's/,/\n/g' | sed -e 's/^/server-tls /g' -e 's/$/ -group e -bootstrap-dns/g' >> $DNS_T
+			#echo $dot_d_a| sed 's/,/\n/g' | sed -e 's/^/server-tls /g' -e 's/$/ -group e -bootstrap-dns/g' >> $DNS_T
 			echo $dot_d_a| sed 's/,/\n/g' | sed -e 's/^/server-tls /g' -e 's/$/ -group e -exclude-default-group/g' >> $DNS_T
 			for i in $dot_d_b;do echo "server $i -group f  -exclude-default-group" >>$DNS_T;done
 	else
-		for i in $udp_dns_d;do  echo "server $i -group e -bootstrap-dns" >>$DNS_T;done
+		#for i in $udp_dns_d;do  echo "server $i -group e -bootstrap-dns" >>$DNS_T;done
 		for i in $udp_dns_d;do  echo "server $i -group e -exclude-default-group" >>$DNS_T;done
 	fi
 	case $run_mode in
@@ -1088,7 +1088,7 @@ run_server(){
 	ss|ssr)
 		timeout=$(uci_get_by_name $1 timeout 60)
 		gen_service_file $1 $type $VAR/$name.json
-		$cmd -c $VAR/$name.json -u >/dev/null 2>&1 &
+		$cmd -c $VAR/$name.json -u >>$log_file 2>&1 &
 		[ $type = ss ] && name=Shadowsocks || name=ShadowsocksR
 		log "By server: $name Server$server_count Started!"
 		;;
@@ -1102,7 +1102,7 @@ run_server(){
 				return 1
 			fi
 		fi
-		$cmd -p $port $param $name >/dev/null 2>&1 &
+		$cmd -p $port $param $name >>$log_file 2>&1 &
 		log "By server: Socks5 Server$server_count Started!"
 		;;
 	esac
