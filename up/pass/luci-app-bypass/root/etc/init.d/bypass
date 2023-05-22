@@ -789,7 +789,6 @@ gen_dns(){
 
 	if [ $dns_mode_d = "doh" ];then
 		doh_dns_d=$(uci_get_by_type global doh_dns_d alidns)
-		
 		log "SmartDNS : Use $doh_dns_d start in $dns_mode_d mode (Domestic DNS)"
 		case $doh_dns_d in
 		alidns)
@@ -813,8 +812,6 @@ gen_dns(){
 			fi;;
 		esac
 		dns_c=1
-
-		for i in $dns_d;do ipset add ss_spec_wan_ac $i 2>/dev/null;done
 	elif  [ $dns_mode_d = "dot" ];then
 		dot_dns_d=$(uci_get_by_type global dot_dns_d alidns)
 		log "SmartDNS : Use $dot_dns_d start in $dns_mode_d mode (Domestic DNS)"
@@ -839,7 +836,6 @@ gen_dns(){
 				dns_d="223.5.5.5,223.6.6.6,2400:3200::1,2400:3200:baba::1"
 			fi;;
 		esac
-		for i in $dns_d;do ipset add ss_spec_wan_ac $i 2>/dev/null;done
 	else
 		udp_dns_d=$(uci_get_by_type global udp_dns_d 223.5.5.5,223.6.6.6)
 		log "SmartDNS : Use $udp_dns_d start in $dns_mode_d mode (Domestic DNS)"
@@ -851,8 +847,7 @@ gen_dns(){
 			[ ! "$udp_dns_d" ] && log "SmartDNS : Get isp $udp_dns_d Domestic DNS failed!" && return 1
 		fi
 		udp_d=$(echo $udp_dns_d | sed -e 's/，/,/g' -e 's/。/./g' -e 's/：/:/g' -e 's/,/\n/g')
-		# udp_d=$(echo $dns_d | grep -E -o "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+" | grep -v 0.0.0.0 | grep -v 127.0.0.1)
-		for i in $udp_d;do ipset add ss_spec_wan_ac $i 2>/dev/null;done
+		dns_d=$(echo $udp_dns_d | sed -e 's/，/,/g' -e 's/。/./g' -e 's/：/:/g' -e 's/,/\n/g')
 	fi
 	smartdns_flag=1
 	ipv6mode=$(uci_get_by_type global proxy_ipv6_mode 1)
@@ -869,7 +864,6 @@ gen_dns(){
 		log-file $LOG
 		max-reply-ip-num 3
 		cache-file /tmp/bysmartdns.cache
-		log-level off
 	EOF
 	case $ipv6mode in
 		 1)   
@@ -900,7 +894,7 @@ gen_dns(){
 
 	if [ $dns_mode_o = "doh" ];then
 		echo $doh_o | sed 's/,/\n/g' | sed -e 's/^/server-https /g' -e 's/$/ -group a  -exclude-default-group/g' >> $DNS_T
-		doh_o_dom=$(echo $doh_o | sed 's/,/\n/g' | awk '-F[/:]' '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$")
+		doh_o_dom=$(echo $doh_o | sed 's/,/\n/g' | awk '-F[/:]' '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$" | grep -Ev "\[[0-9]")
 			if [ "$doh_o_dom" ];then
 			   for i in $doh_o_dom;do
 				case $run_mode in
@@ -911,12 +905,13 @@ gen_dns(){
 			fi
 		if [ -n "$NF" ];then
 			echo $doh_nf | sed 's/,/\n/g' | sed -e 's/^/server-https /g' -e 's/$/ -group c -exclude-default-group/g' >> $DNS_T
-			doh_nf_dom=$(echo $doh_nf | sed 's/,/\n/g' | awk '-F[/:]' '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$")
+			doh_nf_dom=$(echo $doh_nf | sed 's/,/\n/g' | awk '-F[/:]' '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$" | grep -Ev "\[[0-9]")
+
 			for i in $doh_nf_dom;do echo "domain-rules /$i/ -nameserver d -ipset netflix" >> $DNS_T;done
 		fi
 	else
 		echo $dot_o | sed 's/,/\n/g' | sed -e 's/^/server-tls /g' -e 's/$/ -group a  -exclude-default-group/g' >> $DNS_T
-		doh_o_dom=$(echo $dot_o | sed 's/,/\n/g' | awk '-F[/:]' '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$")
+		dot_o_dom=$(echo $dot_o | sed 's/,/\n/g' | awk '-F[/:]' '{print$1}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$" | grep -Ev "\[[0-9]")
 		[ "$dot_o_dom" ] && {
 			   for i in $dot_o_dom;do
 				case $run_mode in
@@ -927,37 +922,33 @@ gen_dns(){
 		}
 		[ -n "$NF" ] && {
 			echo $dot_nf | sed 's/,/\n/g' | sed -e 's/^/server-https /g' -e 's/$/ -group c -exclude-default-group/g' >> $DNS_T
-			dot_nf_dom=$(echo $dot_nf | sed 's/,/\n/g' | awk '-F[/:]' '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$")
+			dot_nf_dom=$(echo $dot_nf | sed 's/,/\n/g' | awk '-F[/:]' '{print$1}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$" | grep -Ev "\[[0-9]")
 			for i in $dot_nf_dom;do echo "domain-rules /$i/ -nameserver d -ipset netflix" >> $DNS_T;done
 		}
-		for i in $dns;do echo "server-tcp $i -group b -exclude-default-group" >>$DNS_T;done
 		[ -n "$NF" ] && for i in $dot_dns_nf;do echo "server-tcp $i -group c -exclude-default-group" >>$DNS_T;done
 	fi
 
-	# dns
-	# for i in $dns_d;do ipset add ss_spec_wan_ac $i 2>/dev/null;done
-	# for i in $dns;do echo "server-tcp $i -group b -exclude-default-group" >>$DNS_T;done
 	echo -e "nameserver /dnsleaktest.com/b\nnameserver /whrq.net/b\nnameserver /speedtest.net/b\nnameserver /ooklaserver.net/b\nnameserver /in-addr.arpa/b" >> $DNS_T
 	# echo -e "nameserver /dnsleaktest.com/a\nnameserver /whrq.net/a\nnameserver /speedtest.net/a\nnameserver /ooklaserver.net/a\nnameserver /in-addr.arpa/a" >> $DNS_T
 	if [ $dns_mode_d = "doh" ];then
 		echo $doh_d | sed 's/,/\n/g' | sed -e 's/^/server-https /g' -e 's/$/ -group e  -exclude-default-group/g' >> $DNS_T
-		#echo $doh_d | sed 's/,/\n/g' | sed -e 's/^/server-https /g' -e 's/$/ -group e -bootstrap-dns/g' >> $DNS_T
-		doh_d_dom=$(echo $doh_d | sed 's/,/\n/g' | awk '-F[/:]' '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$")
+		doh_d_dom=$(echo $doh_d | sed 's/,/\n/g' | awk '-F[/:]' '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$" | grep -Ev "\[[0-9]")
 		[ "$doh_d_dom" ] && for i in $doh_d_dom;do echo "domain-rules /$i/ -nameserver f -ipset ss_spec_wan_ac" >>$DNS_T;done
-
-		for i in $dns_d;do echo "server $i -group f -exclude-default-group" >>$DNS_T;done
 	elif [ $dns_mode_d = "dot" ];then
 		echo $dot_d | sed 's/,/\n/g' | sed -e 's/^/server-https /g' -e 's/$/ -group e  -exclude-default-group/g' >> $DNS_T
-		#echo $dot_d | sed 's/,/\n/g' | sed -e 's/^/server-https /g' -e 's/$/ -group e -bootstrap-dns/g' >> $DNS_T
-		dot_d_dom=$(echo $dot_d | sed 's/,/\n/g' | awk '-F[/:]' '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$")
+		dot_d_dom=$(echo $dot_d | sed 's/,/\n/g' | awk '-F[/:]' '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$" | grep -Ev "\[[0-9]")
 		[ "$dot_d_dom" ] && for i in $dot_d_dom;do echo "domain-rules /$i/ -nameserver f -ipset ss_spec_wan_ac" >>$DNS_T;done
-		for i in $dns_d;do echo "server $i -group f -exclude-default-group" >>$DNS_T;done
+		
 
-	else
-		#for i in $udp_d;do  echo "server $i -group e -bootstrap-dns" >>$DNS_T;done	
+	else	
 		for i in $udp_d;do  echo "server $i -group e -exclude-default-group" >>$DNS_T;done
 	fi
 	
+	# dns
+	for i in $dns;do echo "server-tcp $i -group b" >>$DNS_T;done
+	for i in $dns_d;do echo "server $i -group f " >>$DNS_T;done
+	# for i in $dns_d;do echo "server $i -group f -bootstrap-dns" >>$DNS_T;done
+	for i in $dns_d;do ipset add ss_spec_wan_ac $i 2>/dev/null;done
 	
 	case $run_mode in
 		all)port=5335;;
@@ -973,7 +964,7 @@ gen_dns(){
 		awk '!/^$/&&!/^#/{printf("server=/%s/'"127.0.0.1#5335"'\n",$0)}' $T_FILE/oversea.list >$DNS_DIR/oversea.conf
 		[ "$dns_a" = 1 ] && echo "server=/$doh_o_dom/127.0.0.1#5335" >>$DNS_DIR/oversea.conf
 	else
-		# [ $run_mode != gfw ] && echo -e "server=/msftconnecttest.com/127.0.0.1#5336\nserver=/msftncsi.com/127.0.0.1#5336" >> $DNS_FILE  
+		[ $run_mode != gfw ] && echo -e "server=/msftconnecttest.com/127.0.0.1#5336\nserver=/msftncsi.com/127.0.0.1#5336" >> $DNS_FILE  
 		if [ $run_mode != all ];then
 			cp -f $T_FILE/black.list $O
 			awk '!/^$/&&!/^#/{printf("server=/%s/'"127.0.0.1#5335"'\n",$0)}' $O >$DNS_DIR/black.conf
@@ -1044,21 +1035,14 @@ start_switch(){
 }
 
 add_cron(){
-	if ! grep -q $LOG $CRON_FILE;then
-		echo "0 1 * * * rm -f $LOG" >>$CRON_FILE
-		A=1
-	fi
 	if [ $(uci_get_by_type server_subscribe auto_update 0) = 1 ];then
 		if ! grep -wq "$(uci_get_by_type server_subscribe auto_update_time 6) \* \* \* .*$BIN_DIR" $CRON_FILE;then
 			eval $CRON
 			echo "0 $(uci_get_by_type server_subscribe auto_update_time 6) * * * $BIN_DIR/update" >>$CRON_FILE
 			echo "5 $(uci_get_by_type server_subscribe auto_update_time 6) * * * $BIN_DIR/subscribe" >>$CRON_FILE
-			A=1
+			[ "$A" = 1 ] && /etc/init.d/cron restart
 		fi
-	else
-		eval $CRON && A=1
 	fi
-	[ "$A" = 1 ] && /etc/init.d/cron restart
 }
 
 gen_service_file(){
