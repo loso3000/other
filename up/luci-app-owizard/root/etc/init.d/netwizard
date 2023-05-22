@@ -17,6 +17,75 @@ boot() {
 	XBOOT=1 start
 }
 
+setipv6() {
+	case $1 in
+		0) 
+			uci -q delete network.wan6
+			uci -q set dhcp.lan.ra=''
+			uci -q set dhcp.lan.dhcpv6=''
+			uci -q set dhcp.lan.ndp=''
+			uci -q set dhcp.@dnsmasq[0].filter_aaaa="1"
+			uci -q set dhcp.lan.force='1'
+			uci -q set network.wan.ipv6='0'
+			uci -q set network.wan.delegate='0'
+			uci -q set network.lan.delegate='0'
+			uci -q delete network.globals.ula_prefix
+		;;
+		1)
+			uci -q set dhcp.lan.ra='server'
+			uci -q set dhcp.lan.dhcpv6='server'
+			uci -q delete dhcp.@dnsmasq[0].filter_aaaa
+			uci -q set dhcp.lan.ndp=''
+			uci -q set dhcp.lan.ra_management='1'
+			uci -q set dhcp.lan.ra_default='1'
+			uci -q set dhcp.lan.force='1'
+			uci -q set network.wan.ipv6='auto'
+			uci -q set network.wan.delegate='0'
+			uci -q set network.lan.delegate='0'
+		;;
+		2)
+			uci -q set dhcp.lan.ra='relay'
+			uci -q set dhcp.lan.dhcpv6='relay'
+			uci -q set dhcp.lan.ndp='relay'
+			uci -q delete dhcp.@dnsmasq[0].filter_aaaa
+			uci -q set dhcp.lan.ndp=''
+			uci -q set dhcp.lan.ra_management='1'
+			uci -q set dhcp.lan.ra_default='1'
+			uci -q set dhcp.lan.force='1'
+			uci -q set network.wan.ipv6='auto'
+			uci -q set network.wan.delegate='0'
+			uci -q set network.lan.delegate='0'
+		;;
+		3)
+			uci -q set dhcp.lan.ra='hybrid'
+			uci -q set dhcp.lan.dhcpv6='hybrid'
+			uci -q set dhcp.lan.ndp='hybrid'
+			uci -q delete dhcp.@dnsmasq[0].filter_aaaa
+			uci -q set dhcp.lan.ndp=''
+			uci -q set dhcp.lan.ra_management='1'
+			uci -q set dhcp.lan.ra_default='1'
+			uci -q set dhcp.lan.force='1'
+			uci -q set network.wan.ipv6='auto'
+			uci -q set network.wan.delegate='0'
+			uci -q set network.lan.delegate='0'
+		;;
+		4)
+		    opkg update
+		    opkg remove --force-depends kmod-nf-reject6 kmod-nf-nat6 kmod-nf-ipt6 kmod-ip6tables odhcp6c \
+		    luci-proto-ipv6 ip6tables kmod-ipt-nat6 ip6tables-mod-nat odhcpd-ipv6only ipv6helper
+		    uci -q delete dhcp.lan.dhcpv6
+		    uci -q delete dhcp.lan.ndp
+		    uci -q delete dhcp.lan.ra
+		    uci -q delete dhcp.lan.ra_management
+		    uci -q delete dhcp.lan.ra_default
+		    uci -q delete network.wan6
+		    # Enable IPV6 ula prefix
+		    sed -i 's/#.*\toption ula/\toption ula/g' /etc/config/network
+		    # Enable IPV6 dns resolution
+		    uci -q set dhcp.@dnsmasq[0].filter_aaaa=1
+		;;
+	esac
+}
 add_netwizard() {
 	[ "x$XBOOT" = "x1" ] && return 0
 	local cfg="$1"
@@ -48,7 +117,7 @@ add_netwizard() {
 	uci -q set network.wan=interface
 	uci -q set network.wan6=interface
 	uci -q set network.wan6.proto='dhcpv6'
-	uci -q set network.wan6.delegate='0'
+	uci -q set network.wan6.delegate='1'
 	sed -i '/j MASQUERADE/d' /etc/firewall.user
 	a=$(ip address | awk -F ': ' '/eth[0-9]+/ {print $2}' )
 	b=$(echo "$a" | wc -l)
@@ -123,72 +192,7 @@ add_netwizard() {
 		uci -q set network.lan.ipaddr="${lan_ipaddr}"
 		uci -q set network.lan.netmask="${lan_netmask}"
 	}
-	case $ipv6 in
-		0) 
-			uci -q delete network.wan6
-			uci -q set dhcp.lan.ra=''
-			uci -q set dhcp.lan.dhcpv6=''
-			uci -q set dhcp.lan.ndp=''
-			uci -q set dhcp.@dnsmasq[0].filter_aaaa="1"
-			uci -q set dhcp.lan.force='1'
-			uci -q set network.wan.ipv6='0'
-			uci -q set network.wan.delegate='0'
-			uci -q set network.lan.delegate='0'
-			uci -q delete network.globals.ula_prefix
-		;;
-		1)
-			uci -q set dhcp.lan.ra='server'
-			uci -q set dhcp.lan.dhcpv6='server'
-			uci -q delete dhcp.@dnsmasq[0].filter_aaaa
-			uci -q set dhcp.lan.ndp=''
-			uci -q set dhcp.lan.ra_management='1'
-			uci -q set dhcp.lan.ra_default='1'
-			uci -q set dhcp.lan.force='1'
-			uci -q set network.wan.ipv6='auto'
-			uci -q set network.wan.delegate='0'
-			uci -q set network.lan.delegate='0'
-		;;
-		2)
-			uci -q set dhcp.lan.ra='relay'
-			uci -q set dhcp.lan.dhcpv6='relay'
-			uci -q set dhcp.lan.ndp='relay'
-			uci -q delete dhcp.@dnsmasq[0].filter_aaaa
-			uci -q set dhcp.lan.ndp=''
-			uci -q set dhcp.lan.ra_management='1'
-			uci -q set dhcp.lan.ra_default='1'
-			uci -q set dhcp.lan.force='1'
-			uci -q set network.wan.ipv6='auto'
-			uci -q set network.wan.delegate='0'
-			uci -q set network.lan.delegate='0'
-		;;
-		3)
-			uci -q set dhcp.lan.ra='hybrid'
-			uci -q set dhcp.lan.dhcpv6='hybrid'
-			uci -q set dhcp.lan.ndp='hybrid'
-			uci -q delete dhcp.@dnsmasq[0].filter_aaaa
-			uci -q set dhcp.lan.ndp=''
-			uci -q set dhcp.lan.ra_management='1'
-			uci -q set dhcp.lan.ra_default='1'
-			uci -q set dhcp.lan.force='1'
-			uci -q set network.wan.ipv6='auto'
-			uci -q set network.wan.delegate='0'
-			uci -q set network.lan.delegate='0'
-		;;
-		4)
-		    opkg update
-		    opkg remove --force-depends kmod-nf-reject6 kmod-nf-nat6 kmod-nf-ipt6 kmod-ip6tables odhcp6c luci-proto-ipv6 ip6tables kmod-ipt-nat6 ip6tables-mod-nat odhcpd-ipv6only ipv6helper
-		    uci -q delete dhcp.lan.dhcpv6
-		    uci -q delete dhcp.lan.ndp
-		    uci -q delete dhcp.lan.ra
-		    uci -q delete dhcp.lan.ra_management
-		    uci -q delete dhcp.lan.ra_default
-		    uci -q delete network.wan6
-		    # Enable IPV6 ula prefix
-		    sed -i 's/#.*\toption ula/\toption ula/g' /etc/config/network
-		    # Enable IPV6 dns resolution
-		    uci -q set dhcp.@dnsmasq[0].filter_aaaa=1
-		;;
-	esac
+	setipv6 $ipv6
 	sed -i '/--dport 53 -j REDIRECT --to-ports 53/d' /etc/firewall.user
 	[ "x$redirectdns" = "x1" ] && {
         	echo "iptables -t nat -A PREROUTING -p udp --dport 53 -j REDIRECT --to-ports 53" >> /etc/firewall.user
