@@ -28,8 +28,8 @@ flush_dns(){
 flush_r(){
 	flush_iptables nat
 	flush_iptables mangle
-	flush_dns udp
-	flush_dns tcp
+	#flush_dns udp
+	#flush_dns tcp
 	while ip rule del fwmark 1 lookup 100 2>/dev/null;do :;done
 	ip route del local 0.0.0.0/0 dev lo table 100 2>/dev/null
 	ipset -X ss_spec_wan_ac 2>/dev/null
@@ -188,7 +188,8 @@ EOF
 	fi
 }
 
-while getopts ":s:l:S:L:N:P:a:b:w:p:G:D:rczyf" arg;do
+while getopts ":s:l:S:L:N:P:a:b:w:p:G:D:rczf" arg;do
+#while getopts ":s:l:S:L:N:P:a:b:w:p:G:D:rczyf" arg;do
 	case $arg in
 		s)server=$OPTARG;;
 		l)local_port=$OPTARG;;

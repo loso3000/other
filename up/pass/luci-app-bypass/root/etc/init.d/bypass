@@ -349,9 +349,9 @@ rules(){
 
 	r=1
 	#  uci -q get bypass.@global[0].dns_overlan  
-	[ $(uci_get_by_type global dns_overlan 1) = 1 ] && OL=-y    
+	# [ $(uci_get_by_type global dns_overlan 1) = 1 ] && OL=-y    
 	while ! $BIN_DIR/by-rules -s "$server" -l "$local_port" -a "$ac_ips" -b "$(uci_get_by_type access_control wan_bp_ips)" -w "$(uci_get_by_type access_control wan_fw_ips)" \
-		-p "$(uci_get_by_type access_control lan_fp_ips)" -G "$(uci_get_by_type access_control lan_gm_ips)" -D "$proxyport" $mode $UDP $NF $OL;do
+		-p "$(uci_get_by_type access_control lan_fp_ips)" -G "$(uci_get_by_type access_control lan_gm_ips)" -D "$proxyport" $mode $UDP $NF;do
 		[ $r -ge 20 ] && log "Rules      : Start iptables rules failed!" && return 1
 		let r++;sleep 1
 	done
@@ -693,6 +693,12 @@ gen_dns(){
 			fi;;
 		esac
 		dns_a=1  #doh dns
+		for i in $dns;do
+			case $run_mode in
+			gfw|oversea) ipset add blacklist $i 2>/dev/null;;
+			*) ipset del ss_spec_wan_ac $i 2>/dev/null || ipset add ss_spec_wan_ac $i nomatch 2>/dev/null;;
+			esac
+		done
 		[ -n "$NF" ] && doh_dns_nf=google
 		if [ "$doh_dns_nf" = $doh_dns_o ];then
 			doh_dns_nf=cloudflare
@@ -707,6 +713,7 @@ gen_dns(){
 				dns_nf="8.8.4.4 8.8.8.8";;
 			esac
 			dns_b=1
+			for i in $dns_nf;do ipset add netflix $i 2>/dev/null;done
 		fi
 	else
 		dot_dns_o=$(uci_get_by_type global dot_dns_o cloudflare)
@@ -753,7 +760,13 @@ gen_dns(){
 				dns="1.1.1.1 1.0.0.1"
 			fi;;
 		esac
-
+	
+		for i in $dns;do
+			case $run_mode in
+			gfw|oversea) ipset add blacklist $i 2>/dev/null;;
+			*) ipset del ss_spec_wan_ac $i 2>/dev/null || ipset add ss_spec_wan_ac $i nomatch 2>/dev/null;;
+			esac
+		done
 		[ -n "$NF" ] && dot_dns_nf=google
 		if [ "$dot_dns_nf" = $dot_dns_o ];then
 			dot_dns_nf=cloudflare
@@ -769,6 +782,7 @@ gen_dns(){
 				dns_nf="8.8.4.4 8.8.8.8"
 				;;
 			esac
+	        for i in $dns_nf;do ipset add netflix $i 2>/dev/null;done
 		fi
 	
 	fi
@@ -800,6 +814,7 @@ gen_dns(){
 		esac
 		dns_c=1
 
+		for i in $dns_d;do ipset add ss_spec_wan_ac $i 2>/dev/null;done
 	elif  [ $dns_mode_d = "dot" ];then
 		dot_dns_d=$(uci_get_by_type global dot_dns_d alidns)
 		log "SmartDNS : Use $dot_dns_d start in $dns_mode_d mode (Domestic DNS)"
@@ -824,6 +839,7 @@ gen_dns(){
 				dns_d="223.5.5.5,223.6.6.6,2400:3200::1,2400:3200:baba::1"
 			fi;;
 		esac
+		for i in $dns_d;do ipset add ss_spec_wan_ac $i 2>/dev/null;done
 	else
 		udp_dns_d=$(uci_get_by_type global udp_dns_d 223.5.5.5,223.6.6.6)
 		log "SmartDNS : Use $udp_dns_d start in $dns_mode_d mode (Domestic DNS)"
@@ -832,10 +848,11 @@ gen_dns(){
 			[ -s $ref ] || ref=/tmp/resolv.conf.auto
 			udp_dns_d=$(cat $ref 2>/dev/null | grep nameserver | awk '{print$2}')
 
-			[ ! "$udp_dns_d" ] && log "SmartDNS : Get Domestic DNS failed!" && return 1
+			[ ! "$udp_dns_d" ] && log "SmartDNS : Get isp $udp_dns_d Domestic DNS failed!" && return 1
 		fi
 		udp_d=$(echo $udp_dns_d | sed -e 's/，/,/g' -e 's/。/./g' -e 's/：/:/g' -e 's/,/\n/g')
 		# udp_d=$(echo $dns_d | grep -E -o "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+" | grep -v 0.0.0.0 | grep -v 127.0.0.1)
+		for i in $udp_d;do ipset add ss_spec_wan_ac $i 2>/dev/null;done
 	fi
 	smartdns_flag=1
 	ipv6mode=$(uci_get_by_type global proxy_ipv6_mode 1)
@@ -880,29 +897,23 @@ gen_dns(){
 	 	esac
 	echo "${BIND}:5335 -group a -no-speed-check ${BINDIPV6} " >>$DNS_T
 	echo "${BIND}:5336 -group e ${BINDIPV6} " >>$DNS_T
-	
-	for i in $dns;do
-			case $run_mode in
-			gfw|oversea) ipset add blacklist $i 2>/dev/null;;
-			*) ipset del ss_spec_wan_ac $i 2>/dev/null || ipset add ss_spec_wan_ac $i nomatch 2>/dev/null;;
-			esac
-	done
+
 	if [ $dns_mode_o = "doh" ];then
 		echo $doh_o | sed 's/,/\n/g' | sed -e 's/^/server-https /g' -e 's/$/ -group a  -exclude-default-group/g' >> $DNS_T
 		doh_o_dom=$(echo $doh_o | sed 's/,/\n/g' | awk '-F[/:]' '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$")
-		[ "$doh_o_dom" ] && {
+			if [ "$doh_o_dom" ];then
 			   for i in $doh_o_dom;do
 				case $run_mode in
 					router|all)echo "nameserver /$i/b" >> $DNS_T;;
 					*)echo "domain-rules /$i/ -nameserver b -ipset blacklist" >> $DNS_T;;
 				esac
 			   done
-		}
-		[ -n "$NF" ] && {
+			fi
+		if [ -n "$NF" ];then
 			echo $doh_nf | sed 's/,/\n/g' | sed -e 's/^/server-https /g' -e 's/$/ -group c -exclude-default-group/g' >> $DNS_T
 			doh_nf_dom=$(echo $doh_nf | sed 's/,/\n/g' | awk '-F[/:]' '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$")
 			for i in $doh_nf_dom;do echo "domain-rules /$i/ -nameserver d -ipset netflix" >> $DNS_T;done
-		}
+		fi
 	else
 		echo $dot_o | sed 's/,/\n/g' | sed -e 's/^/server-tls /g' -e 's/$/ -group a  -exclude-default-group/g' >> $DNS_T
 		doh_o_dom=$(echo $dot_o | sed 's/,/\n/g' | awk '-F[/:]' '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$")
@@ -924,9 +935,8 @@ gen_dns(){
 	fi
 
 	# dns
-	[ -n "$NF" ] && for i in $dns_nf;do ipset add netflix $i 2>/dev/null;done
-	for i in $dns_d;do ipset add ss_spec_wan_ac $i 2>/dev/null;done
-	for i in $dns;do echo "server-tcp $i -group b -exclude-default-group" >>$DNS_T;done
+	# for i in $dns_d;do ipset add ss_spec_wan_ac $i 2>/dev/null;done
+	# for i in $dns;do echo "server-tcp $i -group b -exclude-default-group" >>$DNS_T;done
 	echo -e "nameserver /dnsleaktest.com/b\nnameserver /whrq.net/b\nnameserver /speedtest.net/b\nnameserver /ooklaserver.net/b\nnameserver /in-addr.arpa/b" >> $DNS_T
 	# echo -e "nameserver /dnsleaktest.com/a\nnameserver /whrq.net/a\nnameserver /speedtest.net/a\nnameserver /ooklaserver.net/a\nnameserver /in-addr.arpa/a" >> $DNS_T
 	if [ $dns_mode_d = "doh" ];then
@@ -1246,11 +1256,9 @@ stop(){
 			dns_d_l="223.5.5.5 223.6.6.6"
 			for i in $dns_d_l;do echo "server-https https://$i/dns-query" >> $DNS_T;done
 		else
-			dns_d_l=$(uci_get_by_type global udp_dns_d isp)
-			if [ "$dns_d_l" = isp ];then 
-				ref=/tmp/resolv.conf.d/resolv.conf.auto;[ -s $ref ] || ref=/tmp/resolv.conf.auto
-				dns_d_l=$(cat $ref 2>/dev/null | grep nameserver | awk '{print$2}')
-			fi
+			ref=/tmp/resolv.conf.d/resolv.conf.auto
+			[ -s $ref ] || ref=/tmp/resolv.conf.auto
+			dns_d_l=$(cat $ref 2>/dev/null | grep nameserver | awk '{print$2}')
 			if [ -z "$dns_d_l" ];then
 				log "SmartDNS : Get Domestic DNS failed!"
 				exit 1
@@ -1265,7 +1273,6 @@ stop(){
 			sleep 1
 		done
 	fi
-
 }
 
 restart(){
