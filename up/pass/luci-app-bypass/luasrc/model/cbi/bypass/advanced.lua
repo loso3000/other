@@ -59,9 +59,6 @@ o.datatype="uinteger"
 o.default=3
 o:depends("enable_switch",1)
 
-o=s:option(Flag,"ad_smartdns",translate("Enable anti-AD smartdns"))
-o.default=1
-
 -- [[ Rule Settings ]]--
 s = m:section(TypedSection, "global_rules", translate("Rule status"))
 s.anonymous = true

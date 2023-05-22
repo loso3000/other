@@ -14,16 +14,15 @@ log(){
 	echo "$(date +'%Y-%m-%d %H:%M:%S') $*" >> /var/log/bypass.log
 }
 
-
 echo '------------Update start------------' >> /var/log/bypass.log
 [ ! -d $TMP ] && mkdir -p $TMP 2>/dev/null
-	if [ $A = Y ];then
-		while ! (curl -kLfsm 5 -o /tmp/china.txt "${chnroute_url}"  || curl -kLfsm 3 -o /tmp/china.txt https://ispip.clang.cn/all_cn.txt);do
-			sleep 1
-		done
-	else
-		curl -kLfsm 5 -o /tmp/china.txt  "${chnroute_url}" || curl -kLfsm 3 -o /tmp/china.txt https://ispip.clang.cn/all_cn.txt
-	fi
+
+	B=1
+	while ! (curl -kLfsm 5 -o /tmp/china.txt "${chnroute_url}"  || curl -kLfsm 3 -o /tmp/china.txt https://ispip.clang.cn/all_cn.txt);do
+			[ $B -ge 20 ] && break || let B++
+			sleep 2
+	done
+
 	[[ -f /tmp/china.txt && $? == 0 ]] && {
 	if ! cmp -s /tmp/china.txt $TMP/china.txt;then
 			cp -f /tmp/china.txt $TMP/china.txt
@@ -34,13 +33,13 @@ echo '------------Update start------------' >> /var/log/bypass.log
 			log "By Update  : China IPv4 List Total Number of Items  :` cat /etc/bypass/china.txt | wc -l` "
 	fi
 	}
-	if [ $A = Y ];then
-		while ! (curl -kLfsm 3 -o /tmp/gfw.b64 "${gfwlist_url}" || curl -kLfsm 3 -o /tmp/gfw.b64 https://supes.top/bypass/gfwlist.txt );do
-			sleep 1
-		done
-	else
-		curl -kLfsm 3 -o /tmp/gfw.b64 "${gfwlist_url}" || curl -kLfsm 3 -o /tmp/gfw.b64 https://supes.top/bypass/gfwlist.txt
-	fi
+
+	B=1
+	while ! (curl -kLfsm 3 -o /tmp/gfw.b64 "${gfwlist_url}" || curl -kLfsm 3 -o /tmp/gfw.b64 https://supes.top/bypass/gfwlist.txt );do
+			[ $B -ge 20 ] && break || let B++
+			sleep 2
+	done
+
 	[[ -f /tmp/gfw.b64 && $? == 0 ]] && {
 	   $DIR/by-gfw  >/dev/null 2>&1
 	   if ! cmp -s /tmp/gfwnew.txt  $TMP/gfw.list ;then
@@ -50,14 +49,13 @@ echo '------------Update start------------' >> /var/log/bypass.log
 			log "By Update  : GFW List Total Number of Items : `cat /etc/bypass/gfw.list | wc -l` "
 	   fi
 	}
-	if [ $A = Y ];then
+	B=1
 
-		while ! (curl -kLfsm 3 -o /tmp/china_v6.txt "${chnroute6_url}" || curl -kLfsm 3 -o /tmp/china_v6.txt https://ispip.clang.cn/all_cn_ipv6.txt );do
-			sleep 1
-		done
-	else
-		curl -kLfsm 3 -o /tmp/china_v6.txt "${chnroute6_url}" || curl -kLfsm 3 -o /tmp/china_v6.txt https://ispip.clang.cn/all_cn_ipv6.txt
-	fi
+	while ! (curl -kLfsm 3 -o /tmp/china_v6.txt "${chnroute6_url}" || curl -kLfsm 3 -o /tmp/china_v6.txt https://ispip.clang.cn/all_cn_ipv6.txt );do
+			[ $B -ge 20 ] && break || let B++
+			sleep 2
+	done
+
 	[[ -f /tmp/china_v6.txt && $? == 0 ]] && {
 	if ! cmp -s /tmp/china_v6.txt $TMP/china_v6.txt;then
 			cp -f /tmp/china_v6.txt $TMP/china_v6.txt 
@@ -67,15 +65,12 @@ echo '------------Update start------------' >> /var/log/bypass.log
 			log "By Update  : China IPv6 List Total Number of Items :`cat /etc/bypass/china_v6.txt | wc -l)` "
 	fi
 	}
-	
-	if [ $A = Y ];then
+	B=1
+	while ! (curl -kLfsm 3 -o /tmp/ad_smartdns.txt "${ad_smartdns_url}" || curl -kLfsm 3 -o /tmp/china_v6.txt https://fastly.jsdelivr.net/gh/privacy-protection-tools/anti-AD/anti-ad-smartdns.conf );do
+			[ $B -ge 20 ] && break || let B++
+			sleep 2
+	done
 
-		while ! (curl -kLfsm 3 -o /tmp/ad_smartdns.txt "${ad_smartdns_url}" || curl -kLfsm 3 -o /tmp/china_v6.txt https://fastly.jsdelivr.net/gh/privacy-protection-tools/anti-AD/anti-ad-smartdns.conf );do
-			sleep 1
-		done
-	else
-		curl -kLfsm 3 -o /tmp/ad_smartdns.txt "${ad_smartdns_url}" || curl -kLfsm 3 -o /tmp/china_v6.txt https://fastly.jsdelivr.net/gh/privacy-protection-tools/anti-AD/anti-ad-smartdns.conf
-	fi
 	[[ -f /tmp/ad_smartdns.txt && $? == 0 ]] && {
 	if ! cmp -s /tmp/ad_smartdns.txt $TMP/ad_smartdns.txt;then
 			cp -f /tmp/ad_smartdns.txt $TMP/ad_smartdns.txt

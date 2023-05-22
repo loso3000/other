@@ -81,11 +81,18 @@ o.default=0
 end
 end
 
+o = s:taboption("DNS",Flag,"ad_smartdns",translate("Enable anti-AD smartdns"))
+o.default=0
+
+o = s:taboption("DNS",Flag,"dns_overlan",translate("Take over LAN DNS"),
+translate("Redirect LAN device DNS to router(Do not disable if you Do not understand)"))
+o.default=0
+
 o = s:taboption("DNS",ListValue,"proxy_ipv6_mode",translate("IPV6 parsing mode"), translate("Choose the appropriate IPV6 parsing method, as the network is complex and not widely used. It is recommended to disable IPV6 parsing when the network is poor"))
 o:value(1,translate("Only IPV4 parsing"))
 o:value(2,translate("IPv4 and IPv6 dual stack IP automatic optimization"))
 o:value(3,translate("Only IPV6 parsing"))
-o.default=2
+o.default=1
 
 o = s:taboption("DNS",ListValue,"dns_mode_o",translate("Foreign Resolve Dns Mode"))
 o:value("doh",translate("Use SmartDNS DoH query"))

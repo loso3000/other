@@ -113,6 +113,12 @@ msgstr "启用Smartdns去广告功能"
 msgid "Preload Google and Telegram IP segments (GFW mode only)"
 msgstr "预加载谷歌与Telegram IP段(仅GFW模式生效)"
 
+msgid "Take over LAN DNS"
+msgstr "接管局域网DNS"
+
+msgid "Redirect LAN device DNS to router(Do not disable if you Do not understand)"
+msgstr "将LAN设备DNS重定向到路由器（如果不理解，请不要禁用）"
+
 msgid "All Ports"
 msgstr "所有端口（默认）"
 
@@ -125,11 +131,20 @@ msgstr "国外DNS解析方式"
 msgid "Use SmartDNS DoH query"
 msgstr "使用SmartDNS DoH查询"
 
-msgid "Use SmartDNS TCP query"
-msgstr "使用SmartDNS TCP查询"
+msgid "Use SmartDNS DoT query"
+msgstr "使用SmartDNS DoT查询"
 
 msgid "Foreign DoH"
 msgstr "国外DoH"
+
+msgid "Foreign DoT"
+msgstr "国外DoT"
+
+msgid "Domestic DoT"
+msgstr "国内DoT"
+
+msgid "Main"
+msgstr "主要"
 
 msgid "Custom DNS format is https://cloudflare-dns.com/dns-query or https://104.16.249.249/dns-query -http-host cloudflare-dns.com"
 msgstr "自定义DNS格式为 https://cloudflare-dns.com/dns-query 或 https://104.16.249.249/dns-query -http-host cloudflare-dns.com"
@@ -169,6 +184,39 @@ msgstr "运营商DNS"
 
 msgid "ISP"
 msgstr "运营商"
+
+msgid "Taiwan"
+msgstr "台湾"
+
+msgid "Singapore"
+msgstr "新加坡"
+
+msgid "Japan"
+msgstr "日本"
+
+msgid "India"
+msgstr "印度"
+
+msgid "New York"
+msgstr "纽约"
+
+msgid "Germany"
+msgstr "德国"
+
+msgid "IPV6 parsing mode"
+msgstr "IPV6解析模式"
+
+msgid "Choose the appropriate IPV6 parsing method, as the network is complex and not widely used. It is recommended to disable IPV6 parsing when the network is poor"
+msgstr "选择合适的IPV6解析方式，因网络复杂并未普及，网络不好时IPV6解析建议禁用"
+
+msgid "Only IPV4 parsing"
+msgstr "纯IPV4解析"
+
+msgid "IPv4 and IPv6 dual stack IP automatic optimization"
+msgstr "IPv4、IPv6双栈IP自动优选"
+
+msgid "Only IPV6 parsing"
+msgstr "纯IPV6解析"
 
 msgid "Use ISP DNS to resolve DoH domain"
 msgstr "使用运营商DNS解析DoH域名"
@@ -772,48 +820,6 @@ msgstr "清除"
 
 msgid "To Top"
 msgstr "置顶"
-
-msgid "Taiwan"
-msgstr "台湾"
-
-msgid "Foreign DoT"
-msgstr "国外DoT"
-
-msgid "Domestic DoT"
-msgstr "国内DoT"
-
-msgid "Singapore"
-msgstr "新加坡"
-
-msgid "Japan"
-msgstr "日本"
-
-msgid "India"
-msgstr "印度"
-
-msgid "New York"
-msgstr "纽约"
-
-msgid "Germany"
-msgstr "德国"
-
-msgid "Main"
-msgstr "主要"
-
-msgid "IPV6 parsing mode"
-msgstr "IPV6解析模式"
-
-msgid "Choose the appropriate IPV6 parsing method, as the network is complex and not widely used. It is recommended to disable IPV6 parsing when the network is poor"
-msgstr "选择合适的IPV6解析方式，因网络复杂并未普及，网络不好时IPV6解析建议禁用"
-
-msgid "Only IPV4 parsing"
-msgstr "纯IPV4解析"
-
-msgid "IPv4 and IPv6 dual stack IP automatic optimization"
-msgstr "IPv4、IPv6双栈IP自动优选"
-
-msgid "Only IPV6 parsing"
-msgstr "纯IPV6解析"
 
 msgid "Used with AdGuardHome"
 msgstr "与AdGuardHome搭配使用"
