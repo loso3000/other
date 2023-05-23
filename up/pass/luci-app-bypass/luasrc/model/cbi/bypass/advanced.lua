@@ -97,7 +97,7 @@ o.default = "https://fastly.jsdelivr.net/gh/sirpdboy/iplist@release/all_cn_ipv6.
 o = s:option(Button, "UpdateRule", translate("Update All Rule List"))
 o.inputstyle = "apply"
 function o.write(t, n)
-    luci.sys.call("/usr/share/bypass/update > /dev/null 2>&1 &")
+    luci.sys.call("/usr/share/bypass/update")
     luci.http.redirect(url("log"))
 end
 
@@ -112,5 +112,4 @@ for _,key in pairs(key_table) do o:value(key,server_table[key]) end
 o=s:option(Value,"local_port",translate("Local Port"))
 o.datatype="port"
 o.default = 1080
-o.placeholder=1080
 return m

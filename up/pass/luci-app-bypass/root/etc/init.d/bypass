@@ -15,7 +15,6 @@ CON_T=$SDNS/rules.conf
 CON_AD=$T_FILE/ad_smartdns.txt
 PID=/var/run/smartdns.pid
 LOG=/var/log/bypass.log
-
 BIN_DIR=/usr/share/bypass
 DNS_FILE=/tmp/dnsmasq.d/dnsmasq-by.conf
 DNS_DIR=/tmp/dnsmasq.d/dnsmasq-by.d

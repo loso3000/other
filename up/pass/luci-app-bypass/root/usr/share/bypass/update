@@ -33,9 +33,8 @@ echo '------------Update start------------' >> /var/log/bypass.log
 			log "By Update  : China IPv4 List Total Number of Items  :` cat /etc/bypass/china.txt | wc -l` "
 	fi
 	}
-
-	B=1
-	while ! (curl -kLfsm 3 -o /tmp/gfw.b64 "${gfwlist_url}" || curl -kLfsm 3 -o /tmp/gfw.b64 https://supes.top/bypass/gfwlist.txt );do
+ 	B=1
+	while ! (wget --no-check-certificate -q -O /tmp/gfw.b64 "${gfwlist_url}" || curl -kLfsm 5 -o /tmp/gfw.b64 https://supes.top/bypass/gfwlist.txt );do
 			[ $B -ge 20 ] && break || let B++
 			sleep 2
 	done

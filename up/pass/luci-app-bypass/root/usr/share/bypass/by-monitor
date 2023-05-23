@@ -31,7 +31,7 @@ LOG=/var/log/bypass.log
 
 echolog() {
 	local d="$(date "+%Y-%m-%d %H:%M:%S")"
-	echo -e "$d: $*" >>$LOG
+	echo -e "$d:  Monitor  :$*" >>$LOG
 }
 
 while :;do
@@ -51,7 +51,7 @@ while :;do
 		if [ $t = 0 ];then
 			echolog "SSR KCPTUN Error. Restart!"
 			killall -q -9 kcptun-client
-			service_start $(which kcptun-client) -r $server:$kcp_port -l :$server_port $password $kcp_param >/dev/null 2>&1 &
+			$(which kcptun-client) -r $server:$kcp_port -l :$server_port $password $kcp_param >/dev/null 2>&1 &
 		fi
 	fi
 #redir udp
@@ -78,7 +78,7 @@ while :;do
 		if [ $t = 0 ];then
 			echolog "SmartDNS Error. Restart!"
 			killall -q -9 smartdns >/dev/null 2>&1
-			service_start $(which smartdns) -c /var/etc/smartdns/smartdns.conf
+			$(which smartdns) -c /var/etc/smartdns/smartdns.conf
 		fi
 	fi
 #chinadns-ng
