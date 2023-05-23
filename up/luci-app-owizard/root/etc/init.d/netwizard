@@ -114,10 +114,15 @@ add_netwizard() {
 	uci -q delete firewall.@zone[0].masq
 	uci -q delete network.wan
 	uci -q delete network.wan6
+	uci -q delete network.lan6
 	uci -q set network.wan=interface
 	uci -q set network.wan6=interface
 	uci -q set network.wan6.proto='dhcpv6'
 	uci -q set network.wan6.delegate='1'
+	uci -q set network.globals.ula_prefix=''
+	uci -q set firewall.zone=zone
+	uci -q set firewall.@zone[1].name=wan
+	uci -q set firewall.@zone[1].network="wan wan6"
 	sed -i '/j MASQUERADE/d' /etc/firewall.user
 	a=$(ip address | awk -F ': ' '/eth[0-9]+/ {print $2}' )
 	b=$(echo "$a" | wc -l)
@@ -133,6 +138,7 @@ add_netwizard() {
 			uci -q set network.wan.proto='dhcp'
 			uci -q set network.wan.metric='40'
 			uci -q set network.wan.delegate='0'
+			setipv6 $ipv6
 		;;
 		static)
 			config_get wan_ipaddr "$cfg" wan_ipaddr
@@ -150,6 +156,7 @@ add_netwizard() {
 					uci set network.wan.dns="${wan_dns}"
 				}
 			}
+			setipv6 $ipv6
 		;;
 		pppoe)
 			config_get wan_pppoe_user "$cfg" wan_pppoe_user
@@ -166,6 +173,7 @@ add_netwizard() {
 					uci -q set network.wan.dns="${wan_dns}"
 				}
 			}
+			setipv6 $ipv6
 		;;
 		siderouter)
 			config_get lan_gateway "$cfg" lan_gateway
@@ -186,13 +194,22 @@ add_netwizard() {
 
 				[ "x$lan_snat" = "x1" ] && echo "${snat_tables}" >> /etc/firewall.user 
 			}
+			setipv6 $ipv6
+			[[ $ipv6 = '1' || $ipv6 = '2' || $ipv6 = '3' ]] && {
+			      	uci -q set network.lan6=interface
+			      	uci -q set network.lan6.proto='dhcpv6'
+			      	uci -q set network.lan6.delegate='1'
+				uci -q set network.lan6.$ifname="@lan"
+				uci -q set firewall.@zone[0].network="lan lan6"
+				uci -q delete firewall.@zone[1]
+			}	
 		;;		
 	esac
 	test -n "${lan_ipaddr}" && test -n "${lan_netmask}" && {
 		uci -q set network.lan.ipaddr="${lan_ipaddr}"
 		uci -q set network.lan.netmask="${lan_netmask}"
 	}
-	setipv6 $ipv6
+	
 	sed -i '/--dport 53 -j REDIRECT --to-ports 53/d' /etc/firewall.user
 	[ "x$redirectdns" = "x1" ] && {
         	echo "iptables -t nat -A PREROUTING -p udp --dport 53 -j REDIRECT --to-ports 53" >> /etc/firewall.user
