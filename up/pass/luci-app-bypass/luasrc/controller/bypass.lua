@@ -54,7 +54,7 @@ function check_net()
 	if u=="google" then p="/generate_204" else p="" end
 		local use_time = EXEC("curl --connect-timeout 3 -o /dev/null -I -skL -w %{time_starttransfer}  http://www."..u..".com"..p)
 		if use_time~="0" then
-     		 	r=string.format("%.1f", use_time * 1000)
+     		 	r=string.format("%.1f", use_time * 1000/2)
 			if r=="0" then r="0.1" end
 		end
 	end

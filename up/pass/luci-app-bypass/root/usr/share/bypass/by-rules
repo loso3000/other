@@ -7,7 +7,7 @@ LFILE=/tmp/by_local.ipset
 loger() {
 	# 1.alert 2.crit 3.err 4.warn 5.notice 6.info 7.debug
 	# logger -st "ssr-rules[$$]" -p"$1" "$2"
-	echo "$(date "+%Y-%m-%d %H:%M:%S"): ssr-rules[$$] $2" >> /var/log/bypass.log
+	echo "$(date "+%Y-%m-%d %H:%M:%S"): ssr-rules[$$] $2" >> /tmp/log/bypass.log
 }
 MODE=0
 
