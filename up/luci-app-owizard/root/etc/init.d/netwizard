@@ -112,17 +112,17 @@ add_netwizard() {
 	uci -q delete dhcp.lan.ignore
 	uci -q delete network.lan.dns
 	uci -q delete firewall.@zone[0].masq
-	uci -q delete network.wan
-	uci -q delete network.wan6
-	uci -q delete network.lan6
+	[ `uci get network.wan` ] && uci -q delete network.wan
+	[ `uci get network.wan6` ] && uci -q delete network.wan6
+	[ `uci get network.lan6` ] && uci -q delete network.lan6
 	uci -q set network.wan=interface
 	uci -q set network.wan6=interface
 	uci -q set network.wan6.proto='dhcpv6'
 	uci -q set network.wan6.delegate='1'
 	uci -q set network.globals.ula_prefix=''
-	uci -q set firewall.zone=zone
-	uci -q set firewall.@zone[1].name=wan
-	uci -q set firewall.@zone[1].network="wan wan6"
+	# uci -q set firewall.zone=zone
+	# uci -q set firewall.@zone[1].name=wan
+	# uci -q set firewall.@zone[1].network="wan wan6"
 	sed -i '/j MASQUERADE/d' /etc/firewall.user
 	a=$(ip address | awk -F ': ' '/eth[0-9]+/ {print $2}' )
 	b=$(echo "$a" | wc -l)
@@ -182,8 +182,8 @@ add_netwizard() {
 			config_get masq "$cfg" masq
 			config_get snat_tables "$cfg" snat_tables
 			test -n "${lan_gateway}" && {
-				uci -q delete network.wan
-				uci -q delete network.wan6
+				[ `uci get network.wan` ] && uci -q delete network.wan
+				[ `uci get network.wan6` ] && uci -q delete network.wan6
 				uci -q set network.lan.gateway="${lan_gateway}"
 				[ -n "$lan_dns" ] || lan_dns='223.5.5.5'
 				uci -q set network.lan.dns="${lan_dns}"
@@ -200,8 +200,10 @@ add_netwizard() {
 			      	uci -q set network.lan6.proto='dhcpv6'
 			      	uci -q set network.lan6.delegate='1'
 				uci -q set network.lan6.$ifname="@lan"
-				uci -q set firewall.@zone[0].network="lan lan6"
-				uci -q delete firewall.@zone[1]
+				netzone=`uci -q get firewall.@zone[0].network`
+				[ $netzone = 'lan lan6' ] || uci -q set firewall.@zone[0].network='lan lan6'
+				# uci -q delete firewall.@zone[1]
+				# uci  -q set firewall.@zone[1]
 			}	
 		;;		
 	esac
