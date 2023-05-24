@@ -52,7 +52,13 @@ function check_net()
 	local p
 	if CALL("nslookup www."..u..".com >/dev/null 2>&1")==0 then
 	if u=="google" then p="/generate_204" else p="" end
-		local use_time = EXEC("curl --connect-timeout 3 -o /dev/null -I -skL -w %{time_starttransfer}  http://www."..u..".com"..p)
+    
+	  if u=="youtube" then 
+ 		    --curl --connect-timeout 3 -o /dev/null -I -skL -w %{time_starttransfer} www.google.com
+		local use_time = EXEC("curl -o /dev/null -s -w %{time_starttransfer}  http://www."..u..".be")
+ 	  else
+		local use_time = EXEC("curl -o /dev/null -s -w %{time_starttransfer}  http://www."..u..".com"..p)
+ 	  end
 		if use_time~="0" then
      		 	r=string.format("%.1f", use_time * 1000/2)
 			if r=="0" then r="0.1" end
