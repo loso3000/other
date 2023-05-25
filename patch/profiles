@@ -364,7 +364,7 @@ fi
 
 function mainmenu() {
   EB "     Sirdpboy快捷命令菜单(Shortcut Command Menu)   "
-  EG " zsh->调用菜单(Call Menu)  htop->查看进程(View Process) "
+  EG " menu->调用菜单(Call Menu)  exit->退出zsh(Exit zsh) "
   EY " 1. 修改后台IPv4地址(Modify IPv4 address)"
   EY " 2. 清除密码并重启(Clear password and Reboot)"
   EY " 3. 修复向导默认主题(Restore wizard default theme)"
