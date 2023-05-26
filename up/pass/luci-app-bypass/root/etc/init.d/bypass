@@ -1192,15 +1192,17 @@ start(){
 				adgconf="$(uci -q get AdGuardHome.AdGuardHome.configpath)"
 				masqport="$(grep "  port:.*" $adgconf | cut -f 4 -d " ")"
 				[ -s $adgconf ] && adgc="$(cat $adgconf | tr '\n' '\r' | sed -e "s/upstream_dns:.*upstream_dns_file/upstream_dns:\n  - 127.0.0.1:$masqport\n  upstream_dns_file/" | tr '\r' '\n')"
+				[ ` uci -q get AdGuardHome.AdGuardHome.redirectold ` ] || uci -q set AdGuardHome.AdGuardHome.redirectold="$(uci -q get AdGuardHome.AdGuardHome.redirect)"
 				[ -n "$adgc" ] && echo "${adgc}" >$adgconf
 				uci -q set AdGuardHome.AdGuardHome.enabled='1'
 				uci -q set AdGuardHome.AdGuardHome.redirect='exchange'
 				uci commit AdGuardHome
 				(sleep 3; /etc/init.d/AdGuardHome restart >/dev/null 2>&1) &
 			fi
-		elif [ "$(uci -q get AdGuardHome.AdGuardHome.redirect)" == "exchange" ]; then
+		elif [ ` uci -q get AdGuardHome.AdGuardHome.redirectold ` ]; then
 				uci -q set AdGuardHome.AdGuardHome.enabled='0'
-				uci -q del AdGuardHome.AdGuardHome.redirect
+				uci -q set AdGuardHome.AdGuardHome.redirect ="$(uci -q get AdGuardHome.AdGuardHome.redirectold)"
+				uci -q del AdGuardHome.AdGuardHome.redirectold
 				uci commit AdGuardHome
 				/etc/init.d/AdGuardHome stop >/dev/null 2>&1 &
 		fi
@@ -1233,7 +1235,7 @@ stop(){
 	rm -rf $DNS_DIR $VAR $DNS_FILE $CON_T /var/lock/bypass-update.lock
 	[ -z "$GLOBAL_SERVER" ] && grep -q bypass $CRON_FILE && sed -i '/bypass/d' $CRON_FILE && /etc/init.d/cron restart
 	if [ $STATUS = Y -o -z "$GLOBAL_SERVER" ];then
-		if [[ -f /etc/init.d/AdGuardHome && "$(uci -q get AdGuardHome.AdGuardHome.redirect)" == "exchange"  ]]; then
+		if [[ -f /etc/init.d/AdGuardHome && ` uci -q get AdGuardHome.AdGuardHome.redirectold ` ]]; then
 			/etc/init.d/AdGuardHome stop >/dev/null 2>&1 &
 		fi
 		rm -rf $SDNS $PID $LOC
