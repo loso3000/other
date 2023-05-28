@@ -29,7 +29,7 @@ setipv6() {
 			uci -q set network.wan.ipv6='0'
 			uci -q set network.wan.delegate='0'
 			uci -q set network.lan.delegate='0'
-			uci -q delete network.globals.ula_prefix
+			# uci -q delete network.globals.ula_prefix
 		;;
 		1)
 			uci -q set dhcp.lan.ra='server'
@@ -71,8 +71,7 @@ setipv6() {
 		;;
 		4)
 		    opkg update
-		    opkg remove --force-depends kmod-nf-reject6 kmod-nf-nat6 kmod-nf-ipt6 kmod-ip6tables odhcp6c \
-		    luci-proto-ipv6 ip6tables kmod-ipt-nat6 ip6tables-mod-nat odhcpd-ipv6only ipv6helper
+		    opkg remove --force-depends kmod-nf-reject6 kmod-nf-nat6 kmod-nf-ipt6 kmod-ip6tables odhcp6c luci-proto-ipv6 ip6tables kmod-ipt-nat6 ip6tables-mod-nat odhcpd-ipv6only ipv6helper
 		    uci -q delete dhcp.lan.dhcpv6
 		    uci -q delete dhcp.lan.ndp
 		    uci -q delete dhcp.lan.ra
@@ -119,7 +118,7 @@ add_netwizard() {
 	uci -q set network.wan6=interface
 	uci -q set network.wan6.proto='dhcpv6'
 	uci -q set network.wan6.delegate='1'
-	uci -q set network.globals.ula_prefix=''
+	# uci -q set network.globals.ula_prefix=''
 	# uci -q set firewall.zone=zone
 	# uci -q set firewall.@zone[1].name=wan
 	# uci -q set firewall.@zone[1].network="wan wan6"

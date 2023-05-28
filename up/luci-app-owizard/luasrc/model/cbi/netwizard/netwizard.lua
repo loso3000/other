@@ -10,6 +10,7 @@ local lan_gateway = uci:get("netwizard", "default", "lan_gateway")
 if lan_gateway ~= "" then
    lan_gateway = sys.exec("ipaddr=`uci -q get network.lan.ipaddr`;echo ${ipaddr%.*}")
 end
+lan_ipaddr = sys.exec("uci -q get network.lan.ipaddr")
 local network_info = uci:get_all("network", "wan")
 local wizard_info = uci:get_all("netwizard", "default")
 
@@ -35,7 +36,7 @@ end
 s:tab("othersetup", translate("Other setting"))
 
 local e = s:taboption("wansetup", Value, "lan_ipaddr", translate("Lan IPv4 address") ,translate("You must specify the IP address of this machine, which is the IP address of the web access route"))
-e.default = "" .. uci:get("network", "lan", "ipaddr")
+e.default = lan_ipaddr
 e.datatype = "ip4addr"
 
 e = s:taboption("wansetup", Value, "lan_netmask", translate("Lan IPv4 netmask"))
