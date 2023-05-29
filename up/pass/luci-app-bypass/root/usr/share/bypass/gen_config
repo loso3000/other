@@ -116,8 +116,7 @@ end
 local settings = outbound:new()
 settings:handleIndex(server.v2ray_protocol)
 local Xray = {
-	log = {
-		-- error = "/var/ssrplus.log",
+	log = { 
 		loglevel = "warning"
 	},
 	-- 传入连接

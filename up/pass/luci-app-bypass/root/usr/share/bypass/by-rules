@@ -1,7 +1,7 @@
 #!/bin/sh
 TAG="_SS_SPEC_RULE_"
 IPT="iptables -t nat"
-FWI=$(uci -q get firewall.bypass.path) || FWI=/var/etc/bypass.include
+FWI=$(uci -q get firewall.bypass.path) || FWI=/tmp/etc/bypass.include
 LFILE=/tmp/by_local.ipset
 
 loger() {

@@ -1,6 +1,6 @@
 #!/bin/sh
 [ "$1" = --F ] && A=Y || A=N
-LOCKU=/var/lock/bypass-update.lock
+LOCKU=/tmp/lock/bypass-update.lock
 [ -f $LOCKU ] && exit 1
 touch $LOCKU
 DIR=/usr/share/bypass
