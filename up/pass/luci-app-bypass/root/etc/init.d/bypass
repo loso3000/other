@@ -1109,7 +1109,7 @@ run_server(){
 	ss|ssr)
 		timeout=$(uci_get_by_name $1 timeout 60)
 		gen_service_file $1 $type $VAR/$name.json
-		$cmd -c $VAR/$name.json -u >/dev/null 2>&1 &
+		$cmd -c $VAR/$name.json -u >>$log_file 2>&1 &
 		[ $type = ss ] && name=Shadowsocks || name=ShadowsocksR
 		log "By server: $name Server$server_count Started!"
 		;;
@@ -1123,7 +1123,7 @@ run_server(){
 				return 1
 			fi
 		fi
-		$cmd -p $port $param $name >/dev/null 2>&1 &
+		$cmd -p $port $param $name >>$log_file 2>&1 &
 		log "By server: Socks5 Server$server_count Started!"
 		;;
 	esac

@@ -74,6 +74,7 @@ o:value("https://fastly.jsdelivr.net/gh/YW5vbnltb3Vz/domain-list-community@relea
 o:value("https://fastly.jsdelivr.net/gh/Loukky/gfwlist-by-loukky/gfwlist.txt", translate("Loukky/gfwlist-by-loukky"))
 o:value("https://fastly.jsdelivr.net/gh/gfwlist/gfwlist/gfwlist.txt", translate("gfwlist/gfwlist"))
 o:value("https://fastly.jsdelivr.net/gh/sirpdboy/iplist@release/gfwlist.txt", translate("sirpdboy/gfwlist"))
+o:value("https://supes.top/bypass/gfwlist.txt", translate("supes/gfwlist"))
 o.default = "https://fastly.jsdelivr.net/gh/sirpdboy/iplist@release/gfwlist.txt"
 
 
@@ -86,6 +87,7 @@ o:value("https://fastly.jsdelivr.net/gh/gaoyifan/china-operator-ip@ip-lists/chin
 o:value("https://fastly.jsdelivr.net/gh/soffchen/GeoIP2-CN@release/CN-ip-cidr.txt", translate("soffchen/GeoIP2-CN"))
 o:value("https://fastly.jsdelivr.net/gh/Hackl0us/GeoIP2-CN@release/CN-ip-cidr.txt", translate("Hackl0us/GeoIP2-CN"))
 o:value("https://fastly.jsdelivr.net/gh/sirpdboy/iplist@release/all_cn.txt", translate("sirpdboy/all_cn"))
+o:value("https://supes.top/bypass/all_cn.txt", translate("supes/all_cn"))
 o.default = "https://fastly.jsdelivr.net/gh/sirpdboy/iplist@release/all_cn.txt"
 
 ----chnroute6 URL
@@ -111,5 +113,6 @@ for _,key in pairs(key_table) do o:value(key,server_table[key]) end
 
 o=s:option(Value,"local_port",translate("Local Port"))
 o.datatype="port"
-o.default = 1080
+o.placeholder=1080
+
 return m
