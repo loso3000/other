@@ -5,7 +5,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-owizard
 PKG_VERSION:=1.7
-PKG_RELEASE:=30
+PKG_RELEASE:=31
 
 PKG_LICENSE:=GPLv3
 PKG_LICENSE_FILES:=LICENSE
@@ -24,8 +24,8 @@ include $(TOPDIR)/feeds/luci/luci.mk
 define Package/luci-app-owizard/postinst
 #!/bin/sh
 if [ -z "$$IPKG_INSTROOT" ]; then
-  ( . /etc/uci-defaults/99-uci-owizard-defaults )
-  rm -f /etc/uci-defaults/99-uci-owizard-defaults
+  ( . /etc/uci-defaults/luci-owizard-defaults )
+  rm -f /etc/uci-defaults/luci-owizard-defaults
   rm -rf /tmp/luci*
 fi
 exit 0
