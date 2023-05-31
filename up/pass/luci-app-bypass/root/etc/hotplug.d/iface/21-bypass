@@ -9,7 +9,9 @@
 				ipset -! add bypass_all $i
 			done
 		fi
-
+		if pidof smartdns >/dev/null;then
+			killall -q -9 smartdns
+			$(which smartdns) -c /tmp/etc/smartdns/smartdns.conf
+		fi
 	fi
-	/etc/init.d/bypass restart
 }

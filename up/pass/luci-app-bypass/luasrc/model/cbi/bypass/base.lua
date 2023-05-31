@@ -24,12 +24,11 @@ s.anonymous=true
 
 s:tab("Main", translate("Main"))
 
-o = s:taboption("Main",ListValue,"global_server","<a style='color: red'>" .. translate("Main Server").. "</a>")
+o = s:taboption("Main",ListValue,"global_server",translate("Main Server"))
 o:value("", translate("Disable"))
 for _,key in pairs(key_table) do o:value(key,server_table[key]) end
 
-o = s:taboption("Main",ListValue,"udp_relay_server","<a style='color: red'>" .. translate("UDP Server").. "</a>")
-o:value("",translate("Disable"))
+o = s:taboption("Main",ListValue,"udp_relay_server",translate("UDP Server"))
 o:value("same",translate("Same as Global Server"))
 for _,key in pairs(key_table) do o:value(key,server_table[key]) end
 

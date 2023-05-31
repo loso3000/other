@@ -31,7 +31,7 @@ local v2_ss = SYS.exec('type -t -p ss-redir sslocal') ~= "" and "ss" or "v2ray"
 local v2_ssr = SYS.exec('type -t -p ssr-redir') ~= "" and "ssr" or "v2ray"
 local v2_tj = SYS.exec('type -t -p trojan') ~= "" and "trojan" or "v2ray"
 local log = function(...)
-	local file=io.open("/var/log/bypass.log","a")
+	local file=io.open("/tmp/log/bypass.log","a")
 	io.output(file)
 	io.write(os.date("%Y-%m-%d %H:%M:%S ").."Subscribe : "..table.concat({...}," ").."\n")
 	io.close(file)
@@ -86,42 +86,6 @@ local function split(full, sep)
 		end
 	end
 	return result
-end
-
--- table去重
-
-local function clone(object)
-    local lookup_table = {}
-    local function copyObj(object)
-        if type(object) ~= 'table' then
-            return object
-        elseif lookup_table[object] then
-            return lookup_table[object]
-        end
-
-        local new_table = {}
-        lookup_table[object] = new_table
-        for key, value in pairs(object) do
-            new_table[copyObj(key)] = copyObj(value)
-        end
-        return setmetatable(new_table, getmetatable(object))
-    end
-
-    return copyObj(object)
-end
-
-local function table_unique(list)
-    local temp1 = clone(list)
-    local temp2 = clone(list)
-    for k1, v1 in ipairs(temp1) do
-        for k2, v2 in ipairs(temp2) do
-            if v1.alias ~= v2.alias and v1.hashkey == v2.hashkey then
-                table.remove(temp1, k1)
-                table.remove(temp2, k1)
-            end
-        end
-    end
-    return temp1
 end
 -- urlencode
 local function get_urlencode(c)
@@ -399,12 +363,8 @@ local function processData(szType, content)
 		result.transport = params.type or "tcp"
 		result.tls = (params.security == "tls" or params.security == "xtls") and "1" or "0"
 		result.tls_host = params.sni
-		result.tls_flow = (params.security == "tls" or params.security == "reality") and params.flow or nil
+		result.tls_flow = (params.security == "tls") and params.flow or nil
 		result.fingerprint = params.fp
-		result.reality = (params.security == "reality") and "1" or "0"
-		result.reality_publickey = params.pbk and UrlDecode(params.pbk) or nil
-		result.reality_shortid = params.sid
-		result.reality_spiderx = params.spx and UrlDecode(params.spx) or nil
 		if result.transport == "ws" then
 			result.ws_host = (result.tls ~= "1") and (params.host and UrlDecode(params.host)) or nil
 			result.ws_path = params.path and UrlDecode(params.path) or "/"
@@ -628,8 +588,7 @@ local execute = function()
 		end)
 		for k, v in ipairs(nodeResult) do
 			-- 如果订阅节点中有相同的节点信息 需要先去重。
-			new_nodes = table_unique(v)
-			for kk, vv in ipairs(new_nodes) do
+			for kk, vv in ipairs(v) do
 				if not vv._ignore then
 					local section = ucic:add(name, uciType)
 					ucic:tset(name, section, vv)

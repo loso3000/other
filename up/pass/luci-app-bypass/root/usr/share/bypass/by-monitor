@@ -26,7 +26,7 @@ server_port=$(uci_get_by_name $GLOBAL_SERVER server_port)
 password=$(uci_get_by_name $GLOBAL_SERVER kcp_password)
 kcp_param=$(uci_get_by_name $GLOBAL_SERVER kcp_param)
 gfw_mode=$(uci_get_by_type global gfw_mode 0)
-LOG=/tmp/log/bypass.log
+LOG=/tmp/log/$NAME.log
 [ "$password" != "" ] && password="--key "${password}
 
 echolog() {

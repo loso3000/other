@@ -3,12 +3,9 @@ TAG="_SS_SPEC_RULE_"
 IPT="iptables -t nat"
 FWI=$(uci -q get firewall.bypass.path) || FWI=/tmp/etc/bypass.include
 LFILE=/tmp/by_local.ipset
-
-loger() {
-	# 1.alert 2.crit 3.err 4.warn 5.notice 6.info 7.debug
-	# logger -st "ssr-rules[$$]" -p"$1" "$2"
-	echo "$(date "+%Y-%m-%d %H:%M:%S"): ssr-rules[$$] $2" >> /tmp/log/bypass.log
-}
+A=0
+B=0
+C=0
 MODE=0
 
 flush_iptables(){
@@ -56,12 +53,12 @@ ipset_r(){
 		for ip in $LAN_FP_IP;do ipset -! add fplan $ip;done
 		for ip in $WAN_FW_IP;do ipset -! add blacklist $ip;done
 	fi
-	if [ "$LAN_GM_IP" -a ! "$B" ];then
+	if [ -n "$LAN_GM_IP" -a $B = 0 ];then
 		C=1
 		ipset -N gmlan hash:net 2>/dev/null
 		for ip in $LAN_GM_IP;do ipset -! add gmlan $ip;done
 	fi
-	[ "$A" -o "$C" ] && /usr/share/bypass/chinaipset
+	[ $A = 1 -o $C = 1 ] && /usr/share/bypass/chinaipset
 	[ $MODE = router ] && /usr/share/bypass/chinaipset v6
 	cat > $LFILE  <<EOF
 0.0.0.0/8
@@ -161,16 +158,16 @@ tp_rule(){
 
 gen_include(){
 	extract_rules() {
-		echo "*$1"
-		# iptables-save -t $2 | grep SS_SPEC_ | sed -e "s/^-A \(OUTPUT\|PREROUTING\)/-I \1 1/"
-		iptables-save -t $1 | grep SS_SPEC_ | sed "s/^-A \(OUTPUT\|PREROUTING\)/-I \1 1/"
+		echo "*$2"
+		$1-save -t $2 | grep SS_SPEC_ |\
+			sed -e "s/^-A \(OUTPUT\|PREROUTING\)/-I \1 1/"
 		echo 'COMMIT'
 	}
 	cat <<-EOF >> $FWI
 	iptables-save -c | grep -v "SS_SPEC" | iptables-restore -c
 	iptables-restore -n <<-EOT
-	$(extract_rules nat)
-	$(extract_rules mangle)
+	$(extract_rules iptables nat)
+	$(extract_rules iptables mangle)
 	EOT
 EOF
 	if [ $y ];then
@@ -189,7 +186,6 @@ EOF
 }
 
 while getopts ":s:l:S:L:N:P:a:b:w:p:G:D:rczf" arg;do
-#while getopts ":s:l:S:L:N:P:a:b:w:p:G:D:rczyf" arg;do
 	case $arg in
 		s)server=$OPTARG;;
 		l)local_port=$OPTARG;;
@@ -206,7 +202,6 @@ while getopts ":s:l:S:L:N:P:a:b:w:p:G:D:rczf" arg;do
 		r)MODE=router;A=1;;
 		c)MODE=oversea;A=1;;
 		z)MODE=all;;
-		y)y=1;;
 		f)flush_r;exit 0;;
 	esac
 done

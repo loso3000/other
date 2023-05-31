@@ -311,7 +311,7 @@ rules(){
 		UDP=1
 		udp_server=$server
 		udp_local_port=$local_port
-	elif [ $UDP_RELAY_SERVER ];then
+	elif [ -n "$UDP_RELAY_SERVER" ];then
 		udp_server=$(host_ip $UDP_RELAY_SERVER)
 		udp_local_port=$(uci_get_by_name $UDP_RELAY_SERVER local_port 1234)
 		UDP=1
@@ -319,7 +319,7 @@ rules(){
 
 	ttype=$(uci_get_by_name $GLOBAL_SERVER type)
 	utype=$(uci_get_by_name $UDP_RELAY_SERVER type)
-	if [ $UDP ];then
+	if [ "$UDP" = 1 ];then
 		[ $ttype = trojan -o $utype = trojan ] && [ $udp_local_port = $local_port ] && let udp_local_port=local_port+1;UDP="-S $udp_server -L $udp_local_port"
 	fi
 
@@ -342,7 +342,7 @@ rules(){
 	[ "$NF" = 1 ] && NF="-N $nf_ip -P $nf_local_port"
 	get_soip
 	log "Rules      : Get all server address successful!"
-	if [ "$lan_ac_ips" ];then
+	if [ -n "$lan_ac_ips" ];then
 		case $lan_ac_mode in
 			w|W|b|B)local ac_ips="$lan_ac_mode$lan_ac_ips";;
 		esac
@@ -374,7 +374,7 @@ start_retcp(){
 		server_port=$(uci_get_by_name $GLOBAL_SERVER server_port)
 		password=$(uci_get_by_name $GLOBAL_SERVER kcp_password)
 		kcp_param=$(uci_get_by_name $GLOBAL_SERVER kcp_param)
-		[ "$password" ] && password="--key "${password}
+		[ -n "$password" ] && password="--key "${password}
 		service_start $cmd -r $kcp_server:$kcp_port -l :$server_port $password $kcp_param
 	fi
 	threads=$(uci_get_by_type global threads 0)
@@ -414,7 +414,6 @@ start_retcp(){
 			port=0
 		fi
 		gen_config_file $GLOBAL_SERVER $rtype $port $server
-		sed -i 's/\\//g' $config_file
 		$cmd -c $config_file >>$log_file 2>&1 &
 
 		log "Main Node: $($cmd -version | head -1 | awk '{print$1,$2}') Started!"
@@ -438,7 +437,6 @@ start_retcp(){
 	trojan)
 		gen_config_file $GLOBAL_SERVER $rtype "" $server
 		redir_tcp=$threads
-		sed -i 's/\\//g' $config_file
 		for i in $(seq 1 $threads);do
 			$cmd --config $config_file >>$log_file 2>&1 &
 		done
@@ -1055,7 +1053,7 @@ add_cron(){
 			eval $CRON
 			echo "0 $(uci_get_by_type server_subscribe auto_update_time 6) * * * $BIN_DIR/update" >>$CRON_FILE
 			echo "5 $(uci_get_by_type server_subscribe auto_update_time 6) * * * $BIN_DIR/subscribe" >>$CRON_FILE
-			[ "$A" = 1 ] && /etc/init.d/cron restart
+			/etc/init.d/cron restart
 		fi
 	fi
 }
@@ -1129,6 +1127,7 @@ run_server(){
 	esac
 	iptables -t filter -A BY-SERVER-RULE -p tcp --dport $port -j ACCEPT
 	iptables -t filter -A BY-SERVER-RULE -p udp --dport $port -j ACCEPT
+	return 0
 }
 
 gen_serv_include(){
