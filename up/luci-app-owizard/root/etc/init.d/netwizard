@@ -166,6 +166,7 @@ add_netwizard() {
 				uci -q set network.wan.username="${wan_pppoe_user}"
 				uci -q set network.wan.password="${wan_pppoe_pass}"
 				uci -q set network.wan.keepalive='5 5'
+				uci -q set network.wan.mtu='1480'
 				config_get wan_dns "$cfg" wan_dns
 				test -n "${wan_dns}" && {
 					uci -q set network.wan.peerdns='0'
