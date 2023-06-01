@@ -101,4 +101,4 @@ source $ZSH/oh-my-zsh.sh
 alias menu="bash +x /etc/profiles"
 autoload -U compinit && compinit
 cat /etc/banner
-bash +x /etc/profiles
+bash /etc/profiles
