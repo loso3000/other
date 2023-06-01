@@ -99,7 +99,7 @@ case ${YN} in
 ;;
 [Nn])
     EW "返回主菜单(return)"
-    . /etc/profile
+    . /etc/profiles
 ;;
 [Qq])
     . /etc/profiles

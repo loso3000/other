@@ -102,7 +102,7 @@ in order to prevent unauthorized SSH logins.
 EOF
 fi
 
-alias menu='/usr/bin/zsh'
+alias menu='zsh'
 # alias dh='df -h'
 # alias ls='ls --color=auto'
 # alias top='top -d 1'
