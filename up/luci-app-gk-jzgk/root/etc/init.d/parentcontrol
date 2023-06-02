@@ -89,9 +89,12 @@ for i in $idlist ;do
     ;;
     weburl)
 	word=$(uci -q get $CONFIG.@$mmode[$i].word ) && STR="-m string --algo ${algos} --string ${word}" || STR=""
+	word2=$(uci -q get $CONFIG.@$mmode[$i].word ) && STR2="-m string --algo ${algos} --hex-string ${word2}" || STR2=""
           for pt in "$ipt" "$ipt6" ; do
 		$pt -I $TAGW -p UDP --dport 53 ${MAC} ${WT} ${STR} -j DROP 2>/dev/null
+		$pt -I $TAGW -p UDP --dport 53 ${MAC} ${WT} ${STR2} -j DROP 2>/dev/null
 		$pt -I $TAGW -p TCP --dport 853 ${MAC} ${WT} ${STR} -j DROP 2>/dev/null
+		$pt -I $TAGW -p TCP --dport 853 ${MAC} ${WT} ${STR2} -j DROP 2>/dev/null
 		elog "$mmode: $pt -- ${MAC} -- ${WT} -- ${STR}"
 	  done
     ;; 
