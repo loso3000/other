@@ -8,9 +8,9 @@ a = Map("parentcontrol", translate("Parent Control"), translate("<b><font color=
 时间限制:限制指定MAC地址机器是否联网.包括IPV4和IPV6</br>不指定MAC就是代表限制所有机器,星期用1-7表示，多个日期用自定义：1,5表示星期一和星期五" ))
 a.template = "parentcontrol/index"
 
-
 t = a:section(TypedSection, "basic", translate(""))
 t.anonymous = true
+
 e = t:option(DummyValue, "parentcontrol_status", translate("当前状态"))
 e.template = "parentcontrol/parentcontrol"
 e.value = translate("Collecting data...")
@@ -45,11 +45,13 @@ o.net.mac_hints(function(t, a) e:value(t, "%s (%s)" % {t, a}) end)
             return nil, "时间格式必须为 HH:MM 或者留空"
         end
     end
+    
 e = t:option(Value, "timestart", translate("起控时间"))
 e.placeholder = '00:00'
 e.default = '00:00'
 e.validate = validate_time
 e.rmempty = true
+
 e = t:option(Value, "timeend", translate("停控时间"))
 e.placeholder = '00:00'
 e.default = '00:00'
@@ -73,7 +75,6 @@ e.rmempty = false
 e.default = '1'
 
 e = t:option(Value, 'remarks', translate('Remarks'))
-
 
 return a
 

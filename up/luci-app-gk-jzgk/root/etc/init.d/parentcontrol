@@ -7,8 +7,8 @@ START=98
 
 CONFIG=parentcontrol
 LOG_FILE=/tmp/log/$CONFIG.log
-LOCK_FILE_DIR=/var/lock
-LOCK_FILE=${LOCK_FILE_DIR}/${CONFIG}.lock
+LOCK_DIR=/tmp/lock
+LOCK=/tmp/lock/${CONFIG}.lock
 ipt=$(command -v iptables-legacy || command -v iptables)
 ipt6=$(command -v ip6tables-legacy || command -v ip6tables)
 
@@ -22,36 +22,12 @@ elog() {
 }
 
 clean_log() {
-	logsnum=$(cat $LOG_FILE 2>/dev/null | wc -l)
-	[ "$logsnum" -gt 500 ] && {
-		echo "" > $LOG_FILE
+	[ `cat $LOG_FILE  | wc -l ` -gt 500 ] && {
 		elog "clear log ."
 	}
 }
 
-set_lock() {
-	[ ! -d "$LOCK_FILE_DIR" ] && mkdir -p $LOCK_FILE_DIR
-	exec 999>"$LOCK_FILE"
-	flock -xn 999
-}
 
-unset_lock() {
-	flock -u 999
-	rm -rf "$LOCK_FILE"
-}
-
-unlock() {
-	failcount=1
-	while [ "$failcount" -le 10 ]; do
-		if [ -f "$LOCK_FILE" ]; then
-			let "failcount++"
-			sleep 1s
-			[ "$failcount" -ge 10 ] && unset_lock
-		else
-			break
-		fi
-	done
-}
 
 set_rules() {
 mmode=$1
@@ -112,9 +88,10 @@ for i in $idlist ;do
 	done
     ;;
     weburl)
-	word=$(uci -q get $CONFIG.@$mmode[$i].word ) && STR="-m string --string ${word} --algo ${algos}" || STR=""
+	word=$(uci -q get $CONFIG.@$mmode[$i].word ) && STR="-m string --algo ${algos} --string ${word}" || STR=""
           for pt in "$ipt" "$ipt6" ; do
-		$pt -I $TAGW  -p tcp ${MAC} ${WT} ${STR} -j REJECT 2>/dev/null
+		$pt -I $TAGW -p UDP --dport 53 ${MAC} ${WT} ${STR} -j DROP 2>/dev/null
+		$pt -I $TAGW -p TCP --dport 853 ${MAC} ${WT} ${STR} -j DROP 2>/dev/null
 		elog "$mmode: $pt -- ${MAC} -- ${WT} -- ${STR}"
 	  done
     ;; 
@@ -143,27 +120,24 @@ del_rule() {
 }
 
 start(){
-     set_lock
-     [ $? == 1 ] && exit 0
+     [ -f $LOCK ] && exit 1
      del_rule
      enabled=`uci -q get $CONFIG.@basic[0].enabled`
      [ "x$enabled" == "x1" ] || exit 1
      allsum=`grep -c 'enable .1.' /etc/config/$CONFIG`
      [ "$allsum" -gt 0 ] && {
+        touch $LOCK
         set_rules time
 	set_rules protocol
 	set_rules weburl
     }
-     unset_lock
+     clean_log 
+     rm -f $LOCK  2>/dev/null
 }
 
 stop(){
-     clean_log
-     unlock
-     set_lock
-     [ $? == 1 ] && exit 0
      del_rule
-     unset_lock
+     rm -f $LOCK  2>/dev/null
 }
 
 

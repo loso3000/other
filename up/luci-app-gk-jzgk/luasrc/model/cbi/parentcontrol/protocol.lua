@@ -8,8 +8,10 @@ a = Map("parentcontrol", translate("Parent Control"), translate("<b><font color=
 协议过滤：可以控制指定MAC机器是否使用指定协议端口，包括IPV4和IPV6，端口可以是连续端口范围用冒号分隔如5000:5100或多个端口用逗号分隔如：5100,5110,5001:5002,440:443</br>不指定MAC就是代表限制所有机器,星期用1-7表示，多个日期用：1,5表示星期一和星期五" ))
 
 a.template = "parentcontrol/index"
+
 t = a:section(TypedSection, "basic", translate(""))
 t.anonymous = true
+
 e = t:option(DummyValue, "parentcontrol_status", translate("当前状态"))
 e.template = "parentcontrol/parentcontrol"
 e.value = translate("Collecting data...")
@@ -26,18 +28,22 @@ t = a:section(TypedSection, "protocol", translate("协议过滤列表"))
 t.template = "cbi/tblsection"
 t.anonymous = true
 t.addremove = true
+
 e = t:option(Value, "mac", translate("MAC地址<font color=\"green\">(留空为全部客户端)</font>"))
 e.placeholder = "ALL"
 e.rmempty = true
 o.net.mac_hints(function(t, a) e:value(t, "%s (%s)" % {t, a}) end)
+
 e = t:option(ListValue, "proto", translate("<font color=\"gray\">端口协议</font>"))
 e.rmempty = false
 e.default = 'tcp'
 e:value("tcp", translate("TCP"))
 e:value("udp", translate("UDP"))
 e:value("icmp", translate("ICMP"))
+
 e = t:option(Value, "ports", translate("<font color=\"gray\">源端口</font>"))
 e.rmempty = true
+
 e = t:option(Value, "portd", translate("<font color=\"gray\">目的端口</font>"))
 e:value("",translate("ICMP"))
 e:value("80", "TCP-HTTP")
@@ -67,11 +73,13 @@ e.rmempty = true
             return nil, "时间格式必须为 HH:MM 或者留空"
         end
     end
+    
 e = t:option(Value, "timestart", translate("起控时间"))
 e.placeholder = '00:00'
 e.default = '00:00'
 e.validate = validate_time
 e.rmempty = true
+
 e = t:option(Value, "timeend", translate("停控时间"))
 e.placeholder = '00:00'
 e.default = '00:00'

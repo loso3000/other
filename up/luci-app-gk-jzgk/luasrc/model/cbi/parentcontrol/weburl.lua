@@ -9,8 +9,10 @@ a = Map("parentcontrol", translate("Parent Control"), translate("<b><font color=
 网址过滤：指定“关键词/URL”过滤,可以是字符串或网址.包括IPV4和IPV6</br>不指定MAC就是代表限制所有机器,星期用1-7表示，多个日期用自定义：1,5表示星期一和星期五" ))
 
 a.template = "parentcontrol/index"
+
 t = a:section(TypedSection, "basic", translate(""))
 t.anonymous = true
+
 e = t:option(DummyValue, "parentcontrol_status", translate("当前状态"))
 e.template = "parentcontrol/parentcontrol"
 e.value = translate("Collecting data...")
@@ -33,10 +35,10 @@ t.template = "cbi/tblsection"
 t.anonymous = true
 t.addremove = true
 
-e = t:option(Value, "mac", translate("MAC地址<font color=\"green\">(留空为全部客户端)</font>"))
-
+e = t:option(Value, "mac", translate("MAC地址<font color=\"green\">(必指定客户端)</font>"))
 e.rmempty = true
 o.net.mac_hints(function(t, a) e:value(t, "%s (%s)" % {t, a}) end)
+
 e = t:option( Value, "word", translate("关键词/URL<font color=\"green\">(可留空)</font>"))
 e.rmempty = true
     function validate_time(self, value, section)
@@ -50,11 +52,13 @@ e.rmempty = true
             return nil, "时间格式必须为 HH:MM 或者留空"
         end
     end
+    
 e = t:option(Value, "timestart", translate("起控时间"))
 e.placeholder = '00:00'
 e.default = '00:00'
 e.validate = validate_time
 e.rmempty = true
+
 e = t:option(Value, "timeend", translate("停控时间"))
 e.placeholder = '00:00'
 e.default = '00:00'
@@ -77,6 +81,8 @@ week.default='*'
 e = t:option(Flag, "enable", translate("开启"))
 e.rmempty = false
 e.default = '1'
+
+remarks = t:option(Value, 'remarks', translate('Remarks'))
 
 
 return a
