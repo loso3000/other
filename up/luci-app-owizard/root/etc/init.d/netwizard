@@ -111,9 +111,9 @@ add_netwizard() {
 	uci -q delete dhcp.lan.ignore
 	uci -q delete network.lan.dns
 	uci -q delete firewall.@zone[0].masq
-	[ `uci get network.wan` ] && uci -q delete network.wan
-	[ `uci get network.wan6` ] && uci -q delete network.wan6
-	[ `uci get network.lan6` ] && uci -q delete network.lan6
+	[ `uci -q get network.wan` ] && uci -q delete network.wan
+	[ `uci -q get network.wan6` ] && uci -q delete network.wan6
+	[ `uci -q get network.lan6` ] && uci -q delete network.lan6
 	uci -q set network.wan=interface
 	uci -q set network.wan6=interface
 	uci -q set network.wan6.proto='dhcpv6'
