@@ -1,7 +1,17 @@
 #!/bin/sh /etc/rc.common
 
 LOCK=/var/lock/netwizard-boot.lock
-START=99
+START=19
+
+set_lock() {
+	exec 1000>"$LOCK"
+	flock -xn 1000
+}
+
+unset_lock() {
+	flock -u 1000
+	rm -rf "$LOCK" 
+}
 
 boot() {
 	XBOOT=1 start
@@ -76,8 +86,7 @@ setipv6() {
 	esac
 }
 add_netwizard() {
-	[ "x$XBOOT" = "x1" ] && exit 1
-	touch $LOCK
+	[ "x$XBOOT" = "x1" ] && return 0
 	local cfg="$1"
 	local wan_proto wan_ipaddr wan_netmask wan_gateway wan_dns wan_pppoe_user wan_pppoe_pass 
 	local ipv6 wifi_ssid wifi_key old_wifi_ssid old_wifi_key
@@ -266,8 +275,8 @@ add_netwizard() {
 }
 
 start() {
-     [ -f $LOCK ] && exit 1
-     config_load netwizard
-     config_foreach add_netwizard netwizard
-     rm -f $LOCK  2>/dev/null
+	set_lock
+	config_load netwizard
+	config_foreach add_netwizard netwizard
+	unset_lock
 }

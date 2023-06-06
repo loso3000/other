@@ -1,7 +1,6 @@
 config netwizard 'default'
 	option lan_netmask '255.255.255.0'
 	option wan_proto 'dhcp'
-	option wan_interface 'eth1'
         option redirectdns '1'
         option lan_dhcp '1'
         option synflood '1'
