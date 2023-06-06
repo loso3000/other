@@ -1,4 +1,5 @@
 #!/bin/sh
+chmod +x /etc/init.d/netwizard 2>/dev/null
 ipaddr=$(uci -q get network.lan.ipaddr)
 [  -n  "$(uci -q get wizard.default=wizard)" ] && uci set wizard.default=wizard
 uci -q set wizard.default.wifi_ssid="$(uci -q get wireless.@wifi-iface[0].ssid)"

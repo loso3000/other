@@ -88,7 +88,7 @@ wan_pppoe_pass:depends({wan_proto="pppoe"})
 if wizard_info.wan_pppoe_pass == "" and network_info.password ~= "" then
       wan_pppoe_pass.default = network_info.password
 end
-e.password = true
+wan_pppoe_pass.password = true
 
 wan_ipaddr = s:taboption("wansetup", Value, "wan_ipaddr", translate("Wan IPv4 address"))
 wan_ipaddr:depends({wan_proto="static"})
