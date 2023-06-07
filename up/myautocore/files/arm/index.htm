@@ -61,7 +61,7 @@
 		local conn_max = tonumber(luci.sys.exec("sysctl -n -e net.nf_conntrack_max net.ipv4.netfilter.ip_conntrack_max"	):match("%d+")) or 4096
  		local eth_info = luci.sys.exec("sysinfo ethinfo")
 		local cpu_speed = luci.sys.exec("sysinfo cpuspeed")
-		local user_info = luci.sys.exec("cat /proc/net/arp | grep '0x2' | wc -l")
+		local user_info = luci.sys.exec("sysinfo user")
 		local cpu_wd =luci.sys.exec("sysinfo armtempinfo")
 		local upnp_info = luci.sys.exec("sysinfo upnpinfo")
 		local cpu_usage = (luci.sys.exec("expr 100 - $(top -n 1 | grep 'CPU:' | awk -F '%' '{print$4}' | awk -F ' ' '{print$2}')") or "6") .. "%"
