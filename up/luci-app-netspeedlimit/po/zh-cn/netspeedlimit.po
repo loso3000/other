@@ -34,5 +34,5 @@ msgstr "星期(1~7)"
 msgid "List of Speed Limiting Machines"
 msgstr "限速机器列表"
 
-msgid ""
-msgstr ""
+msgid "Netspeedlimit"
+msgstr "网络限速"

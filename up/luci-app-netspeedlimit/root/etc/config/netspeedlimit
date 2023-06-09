@@ -1,5 +1,5 @@
 
-config basic
+config eqosplus
 	option enabled '0'
 
 config device
