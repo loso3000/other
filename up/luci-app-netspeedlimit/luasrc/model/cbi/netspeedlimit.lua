@@ -31,12 +31,12 @@ dl = t:option(Value, "download", translate("Downloads"))
 dl.rmempty = false
 dl.default = '0.002'
 dl.size = 6
-
+dl.datatype = "and(float,min(0.1))"
 ul = t:option(Value, "upload", translate("Uploads"))
 ul.rmempty = false
 ul.default = '0.002'
 ul.size = 6
-
+ul.datatype = "and(float,min(0.1))"
     function validate_time(self, value, section)
         local hh, mm, ss
         hh, mm, ss = string.match (value, "^(%d?%d):(%d%d)$")
