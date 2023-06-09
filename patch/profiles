@@ -1,11 +1,9 @@
 ## 2023 sirpdboy  herboy2008@gmail.com
 Sysinfo() {
 [ -z "${TARGET_PROFILE}" ] && local TARGET_PROFILE=$(jsonfilter -e '@.model.id' < /etc/board.json | tr ',' '_')
-local DISTRIB_ARCH=$(cat /etc/openwrt_release | grep "DISTRIB_ARCH=" |awk -F "'" '{print $2}')
+. /etc/openwrt_release
 if grep -Eq "x86" "/etc/openwrt_release" ; then
-	[ -d /sys/firmware/efi ] && DISTRIB_ARCH= "${DISTRIB_ARCH} - UEFI" || DISTRIB_ARCH="${DISTRIB_ARCH} - BIOS"
-else
-	DISTRIB_ARCH=${DISTRIB_ARCH}	
+	[ ! -d /sys/firmware/efi ] && DISTRIB_ARCH="${DISTRIB_ARCH} - BIOS" || DISTRIB_ARCH= "${DISTRIB_ARCH} - UEFI"
 fi
 local IP_Address=`ip -4 a | egrep "br-lan" | grep "inet" | awk '{print $2}'`
 local CPU_Model=$(awk -F ':[ ]' '/model name/{printf ($2);exit}' /proc/cpuinfo)
@@ -70,11 +68,13 @@ case ${YN} in
     /etc/init.d/rpcd restart
     rm -rf /etc/config/wizard
     rm -rf /etc/config/netwizard_hide
-    return
+    sleep 2
+    . /etc/profiles 
 ;;
 [Nn])
     EW "返回主菜单(return)"
-    . /etc/profiles
+    sleep 2
+    . /etc/profiles 
 
 ;;
 [Qq])
@@ -99,7 +99,9 @@ case ${YN} in
 ;;
 [Nn])
     EW "返回主菜单(return)"
-    . /etc/profiles
+    sleep 2
+    . /etc/profiles 
+
 ;;
 [Qq])
     . /etc/profiles
@@ -131,11 +133,14 @@ function k_change_ip() {
     ER "您的IP已经改为(Your IP has been changed to)：${keyip}！"
     uci commit network
     /etc/init.d/network restart
-    return
+    sleep 2
+    . /etc/profiles 
+
   ;; 
 
  Q)
-    . /etc/profiles
+    . /etc/profiles 
+
 ;;
 
   *) 
@@ -162,10 +167,14 @@ case ${YN} in
 ;;
 [Nn])
     EW "返回主菜单(return)"
-    . /etc/profiles
+    sleep 2
+    . /etc/profiles 
+
 ;;
 [Qq])
-    . /etc/profiles
+    sleep 2
+    . /etc/profiles 
+
 ;;
 *)
     ER "输入正确选择!(Enter the correct choice!)"
@@ -189,10 +198,14 @@ case ${YN} in
 ;;
 [Nn])
     EW "返回主菜单(return)"
-    . /etc/profiles
+    sleep 2
+    . /etc/profiles 
+
 ;;
 [Qq])
-    . /etc/profiles
+    sleep 2
+    . /etc/profiles 
+
 ;;
 *)
     ER "输入正确选择!(Enter the correct choice!)"
@@ -215,10 +228,14 @@ case ${YN} in
 ;;
 [Nn])
     EW "取消返回主菜单(return)"
-    . /etc/profiles
+    sleep 2
+    . /etc/profiles 
+
 ;;
 [Qq])
-    . /etc/profiles
+    sleep 2
+    . /etc/profiles 
+
 ;;
 *)
     ER "输入正确选择!(Enter the correct choice!)"
@@ -257,7 +274,9 @@ goreboot() {
     reboot -f
   else
     ER "$1 失败 (invalid)"
-    exit 0
+    sleep 2
+    . /etc/profiles 
+
   fi
 }
 clear
@@ -364,32 +383,41 @@ function mainmenu() {
 	*)
 		EG " Google 连接错误!(Google connection is error!)"
 	;;
-		esac
+	 esac
 		ER " "
-		sleep 2
+	    sleep 3
+    . /etc/profiles 
+
 	;;
     8)
         EY " 刷新状态清除内存完成!(Refresh status clear memory completed!)"
         sync && echo 3 > /proc/sys/vm/drop_caches
         rm -rf /tmp/luci*
 	ER " "
-	sleep 2
+    sleep 3
+    . /etc/profiles 
+
     ;;
     9)
       EY " 停卡家长控制插件成功!(Stop Parentcontrol completed!)"
       EW " "
       /etc/init.d/parentcontrol stop
-      sleep 2
+    sleep 3
+    . /etc/profiles 
+
     ;;
     0)
       EW " 退出程序成功(Exit the program successfully)"
       EW " "
-      break
+      goexit
     ;;
     *)
      KEY="请输入数字(please enter a number)"
     ;;
     esac
     done
+}
+goexit() {
+  exit 1
 }
 mainmenu
