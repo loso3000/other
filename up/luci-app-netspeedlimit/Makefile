@@ -1,52 +1,26 @@
+#
+# Copyright (C) 2006-2017 OpenWrt.org
+# Copyright (C) 2023 sirpdboy <herboy2008@gmail.com>
+# This is free software, licensed under the GNU General Public License v2.
+# See /LICENSE for more information.
+#
+
 include $(TOPDIR)/rules.mk
 
-PKG_NAME:=luci-app-netspeedlimit
-PKG_VERSION:=v1.0.1
+LUCI_TITLE:=LuCI support for netspeedlimit by sirpdboy
+LUCI_DESCRIPTION:=LuCI support for Easy netspeedlimit(Support speed limit based on IP address).
+LUCI_DEPENDS:=+bash +tc +kmod-sched-core +kmod-ifb +kmod-sched
+LUCI_PKGARCH:=all
+
+PKG_VERSION:=1.1.1
 PKG_RELEASE:=20230609
-
-PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
-
-include $(INCLUDE_DIR)/package.mk
-
-define Package/$(PKG_NAME)
-  SECTION:=luci
-  CATEGORY:=LuCI
-  SUBMENU:=3. Applications
-  DEPENDS:=+tc +bash +kmod-ifb +kmod-sched +kmod-sched-core
-  TITLE:=LuCI support for netspeedlimit
-  PKGARCH:=all
-endef
-
-define Build/Compile
-endef
-
-define Package/$(PKG_NAME)/postinst
-#!/bin/sh
-rm -f /tmp/luci-*
-endef
+PKG_MAINTAINER:=sirpdboy <herboy2008@gmail.com>
 
 define Package/$(PKG_NAME)/conffiles
 /etc/config/netspeedlimit
 endef
 
-define Package/$(PKG_NAME)/install
-	$(INSTALL_DIR) $(1)/usr/lib/lua/luci
-	cp -pR ./luasrc/* $(1)/usr/lib/lua/luci
+include $(TOPDIR)/feeds/luci/luci.mk
 
-	$(INSTALL_DIR) $(1)/etc/init.d
-	$(INSTALL_BIN) ./root/etc/init.d/* $(1)/etc/init.d/
+# call BuildPackage - OpenWrt buildroot signature
 
-	$(INSTALL_DIR) $(1)/etc/hotplug.d/iface
-	$(INSTALL_BIN) ./root/etc/hotplug.d/iface/* $(1)/etc/hotplug.d/iface/
-	
-	$(INSTALL_DIR) $(1)/etc/uci-defaults
-	$(INSTALL_BIN) ./root/etc/uci-defaults/* $(1)/etc/uci-defaults/
-	
-	$(INSTALL_DIR) $(1)/etc/config
-	$(INSTALL_CONF) ./root/etc/config/* $(1)/etc/config/
-
-	# $(INSTALL_DIR) $(1)/usr/lib/lua/luci/i18n
-	# po2lmo ./po/zh-cn/*.po $(1)/usr/lib/lua/luci/i18n/speedlimit.zh-cn.lmo
-endef
-
-$(eval $(call BuildPackage,$(PKG_NAME)))

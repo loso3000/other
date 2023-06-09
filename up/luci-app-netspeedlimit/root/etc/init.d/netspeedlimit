@@ -3,6 +3,7 @@
 START=86
 NAME=netspeedlimit
 dev=br-lan
+
 del_rule() {
 	tc qdisc del dev $dev root 2>/dev/null
 	tc qdisc del dev $dev ingress 2>/dev/null
@@ -10,25 +11,56 @@ del_rule() {
 	ip link del dev ${dev}-ifb 2>/dev/null
 	iptables -t mangle -F PREROUTING 2>/dev/null
 }
-get_data() {
-	DATA=$(awk '{print $1*8*10^3}' <<< "$DATA_")
+
+add_mac() {
+	USR="-m mac --mac-source $usr"
+	if [ "$UL" -gt 0 ]; then
+	       tc class add dev ${dev}-ifb parent 1:1 classid 1:"$id" htb rate "$UL"kbit
+	       tc qdisc add dev ${dev}-ifb parent 1:"$id" handle "$id": sfq perturb 1
+	       tc filter add dev ${dev}-ifb parent 1:0 protocol ip prio $id handle $id fw flowid 1:"$id"
+	       iptables -t mangle -A PREROUTING $USR $WT -j MARK --set-mark $id
+	fi
+	if [ "$DL" -gt 0 ]; then
+	       tc class add dev ${dev} parent 1:1 classid 1:"$id" htb rate "$DL"kbit
+	       tc qdisc add dev ${dev} parent 1:"$id" handle "$id": sfq perturb 1
+	       tc filter add dev ${dev} parent 1:0 protocol ip prio $id handle $id fw flowid 1:"$id"
+		 iptables -t mangle -A PREROUTING $USR $WT -j MARK --set-mark $id
+	fi
+	id="$((id + 1))"
+
+}
+
+add_dev() {
+	ip link add dev ${dev}-ifb name ${dev}-ifb type ifb
+	ip link set dev ${dev}-ifb up
+	
+	tc qdisc add dev $dev root handle 1: htb  default 1
+	tc class add dev $dev parent 1: classid 1:1 htb rate 10000Mbit
+	
+	tc qdisc add dev ${dev}-ifb root handle 1: htb  default 2
+	tc class add dev ${dev}-ifb parent 1: classid 1:1 htb rate 10000Mbit
+	tc qdisc add dev $dev ingress
+	# tc filter add dev $dev parent ffff: protocol ip u32 match u32 0 0 flowid 1:1 action mirred egress redirect dev ${dev}-ifb
 }
 
 add_sip() {
 	if [ "$UL" -gt 0 ]; then
-	       tc class add dev br-lan-ifb parent 1:1 classid 1:"$id" htb rate "$UL"kbit
-	       tc filter add dev br-lan-ifb parent 1:0 protocol ip prio $id handle $id fw flowid 1:"$id"
+	       tc class add dev ${dev}-ifb parent 1:1 classid 1:"$id" htb rate "$UL"kbit
+	       tc qdisc add dev ${dev}-ifb parent 1:"$id" handle "$id": sfq perturb 1
+	       tc filter add dev ${dev}-ifb parent 1:0 protocol ip prio $id handle $id fw flowid 1:"$id"
 	       iptables -t mangle -A PREROUTING -s "$usr" $WT -j MARK --set-mark "$id"
 	       iptables -t mangle -A PREROUTING -d "$usr" $WT -j MARK --set-mark "$id"
 	fi
 	
 	if [ "$DL" -gt 0 ]; then
-	       tc class add dev br-lan parent 1:1 classid 1:"$id" htb rate "$DL"kbit
-	       tc filter add dev br-lan parent 1:0 protocol ip prio $id handle $id fw flowid 1:"$id"
+	       tc class add dev ${dev} parent 1:1 classid 1:"$id" htb rate "$DL"kbit
+	       tc qdisc add dev ${dev} parent 1:"$id" handle "$id": sfq perturb 1
+	       tc filter add dev ${dev} parent 1:0 protocol ip prio $id handle $id fw flowid 1:"$id"
 	       iptables -t mangle -A PREROUTING -s "$usr" $WT -j MARK --set-mark $id
 	       iptables -t mangle -A PREROUTING -d "$usr" $WT -j MARK --set-mark $id
 	fi
 	id="$((id + 1))"
+
 }
 
 add_ip() {
@@ -47,33 +79,6 @@ add_ip() {
 	fi
 }
 
-add_mac() {
-	USR="-m mac --mac-source $usr"
-	if [ "$UL" -gt 0 ]; then
-	       tc class add dev br-lan-ifb parent 1:1 classid 1:"$id" htb rate "$UL"kbit
-	       tc filter add dev br-lan-ifb parent 1:0 protocol ip prio $id handle $id fw flowid 1:"$id"
-	       iptables -t mangle -A PREROUTING $USR $WT -j MARK --set-mark $id
-	fi
-	if [ "$DL" -gt 0 ]; then
-	       tc class add dev br-lan parent 1:1 classid 1:"$id" htb rate "$DL"kbit
-	       tc filter add dev br-lan parent 1:0 protocol ip prio $id handle $id fw flowid 1:"$id"
-		 iptables -t mangle -A PREROUTING $USR $WT -j MARK --set-mark $id
-	fi
-	id="$((id + 1))"
-
-}
-
-add_dev() {
-	tc qdisc add dev $dev root handle 1: htb  default 1
-	tc class add dev $dev parent 1: classid 1:1 htb rate 10Gbit 
-	ip link add dev ${dev}-ifb name ${dev}-ifb type ifb
-	ip link set dev ${dev}-ifb up
-	tc qdisc add dev ${dev}-ifb root handle 1: htb  default 2
-	tc class add dev ${dev}-ifb parent 1: classid 1:1 htb rate 10Gbit 
-	tc qdisc add dev $dev ingress
-	tc filter add dev $dev parent ffff: protocol ip u32 match u32 0 0 flowid 1:1 action mirred egress redirect dev ${dev}-ifb
-}
-
 start() {
 	[ -f /var/lock/$NAME ] && exit
 	if [ "$(grep -c 'option enable .1.' /etc/config/$NAME 2>/dev/null)" -gt "0" ]; then
@@ -86,8 +91,8 @@ start() {
 		echo start $idlist
 		for i in $idlist ;do
 				usr=$(uci -q get $NAME.@device[$i].usr )
-				DATA_=$(uci -q get $NAME.@device[$i].download 2>/dev/null); get_data; DL="$DATA"; unset DATA__
-				DATA__=$(uci -q get $NAME.@device[$i].upload   2>/dev/null); get_data; UL="$DATA"; unset DATA__
+				DL=$(uci -q get $NAME.@device[$i].download 2>/dev/null | awk '{print $1*8*10^3}')
+				UL=$(uci -q get $NAME.@device[$i].upload   2>/dev/null | awk '{print $1*8*10^3}')
 				timestart=$(uci -q get $NAME.@device[$i].timestart 2>/dev/null) || timestart="00:00"
 				timeend=$(uci -q get $NAME.@device[$i].timeend 2>/dev/null) ||  timeend="00:00"
 				wweek=$(uci get $NAME.@device[$i].week  |sed 's/ /,/g' 2>/dev/null)

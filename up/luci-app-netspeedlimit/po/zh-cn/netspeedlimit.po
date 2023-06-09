@@ -1,8 +1,8 @@
 msgid "Network speed limit"
 msgstr "网络限速"
 
-msgid "Running state"
-msgstr "运行状态"
+msgid "Running state:"
+msgstr "运行状态:"
 
 msgid "Not running"
 msgstr "未运行"
@@ -31,8 +31,8 @@ msgstr "停控时间"
 msgid "Week Day(1~7)"
 msgstr "星期(1~7)"
 
-msgid "List of Speed Limiting Machines"
-msgstr "限速机器列表"
+msgid "Speed Limiting Machines"
+msgstr "限速机器"
 
 msgid "Netspeedlimit"
 msgstr "网络限速"

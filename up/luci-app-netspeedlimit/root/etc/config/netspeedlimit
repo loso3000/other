@@ -1,14 +1,15 @@
 
-config eqosplus
+config netspeedlimit
 	option enabled '0'
 
 config device
-	option download '0.002'
-	option upload '0.002'
 	option timestart '00:00'
 	option timeend '00:00'
 	option week '*'
+	option usr '00:15:5D:C5:1E:44'
 	option enable '0'
+	option download '0.01'
+	option upload '0.01'
 
 config device
 	option usr '192.168.10.10-200'

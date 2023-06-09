@@ -11,7 +11,7 @@ else
 end
 
 m = Map("netspeedlimit", translate("Network speed limit"))
-m.description = translate("Users can limit the network speed for uploading/downloading through MAC, IP, IP segment, and IP range< The speed unit is MB/second< If a certain rate is filled with 0 and the rule is moved to the top, then the item is not limited in speed. If both the top and bottom are filled with 0, then the user is not limited in speed (excluding overlapping with the IP range)< Press - Customize - (at the bottom of the MAC list) to enter the IP or IP segment, IP range, or IP mask.")
+m.description = translate("Users can limit the network speed for uploading/downloading through MAC, IP, IP segment, and IP range< The speed unit is MB/second< If a certain rate is filled with 0 and the rule is moved to the top, then the item is not limited in speed. If both the top and bottom are filled with 0, then the user is not limited in speed (excluding overlapping with the IP range)< Press - Customize - (at the bottom of the MAC list) to enter the IP or IP segment, IP range, or IP mask.").. button .. "<br/><br/>" .. translate("Running state:") .. state_msg .. "<br />"
 
 t = m:section(TypedSection, "device")
 t.template = "cbi/tblsection"
@@ -22,19 +22,19 @@ t.sortable  = true
 e = t:option(Flag, "enable", translate("Enable"))
 e.rmempty = false
 
-usr = t:option(Value, "usr", translate("List of Speed Limiting Machines"))
+usr = t:option(Value, "usr", translate("Speed Limiting Machines"))
 sys.net.mac_hints(function(mac, name)
 	usr:value(mac, "%s (%s)" %{ mac, name })
 end)
 
 dl = t:option(Value, "download", translate("Downloads"))
 dl.rmempty = false
-dl.default = '0.002'
+dl.default = '0.01'
 dl.size = 6
 
 ul = t:option(Value, "upload", translate("Uploads"))
 ul.rmempty = false
-ul.default = '0.002'
+ul.default = '0.01'
 ul.size = 6
     function validate_time(self, value, section)
         local hh, mm, ss
