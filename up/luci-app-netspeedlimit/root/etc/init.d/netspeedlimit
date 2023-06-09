@@ -1,0 +1,114 @@
+#!/bin/bash /etc/rc.common
+
+START=86
+NAME=netspeedlimit
+
+del_rule() {
+	tc qdisc del dev br-lan root 2>/dev/null
+	tc qdisc del dev br-lan_ifb root 2>/dev/null
+	tc qdisc del dev br-lan ingress 2>/dev/null
+	ip link del dev br-lan_ifb  2>/dev/null
+	iptables -t mangle -F PREROUTING 2>/dev/null
+}
+
+get_data() {
+	DATA=$(awk '{print $1*8*10^3}' <<< "$DATA_")
+}
+
+add_sip() {
+	if [ "$UL" -gt 0 ]; then
+	       tc class add dev br-lan_ifb parent 1:1 classid 1:"$id" htb rate "$UL"kbit
+	       tc filter add dev br-lan_ifb parent 1:0 protocol ip prio $id handle $id fw flowid 1:"$id"
+	       iptables -t mangle -A PREROUTING -s "$usr" $WT -j MARK --set-mark "$id"
+	       iptables -t mangle -A PREROUTING -d "$usr" $WT -j MARK --set-mark "$id"
+	fi
+	
+	if [ "$DL" -gt 0 ]; then
+	       tc class add dev br-lan parent 1:1 classid 1:"$id" htb rate "$DL"kbit
+	       tc filter add dev br-lan parent 1:0 protocol ip prio $id handle $id fw flowid 1:"$id"
+	       iptables -t mangle -A PREROUTING -s "$usr" $WT -j MARK --set-mark $id
+	       iptables -t mangle -A PREROUTING -d "$usr" $WT -j MARK --set-mark $id
+	fi
+	id="$((id + 1))"
+
+}
+
+add_ip() {
+	if [ -n "$(grep '-' <<< "$usr")" ]; then
+		usr=$(awk -F '[.-]' '{if ($5=="") print $1"."$2"."$3"."$4 ; else if ($8=="" && $4<$5) print $1"."$2"."$3"."$4"-"$5 ; else if ($8=="" && $4>$5) print $1"."$2"."$3"."$5"-"$4 ; else if ($8>$4) print $1"."$2"."$3"."$4"-"$8 ; else if ($8<$4) print $1"."$2"."$3"."$8"-"$4}' <<< "$usr")
+		iphead=$(awk -F '[.-]' '{print $1"."$2"."$3"."}' <<< "$usr")
+		ipstart=$(awk -F '[.-]' '{print $4}' <<< "$usr")
+		ipend=$(awk -F '[.-]' '{print $5}' <<< "$usr")
+		while [ $ipstart -le $ipend ]; do
+			usr="$iphead""$ipstart"
+			add_sip
+			
+			ipstart=$(($ipstart + 1))
+		done
+	else
+		add_sip
+	fi
+}
+
+add_mac() {
+	USR="-m mac --mac-source $usr"
+	if [ "$UL" -gt 0 ]; then
+	       tc class add dev br-lan_ifb parent 1:1 classid 1:"$id" htb rate "$UL"kbit
+	       tc filter add dev br-lan_ifb parent 1:0 protocol ip prio $id handle $id fw flowid 1:"$id"
+	       iptables -t mangle -A PREROUTING $USR $WT -j MARK --set-mark $id
+	fi
+	if [ "$DL" -gt 0 ]; then
+	       tc class add dev br-lan parent 1:1 classid 1:"$id" htb rate "$DL"kbit
+	       tc filter add dev br-lan parent 1:0 protocol ip prio $id handle $id fw flowid 1:"$id"
+		 iptables -t mangle -A PREROUTING $USR $WT -j MARK --set-mark $id
+	fi
+	id="$((id + 1))"
+
+}
+
+add_dev() {
+    tc qdisc add dev "$1" root handle 1: htb default 1
+    tc class add dev "$1" parent 1: classid 1:1 htb rate 10Gbit 
+    # tc class add dev br-lan parent 1: classid 1:1 htb rate 10Gbit ceil 10Gbit burst 0b cburst 0b
+}
+
+start() {
+	[ -f /var/lock/$NAME ] && exit
+	if [ "$(grep -c 'option enable .1.' /etc/config/$NAME 2>/dev/null)" -gt "0" ]; then
+		touch /var/lock/$NAME
+		localip=$(uci get network.lan.ipaddr 2>/dev/null | awk -F '.' '{print $1"."$2"."$3".0/24"}')
+		del_rule
+		ip link add dev br-lan_ifb name br-lan_ifb type ifb
+		ip link set dev br-lan_ifb up
+		add_dev br-lan
+		add_dev br-lan_ifb
+		tc qdisc add dev br-lan ingress
+		idlist=`uci show $NAME | grep "enable='1'" | grep "device" | grep -oE '\[.*?\]' | grep -o '[0-9]'`
+		id=10
+		echo start $idlist
+		for i in $idlist ;do
+				usr=$(uci -q get $NAME.@device[$i].usr )
+				DATA_=$(uci -q get $NAME.@device[$i].download 2>/dev/null); get_data; DL="$DATA"; unset DATA__
+				DATA__=$(uci -q get $NAME.@device[$i].upload   2>/dev/null); get_data; UL="$DATA"; unset DATA__
+				timestart=$(uci -q get $NAME.@device[$i].timestart 2>/dev/null) || timestart="00:00"
+				timeend=$(uci -q get $NAME.@device[$i].timeend 2>/dev/null) ||  timeend="00:00"
+				wweek=$(uci get $NAME.@device[$i].week  |sed 's/ /,/g' 2>/dev/null)
+				[ -z "$timestart" -o -z "$timeend" -o "$timestart" = "$timeend" ] && TIME="" || TIME="--timestart ${timestart} --timestop ${timeend}"
+				[ -z "$wweek" -o "$wweek" = "*" ] && WEEK="" || WEEK="--weekdays ${wweek}"
+				[ -n "$TIME" -o -n "$WEEK" ] && WT="-m time --kerneltz ${TIME} ${WEEK}" || WT=""
+				egrep -q "([A-Fa-f0-9]{2}[-:]){5}[A-Fa-f0-9]{2}" <<< "$usr" && (add_mac; :;) || (egrep -q "(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])" <<< "$usr" && add_ip)
+
+		done
+		rm -f /var/lock/$NAME
+	fi
+}
+
+stop() {
+	rm -f /var/lock/$NAME 2>/dev/null
+	del_rule
+}
+
+restart() {
+	stop
+	start
+}
