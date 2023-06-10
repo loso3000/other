@@ -1,6 +1,5 @@
--- Copyright 2022-2023 sirpdboy <herboy2008@gmail.com>
 module("luci.controller.eqosplus", package.seeall)
-
+-- Copyright 2022-2023 sirpdboy <herboy2008@gmail.com>
 function index()
     if not nixio.fs.access("/etc/config/eqosplus") then return end
     entry({"admin", "control"}, firstchild(), "Control", 44).dependent = false

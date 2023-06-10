@@ -14,7 +14,7 @@ msgstr "未运行"
 msgid "Running"
 msgstr "已运行"
 
-msgid "Users can limit the network speed for uploading/downloading through MAC, IP, and IP ranges. <font color=\"red\"><b>The speed unit is MB/second </b></font>。<br>< Press - Customize - (at the bottom of the MAC list) to enter the IP or IP range (range connected with -)"
+msgid "Users can limit the network speed for uploading/downloading through MAC, IP, and IP ranges.The speed unit is MB/second < Press - Customize - (at the bottom of the MAC list) to enter the IP or IP range (range connected with -)"
 msgstr "可以通过MAC，IP，IP范围限制用户上传/下载的网速。速度单位为<font color=\"red\"><b> MB/秒 </b></font>。<br>按 --自定义--（在MAC列表底部）可输入IP或IP范围(范围用-连接)。"
 
 msgid "MAC/IP"

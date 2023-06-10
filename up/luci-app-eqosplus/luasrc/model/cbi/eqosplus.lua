@@ -1,11 +1,12 @@
 
--- Copyright 2022-2023 sirpdboy <herboy2008@gmail.com>
 local ipc = require "luci.ip"
 local sys = require "luci.sys"
+
+-- Copyright 2022-2023 sirpdboy <herboy2008@gmail.com>
 local a, t, e
 
 a = Map("eqosplus", translate("Network speed limit"))
-a.description = translate("Users can limit the network speed for uploading/downloading through MAC, IP, and IP ranges. <font color=\"red\"><b>The speed unit is MB/second </b></font>¡£<br>< Press - Customize - (at the bottom of the MAC list) to enter the IP or IP range (range connected with -)")
+a.description = translate("Users can limit the network speed for uploading/downloading through MAC, IP, and IP ranges.The speed unit is MB/second < Press - Customize - (at the bottom of the MAC list) to enter the IP or IP range (range connected with -)")
 a.template = "eqosplus/index"
 
 t = a:section(TypedSection, "eqosplus")
