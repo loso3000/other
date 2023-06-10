@@ -10,8 +10,8 @@ msgstr "未运行"
 msgid "Running"
 msgstr "已运行"
 
-msgid "Users can limit the network speed for uploading/downloading through MAC, IP, IP segment, and IP range< The speed unit is MB/second< If a certain rate is filled with 0 and the rule is moved to the top, then the item is not limited in speed. If both the top and bottom are filled with 0, then the user is not limited in speed (excluding overlapping with the IP range)< Press - Customize - (at the bottom of the MAC list) to enter the IP or IP segment, IP range, or IP mask."
-msgstr "可以通过MAC，IP，IP段，IP范围限制用户上传/下载的网速。<br>速度单位为<font color=\"red\"><b> MB/秒 </b></font>。<br>如某速率填 0 并将该规则移动到顶端则该项不限速，上下都填 0 则该用户不限速（排除与IP范围重叠用）。<br>按 --自定义--（在MAC列表底部）可输入IP或IP段或IP范围或IP加掩码。"
+msgid "Users can limit the network speed for uploading/downloading through MAC, IP, IP segment, and IP range< The speed unit is MB/second< Press - Customize - (at the bottom of the MAC list) to enter IP, IP segment, or IP range"
+msgstr "可以通过MAC，IP，IP段，IP范围限制用户上传/下载的网速。<br>速度单位为<font color=\"red\"><b> MB/秒 </b></font>。<br>按 --自定义--（在MAC列表底部）可输入IP或IP段或IP范围。"
 
 msgid "Downloads"
 msgstr "下载速度"

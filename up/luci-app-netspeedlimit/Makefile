@@ -12,8 +12,8 @@ LUCI_DESCRIPTION:=LuCI support for Easy netspeedlimit(Support speed limit based 
 LUCI_DEPENDS:=+bash +tc +kmod-sched-core +kmod-ifb +kmod-sched
 LUCI_PKGARCH:=all
 
-PKG_VERSION:=1.1.1
-PKG_RELEASE:=20230609
+PKG_VERSION:=1.1.2
+PKG_RELEASE:=20230610
 PKG_MAINTAINER:=sirpdboy <herboy2008@gmail.com>
 
 define Package/$(PKG_NAME)/conffiles

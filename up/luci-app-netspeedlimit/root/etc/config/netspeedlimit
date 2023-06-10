@@ -6,13 +6,13 @@ config device
 	option timestart '00:00'
 	option timeend '00:00'
 	option week '*'
-	option usr '00:15:5D:C5:1E:44'
+	option mac '00:15:5D:C5:1E:44'
 	option enable '0'
 	option download '0.01'
 	option upload '0.01'
 
 config device
-	option usr '192.168.10.10-200'
+	option mac '192.168.10.10-200'
 	option download '0.005'
 	option upload '0.005'
 	option timestart '00:00'
