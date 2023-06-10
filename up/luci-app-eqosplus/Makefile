@@ -12,8 +12,8 @@ LUCI_DESCRIPTION:=LuCI support for Easy eqosplus(Support speed limit based on IP
 LUCI_DEPENDS:=+bash +tc +kmod-sched-core +kmod-ifb +kmod-sched +iptables-mod-filter
 LUCI_PKGARCH:=all
 
-PKG_VERSION:=1.1.2
-PKG_RELEASE:=20230610
+PKG_VERSION:=1.1.3
+PKG_RELEASE:=20230611
 PKG_MAINTAINER:=sirpdboy <herboy2008@gmail.com>
 
 define Package/$(PKG_NAME)/conffiles

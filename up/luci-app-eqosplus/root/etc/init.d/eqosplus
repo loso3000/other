@@ -13,7 +13,6 @@ eqosplus_start() {
 	    config_get download "$cfg" download
 	    config_get upload "$cfg" upload
 	    eqosplus start $download $upload
-	    echo   $download $upload
 	    eqosplus add
 	 fi
 }

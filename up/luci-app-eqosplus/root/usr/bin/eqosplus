@@ -1,15 +1,16 @@
 #!/bin/bash 
 NAME=eqosplus
-dev=br-lan
+[ ` uci -q get network.wan.ifname ` ] && dev=` uci -q get network.wan.ifname ` || dev=` uci -q get network.wan.device ` 
+[ ! $dev ] && dev=br-lan
 
 stop_qos() {
 	tc qdisc del dev $dev root 2>/dev/null
 	tc qdisc del dev $dev ingress 2>/dev/null
 	tc qdisc del dev ${dev}-ifb root 2>/dev/null
 	ip link del dev ${dev}-ifb 2>/dev/null
-	for face in $( tc qdisc show | grep htb | awk '{print $5}');do
+	 for face in $( tc qdisc show | grep htb | awk '{print $5}');do
 	    tc qdisc del dev $face root
-	done
+	 done
 	iptables -t mangle -F PREROUTING 2>/dev/null
 }
 
@@ -90,11 +91,10 @@ case "$1" in
 	"add")
 		idlist=`uci show $NAME | grep "enable='1'" | grep "device" | grep -oE '\[.*?\]' | grep -o '[0-9]'`
 		id=10
-		echo start $idlist
 		for i in $idlist ;do
 				mac=$(uci -q get $NAME.@device[$i].mac )
-				DL=$(uci -q get $NAME.@device[$i].download 2>/dev/null | awk '{print $1*10^3}')
-				UL=$(uci -q get $NAME.@device[$i].upload   2>/dev/null | awk '{print $1*10^3}')
+				DL=$(uci -q get $NAME.@device[$i].download 2>/dev/null | awk '{print $1*10^3/5}')
+				UL=$(uci -q get $NAME.@device[$i].upload   2>/dev/null | awk '{print $1*10^3/5}')
 				timestart=$(uci -q get $NAME.@device[$i].timestart 2>/dev/null) || timestart="00:00"
 				timeend=$(uci -q get $NAME.@device[$i].timeend 2>/dev/null) ||  timeend="00:00"
 				wweek=$(uci get $NAME.@device[$i].week  |sed 's/ /,/g' 2>/dev/null)

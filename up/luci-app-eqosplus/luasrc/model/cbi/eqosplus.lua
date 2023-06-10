@@ -38,11 +38,11 @@ sys.net.mac_hints(function(mac, name)
 end)
 e.size = 8
 dl = t:option(Value, "download", translate("Downloads"))
-dl.default = '0.01'
+dl.default = '0.1'
 dl.size = 4
 
 ul = t:option(Value, "upload", translate("Uploads"))
-ul.default = '0.01'
+ul.default = '0.1'
 ul.size = 4
 function validate_time(self, value, section)
         local hh, mm, ss
