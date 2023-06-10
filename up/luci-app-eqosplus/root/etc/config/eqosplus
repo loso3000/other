@@ -1,0 +1,21 @@
+
+config eqosplus
+	option enabled '0' 
+
+config device
+	option download '0.002'
+	option upload '0.002'
+	option timestart '00:00'
+	option timeend '00:00'
+	option week '*'
+	option enable '0'
+
+config device
+	option mac '192.168.10.10-200'
+	option download '0.005'
+	option upload '0.005'
+	option timestart '00:00'
+	option timeend '00:00'
+	option week '*'
+	option enable '0'
+

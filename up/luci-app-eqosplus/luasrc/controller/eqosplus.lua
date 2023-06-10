@@ -1,0 +1,17 @@
+-- Copyright 2022-2023 sirpdboy <herboy2008@gmail.com>
+module("luci.controller.eqosplus", package.seeall)
+
+function index()
+    if not nixio.fs.access("/etc/config/eqosplus") then return end
+    entry({"admin", "control"}, firstchild(), "Control", 44).dependent = false
+    entry({"admin", "control", "eqosplus"}, cbi("eqosplus"), _("Eqosplus"), 10).dependent =true
+    entry({"admin", "control", "eqosplus", "status"}, call("act_status")).leaf = true
+end
+
+function act_status()
+    local sys  = require "luci.sys"
+    local e = {} 
+    e.status = sys.call(" tc qdisc show dev br-lan | grep  'default' 2>/dev/null ") == 0  
+    luci.http.prepare_content("application/json")
+    luci.http.write_json(e)
+end
