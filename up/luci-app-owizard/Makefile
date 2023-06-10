@@ -4,7 +4,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-owizard
-PKG_VERSION:=1.7
+PKG_VERSION:=1.8.1
 PKG_RELEASE:=33
 
 PKG_LICENSE:=GPLv3

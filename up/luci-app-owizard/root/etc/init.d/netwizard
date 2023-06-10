@@ -3,18 +3,8 @@
 LOCK=/var/lock/netwizard-boot.lock
 START=19
 
-set_lock() {
-	exec 1000>"$LOCK"
-	flock -xn 1000
-}
-
-unset_lock() {
-	flock -u 1000
-	rm -rf "$LOCK" 
-}
-
 boot() {
-	XBOOT=1 start
+	XBOOT=1
 }
 
 setipv6() {
@@ -86,10 +76,10 @@ setipv6() {
 	esac
 }
 add_netwizard() {
-	[ "x$XBOOT" = "x1" ] && return 0
+	[ "x$XBOOT" = "x1" ] && exit 0
 	local cfg="$1"
 	local wan_proto wan_ipaddr wan_netmask wan_gateway wan_dns wan_pppoe_user wan_pppoe_pass 
-	local ipv6 wifi_ssid wifi_key old_wifi_ssid old_wifi_key
+	local ipv6 wifi_ssid wifi_key old_wifi_ssid old_wifi_key showhide
 	local lan_ipaddr lan_netmask lan_gateway lan_dns lan_dhcp wan_interface
 	local ifname lannet a b i
  	config_get showhide "$cfg" showhide
@@ -103,7 +93,8 @@ add_netwizard() {
 	config_get lan_ipaddr "$cfg" lan_ipaddr
 	config_get lan_netmask "$cfg" lan_netmask
 	config_get dns_tables "$cfg" dns_tables
- 	[ "x$showhide" = "x1" ] && touch /etc/config/netwizard_hide || rm -rf  /etc/config/netwizard_hide
+ 	[ "x$showhide" = "x1" ] && touch /etc/config/netwizard_hide ;exit|| rm -rf  /etc/config/netwizard_hide
+	touch $LOCK
 	ifname=$(uci -q get network.lan.ifname ) 
 	[ "x$ifname" = "x" ] && ifname="device" || ifname="ifname" 
  	[ -n "$wan_interface" ] || wan_interface=$(uci -q get network.wan.$ifname 2>/dev/null) 
@@ -135,7 +126,7 @@ add_netwizard() {
  	case "${wan_proto}" in
 		dhcp)
 			uci -q set network.wan.proto='dhcp'
-			uci -q set network.wan.metric='40'
+			#uci -q set network.wan.metric='40'
 			uci -q set network.wan.delegate='0'
 			setipv6 $ipv6
 		;;
@@ -145,7 +136,7 @@ add_netwizard() {
 			config_get wan_gateway "$cfg" wan_gateway
 			test -n "${wan_ipaddr}" && test -n "${wan_netmask}" && {
 				uci -q set network.wan.proto='static'
-				uci -q set network.wan.metric='40'
+				#uci -q set network.wan.metric='40'
 				uci -q set network.wan.ipaddr="${wan_ipaddr}"
 				uci -q set network.wan.netmask="${wan_netmask}"
 				uci -q set network.wan.gateway="${wan_gateway}"
@@ -162,7 +153,7 @@ add_netwizard() {
 			config_get wan_pppoe_pass "$cfg" wan_pppoe_pass
 			[[ "${wan_pppoe_user} != $(uci get network.wan.username)" || "${wan_pppoe_pass} != $(uci get network.wan.password)" ]] && {
 				uci -q set network.wan.proto='pppoe'
-				uci -q set network.wan.metric='40'
+				#uci -q set network.wan.metric='40'
 				uci -q set network.wan.username="${wan_pppoe_user}"
 				uci -q set network.wan.password="${wan_pppoe_pass}"
 				uci -q set network.wan.keepalive='5 5'
@@ -222,7 +213,7 @@ add_netwizard() {
 	[ "x$synflood" = "x1" ] && uci -q set firewall.@defaults[0].syn_flood='1' || uci -q delete firewall.@defaults[0].syn_flood
 	sed -i "/dhcp_option '6/d" /etc/config/dhcp
 	sed -i "/list dns/d" /etc/config/dhcp
-	if [ "x$lan_dhcp" = "x1" ] ; then 
+	if [ "x$lan_dhcp" = "x0" ] ; then 
 	    # uci -q set dhcp.lan.dynamicdhcp="1" 
 	    uci -q set dhcp.lan.ignore="0" 
 	    [ "x$dnsset" = "x1" ] && {
@@ -264,7 +255,6 @@ add_netwizard() {
  		uci -q set netwizard.default.old_wifi_ssid="${wifi_ssid}"
 	 	uci -q set netwizard.default.old_wifi_key="${wifi_ssid}"
 	fi
-
 	uci commit netwizard
 	uci commit dhcp
 	uci commit firewall
@@ -274,9 +264,13 @@ add_netwizard() {
 	 /etc/init.d/dnsmasq reload)&
 }
 
-start() {
-	set_lock
+start() { 
+	[ -f $LOCK ] && exit
 	config_load netwizard
 	config_foreach add_netwizard netwizard
-	unset_lock
+	rm -f $LOCK 2>/dev/null
+}
+
+stop() {
+	rm -f $LOCK 2>/dev/null
 }
