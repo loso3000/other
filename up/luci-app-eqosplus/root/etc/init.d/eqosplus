@@ -1,0 +1,33 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2006 OpenWrt.org
+# Copyright 2022-2023 sirpdboy <herboy2008@gmail.com>
+
+START=50
+
+NAME=eqosplus
+
+eqosplus_start() {
+	 local cfg="$1" enabled download upload
+	config_get_bool enabled "$cfg" enabled 0
+	[ "x$enabled" = "x0" ] && exit 0
+	 if [ "$(grep -c 'option enable .1.' /etc/config/$NAME 2>/dev/null)" -gt "0" ]; then
+	    touch /var/lock/$NAME
+	    config_get download "$cfg" download
+	    config_get upload "$cfg" upload
+	    eqosplus start $download $upload
+	    eqosplus add
+	 fi
+}
+
+start() {
+	[ -f /var/lock/eqosplus ] && exit
+	eqosplus stop
+	config_load eqosplus
+	config_foreach eqosplus_start eqosplus
+	rm -f /var/lock/$NAME
+}
+
+stop() {
+	rm -f /var/lock/$NAME 2>/dev/null
+	eqosplus stop
+}
