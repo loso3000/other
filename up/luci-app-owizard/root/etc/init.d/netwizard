@@ -82,19 +82,24 @@ add_netwizard() {
 	local ipv6 wifi_ssid wifi_key old_wifi_ssid old_wifi_key showhide
 	local lan_ipaddr lan_netmask lan_gateway lan_dns lan_dhcp wan_interface
 	local ifname lannet a b i
- 	config_get showhide "$cfg" showhide
-	config_get wan_proto "$cfg" wan_proto
-	config_get ipv6 "$cfg" ipv6
-	config_get dnsset "$cfg" dnsset
-	config_get wan_interface "$cfg" wan_interface
-	config_get lan_dhcp "$cfg" lan_dhcp
-	config_get synflood "$cfg" synflood
-	config_get redirectdns "$cfg" redirectdns
+ 	config_get showhide "$cfg" showhide '0'
+	config_get wan_proto "$cfg" wan_proto 'dhcp'
+	config_get ipv6 "$cfg" ipv6 '0'
+	config_get dnsset "$cfg" dnsset '223.5.5.5'
+	config_get wan_interface "$cfg" wan_interface 'eth1'
+	config_get lan_dhcp "$cfg" lan_dhcp '0'
+	config_get synflood "$cfg" synflood '1'
+	config_get redirectdns "$cfg" redirectdns '1'
 	config_get lan_ipaddr "$cfg" lan_ipaddr
-	config_get lan_netmask "$cfg" lan_netmask
-	config_get dns_tables "$cfg" dns_tables
- 	[ "x$showhide" = "x1" ] && touch /etc/config/netwizard_hide ;exit|| rm -rf  /etc/config/netwizard_hide
-	touch $LOCK
+	config_get lan_netmask "$cfg" lan_netmask '255.255.255.0'
+	config_get dns_tables "$cfg" dns_tables 'iptables -t nat -I POSTROUTING -o br-lan -j MASQUERADE'
+ 	if [ "x$showhide" = "x1" ] ; then
+ 		 [ -s /etc/config/netwizard_hide ] || touch /etc/config/netwizard_hide 
+ 		exit
+ 	else
+	        [ -s /etc/config/netwizard_hide ] && rm -rf  /etc/config/netwizard_hide
+	fi
+ 	touch $LOCK
 	ifname=$(uci -q get network.lan.ifname ) 
 	[ "x$ifname" = "x" ] && ifname="device" || ifname="ifname" 
  	[ -n "$wan_interface" ] || wan_interface=$(uci -q get network.wan.$ifname 2>/dev/null) 
