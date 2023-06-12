@@ -1,0 +1,6 @@
+
+/etc/init.d/wrtbwmon stop
+kill -9 $(busybox ps -w | grep 'wrtbwmon' | grep -v 'grep' | cut -d ' ' -f 1) 2>/dev/null
+/etc/init.d/wrtbwmon start &
+
+logger -t wrtbwmon "Restart for restarting of firewall"

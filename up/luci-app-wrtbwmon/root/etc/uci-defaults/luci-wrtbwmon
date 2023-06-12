@@ -1,0 +1,23 @@
+#!/bin/sh
+
+uci -q batch <<-EOF >/dev/null
+	delete ucitrack.@wrtbwmon[-1]
+	add ucitrack wrtbwmon
+	set ucitrack.@wrtbwmon[-1].init=wrtbwmon
+	commit ucitrack
+
+	delete firewall.wrtbwmon
+	set firewall.wrtbwmon=include
+	set firewall.wrtbwmon.type=script
+	set firewall.wrtbwmon.path=/etc/wrtbwmon.include
+#	set firewall.wrtbwmon.reload=1
+	commit firewall
+EOF
+
+[ -f /etc/wrtbwmon.user ] || echo "00:aa:bb:cc:ee:ff,主机别名" > /etc/wrtbwmon.user
+
+sed -i '/wrtbwmon/d' /etc/sysupgrade.conf
+echo "/etc/wrtbwmon.user" >> /etc/sysupgrade.conf
+
+rm -f /tmp/luci-indexcache
+exit 0
