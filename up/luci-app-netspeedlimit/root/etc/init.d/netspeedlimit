@@ -2,7 +2,9 @@
 
 START=86
 NAME=netspeedlimit
-dev=br-lan
+dev=`ifconfig | grep "Point-to-Point" | cut -d " " -f1`
+[ ! $dev ] && dev=` uci -q get network.wan.ifname ` || dev=` uci -q get network.wan.device ` 
+[ ! $dev ] && dev=br-lan
 
 del_rule() {
 	tc qdisc del dev $dev root 2>/dev/null
@@ -32,19 +34,19 @@ add_mac() {
 	mac="-m mac --mac-source $mac"
 	id=$1
 	if [ "$UL" -gt 0 ]; then
-	       tc class add dev ${dev}-ifb parent 1:1 classid 1:2"$id" htb rate "$UL"kbit prio 1
-	       tc qdisc add dev ${dev}-ifb parent 1:2"$id" handle 2"$id": pfifo
-	       tc filter add dev ${dev}-ifb parent 1:0 protocol ip prio 100 handle 2$id fw flowid 1:2"$id"
+	       tc class add dev ${dev}-ifb parent 1:1 classid 1:1"$id" htb rate "$UL"kbit prio 1
+	       tc qdisc add dev ${dev}-ifb parent 1:1"$id" handle 1"$id": pfifo
+	       tc filter add dev ${dev}-ifb parent 1:0 protocol ip prio 100 handle 1$id fw flowid 1:1"$id"
+	       iptables -t mangle -A PREROUTING $mac $WT -j MARK --set-mark 1$id
 	fi
 	if [ "$DL" -gt 0 ]; then
 	       tc class add dev ${dev} parent 1:1 classid 1:2"$id" htb rate "$DL"kbit prio 1
 	       tc qdisc add dev ${dev} parent 1:2"$id" handle 2"$id": pfifo
 	       tc filter add dev ${dev} parent 1:0 protocol ip prio 100 handle 2$id fw flowid 1:2"$id" 
+	       iptables -t mangle -A PREROUTING $mac $WT -j MARK --set-mark 2$id
 	fi
-
-	[ "$DL" -gt 0 ] || [ "$UL" -gt 0 ] && iptables -t mangle -A PREROUTING $mac $WT -j MARK --set-mark 2$id
  
-	id=`expr $id + 1 `
+	#id=`expr $id + 1 `
 
 }
 
