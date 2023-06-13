@@ -9,11 +9,11 @@ include $(TOPDIR)/rules.mk
 
 LUCI_TITLE:=LuCI support for eqosplus.
 LUCI_DESCRIPTION:=LuCI support for Easy eqosplus(Support speed limit based on IP address).
-LUCI_DEPENDS:=+bash +tc +kmod-sched-core +kmod-ifb +kmod-sched +iptables-mod-filter +iptables-mod-nat-extra  
+LUCI_DEPENDS:=+bash +tc +kmod-sched-core +kmod-ifb +kmod-sched +iptables-mod-filter +iptables-mod-nat-extra +iptables-mod-imq
 LUCI_PKGARCH:=all
 
-PKG_VERSION:=1.1.4
-PKG_RELEASE:=20230611
+PKG_VERSION:=1.1.5
+PKG_RELEASE:=20230614
 PKG_MAINTAINER:=sirpdboy <herboy2008@gmail.com>
 
 define Package/$(PKG_NAME)/conffiles
