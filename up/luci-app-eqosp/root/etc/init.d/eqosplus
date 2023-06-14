@@ -3,8 +3,8 @@
 # Copyright 2022-2023 sirpdboy <herboy2008@gmail.com>
 
 START=50
-NAME=eqosplus
 
+NAME=eqosplus
 LOCK="/var/lock/$NAME.lock"
 eqosplus_start() {
 	 local cfg="$1" enabled download upload
@@ -20,7 +20,7 @@ eqosplus_start() {
 }
 
 start() {
-	[ -f /var/lock/eqosplus ] && exit
+	[ -f $LOCK ] && exit
 	eqosplus stop
 	config_load eqosplus
 	config_foreach eqosplus_start eqosplus
