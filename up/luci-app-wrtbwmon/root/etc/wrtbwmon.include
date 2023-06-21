@@ -1,0 +1,3 @@
+/etc/init.d/wrtbwmon stop
+sleep 2 && /etc/init.d/wrtbwmon start &
+
