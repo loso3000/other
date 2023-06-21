@@ -65,8 +65,17 @@ for i in $idlist ;do
     timestart=$(uci get $CONFIG.@$mmode[$i].timestart 2>/dev/null) || timestart="00:00"
     timeend=$(uci get $CONFIG.@$mmode[$i].timeend 2>/dev/null) ||  timeend="00:00"
     wweek=$(uci get $CONFIG.@$mmode[$i].week |sed 's/ /,/g' 2>/dev/null)
+    for ww in `echo $wweek | sed 's/,/ /g' `; do 
+        [ "$ww" == "1" ] && local Z1="Mon,"
+        [ "$ww" == "2" ] && local Z2="Tue,"
+        [ "$ww" == "3" ] && local Z3="Wed,"
+        [ "$ww" == "4" ] && local Z4="Thu,"
+        [ "$ww" == "5" ] && local Z5="Fri,"
+        [ "$ww" == "6" ] && local Z6="Sat,"
+        [ "$ww" == "7" ] && local Z7="Sun"
+    done
     [ -z "$timestart" -o -z "$timeend" -o "$timestart" = "$timeend" ] && TIME="" || TIME="--timestart ${timestart} --timestop ${timeend}"
-    [ -z "$wweek" -o "$wweek" = "*" ] && WEEK="" || WEEK="--weekdays ${wweek}"
+    [ -z "$wweek" -o "$wweek" = "*" ] && WEEK="" || WEEK="--weekdays $Z1$Z2$Z3$Z4$Z5$Z6$Z7"
     [ -n "$TIME" -o -n "$WEEK" ] && WT="-m time --kerneltz ${TIME} ${WEEK}" || WT=""
    case $mmode in
     time)
