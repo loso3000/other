@@ -22,6 +22,8 @@ uci set wireless.radio0.disabled=0
 uci set wireless.radio1.disabled=0
 uci set fstab.@global[0].anon_mount=1
 uci set fstab.@global[0].check_fs=1
+uci set turboacc.config.sw_flow='0'
+uci commit turboacc
 uci commit wireless
 wifi up
 uci commit luci
