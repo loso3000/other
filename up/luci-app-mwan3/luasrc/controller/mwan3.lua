@@ -16,7 +16,7 @@ function index()
 
 	entry({"admin", "status", "mwan"},
 		alias("admin", "status", "mwan", "overview"),
-		_("Load Balancing"), 600)
+		_("Load Balancing"), 600).acl_depends = { "luci-app-mwan3" }
 
 	entry({"admin", "status", "mwan", "overview"},
 		template("mwan/status_interface"))
@@ -37,8 +37,8 @@ function index()
 
 
 	entry({"admin", "network", "mwan"},
-		alias("admin", "network", "mwan", "interface"),
-		_("Load Balancing"), 600)
+		alias("admin", "network", "mwan", "globals"),
+		_("Load Balancing"), 600).acl_depends = { "luci-app-mwan3" }
 
 	entry({"admin", "network", "mwan", "globals"},
 		cbi("mwan/globalsconfig"),
@@ -101,6 +101,10 @@ function diagnosticsData(interface, task)
 		if addr and addr:match("^[a-zA-Z0-9%-%.:_]+$") then
 			local util = io.popen(cmd %{ut.shellquote(device), ut.shellquote(addr)})
 			if util then
+				luci.http.write("Command:\n")
+				luci.http.write(cmd %{ut.shellquote(device),
+					ut.shellquote(addr)} .. "\n\n")
+				luci.http.write("Result:\n")
 				while true do
 					local ln = util:read("*l")
 					if not ln then break end
@@ -113,7 +117,7 @@ function diagnosticsData(interface, task)
 		end
 	end
 
-	function get_gateway(inteface)
+	function get_gateway(interface)
 		local gateway = nil
 		local dump = nil
 
@@ -138,10 +142,14 @@ function diagnosticsData(interface, task)
 	local number = getInterfaceNumber(interface)
 
 	local uci = require "luci.model.uci".cursor(nil, "/var/state")
-	local device = uci:get("network", interface, "ifname")
+	local nw = require "luci.model.network".init()
+	local i18n = require "luci.i18n"
+	local network = nw:get_network(interface)
+	local device = network and network:get_interface()
+	device = device:name()
 
 	luci.http.prepare_content("text/plain")
-	if device ~= "" then
+	if device then
 		if task == "ping_gateway" then
 			local gateway = get_gateway(interface)
 			if gateway ~= nil then
