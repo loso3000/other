@@ -341,7 +341,7 @@ function mainmenu() {
   EY " 8. 刷新释放内存(Refresh and free memory)"
   EY " 9. 停止家长控制(Stop Parentcontrol)"
   
-  ER " 0. 退出菜单(Exit)"
+  EW " 0. 退出菜单(Exit)"
   echo
   KEY="请输入数字(please enter a number)"
   while :; do
