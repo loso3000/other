@@ -27,10 +27,10 @@ function total(i) {
 BEGIN {
 	if (ipv6) {
 		iptNF	= 8
-		iptKey	= "ip6tables"
+		iptKey	= "ip6tables -w"
 	} else {
 		iptNF	= 9
-		iptKey	= "iptables"
+		iptKey	= "iptables -w"
 	}
 }
 
@@ -136,26 +136,6 @@ ARGIND==3 && NF==iptNF && $1!="pkts" { # iptables input
 
 	if (mode == "diff" || mode == "noUpdate") print n, $2
 	if (mode != "noUpdate") {
-		if (inInterfaces(m)) { # if label is an interface
-			if (!(m in arp_mac)) {
-				cmd = "cat /sys/class/net/" m "/address"
-				cmd | getline arp_mac[m]
-				close(cmd)
-
-				if (length(arp_mac[m]) == 0) arp_mac[m] = "00:00:00:00:00:00"
-
-				arp_ip[m]		= "NA"
-				arp_inter[m] 		= m
-				arp_bw[m "/in"]		= 0
-				arp_bw[m "/out"]	= 0
-				arp_firstDate[m]	= systime()
-				arp_lastDate[m]		= arp_firstDate[m]
-				arp_ignore[lb]		= 1
-			}
-		} else {
-			if (!(m in arp_mac)) hosts[m] = 0
-			else delete hosts[m]
-		}
 
 		if ($2 > 0) {
 			arp_bw[n]	= $2

@@ -1,5 +1,4 @@
 #!/bin/sh
-#
 
 # Default input parameters for wrtbwmon.
 runMode=0
@@ -28,8 +27,8 @@ uci=`which uci 2>/dev/null`
 nslookup=`which nslookup 2>/dev/null`
 nvram=`which nvram 2>/dev/null`
 
-chains='INPUT OUTPUT FORWARD'
-interfaces='eth0 tun0 br-lan' # in addition to detected WAN
+chains="INPUT OUTPUT FORWARD"
+interfaces="tun0 br-lan" # in addition to detected WAN
 
 # DNS server for reverse lookups provided in "DNS".
 # don't perform reverse DNS lookups by default
@@ -144,7 +143,7 @@ lockFunc() {
 			flag=1
 		else
 			sleep 1
-			attempts=$(($attempts+1))
+			attempts=$((attempts+1))
 			[ -n "$DEBUG" ] && echo ${updatePID} "The $attempts attempts."
 			[ "$attempts" -ge 10 ] && exit
 		fi
@@ -168,13 +167,13 @@ newChain() {
 	local ipt=$2
 	# Create the RRDIPT_$chain chain (it doesn't matter if it already exists).
 
-	$ipt -t mangle -N RRDIPT_$chain 2> /dev/null
+	$ipt -w -t mangle -N RRDIPT_$chain 2> /dev/null
 
 	# Add the RRDIPT_$chain CHAIN to the $chain chain if not present
-	$ipt -t mangle -C $chain -j RRDIPT_$chain 2>/dev/null
+	$ipt -w -t mangle -C $chain -j RRDIPT_$chain 2>/dev/null
 	if [ $? -ne 0 ]; then
 		[ -n "$DEBUG" ] && echo "DEBUG: $ipt chain misplaced, recreating it..."
-		$ipt -t mangle -I $chain -j RRDIPT_$chain
+		$ipt -w -t mangle -I $chain -j RRDIPT_$chain
 	fi
 }
 
@@ -186,9 +185,9 @@ newRuleIF() {
 	local cmd=
 
 	if [ "$chain" = "OUTPUT" ]; then
-		cmd="$ipt -t mangle -o $IF -j RETURN"
+		cmd="$ipt -w -t mangle -o $IF -j RETURN"
 	elif [ "$chain" = "INPUT" ]; then
-		cmd="$ipt -t mangle -i $IF -j RETURN"
+		cmd="$ipt -w -t mangle -i $IF -j RETURN"
 	fi
 	[ -n "$cmd" ] && eval $cmd " -C RRDIPT_$chain 2>/dev/null" || eval $cmd " -A RRDIPT_$chain"
 }
@@ -202,12 +201,11 @@ publish() {
 	local htmPage="$tmpDir/${pb_html##*/}"
 	rm -f $htmPage
 	cp $dataDir/usage.htm1 $htmPage
+	cp $dataDir/usage.htm2 $tmpDir
 
 	while IFS=, read PEAKUSAGE_IN MAC IP IFACE SPEED_IN SPEED_OUT PEAKUSAGE_OUT TOTAL FIRSTSEEN LASTSEEN
 	do
-		echo "
-new Array(\"$(lookup $MAC $IP $user_def)\",\"$MAC\",\"$IP\",$SPEED_IN,$SPEED_OUT,
-$PEAKUSAGE_IN,$PEAKUSAGE_OUT,$TOTAL,\"$FIRSTSEEN\",\"$LASTSEEN\")," >> $htmPage
+	 echo "new Array(\"$(lookup $MAC $IP $user_def)\",\"$MAC\",\"$IP\",$SPEED_IN,$SPEED_OUT,$PEAKUSAGE_IN,$PEAKUSAGE_OUT,$TOTAL,\"$FIRSTSEEN\",\"$LASTSEEN\")," >> $htmPage
 	done < $tmpDir/sorted_${updatePID}.tmp
 	echo "0);" >> $htmPage
 
@@ -253,6 +251,7 @@ update() {
 	local wan=$(detectWAN)
 	checkWAN $wan
 	interfaces="$interfaces $wan"
+	interfaces=`echo $interfaces |tr ' ' '\n' |sort -u |tr '\n' ' '`
 
 	[ "$for46" = 4 ] && IPT='iptables'
 	[ "$for46" = 6 ] && IPT='ip6tables'
@@ -276,7 +275,7 @@ update() {
 		> $tmpDir/${ii}_${updatePID}.tmp
 
 		for chain in $chains; do
-			$ii -nvxL RRDIPT_$chain -t mangle -Z >> $tmpDir/${ii}_${updatePID}.tmp
+			$ii -w -nvxL RRDIPT_$chain -t mangle -Z >> $tmpDir/${ii}_${updatePID}.tmp
 		done
 	done
 
@@ -331,10 +330,8 @@ ending() {
 }
 
 checkPid() {
-	[ -e "$1" ] && local pid=$(cat $1) || return 1
-	[ -d "/proc/$pid" ] && {
-		[ -n "$( cat /proc/$pid/cmdline | grep wrtbwmon )" ] && return 0
-	}
+	[ -e $1 ] && local pid=$(cat $1) || return 1
+	[ -d /proc/$pid ] && [ -n "$( cat /proc/$pid/cmdline | grep wrtbwmon )" ] && return 0
 	return 1
 }
 
@@ -349,14 +346,10 @@ loop() {
 		echo "Another wrtbwmon is on running!!!"
 	else
 		local loopPID=$( sh -c 'echo $PPID' )
-		local SPID=
 		echo $loopPID > $pidFile
 		while true ;do
-			[ -n "$SPID" ] && kill -9 $SPID >>/dev/null 2>&1
-			sleepProcess $loopPID &
-			SPID=$!
 			updatePrepare && update
-			kill -STOP $loopPID >>/dev/null 2>&1
+			sleep 60
 		done
 	fi
 	trap INT TERM HUP QUIT
