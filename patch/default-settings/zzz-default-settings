@@ -59,6 +59,8 @@ sed -i '/set wireless.radio${devidx}.disabled/d' /lib/wifi/mac80211.sh
 uci set wireless.radio0.disabled=0
 uci set wireless.radio1.disabled=0
 uci set vsftpd.@listen[0].enable4='0'
+uci set turboacc.config.sw_flow='0'
+uci commit turboacc
 uci commit vsftpd
 uci commit wireless
 uci commit luci
