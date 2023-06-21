@@ -6,7 +6,7 @@ local WADM = require "luci.tools.webadmin"
 local a, t, e
 
 a = Map("eqosplus", translate("Network speed limit"))
-a.description = translate("Users can limit the network speed for uploading/downloading through MAC, IP, and IP ranges.The speed unit is MB/second < Press - Customize - (at the bottom of the MAC list) to enter the IP or IP range (range connected with -)")
+a.description = translate("Users can limit the network speed for uploading/downloading through MAC, IP, and IP ranges.The speed unit is MB/second.")
 a.template = "eqosplus/index"
 
 t = a:section(TypedSection, "eqosplus")
@@ -16,11 +16,10 @@ e = t:option(DummyValue, "eqosplus_status", translate("Status"))
 e.template = "eqosplus/eqosplus"
 e.value = translate("Collecting data...")
 
-e = t:option(Flag, "enabled", translate("Enable"))
-e.rmempty = false
 
 ipi = t:option(ListValue, "ifname", translate("Interface"), translate("Set the interface used for restriction, use pppoe-wan for dialing, use WAN hardware interface for DHCP mode (such as eth1), and use br-lan for bypass mode"))
-ipi.default = "br-lan"
+ipi.default = "1"
+ipi:value(1,translate("Automatic settings"))
 ipi.rmempty = false
 for _, v in pairs(ifaces) do
 	net = WADM.iface_get_network(v)
@@ -28,12 +27,6 @@ for _, v in pairs(ifaces) do
 		ipi:value(v)
 	end
 end
-
-dl = t:option(Value, "download", translate("Download bandwidth(Mbit/s)"))
-dl.default = '1000'
-
-ul = t:option(Value, "upload", translate("Upload bandwidth(Mbit/s)"))
-ul.default = '30'
 
 t = a:section(TypedSection, "device")
 t.template = "cbi/tblsection"
@@ -75,12 +68,14 @@ e.default = '00:00'
 e.validate = validate_time
 e.rmempty = true
 e.size = 4
+
 e = t:option(Value, "timeend", translate("Stop control time"))
 e.placeholder = '00:00'
 e.default = '00:00'
 e.validate = validate_time
 e.rmempty = true
 e.size = 4
+
 week=t:option(Value,"week",translate("Week Day(1~7)"))
 week.rmempty = true
 week:value('*',translate("Everyday"))

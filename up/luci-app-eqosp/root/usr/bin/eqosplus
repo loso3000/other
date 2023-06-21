@@ -3,50 +3,53 @@
 # Copyright (C) 2006 OpenWrt.org
 # Copyright 2022-2023 sirpdboy <herboy2008@gmail.com>
 
+crrun=$1
+crid=$2
 NAME=eqosplus
 LOCK="/var/lock/$NAME.lock"
-dev=`ifconfig | grep "Point-to-Point" | cut -d " " -f1`
-[ ! $dev ] && dev=` uci -q get network.wan.ifname ` || dev=` uci -q get network.wan.device ` 
-[ ! $dev ] && dev=br-lan
-dev=`uci -q get $NAME.@$NAME[0].ifname `
-
-qos_ifb="ifb0"
-# dev=pppoe-wan
-# dev=br-lan
-#   ip link show | sed '/link/d'   | awk -F ':' '{print $2}' | sed 's/\@NONE//g' 
-# lan_ipaddr=`uci -q get network.lan.ipaddr`
-
-localip=`uci -q get network.lan.ipaddr`
+IDLIST="/var/$NAME.idlist"
+TMPID="/var/$NAME.tmpid"
+if [ x$(uci get $NAME.@$NAME[0].ifname) = 'x1' ] ;then
+     dev=`ifconfig | grep "Point-to-Point" | cut -d " " -f1`
+     [ ! $dev ] && dev=` uci -q get network.wan.ifname ` || dev=` uci -q get network.wan.device ` 
+     [ ! $dev ] && dev=br-lan
+else
+     dev=`uci -q get $NAME.@$NAME[0].ifname `
+fi
+# [ x$(uci get eqosplus.@eqosplus[0].forced) = 'x1' ] && forced="default $id" || forced='default 999'
 bin_iptables=$(which iptables)   
 bin_ip6tables=$(which ip6tables)
 bin_tc=$(which tc)
 bin_ebtables=$(which ebtables)
+bin_ip=$(which ip)
 # Uncomment this to debug commands
- DEBUG=1
-
+DEBUG=1
 ## End
 # Debug functions - echo + run
 dbg_iptables() {
 	[ "${DEBUG:-0}" -eq 0 ] || echo D: iptables "$@"
-	$bin_iptables "$@" ||echo E: iptables "$@"
+	$bin_iptables "$@" 
 }
 dbg_ip6tables() {
 	[ "${DEBUG:-0}" -eq 0 ] || echo D: ip6tables "$@"
-	$bin_ip6tables "$@" ||	echo E: ip6tables "$@"
+	$bin_ip6tables "$@" 
 }
 
 dbg_tc() {
 	[ "${DEBUG:-0}" -eq 0 ] || echo D: tc "$@"
-	$bin_tc "$@" ||	echo E: tc "$@"
+	$bin_tc "$@" 
 }
-
 dbg_ebtables() {
-	[ "${DEBUG:-0}" -eq 0 ] || echo D: tc "$@"
-	$bin_ebtables "$@" ||	echo E: ebtables "$@"
+	[ "${DEBUG:-0}" -eq 0 ] || echo D: ebtables "$@"
+	$bin_ebtables "$@" 
+}
+dbg_ip() {
+	[ "${DEBUG:-0}" -eq 0 ] || echo D: ip "$@"
+	$bin_ip "$@" 
 }
 is_macaddr() {
-    local ret=1
-    if echo "$1" | grep -qE '^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$'; then
+    ret=1
+    if echo "$1" | grep -qE '^([0-9A-Fa-f]{2}[-:]){5}[0-9A-Fa-f]{2}$'; then
         ret=0
     fi
     return $ret
@@ -56,182 +59,196 @@ is_macaddr() {
 iptables="dbg_iptables"
 ip6tables="dbg_ip6tables"
 tc="dbg_tc"
-etb="dbg_ebtables"
+ip="dbg_ip"
+ebt="dbg_ebtables"
 TQA="$tc qd add dev"
 TCA="$tc cl add dev"
 TFA="$tc fi add dev"
 ipt=$iptables
 ipt6=$ip6tables
+ipt(){
+	$iptables $@
+	$ip6tables $@
+}
 
-start_ipt() {
-
-echo "start_ipt:-------------------------------------------start"
-for ip in $iptables $ip6tables ; do
-
-	#Set up the Intermediate Functional block (IFB0) for egress down  
-	$ip -t mangle -N qos_ingress
-	$ip -t mangle -A FORWARD -i $dev -j qos_ingress
-	$ip -t mangle -A INPUT -i $dev  -j qos_ingress
-	# $ip -t mangle -I PREROUTING -i $dev -j MARK --set-mark 0
-	
-	#Set up the Intermediate Functional block (IFB0) for ingress up 
-	$ip -t mangle -N qos_egress
-	$ip -t mangle -A POSTROUTING -o $dev -j qos_egress
-	# $ip -t mangle -I POSTROUTING -o $dev -j MARK --set-mark 0
- done
- echo "start_ipt:-------------------------------------------end"
+iptm(){
+	$iptables "-t mangle $@"
+	$ip6tables "-t mangle $@"
 }
 
 stop_qos() {
-	for ip in $iptables $ip6tables ; do
-	$ip -t mangle  -F PREROUTING 2>/dev/null
-	$ip -t mangle  -F POSTROUTING 2>/dev/null
-	$ip -t mangle  -F OUTPUT 2>/dev/null
-	$ip -t mangle  -F FORWARD 2>/dev/null
-	$ip -t mangle  -F INPUT 2>/dev/null
-	$ip -t mangle -F qos_egress 2>/dev/null
-	$ip -t mangle -X qos_egress 2>/dev/null
-	$ip -t mangle -F qos_ingress 2>/dev/null
-	$ip -t mangle -X qos_ingress 2>/dev/null
+	for p in $iptables $ip6tables ; do
+		$p -t mangle  -F PREROUTING 2>/dev/null
+		$p -t mangle  -F POSTROUTING 2>/dev/null
+		$p -t mangle  -F OUTPUT 2>/dev/null
+		$p -t mangle  -F FORWARD 2>/dev/null
+		$p -t mangle  -F INPUT 2>/dev/null
+		$p -t mangle -F qos_egress 2>/dev/null
+		$p -t mangle -X qos_egress 2>/dev/null
+		$p -t mangle -F qos_ingress 2>/dev/null
+		$p -t mangle -X qos_ingress 2>/dev/null
+		$p -F FORWARD 2>/dev/null
+		$p -F qos_egress 2>/dev/null
+		$p -X qos_egress 2>/dev/null
+		$p -F qos_ingress 2>/dev/null
+		$p -X qos_ingress 2>/dev/null
 	done
+	# $ebt -t filter -F FORWARD 2>/dev/null
 	 for face in $( tc qdisc show | grep htb | awk '{print $5}');do
-	    $tc qdisc del dev $face root
+		    $tc qdisc del dev $face root
 	 done
 	$tc qdisc del dev $dev root 2>/dev/null
 	$tc qdisc del dev $dev ingress 2>/dev/null
+	$tc qdisc del dev ${dev}-ifb ingress 2> /dev/null > /dev/null
 	$tc qdisc del dev ${dev}-ifb root 2>/dev/null
-	ip link del dev ${dev}-ifb 2>/dev/null
-echo "stop_qos: clear : $dev  -------------------------------------------- end"
+	$ip link del dev ${dev}-ifb 2>/dev/null
 }
 
-start_qos() {
-	local dl=$1 
-	local up=$2
+init_qosplus() {
+	lanipaddr=$(uci -q get network.lan.ipaddr 2>/dev/null | awk -F '.' '{print $1"."$2"."$3".0/24"}')
+	stop_qos
+	$ip link add dev ${dev}-ifb name ${dev}-ifb type ifb
+	$ip link set dev ${dev}-ifb up
+
 	#up
 	$tc qdisc add dev $dev root handle 1: htb default 1
-	$tc class add dev $dev parent 1: classid 1:1 htb rate 10000Mbit
-	
-	# $tc qdisc add dev $dev ingress
+	$tc class add dev $dev parent 1: classid 1:1 htb rate 10000Mbit  prio 0 quantum 1500
+   	# down
+	$tc qdisc add dev ${dev}-ifb root handle 1: htb default 1
+	$tc class add dev ${dev}-ifb parent 1: classid 1:1 htb rate 10000Mbit  prio 0 quantum 1500
+	$tc filter add dev $dev parent 1:0 protocol ipv4 prio 1 u32 match ip src "$lanipaddr" match ip dst "$lanipaddr" flowid 1:1
+	$tc filter add dev ${dev}-ifb parent 1:0 protocol ipv4 prio 1 u32 match ip src "$lanipaddr" match ip dst "$lanipaddr" flowid 1:1
+
+	$tc qdisc add dev $dev ingress
+	$tc filter add dev $dev parent ffff: protocol all prio 2 u32 match u32 0 0 flowid 1:1 action mirred egress redirect dev ${dev}-ifb
 	# $tc qdisc add dev ${dev} handle ffff: ingress
 	# $tc filter add dev $dev parent ffff: protocol ip u32 match u32 0 0 flowid 1:1 action mirred egress redirect dev ${dev}-ifb
-	#$tc filter add dev $dev parent ffff: protocol ip u32 match u8 0 0 action mirred egress redirect dev ${dev}-ifb flowid ffff:1   #error
-	
-	# down
-	ip link add dev ${dev}-ifb name ${dev}-ifb type ifb  
-	# ip link set dev ${dev}-ifb mtu 1500   
-	ip link set dev ${dev}-ifb up
-	$tc qdisc add dev ${dev}-ifb root handle 1: htb default 2
-	$tc class add dev ${dev}-ifb parent 1: classid 1:1 htb rate 10000Mbit
-	# start_ipt
-	
-	echo "start_qos: dl:$1 up:$2 $dev  --------------------------------------------end"
 }
+del_id() {
+	id=`expr $1 + 11 `
+	$tc qd del dev $dev parent 1:$id
+	$tc qd del dev $dev-ifb parent 1:$id
 
+	$tc class del dev ${dev} parent 1:1 classid 1:$id
+	$tc class del dev ${dev}-ifb parent 1:1 classid 1:$id
+	
+	 $tc filter del dev $dev-ifb pref $id
+	 $tc filter del dev $dev pref $id
+	 
+	 $tc filter del dev $dev-ifb pref 6
+	 $tc filter del dev $dev pref 6
+	 $tc filter del dev $dev-ifb pref 5
+	 $tc filter del dev $dev pref 5
+
+}
 add_mac() {
-	echo "add_mac:  $dev  --------------------------------------------start"
-	mmac="-m mac --mac-source $mac"
-	local id=$1
+	id=`expr $1 + 11 `
+
+	A=`echo $mac | awk -F '[-:]' '{print $1$2}'`
+	B=`echo $mac | awk -F '[-:]' '{print $3$4$5$6}'`
+	C=`echo $mac | awk -F '[-:]' '{print $1$2$3$4}'`
+	D=`echo $mac | awk -F '[-:]' '{print $5$6}'`
 	if [ "$UL" -gt 0 ]; then
-
-	       $ipt -A FORWARD $mmac $WT -j MARK --set-mark 1$id
-
-
-	       ebtables -t filter -A FORWARD -s $mac -j DROP
-
-		 $tc class add dev $dev parent 1:1 classid 1:1$id htb rate "$UL"kbps
-		 $tc filter add dev $dev parent 1:0 protocol ip handle 1$id fw flowid 1:1$id
-
+		tc class add dev ${dev}-ifb parent 1:1 classid 1:$id htb rate "$UL"kbit ceil "$UL"kbit prio $id quantum 1500
+		tc qdisc add dev ${dev}-ifb parent 1:"$id" handle "$id": sfq perturb 1
+		tc filter add dev ${dev}-ifb parent 1:0 protocol ip prio $id u32 match u16 0x0800 0xffff at -2 match u16 0x"$D" 0xffff at -4 match u32 0x"$C" 0xffffffff at -8 flowid 1:$id
+	elif [ "$UL" == 0 ]; then
+		tc filter add dev ${dev}-ifb parent 1:0 protocol ip prio 5 u32 match u16 0x0800 0xffff at -2 match u16 0x"$D" 0xffff at -4 match u32 0x"$C" 0xffffffff at -8 flowid 1:1
 	fi
 	if [ "$DL" -gt 0 ]; then
-	       $ipt -A FORWARD $mmac $WT -j MARK --set-mark 2$id
-
-	         ebtables -t filter -A FORWARD -d $mac -j DROP
-		 $tc class add dev $dev parent 1:1 classid 1:2$id htb rate "$DL"kbps
-		 $tc filter add dev $dev parent 1:0 protocol ip handle 2$id fw flowid 1:2$id
+		tc class add dev ${dev} parent 1:1 classid 1:$id htb rate "$DL"kbit ceil "$DL"kbit prio $id quantum 1500
+		tc qdisc add dev ${dev} parent 1:"$id" handle "$id": sfq perturb 1
+		tc filter add dev ${dev} parent 1:0 protocol ip prio $id u32 match u16 0x0800 0xffff at -2 match u32 0x"$B" 0xffffffff at -12 match u16 0x"$A" 0xffff at -14 flowid 1:$id
+	elif [ "$DL" == 0 ]; then
+		tc filter add dev ${dev} parent 1:0 protocol ip prio 5 u32 match u16 0x0800 0xffff at -2 match u32 0x"$B" 0xffffffff at -12 match u16 0x"$A" 0xffff at -14 flowid 1:1
 	fi
-
 }
 
 add_ip() {
-	local id=$1
+	id=`expr $1 + 11 `
 	#   id=printf "%x\n" "$1"
-	if [ -n `echo $mac | grep '-' ` ]; then
-	    mac=`echo $mac | awk -F '[.-]' '{if ($5=="") print $1"."$2"."$3"."$4 ; else if ($8=="" && $4<$5) print $1"."$2"."$3"."$4"-"$1"."$2"."$3"."$5 ; else if ($8=="" && $4>$5) print $1"."$2"."$3"."$5"-"$1"."$2"."$3"."$4 ; else if ($8>$4) print $1"."$2"."$3"."$4"-"$1"."$2"."$3"."$8 ; else if ($8<$4) print $1"."$2"."$3"."$8"-"$1"."$2"."$3"."$4}' `
-		SM=" -m iprange --sst-range $mac"
-		DM=" -m iprange --dst-range $mac"
-	else
-		SM=" -S $mac"
-		DM=" -d $mac"
-	fi
-
+	Z=`echo $mac |awk -F '[/]' '{print $2}' `
+	[ -n "$Z" ] && mac=`echo $mac |awk -F '[/]' '{print $1}' `|| Z=32
 	if [ "$UL" -gt 0 ]; then
-	       $tc class add dev ${dev}-ifb parent 1:1 classid 1:1"$id" htb rate "$UL"kbit prio 1
-	       $tc qdisc add dev ${dev}-ifb parent 1:1"$id" handle 1"$id": pfifo
-		$tc filter add dev ${dev}-ifb parent 1:0 protocol ip prio 1"$id" handle 1$id fw flowid 1:1"$id"
-	       # $tc fi ad dev ${dev}-ifb parent 1: protocol ip prio "1$id" u32 ht f0:$(printf "%x\n" "1$id"): match ip src 0/0 flowid 1:"1$id"
-	       $ipt -t mangle -A PREROUTING $SM $WT -j MARK --set-mark "1$id"
-	       #$ipt -A FORWARD $SM $WT -j MARK --set-mark "1$id"
-	       # ipt -t mangle -A PREROUTING $SM -j RETURN
+		tc class add dev ${dev}-ifb parent 1:1 classid 1:$id htb rate "$UL"kbit ceil "$UL"kbit prio $id quantum 1500
+		tc qdisc add dev ${dev}-ifb parent 1:"$id" handle "$id": sfq perturb 1
+		tc filter add dev ${dev}-ifb parent 1:0 prio $id protocol ip u32 match ip src "$mac"/"$Z" classid 1:$id
+	elif [ "$UL" == 0 ]; then
+		tc filter add dev ${dev}-ifb parent 1:0 prio 6 protocol ip u32 match ip src "$mac"/"$Z" classid 1:1
 	fi
 	if [ "$DL" -gt 0 ]; then
-	       $tc class add dev ${dev} parent 1:1 classid 1:2"$id" htb rate "$DL"kbit prio 1
-	       $tc qdisc add dev ${dev} parent 1:2"$id" handle 2"$id": pfifo
-	       $tc filter add dev ${dev} parent 1:0 protocol ip prio 2"$id" handle 2$id fw flowid 1:2"$id"
-	       $ipt -t mangle -A PREROUTING $DM $WT -j MARK --set-mark "2$id"
-	       #$ipt -A FORWARD $DM $WT -j MARK --set-mark "2$id"
-	       # ipt -t mangle -A PREROUTING $SM -j RETURN
+		tc class add dev ${dev} parent 1:1 classid 1:$id htb rate "$DL"kbit ceil "$DL"kbit prio $id quantum 1500
+		tc qdisc add dev ${dev} parent 1:"$id" handle "$id": sfq perturb 1
+		tc filter add dev ${dev} parent 1:0 prio $id protocol ip u32 match ip dst "$mac"/"$Z" classid 1:$id
+	elif [ "$DL" == 0 ]; then
+		tc filter add dev ${dev} parent 1:0 prio 6 protocol ip u32 match ip dst "$mac"/"$Z" classid 1:1
 	fi
 
-	# id=`expr $id + 1 `
+
 }
 
-case "$1" in
+check_list() {
+	i=$1
+	re=0
+	start_time=$(uci -q get $NAME.@device[$i].timestart 2>/dev/null) || start_time="00:00"
+	end_time=$(uci -q get $NAME.@device[$i].timeend 2>/dev/null) ||  end_time="00:00"
+	wweek=$(uci -q get $NAME.@device[$i].week  |sed 's/ /,/g' 2>/dev/null) ||  wweek="*"
+	current_time=$(date +%H:%M)
+	current_weekday=$(date +%u)
+	[ "$start_time" = "$end_time" ] || { 
+	[[ "$start_time" < "$end_time" ]] && { [[ "$current_time" > "$start_time" ]] && [[ "$current_time" < "$end_time" ]] || return ; }
+	[[ "$start_time" > "$end_time" ]] && { [[ "$current_time" < "$start_time" ]] && [[ "$current_time" > "$end_time" ]] || return ; }
+	}
+	for ww in `echo $wweek | sed 's/,/ /g' `; do 
+		if [ $current_weekday = $ww ] || [ "x*" = "x$ww" ] ; then 
+		      re=1
+		fi
+	done
+	return $re
+}
+
+case "$crrun" in
 	"stop")
 		stop_qos
 	;;
 	"start")
-		stop_qos
-
-		tc qdisc add dev $dev root handle 1: htb default 1
-		tc class add dev $dev parent 1: classid 1:1 htb rate 10000Mbit
-		# start_qos $2 $3
+		idlist=`uci show $NAME | grep "enable='1'" | grep "device" | grep -oE '\[.*?\]' | grep -o '[0-9]' | sed -e 's/^/!/g' -e 's/$/!/g' > $IDLIST ;cat $IDLIST | sed -e 's/!//g' `
+		[ ! $idlist ] && /etc/init.d/eqosplus stop
+		crtrue=0
+		init_qosplus
+		for i in `echo $idlist | sed -e 's/!//g' ` ;do
+			if check_list $i ;then
+				mac=$(uci -q get $NAME.@device[$i].mac )
+				DL=$(uci -q get $NAME.@device[$i].download 2>/dev/null | awk '{print $1*10^3/2}')
+				UL=$(uci -q get $NAME.@device[$i].upload   2>/dev/null | awk '{print $1*10^3/2}')
+				if is_macaddr $mac; then
+				    add_mac $i
+				else
+				    add_ip $i
+				fi
+				crtrue=1
+			else
+				 [ `cat $IDLIST  2>/dev/null | grep "!${list}!" | wc -l ` -gt 0 ] && {
+				 del_id $list
+				 sed -i "/!$i!/d" $IDLIST >/dev/null 2>&1
+				 }
+			fi
+		done
 	;;
 	"add")
-		idlist=`uci show $NAME | grep "enable='1'" | grep "device" | grep -oE '\[.*?\]' | grep -o '[0-9]'`
-		for i in $idlist ;do
+		for i in `echo $crid | sed -e 's/!//g' | sed 's/,/ /g' ` ;do
 				mac=$(uci -q get $NAME.@device[$i].mac )
-
-				DL=$(uci -q get $NAME.@device[$i].download 2>/dev/null | awk '{print $1*10^3/5}')
-				UL=$(uci -q get $NAME.@device[$i].upload   2>/dev/null | awk '{print $1*10^3/5}')
-				timestart=$(uci -q get $NAME.@device[$i].timestart 2>/dev/null) || timestart="00:00"
-				timeend=$(uci -q get $NAME.@device[$i].timeend 2>/dev/null) ||  timeend="00:00"
-				wweek=$(uci -q get $NAME.@device[$i].week  |sed 's/ /,/g' 2>/dev/null)
-				[ -z "$timestart" -o -z "$timeend" -o "$timestart" = "$timeend" ] && TIME="" || TIME="--timestart ${timestart} --timestop ${timeend}"
-				[ -z "$wweek" -o "$wweek" = "*" ] && WEEK="" || WEEK="--weekdays ${wweek}"
-				[ -n "$TIME" -o -n "$WEEK" ] && WT="-m time --kerneltz ${TIME} ${WEEK}" || WT=""
-				ID_BASE=`expr $i + 1 `
-				ID=$[ID_BASE * 100 + ID_BASE]
+				DL=$(uci -q get $NAME.@device[$i].download 2>/dev/null | awk '{print $1*10^3/2}')
+				UL=$(uci -q get $NAME.@device[$i].upload   2>/dev/null | awk '{print $1*10^3/2}')
 				if is_macaddr $mac; then
-				    add_mac $ID
+				    add_mac $i
 				else
-				    add_ip $ID
+				    add_ip $i
 				fi
 		done
 	;;
-	"show")
-	echo "Egress configuration on $dev"
-	iptables -t mangle -vnL qos_egress 2>/dev/null
-	ip6tables -t mangle -vnL qos_egress 2>/dev/null
-	tc -s qdisc show dev $dev
-	tc -s class show dev $dev
-	tc -s filter show dev $dev
-
-	echo "Ingress configuration in ${dev}-ifb"
-	iptables -t mangle -vnL qos_ingress 2>/dev/null
-	ip6tables -t mangle -vnL qos_ingress 2>/dev/null
-	tc -s qdisc show dev ${dev}-ifb
-	tc -s class show dev ${dev}-ifb
-	tc -s filter show dev ${dev}-ifb
-	tc -s filter show dev ${dev}-ifb parent 2:
+	"del")
+		for i in `echo $crid | sed -e 's/!//g' | sed 's/,/ /g' ` ;do del_id $i;	done
 	;;
+
 esac

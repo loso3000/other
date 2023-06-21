@@ -3,7 +3,7 @@ config eqosplus
 	option enabled '0'
 	option download '1000'
 	option upload '30'
-	option ifname 'eth1'
+	option ifname '1'
 
 config device
 	option timestart '00:00'
