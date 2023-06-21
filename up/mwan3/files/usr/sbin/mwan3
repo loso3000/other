@@ -77,7 +77,7 @@ policies()
 	echo "Current ipv4 policies:"
 	mwan3_report_policies_v4
 	echo
-	[ $NO_IPV6 -ne 0 ] && return
+	[ "$NO_IPV6" -ne 0 ] && return
 	echo "Current ipv6 policies:"
 	mwan3_report_policies_v6
 	echo
@@ -88,7 +88,7 @@ connected()
 	echo "Directly connected ipv4 networks:"
 	mwan3_report_connected_v4
 	echo
-	[ $NO_IPV6 -ne 0 ] && return
+	[ "$NO_IPV6" -ne 0 ] && return
 	echo "Directly connected ipv6 networks:"
 	mwan3_report_connected_v6
 	echo
@@ -99,7 +99,7 @@ rules()
 	echo "Active ipv4 user rules:"
 	mwan3_report_rules_v4
 	echo
-	[ $NO_IPV6 -ne 0 ] && return
+	[ "$NO_IPV6" -ne 0 ] && return
 	echo "Active ipv6 user rules:"
 	mwan3_report_rules_v6
 	echo
@@ -172,7 +172,7 @@ internal()
 	fi
 
 	echo ""
-	echo "Output of \"$ip route list table 1-250\""
+	echo "Output of \"$ip route list table 1-250 2>/dev/null\""
 	echo "$dash"
 	local dump=0
 	for i in $(seq 1 250); do

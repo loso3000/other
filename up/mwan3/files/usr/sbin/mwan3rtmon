@@ -39,7 +39,7 @@ mwan3_add_all_routes()
 	{
 		let tid++
 		[ -n "${active_tbls##* $tid *}" ] && return
-		error=$($IP route add table $tid $route_line 2>&1) ||
+		error=$($IP route add table $tid $route_line 2>&1) || \
 			LOG warn "failed to add $route_line to table $tid - error: $error"
 	}
 
@@ -75,7 +75,7 @@ mwan3_rtmon_route_handle()
 
 	if [ "$route_line" = "$1" ]; then
 		action="replace"
-		$IPS -! add mwan3_connected_${route_family##ip} ${route_line%% *}
+		$IPS -! add mwan3_connected_${route_family} ${route_line%% *}
 	else
 		action="del"
 		mwan3_set_connected_${route_family}
@@ -107,14 +107,14 @@ mwan3_rtmon_route_handle()
 
 		# check that action needs to be performed. May not need to take action if we
 		# got a delete event, but table was already flushed
-		if [ $action = "del" ] && [ -n "${tbl##*$route_line$'\n'*}" ]; then
+		if [ "$action" = "del" ] && [ -n "${tbl##*$route_line$'\n'*}" ]; then
 			LOG debug "skipping already deleted route table $tid - skipping '$route_line'"
 			return
 		fi
 
 		network_get_device device "$iface"
 		LOG debug "adjusting route $device: '$IP route $action table $tid $route_line'"
-		error=$($IP route "$action" table $tid $route_line 2>&1)||
+		error=$($IP route "$action" table $tid $route_line 2>&1) || \
 			LOG warn "failed: '$IP route $action table $tid $route_line' - error: $error"
 	}
 	handle_route_cb(){
@@ -142,7 +142,7 @@ main()
 	mwan3_init
 
 	family=$1
-	[ -z $family ] && family=ipv4
+	[ -z "$family" ] && family=ipv4
 	if [ "$family" = "ipv6" ]; then
 		if [ $NO_IPV6 -ne 0 ]; then
 			LOG warn "mwan3rtmon started for ipv6, but ipv6 not enabled on system"
