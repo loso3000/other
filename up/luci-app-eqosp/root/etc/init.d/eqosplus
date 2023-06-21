@@ -12,7 +12,7 @@ LOCK="/var/lock/$NAME.lock"
 CR=/etc/crontabs/root
 
 start_instance() {
-	 if [ x$(uci get $NAME.@$NAME[0].ifname) = 'x1' ] ;then
+	 if [ x$(uci -q get $NAME.@$NAME[0].ifname) = 'x1' ] ;then
  	     dev=`ifconfig | grep "Point-to-Point" | cut -d " " -f1`
  	     [ ! $dev ] && dev=` uci -q get network.wan.ifname ` || dev=` uci -q get network.wan.device ` 
  	     [ ! $dev ] && dev=br-lan
@@ -29,6 +29,13 @@ start_instance() {
 
 eqosplus_start() {
 	 if [ "$(grep -c 'option enable .1.' /etc/config/$NAME 2>/dev/null)" -gt "0" ]; then
+	 if [ x$(uci -q get turboacc.config.sw_flow) = 'x1' ] || [ x$(uci -q get turboacc.config.sfe_flow) = 'x1' ]  ;then
+	         uci -q set turboacc.config.sw_flow='0'
+	         uci -q set turboacc.config.sfe_flow='0'
+		 uci -q set turboacc.config.hw_flow='0'
+		 uci commit turboacc
+		 /etc/init.d/turboacc restart
+	  fi
 	    touch $LOCK
 	    eqosplus start
 	    start_instance
