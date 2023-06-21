@@ -341,7 +341,7 @@ msgid "Refresh Data"
 msgstr "更新数据库"
 
 msgid "Refresh..."
-msgstr "正在更新，请稍候.."
+msgstr "正在更新，请稍候..."
 
 msgid "Refresh OK!"
 msgstr "更新成功！"
@@ -901,8 +901,27 @@ msgstr "默认数据包编码"
 msgid "Enable Netflix Mode"
 msgstr "启用 Netflix 分流模式"
 
-msgid "MosDNS GeoIP List Data"
-msgstr "【MosDNS GeoIP】数据库"
+msgid "TUIC user UUID"
+msgstr "TUIC用户uuid"
 
-msgid "Dynamic Mode"
-msgstr "MosDNS动态模式"
+msgid "UDP relay mode"
+msgstr "tuic UDP中继模式"
+
+msgid "Congestion control algorithm"
+msgstr "拥塞控制算法"
+
+msgid "Heartbeat interval"
+msgstr "连接保活间隔"
+
+msgid "Disable SNI"
+msgstr "关闭SNI服务器名称指示"
+
+msgid "Enable 0-RTT QUIC handshake"
+msgstr "客户端启用 0-RTT QUIC 连接握手"
+
+msgid "TUIC send window"
+msgstr "发送窗口（无需确认即可发送的最大字节数）"
+
+msgid "TUIC receive window"
+msgstr "接收窗口（无需确认即可接收的最大字节数）"
+
