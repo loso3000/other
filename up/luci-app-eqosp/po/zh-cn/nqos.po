@@ -1,5 +1,8 @@
 
-msgid "Eqosplus"
+msgid "Nqos"
+msgstr "定时限速"
+
+msgid "Timed speed limit"
 msgstr "定时限速"
 
 msgid "Network speed limit"
