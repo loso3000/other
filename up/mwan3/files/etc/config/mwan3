@@ -4,13 +4,6 @@ config globals 'globals'
 	option local_source 'lan'
 	option enabled '0'
 
-config interface 'wan'
-	option enabled '1'
-	list track_ip '114.114.114.114'
-	list track_ip '223.5.5.5'
-	option family 'ipv4'
-	option reliability '2'
-
 config member 'wan_m1_w1'
 	option interface 'wan'
 	option metric '1'
