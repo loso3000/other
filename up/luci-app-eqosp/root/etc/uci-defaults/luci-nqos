@@ -1,0 +1,13 @@
+#!/bin/sh
+chmod +x  /etc/init.d/nqos /usr/bin/nqos
+uci -q batch <<-EOF >/dev/null
+	delete ucitrack.@nqos[-1]
+	add ucitrack nqos
+	set ucitrack.@nqos[-1].init=nqos
+	commit ucitrack
+EOF
+
+[ -s /etc/config/nqos ] || echo "config nqos" > /etc/config/nqos
+
+rm -f /tmp/luci-indexcache
+exit 0
