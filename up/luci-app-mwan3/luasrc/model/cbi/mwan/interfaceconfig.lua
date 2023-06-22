@@ -20,8 +20,10 @@ mwan_interface = m:section(NamedSection, arg[1], "interface", "")
 mwan_interface.addremove = false
 mwan_interface.dynamic = false
 
-enabled = mwan_interface:option(Flag, "enabled", translate("Enabled"))
-enabled.default = false
+enabled = mwan_interface:option(ListValue, "enabled", translate("Enabled"))
+enabled.default = "1"
+enabled:value("1", translate("Yes"))
+enabled:value("0", translate("No"))
 
 initial_state = mwan_interface:option(ListValue, "initial_state", translate("Initial state"),
 	translate("Expect interface state on up event"))
@@ -239,12 +241,13 @@ up:value("8")
 up:value("9")
 up:value("10")
 
-flush = mwan_interface:option(StaticList, "flush_conntrack", translate("Flush conntrack table"),
+flush = mwan_interface:option(ListValue, "flush_conntrack", translate("Flush conntrack table"),
 	translate("Flush global firewall conntrack table on interface events"))
+flush.default = "never"
 flush:value("ifup", translate("ifup"))
 flush:value("ifdown", translate("ifdown"))
-flush:value("connected", translate("never"))
-flush:value("disconnected", translate("always"))
+flush:value("never", translate("never"))
+flush:value("always", translate("always"))
 
 metric = mwan_interface:option(DummyValue, "metric", translate("Metric"),
 	translate("This displays the metric assigned to this interface in /etc/config/network"))
@@ -257,6 +260,10 @@ function metric.cfgvalue(self, s)
 	else
 		return "&#8212;"
 	end
+end
+local e=luci.http.formvalue("cbi.apply")
+if e then
+  io.popen("/etc/init.d/mwan3 restart")
 end
 
 return m

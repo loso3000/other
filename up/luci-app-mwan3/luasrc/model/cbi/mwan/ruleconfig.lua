@@ -9,7 +9,6 @@ local m, s, o
 
 arg[1] = arg[1] or ""
 
-local ipsets = util.split(util.trim(util.exec("ipset -n -L 2>/dev/null | grep -v mwan3_ | sort")), "\n", nil, true) or {}
 
 m = Map("mwan3", translatef("MWAN Rule Configuration - %s", arg[1]))
 m.redirect = dsp.build_url("admin", "network", "mwan", "rule")
@@ -52,34 +51,35 @@ o:value("udp")
 o:value("icmp")
 o:value("esp")
 
-o = s:option(ListValue, "sticky", translate("Sticky"),
+sticky = s:option(ListValue, "sticky", translate("Sticky"),
 	translate("Traffic from the same source IP address that previously matched this rule within the sticky timeout period will use the same WAN interface"))
-o.default = "0"
-o:value("1", translate("Yes"))
-o:value("0", translate("No"))
+sticky.default = "0"
+sticky:value("1", translate("Yes"))
+sticky:value("0", translate("No"))
 
-o = s:option(Value, "timeout", translate("Sticky timeout"),
+timeout = s:option(Value, "timeout", translate("Sticky timeout"),
 	translate("Seconds. Acceptable values: 1-1000000. Defaults to 600 if not set"))
-o.datatype = "range(1, 1000000)"
+timeout.datatype = "range(1, 1000000)"
 
-o = s:option(Value, "ipset", translate("IPset"),
+ipset = s:option(Value, "ipset", translate("IPset"),
 	translate("Name of IPset rule. Requires IPset rule in /etc/dnsmasq.conf (eg \"ipset=/youtube.com/youtube\")"))
-o:value("", translate("-- Please choose --"))
-for _, z in ipairs(ipsets) do
-	o:value(z)
-end
 
-o = s:option(Flag, "logging", translate("Logging"),
-	translate("Enables firewall rule logging (global mwan3 logging must also be enabled)"))
-
-o = s:option(Value, "use_policy", translate("Policy assigned"))
-m.uci:foreach("mwan3", "policy",
+policy = s:option(Value, "use_policy", translate("Policy assigned"))
+m5.uci:foreach("mwan3", "policy",
 	function(s)
-		o:value(s['.name'], s['.name'])
+		policy:value(s['.name'], s['.name'])
 	end
 )
 o:value("unreachable", translate("unreachable (reject)"))
 o:value("blackhole", translate("blackhole (drop)"))
 o:value("default", translate("default (use main routing table)"))
+local e=luci.http.formvalue("cbi.apply")
+if e then
+  io.popen("/etc/init.d/mwan3 restart")
+end
 
+-- m5.apply_on_parse = true
+-- m5.on_after_apply = function(self,map)
+-- 	luci.sys.exec("/etc/init.d/mwan3 restart")
+-- end
 return m

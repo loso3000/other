@@ -29,5 +29,9 @@ metric.datatype = "range(1, 256)"
 weight = mwan_member:option(Value, "weight", translate("Weight"),
 	translate("Acceptable values: 1-1000. Defaults to 1 if not set"))
 weight.datatype = "range(1, 1000)"
+local e=luci.http.formvalue("cbi.apply")
+if e then
+  io.popen("/etc/init.d/mwan3 restart")
+end
 
 return m

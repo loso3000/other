@@ -28,5 +28,9 @@ last_resort.default = "unreachable"
 last_resort:value("unreachable", translate("unreachable (reject)"))
 last_resort:value("blackhole", translate("blackhole (drop)"))
 last_resort:value("default", translate("default (use main routing table)"))
+local e=luci.http.formvalue("cbi.apply")
+if e then
+  io.popen("/etc/init.d/mwan3 restart")
+end
 
 return m

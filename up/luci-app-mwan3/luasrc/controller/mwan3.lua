@@ -142,14 +142,10 @@ function diagnosticsData(interface, task)
 	local number = getInterfaceNumber(interface)
 
 	local uci = require "luci.model.uci".cursor(nil, "/var/state")
-	local nw = require "luci.model.network".init()
-	local i18n = require "luci.i18n"
-	local network = nw:get_network(interface)
-	local device = network and network:get_interface()
-	device = device:name()
+	local device = uci:get("network", interface, "ifname")
 
 	luci.http.prepare_content("text/plain")
-	if device then
+	if device ~= "" then
 		if task == "ping_gateway" then
 			local gateway = get_gateway(interface)
 			if gateway ~= nil then
