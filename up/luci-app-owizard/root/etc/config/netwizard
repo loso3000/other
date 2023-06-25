@@ -4,5 +4,4 @@ config netwizard 'default'
 	option synflood '1'
 	option lan_snat '1'
 	option masq '1'
-	option wan_interface 'eth1'
 
