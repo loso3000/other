@@ -35,9 +35,8 @@ o:value("cartoongirl2.jpg",translate("cartoongirl2"))
 o.rmempty = true
 o.default="girl.jpg"
 
-o=s:option(TextValue, "systemrole" ,translate("Character Settings"))
-o.description = translate("Specify what role the system plays")
-o.rows = 3
+o=s:option(TextValue, "systemrole" ,translate("Default Role Settings"))
+o.rows = 2
 o.rmempty=false
 
 o = s:option(Value,"apiHost",translate("OpenAI interface"))

@@ -617,6 +617,41 @@
             align-items: center;
         }
 
+        .justSetBtn {
+            height: 32px;
+            border-radius: 3px;
+            line-height: 32px;
+            background: #eaeaea;
+            text-align: center;
+            padding: 0px 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .justSetBtn:hover {
+            background-color: #d0d0d0;
+        }
+
+        .justSetBtn>svg {
+            margin-right: 3px;
+        }
+
+        .readyTestVoice>div:not(:first-child) {
+            display: none;
+        }
+
+        .pauseTestVoice>div:nth-child(1),
+        .pauseTestVoice>div:nth-child(3) {
+            display: none;
+        }
+
+        .resumeTestVoice>div:nth-child(1),
+        .resumeTestVoice>div:nth-child(2) {
+            display: none;
+        }
+
         .presetSelect>div {
             display: inline-block;
         }
@@ -771,11 +806,12 @@
             border-radius: 3px;
             margin-left: 4px;
             cursor: pointer;
+            background: #eaeaea;
             padding: 1px 5px;
         }
 
         #voiceTypes>span:hover {
-            background: #e0e0e0;;
+            background-color: #d0d0d0;
         }
 
         .selVoiceType {
