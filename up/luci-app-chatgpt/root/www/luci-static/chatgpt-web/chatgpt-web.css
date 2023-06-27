@@ -1,5 +1,4 @@
 
-
         .chat_window {
             display: flex;
             width: 100%;
@@ -48,6 +47,7 @@
         .mainContent {
             height: 100%;
             position: relative;
+	    width: 100%;
             display: flex;
             flex-direction: column;
             flex: 1;
@@ -129,11 +129,13 @@
             overflow-y: auto;
             font-size: 16px;
             color: #24292f; 
+            width: 100%;
             text-align: center;
         }
 
         .messages::-webkit-scrollbar,
         #chatlog .markdown-body>pre::-webkit-scrollbar,
+        #chatlog .markdown-body>pre>code::-webkit-scrollbar,
         #setDialog::-webkit-scrollbar,
         .allList::-webkit-scrollbar,
         .sysDetail::-webkit-scrollbar {
@@ -143,6 +145,7 @@
 
         .messages::-webkit-scrollbar-track,
         #chatlog .markdown-body>pre::-webkit-scrollbar-track,
+        #chatlog .markdown-body>pre>code::-webkit-scrollbar-track,
         #setDialog::-webkit-scrollbar-track,
         .allList::-webkit-scrollbar-track,
         .sysDetail::-webkit-scrollbar-track {
@@ -153,6 +156,7 @@
 
         .messages::-webkit-scrollbar-corner,
         #chatlog .markdown-body>pre::-webkit-scrollbar-corner,
+        #chatlog .markdown-body>pre>code::-webkit-scrollbar-corner,
         #setDialog::-webkit-scrollbar-corner,
         .allList::-webkit-scrollbar-corner,
         .sysDetail::-webkit-scrollbar-corner {
@@ -161,6 +165,7 @@
 
         .messages::-webkit-scrollbar-thumb,
         #chatlog .markdown-body>pre::-webkit-scrollbar-thumb,
+        #chatlog .markdown-body>pre>code::-webkit-scrollbar-thumb,
         #setDialog::-webkit-scrollbar-thumb,
         .allList::-webkit-scrollbar-thumb,
         .sysDetail::-webkit-scrollbar-thumb {
@@ -172,6 +177,7 @@
 
         .messages::-webkit-scrollbar-thumb:hover,
         #chatlog .markdown-body>pre::-webkit-scrollbar-thumb:hover,
+        #chatlog .markdown-body>pre>code::-webkit-scrollbar-thumb:hover,
         #setDialog::-webkit-scrollbar-thumb:hover,
         .allList::-webkit-scrollbar-thumb:hover,
         .sysDetail::-webkit-scrollbar-thumb:hover {
@@ -217,18 +223,26 @@
 
         #chatlog .request {
             position: relative;
+            display: flex;
+            justify-content: center;
         }
 
         .requestBody {
             white-space: pre-wrap;
+            margin: 18px 0;
+            flex: 1;
         }
 
         #chatlog .response {
             background: #f7f7f8; 
             position: relative;
+            display: flex;
+            justify-content: center;
         }
 
         .response .markdown-body {
+            margin: 18px 0;
+            flex: 1;
             background: #f7f7f8;  !important;
         }
 
@@ -330,29 +344,32 @@
             position: relative;
             width: 100%;
             padding: 10px 10px;
+	    max-width: 91%;
+	    margin: 0 auto;
         }
 
         .bottom_wrapper .message_input_wrapper {
             border: none;
-            width: calc(100% - 168px);
+            width: calc(100% - 137px);
             position: relative;
             text-align: left;
         }
 
         .bottom_wrapper .message_input_wrapper .message_input_text {
-            border-radius: 4px;
-            border: none;
-            outline: none;
-            resize: none;
-            background: #f6f6f6;
-            color: #24292f; 
-            height: 47px;
-            font-size: 16px;
-            max-height: 200px;
-            padding: 13px 0 13px 13px;
-            width: 100%;
-            display: block;
-            transition: background 0.3s;
+border-radius: 4px;
+    border: none;
+    outline: none;
+    resize: none;
+    background: #f6f6f6;
+    color: #24292f;
+    height: 47px;
+    font-size: 16px;
+    max-height: 200px;
+    padding: 13px 0 13px 13px;
+    width: 100%!important;
+    display: block;
+    transition: background 0.3s;
+
         }
 
         .bottom_wrapper .message_input_wrapper .message_input_text:focus {
@@ -366,16 +383,17 @@
         }
 
         #sendbutton {
-            width: 80px;
-            height: 47px;
-            font-size: 18px;
-            font-weight: bold;
-            background-color: #8ed135;
-            transition: all 250ms;
-            position: absolute;
-            right: 85px;
-            bottom: 10px;
-            cursor: not-allowed;
+    width: 70px;
+    height: 47px;
+    font-size: 18px;
+    font-weight: bold;
+    background-color: #8ed135;
+    padding: 0.5rem 0.5rem;
+    transition: all 0.2s linear;
+    position: absolute;
+    right: 65px;
+    bottom: 10px;
+    cursor: not-allowed;
         }
 
         .activeSendBtn {
@@ -388,15 +406,18 @@
         }
 
         .clearConv {
-            position: absolute;
-            right: 10px;
-            bottom: 10px;
-            width: 65px;
-            height: 47px;
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    width: 47px;
+    padding: 0.5rem 0.5rem;
+    height: 47px;
         }
 
         .clearConv>svg {
             margin: 0 auto;
+	    top: 50%;
+	    left: 50%;
         }
 
 
@@ -612,6 +633,41 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+        }
+
+        .justSetBtn {
+            height: 32px;
+            border-radius: 3px;
+            line-height: 32px;
+            background: #eaeaea;
+            text-align: center;
+            padding: 0px 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .justSetBtn:hover {
+            background-color: #d0d0d0;
+        }
+
+        .justSetBtn>svg {
+            margin-right: 3px;
+        }
+
+        .readyTestVoice>div:not(:first-child) {
+            display: none;
+        }
+
+        .pauseTestVoice>div:nth-child(1),
+        .pauseTestVoice>div:nth-child(3) {
+            display: none;
+        }
+
+        .resumeTestVoice>div:nth-child(1),
+        .resumeTestVoice>div:nth-child(2) {
+            display: none;
         }
 
         .presetSelect>div {
@@ -1135,8 +1191,8 @@
         }
 
         #voiceRecIcon>svg {
-            width: 28px;
-            height: 28px;
+            width: 38px;
+            height: 38px;
             color: #b0b0b0;
             position: absolute;
             top: 50%;
@@ -1535,3 +1591,24 @@
             justify-content: space-between;
             font-size: 15px;
         }
+
+        .cursorCls {
+            background: var(--chat-text-color);
+            width: 4px;
+            animation: 1s cursor-blinker infinite step-start;
+        }
+
+        @keyframes cursor-blinker {
+            0% {
+                opacity: 0;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0;
+            }
+        }	
+	

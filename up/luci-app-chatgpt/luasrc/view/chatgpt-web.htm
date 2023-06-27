@@ -6,11 +6,11 @@
 local fs = require "nixio.fs"
 local dsp=require"luci.dispatcher"
 local uci=luci.model.uci.cursor()
-apihosts = uci:get_first('chatgpt-web', 'basic', 'apiHost')
-apikeys = uci:get_first('chatgpt-web', 'basic', 'apikey')
-modelver = uci:get_first('chatgpt-web', 'basic', 'modelver')
-userpic = "/luci-static/chatgpt-web/user/" .. uci:get_first('chatgpt-web', 'basic', 'userpic')
-sysrole = uci:get_first('chatgpt-web', 'basic', 'systemrole')
+local apihosts = uci:get_first('chatgpt-web', 'basic', 'apiHost')
+local apikeys = uci:get_first('chatgpt-web', 'basic', 'apikey')
+local modelver = uci:get_first('chatgpt-web', 'basic', 'modelver')
+local userpic = "/luci-static/chatgpt-web/user/" .. uci:get_first('chatgpt-web', 'basic', 'userpic')
+local sysrole = uci:get_first('chatgpt-web', 'basic', 'systemrole')
 
 -%>
 
@@ -53,11 +53,11 @@ sysrole = uci:get_first('chatgpt-web', 'basic', 'systemrole')
                     d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z">
                 </path>
             </symbol>
-            <symbol viewBox="0 0 16 16" id="pauseVoiceIcon">
-                <path stroke="currentColor" stroke-width="2" d="M5 2v12M11 2v12"></path>
+            <symbol viewBox="0 0 20 20" id="pauseVoiceIcon">
+                <path stroke="currentColor" stroke-width="2.4" d="M6 3v14M14 3v14"></path>
             </symbol>
             <symbol viewBox="0 0 16 16" id="resumeVoiceIcon">
-                <path fill="currentColor" d="M4 2L4 14L12 8Z"></path>
+                <path fill="currentColor" d="M4 3L4 13L12 8Z"></path>
             </symbol>
             <symbol viewBox="0 0 24 24" id="stopResIcon">
                 <path fill="currentColor"
@@ -170,6 +170,9 @@ sysrole = uci:get_first('chatgpt-web', 'basic', 'systemrole')
                     d="M13.85 22.25h-3.7c-.74 0-1.36-.54-1.45-1.27l-.27-1.89c-.27-.14-.53-.29-.79-.46l-1.8.72c-.7.26-1.47-.03-1.81-.65L2.2 15.53c-.35-.66-.2-1.44.36-1.88l1.53-1.19c-.01-.15-.02-.3-.02-.46 0-.15.01-.31.02-.46l-1.52-1.19c-.59-.45-.74-1.26-.37-1.88l1.85-3.19c.34-.62 1.11-.9 1.79-.63l1.81.73c.26-.17.52-.32.78-.46l.27-1.91c.09-.7.71-1.25 1.44-1.25h3.7c.74 0 1.36.54 1.45 1.27l.27 1.89c.27.14.53.29.79.46l1.8-.72c.71-.26 1.48.03 1.82.65l1.84 3.18c.36.66.2 1.44-.36 1.88l-1.52 1.19c.01.15.02.3.02.46s-.01.31-.02.46l1.52 1.19c.56.45.72 1.23.37 1.86l-1.86 3.22c-.34.62-1.11.9-1.8.63l-1.8-.72c-.26.17-.52.32-.78.46l-.27 1.91c-.1.68-.72 1.22-1.46 1.22zm-3.23-2h2.76l.37-2.55.53-.22c.44-.18.88-.44 1.34-.78l.45-.34 2.38.96 1.38-2.4-2.03-1.58.07-.56c.03-.26.06-.51.06-.78s-.03-.53-.06-.78l-.07-.56 2.03-1.58-1.39-2.4-2.39.96-.45-.35c-.42-.32-.87-.58-1.33-.77l-.52-.22-.37-2.55h-2.76l-.37 2.55-.53.21c-.44.19-.88.44-1.34.79l-.45.33-2.38-.95-1.39 2.39 2.03 1.58-.07.56a7 7 0 0 0-.06.79c0 .26.02.53.06.78l.07.56-2.03 1.58 1.38 2.4 2.39-.96.45.35c.43.33.86.58 1.33.77l.53.22.38 2.55z">
                 </path>
                 <circle fill="currentColor" cx="12" cy="12" r="3.5"></circle>
+            </symbol>
+			<symbol viewBox="0 0 24 24" id="stopIcon">
+                <path fill="currentColor" d="M6 5h12a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z" />
             </symbol>
                 <symbol viewBox="0 0 41 41" id="aiIcon">
                     <path fill="white" stroke-width="1.5"
@@ -289,7 +292,6 @@ L20.4018 25.4983L16.071 22.9985V17.9991Z">
                         </div>
                         <textarea class="inputTextClass areaTextClass" placeholder="<%=sysrole%>" value="<%=sysrole%>" id="systemInput"></textarea>
                     </div>
-
                     <div>
                         <span>角色性格</span>
                             <input type="range" id="top_p" min="0" max="1" value="0.7" step="0.05" />
@@ -511,9 +513,7 @@ L20.4018 25.4983L16.071 22.9985V17.9991Z">
             </div>
             <div class="sysTitle">设置</div>
             <div class="sysDetail">
-               
-
-
+				
                 <div class="setContent">
                     <div class="setTitle">会话</div>
                     <div class="setDetail dataDetail">
@@ -3151,7 +3151,7 @@ L20.4018 25.4983L16.071 22.9985V17.9991Z">
             controllerId = setTimeout(() => {
                 notyf.error("请求超时，请稍后重试！");
                 stopLoading();
-            }, 30000);
+            }, 60000);
             let headers = {"Content-Type": "application/json"};
             if (customAPIKey) headers["Authorization"] = "Bearer " + customAPIKey;
             let isRefresh = refreshIdx !== void 0;

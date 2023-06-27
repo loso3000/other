@@ -48,4 +48,5 @@ o = s:option(Value, "apikey", translate("API Key"))
 o.description = translate("Enter your own API key, and if you do not have one, enter the official website API to generate it: ")..translate("<a href=\'https://platform.openai.com/account/api-keys\' target=\'_blank\'>Click to open</a>")
 o.rmempty = true
 o.password = true
+
 return m
