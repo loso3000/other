@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 LUCI_TITLE:=LuCI support for nqos.
 LUCI_DESCRIPTION:=LuCI support for Easy eqosplus(Support speed limit based on IP address).
-LUCI_DEPENDS:=+kmod-nft-netdev +kmod-nft-bridge +nftables +nft-qos
+LUCI_DEPENDS:=+kmod-nft-netdev +kmod-nft-bridge +nftables
 LUCI_PKGARCH:=all
 
 PKG_VERSION:=1.2.1
