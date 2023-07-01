@@ -1,0 +1,75 @@
+#!/bin/sh
+
+# Copyright (C) 2006 OpenWrt.org
+# Copyright 2022-2023 sirpdboy <herboy2008@gmail.com>
+NAME=eqosplus
+IDLIST="/var/$NAME.idlist"
+TMPID="/var/$NAME.tmpid"
+dev="br-lan"
+idlist=""
+
+check_list() {
+	i=$1
+	re=0
+	start_time=$(uci -q get $NAME.@device[$i].timestart 2>/dev/null) || start_time="00:00"
+	end_time=$(uci -q get $NAME.@device[$i].timeend 2>/dev/null) ||  end_time="00:00"
+	wweek=$(uci -q get $NAME.@device[$i].week  |sed 's/ /,/g' 2>/dev/null) ||  wweek="*"
+	current_time=$(date +%H:%M)
+	current_weekday=$(date +%u)
+	[ "$start_time" = "$end_time" ] || { 
+	[[ "$start_time" < "$end_time" ]] && { [[ "$current_time" > "$start_time" ]] && [[ "$current_time" < "$end_time" ]] || return ; }
+	[[ "$start_time" > "$end_time" ]] && { [[ "$current_time" < "$start_time" ]] && [[ "$current_time" > "$end_time" ]] || return ; }
+	}
+	for ww in `echo $wweek | sed 's/,/ /g' `; do 
+		if [ $current_weekday = $ww ] || [ 'x*' = x$ww ] ;then 
+		      re=1
+		fi
+	done
+	return $re
+}
+
+idlistusr(){
+   [ -s $IDLIST ] || return
+   for list in $idlist ;do
+        if check_list $list ;then
+	     [ `cat $IDLIST  2>/dev/null | grep "!${list}!" | wc -l ` -gt 0 ] || { 
+	         eqosplus add $list
+	         echo "!${list}!" >> $IDLIST ;  cat $IDLIST | sort | uniq  > $TMPID ;cat $TMPID >$IDLIST ;rm -rf $TMPID
+	     }
+        else
+	     [ `cat $IDLIST  2>/dev/null | grep "!${list}!" | wc -l ` -gt 0 ] && {
+	         eqosplus del $list
+		 sed -i "/!$i!/d" $IDLIST >/dev/null 2>&1
+	     }
+	fi
+   done
+}
+
+# Parse the arguments
+while [ $# -gt 0 ]; do
+    case "$1" in
+        -d|--dev)
+            dev="$2"
+            shift 2
+            ;;
+        -o|--old)
+            idlist="$2"
+            shift 2
+            ;;
+        -n|--new)
+            nidlist="$2"
+            shift 2
+            ;;
+        *)
+            echo "Unknown option: $1"
+	    rm -f $LOCK 2>/dev/null
+            exit 1
+            ;;
+    esac
+done
+
+while :;do
+	sleep 20
+	idlistusr
+	sleep 20
+done
