@@ -11,16 +11,8 @@ LOCK="/var/lock/$NAME.lock"
 CR=/etc/crontabs/root
 
 start_instance() {
-	 if [ x$(uci -q get $NAME.@$NAME[0].ifname) = 'x1' ] ;then
- 	     dev=`ifconfig | grep "Point-to-Point" | cut -d " " -f1`
- 	     [ ! $dev ] && dev=` uci -q get network.wan.ifname ` || dev=` uci -q get network.wan.device ` 
- 	     [ ! $dev ] && dev=br-lan
-	 else
-	      dev=`uci -q get $NAME.@$NAME[0].ifname `
-	 fi
-	 idlist=`uci show $NAME | grep "enable='1'" | grep "device" | grep -oE '\[.*?\]' | grep -o '[0-9]' `
 	 procd_open_instance
-	 procd_set_param command /usr/sbin/eqosplusctrl -d $dev -o $idlist
+	 procd_set_param command /usr/sbin/eqosplusctrl
 	 procd_set_param respawn
 	 procd_set_param stderr 1
 	 procd_close_instance

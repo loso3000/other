@@ -6,7 +6,14 @@ NAME=eqosplus
 IDLIST="/var/$NAME.idlist"
 TMPID="/var/$NAME.tmpid"
 dev="br-lan"
-idlist=""
+if [ x$(uci -q get $NAME.@$NAME[0].ifname) = 'x1' ] ;then
+ 	     dev=`ifconfig | grep "Point-to-Point" | cut -d " " -f1`
+ 	     [ ! $dev ] && dev=` uci -q get network.wan.ifname ` || dev=` uci -q get network.wan.device ` 
+ 	     [ ! $dev ] && dev=br-lan
+else
+	      dev=`uci -q get $NAME.@$NAME[0].ifname `
+fi
+idlist=`uci show $NAME | grep "enable='1'" | grep "device" | grep -oE '\[.*?\]' | grep -o '[0-9]' `
 
 check_list() {
 	i=$1
@@ -45,31 +52,9 @@ idlistusr(){
    done
 }
 
-# Parse the arguments
-while [ $# -gt 0 ]; do
-    case "$1" in
-        -d|--dev)
-            dev="$2"
-            shift 2
-            ;;
-        -o|--old)
-            idlist="$2"
-            shift 2
-            ;;
-        -n|--new)
-            nidlist="$2"
-            shift 2
-            ;;
-        *)
-            echo "Unknown option: $1"
-	    rm -f $LOCK 2>/dev/null
-            exit 1
-            ;;
-    esac
-done
 
 while :;do
-	sleep 20
+	sleep 30
 	idlistusr
-	sleep 20
+	sleep 30
 done

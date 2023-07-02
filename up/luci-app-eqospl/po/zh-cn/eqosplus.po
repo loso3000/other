@@ -14,7 +14,7 @@ msgstr "未运行"
 msgid "Running"
 msgstr "已运行"
 
-msgid "Users can limit the network speed for uploading/downloading through MAC, IP, and IP ranges.The speed unit is MB/second."
+msgid "Users can limit the network speed for uploading/downloading through MAC, IP.The speed unit is MB/second."
 msgstr "可以通过MAC，IP限制用户上传/下载的网速。速度单位为<font color=\"red\"><b> MB/秒 </b></font>。"
 
 msgid "MAC/IP"
@@ -48,7 +48,7 @@ msgid "Speed Limiting Machines"
 msgstr "限速机器"
 
 msgid "Set the interface used for restriction, use pppoe-wan for dialing, use WAN hardware interface for DHCP mode (such as eth1), and use br-lan for bypass mode"
-msgstr "设定用来限制网络速度的接口,拨号使用pppoe-wan,DHCP模式使用WAN口的硬件接口(如:eth1),旁路模式使用br-lan接口"
+msgstr "设定用来限制网络速度的接口,拨号使用pppoe-wan,DHCP模式使用WAN口的硬件接口(如:eth1),通用使用br-lan接口"
 
 msgid "Speed Limiting Machines"
 msgstr "强制限速"
