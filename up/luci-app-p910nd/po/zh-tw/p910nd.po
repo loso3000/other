@@ -1,0 +1,48 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2009-05-19 19:35+0200\n"
+"PO-Revision-Date: 2021-01-15 12:32+0000\n"
+"Last-Translator: akibou <jinwenxin1997@icloud.com>\n"
+"Language-Team: Chinese (Traditional) <https://hosted.weblate.org/projects/"
+"openwrt/luciapplicationsp910nd/zh_Hant/>\n"
+"Language: zh_Hant\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Weblate 4.5-dev\n"
+
+msgid "Bidirectional mode"
+msgstr "雙向模式"
+
+msgid "Device"
+msgstr "設備"
+
+msgid ""
+"First you have to install the packages to get support for USB (kmod-usb-"
+"printer) or parallel port (kmod-lp)."
+msgstr ""
+"首先您必須安裝軟體包以便獲得USB (kmod-usb-printer)或串列埠(kmod-lp)的支援."
+
+msgid "Interface"
+msgstr ""
+
+msgid "Port"
+msgstr "埠"
+
+msgid "Settings"
+msgstr "設定值"
+
+msgid "Specifies the interface to listen on."
+msgstr ""
+
+msgid "TCP listener port."
+msgstr "聆聽TCP埠"
+
+msgid "enable"
+msgstr "啟用"
+
+msgid "p910nd - Printer server"
+msgstr "USB列印伺服器"
