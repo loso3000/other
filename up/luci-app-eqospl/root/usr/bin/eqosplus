@@ -23,7 +23,7 @@ bin_tc=$(which tc)
 bin_ebtables=$(which ebtables)
 bin_ip=$(which ip)
 # Uncomment this to debug commands
-# DEBUG=1
+DEBUG=1
 ## End
 # Debug functions - echo + run
 dbg_iptables() {
@@ -103,6 +103,7 @@ init_qosplus() {
 }
 del_id() {
 	id=`expr $1 + 11 `
+   [ "${DEBUG:-0}" -eq 0 ] || echo D: del_id "$@" "--$id --$mac"
 	$tc qd del dev ${dev} parent 1:$id
 	$tc qd del dev ${dev}_ifb parent 1:$id
 
@@ -120,45 +121,46 @@ del_id() {
 }
 add_mac() {
 	id=`expr $1 + 11 `
-
+   [ "${DEBUG:-0}" -eq 0 ] || echo D: add_mac "$@" "--$id --$mac"
 	A=`echo $mac | awk -F '[-:]' '{print $1$2}'`
 	B=`echo $mac | awk -F '[-:]' '{print $3$4$5$6}'`
 	C=`echo $mac | awk -F '[-:]' '{print $1$2$3$4}'`
 	D=`echo $mac | awk -F '[-:]' '{print $5$6}'`
 	if [ "$UL" -gt 0 ]; then
-		tc class add dev ${dev}_ifb parent 1:1 classid 1:$id htb rate "$UL"kbit ceil "$UL"kbit prio $id quantum 1500
-		tc qdisc add dev ${dev}_ifb parent 1:"$id" handle "$id": sfq perturb 1
-		tc filter add dev ${dev}_ifb parent 1:0 protocol ip prio $id u32 match u16 0x0800 0xffff at -2 match u16 0x"$D" 0xffff at -4 match u32 0x"$C" 0xffffffff at -8 flowid 1:$id
+		$tc class add dev ${dev}_ifb parent 1:1 classid 1:$id htb rate "$UL"kbit ceil "$UL"kbit prio $id quantum 1500
+		$tc qdisc add dev ${dev}_ifb parent 1:"$id" handle "$id": sfq perturb 1
+		$tc filter add dev ${dev}_ifb parent 1:0 protocol ip prio $id u32 match u16 0x0800 0xffff at -2 match u16 0x"$D" 0xffff at -4 match u32 0x"$C" 0xffffffff at -8 flowid 1:$id
 	elif [ "$UL" == 0 ]; then
-		tc filter add dev ${dev}_ifb parent 1:0 protocol ip prio 5 u32 match u16 0x0800 0xffff at -2 match u16 0x"$D" 0xffff at -4 match u32 0x"$C" 0xffffffff at -8 flowid 1:1
+		$tc filter add dev ${dev}_ifb parent 1:0 protocol ip prio 5 u32 match u16 0x0800 0xffff at -2 match u16 0x"$D" 0xffff at -4 match u32 0x"$C" 0xffffffff at -8 flowid 1:1
 	fi
 	if [ "$DL" -gt 0 ]; then
-		tc class add dev ${dev} parent 1:1 classid 1:$id htb rate "$DL"kbit ceil "$DL"kbit prio $id quantum 1500
-		tc qdisc add dev ${dev} parent 1:"$id" handle "$id": sfq perturb 1
-		tc filter add dev ${dev} parent 1:0 protocol ip prio $id u32 match u16 0x0800 0xffff at -2 match u32 0x"$B" 0xffffffff at -12 match u16 0x"$A" 0xffff at -14 flowid 1:$id
+		$tc class add dev ${dev} parent 1:1 classid 1:$id htb rate "$DL"kbit ceil "$DL"kbit prio $id quantum 1500
+		$tc qdisc add dev ${dev} parent 1:"$id" handle "$id": sfq perturb 1
+		$tc filter add dev ${dev} parent 1:0 protocol ip prio $id u32 match u16 0x0800 0xffff at -2 match u32 0x"$B" 0xffffffff at -12 match u16 0x"$A" 0xffff at -14 flowid 1:$id
 	elif [ "$DL" == 0 ]; then
-		tc filter add dev ${dev} parent 1:0 protocol ip prio 5 u32 match u16 0x0800 0xffff at -2 match u32 0x"$B" 0xffffffff at -12 match u16 0x"$A" 0xffff at -14 flowid 1:1
+		$tc filter add dev ${dev} parent 1:0 protocol ip prio 5 u32 match u16 0x0800 0xffff at -2 match u32 0x"$B" 0xffffffff at -12 match u16 0x"$A" 0xffff at -14 flowid 1:1
 	fi
 }
 
 add_ip() {
 	id=`expr $1 + 11 `
 	#   id=printf "%x\n" "$1"
+	[ "${DEBUG:-0}" -eq 0 ] || echo D: add_ip "$@" "--$id --$mac"
 	Z=`echo $mac |awk -F '[/]' '{print $2}' `
 	[ -n "$Z" ] && mac=`echo $mac |awk -F '[/]' '{print $1}' `|| Z=32
 	if [ "$UL" -gt 0 ]; then
-		tc class add dev ${dev}_ifb parent 1:1 classid 1:$id htb rate "$UL"kbit ceil "$UL"kbit prio $id quantum 1500
-		tc qdisc add dev ${dev}_ifb parent 1:"$id" handle "$id": sfq perturb 1
-		tc filter add dev ${dev}_ifb parent 1:0 prio $id protocol ip u32 match ip src "$mac"/"$Z" classid 1:$id
+		$tc class add dev ${dev}_ifb parent 1:1 classid 1:$id htb rate "$UL"kbit ceil "$UL"kbit prio $id quantum 1500
+		$tc qdisc add dev ${dev}_ifb parent 1:"$id" handle "$id": sfq perturb 1
+		$tc filter add dev ${dev}_ifb parent 1:0 prio $id protocol ip u32 match ip src "$mac"/"$Z" classid 1:$id
 	elif [ "$UL" == 0 ]; then
-		tc filter add dev ${dev}_ifb parent 1:0 prio 6 protocol ip u32 match ip src "$mac"/"$Z" classid 1:1
+		$tc filter add dev ${dev}_ifb parent 1:0 prio 6 protocol ip u32 match ip src "$mac"/"$Z" classid 1:1
 	fi
 	if [ "$DL" -gt 0 ]; then
-		tc class add dev ${dev} parent 1:1 classid 1:$id htb rate "$DL"kbit ceil "$DL"kbit prio $id quantum 1500
-		tc qdisc add dev ${dev} parent 1:"$id" handle "$id": sfq perturb 1
-		tc filter add dev ${dev} parent 1:0 prio $id protocol ip u32 match ip dst "$mac"/"$Z" classid 1:$id
+		$tc class add dev ${dev} parent 1:1 classid 1:$id htb rate "$DL"kbit ceil "$DL"kbit prio $id quantum 1500
+		$tc qdisc add dev ${dev} parent 1:"$id" handle "$id": sfq perturb 1
+		$tc filter add dev ${dev} parent 1:0 prio $id protocol ip u32 match ip dst "$mac"/"$Z" classid 1:$id
 	elif [ "$DL" == 0 ]; then
-		tc filter add dev ${dev} parent 1:0 prio 6 protocol ip u32 match ip dst "$mac"/"$Z" classid 1:1
+		$tc filter add dev ${dev} parent 1:0 prio 6 protocol ip u32 match ip dst "$mac"/"$Z" classid 1:1
 	fi
 
 
@@ -166,7 +168,7 @@ add_ip() {
 
 check_list() {
 	i=$1
-	re=0
+	re=1
 	start_time=$(uci -q get $NAME.@device[$i].timestart 2>/dev/null) || start_time="00:00"
 	end_time=$(uci -q get $NAME.@device[$i].timeend 2>/dev/null) ||  end_time="00:00"
 	wweek=$(uci -q get $NAME.@device[$i].week  |sed 's/ /,/g' 2>/dev/null) ||  wweek="*"
@@ -178,8 +180,8 @@ check_list() {
 	}
 	for ww in `echo $wweek | sed 's/,/ /g' `; do 
 		if [ $current_weekday = $ww ] || [ "x*" = "x$ww" ] ; then 
-		      re=1
-		      [ "${DEBUG:-0}" -eq 0 ] || echo D: check_list "$@"
+		      re=""
+		      [ "${DEBUG:-0}" -eq 0 ] || echo D: check_list "$@" "--$re"
 		fi
 	done
 	return $re
@@ -192,7 +194,6 @@ case "$crrun" in
 	"start")
 		idlist=`uci show $NAME | grep "enable='1'" | grep "device" | grep -oE '\[.*?\]' | grep -o '[0-9]' | sed -e 's/^/!/g' -e 's/$/!/g' > $IDLIST ;cat $IDLIST | sed -e 's/!//g' `
 		[ ! $idlist ] && /etc/init.d/eqosplus stop
-		crtrue=0
 		init_qosplus
 		for i in `echo $idlist | sed -e 's/!//g' ` ;do
 			if check_list $i ;then
@@ -204,7 +205,6 @@ case "$crrun" in
 				else
 				    add_ip $i
 				fi
-				crtrue=1
 			else
 				 [ `cat $IDLIST  2>/dev/null | grep "!${list}!" | wc -l ` -gt 0 ] && {
 				 del_id $list
