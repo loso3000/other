@@ -189,9 +189,9 @@ synflood.anonymous = false
 
 e = s:taboption("othersetup", Flag, "showhide",translate('Hide Wizard'), translate('Show or hide the setup wizard menu. After hiding, you can open the display wizard menu in [Advanced Settings] [Advanced] or use the 3rd function in the background to restore the wizard and default theme.'))
 
-local e=luci.http.formvalue("cbi.apply")
-if e then
-  io.popen("/etc/init.d/netwizard start")
+m.apply_on_parse = true
+m.on_after_apply = function(self,map)
+	luci.sys.exec("/etc/init.d/netwizard start >/dev/null 2>&1")
 end
 
 return m
