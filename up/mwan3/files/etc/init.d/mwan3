@@ -3,7 +3,7 @@
 . "${IPKG_INSTROOT}/lib/functions/network.sh"
 . "${IPKG_INSTROOT}/lib/mwan3/mwan3.sh"
 
-START=19
+START=99
 USE_PROCD=1
 SCRIPTNAME="mwan3-init"
 
@@ -15,7 +15,7 @@ start_tracker() {
 	local enabled interface
 	interface=$1
 	config_get_bool enabled $interface 'enabled' '0'
-	[ $enabled -eq 0 ] && return
+	[ "$enabled" -eq 0 ] && return
 	[ -z "$(config_get $interface track_ip)" ] && return
 
 	procd_open_instance "track_${1}"

@@ -23,10 +23,10 @@ command -v ip6tables > /dev/null
 NO_IPV6=$?
 
 IPS="ipset"
-IPT4="iptables -t mangle -w"
-IPT6="ip6tables -t mangle -w"
-IPT4R="iptables-restore -T mangle -w -n"
-IPT6R="ip6tables-restore -T mangle -w -n"
+IPT4="iptables -w -t mangle"
+IPT6="ip6tables -w -t mangle"
+IPT4R="iptables-restore -w -T mangle -n"
+IPT6R="ip6tables-restore -w -T mangle -n"
 
 LOG()
 {
@@ -140,7 +140,7 @@ mwan3_init()
 	# remove "linkdown", expiry and source based routing modifiers from route lines
 	config_get_bool source_routing globals source_routing 0
 	[ $source_routing -eq 1 ] && unset source_routing
-	MWAN3_ROUTE_LINE_EXP="s/linkdown //; s/expires [0-9]\+sec//; s/error [0-9]\+//; ${source_routing:+s/default\(.*\) from [^ ]*/default\1/;} p"
+	MWAN3_ROUTE_LINE_EXP="s/offload//; s/linkdown //; s/expires [0-9]\+sec//; s/error [0-9]\+//; ${source_routing:+s/default\(.*\) from [^ ]*/default\1/;} p"
 
 	# mark mask constants
 	bitcnt=$(mwan3_count_one_bits MMX_MASK)

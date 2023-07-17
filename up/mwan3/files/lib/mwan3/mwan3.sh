@@ -564,8 +564,7 @@ mwan3_delete_iface_ipset_entries()
 
 	for setname in $(ipset -n list | grep ^mwan3_rule_); do
 		for entry in $(ipset list "$setname" | grep "$(mwan3_id2mask id MMX_MASK | awk '{ printf "0x%08x", $1; }')" | cut -d ' ' -f 1); do
-			$IPS del "$setname" $entry ||
-				LOG notice "failed to delete $entry from $setname"
+			$IPS del "$setname" $entry || LOG notice "failed to delete $entry from $setname"
 		done
 	done
 }
