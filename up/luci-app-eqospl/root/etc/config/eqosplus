@@ -7,7 +7,8 @@ config eqosplus
 
 config device
 	option timestart '00:00'
-	option week '*'
+
+	option week '0'
 	option download '1'
 	option timeend '23:55'
 	option upload '1'
@@ -18,7 +19,8 @@ config device
 	option mac '192.168.10.10/24'
 	option timestart '00:00'
 	option timeend '00:00'
-	option week '*'
+
+	option week '0'
 	option download '0.1'
 	option upload '0.1'
 	option enable '0'
