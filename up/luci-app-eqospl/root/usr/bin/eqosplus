@@ -6,8 +6,8 @@
 crrun=$1
 crid=$2
 NAME=eqosplus
-LOCK="/var/lock/$NAME.lock"
 IDLIST="/var/$NAME.idlist"
+LOCK="/var/lock/$NAME.lock"
 TMPID="/var/$NAME.tmpid"
 if [ x$(uci get $NAME.@$NAME[0].ifname) = 'x1' ] ;then
      dev=`ifconfig | grep "Point-to-Point" | cut -d " " -f1`
@@ -23,28 +23,28 @@ bin_tc=$(which tc)
 bin_ebtables=$(which ebtables)
 bin_ip=$(which ip)
 # Uncomment this to debug commands
-DEBUG=1
+# DEBUG=1
 ## End
 # Debug functions - echo + run
 dbg_iptables() {
-	[ "${DEBUG:-0}" -eq 0 ] || echo D: iptables "$@"
+	[ "${DEBUG:-0}" -eq 0 ] || echo "D: iptables $@"
 	$bin_iptables "$@" 
 }
 dbg_ip6tables() {
-	[ "${DEBUG:-0}" -eq 0 ] || echo D: ip6tables "$@"
+	[ "${DEBUG:-0}" -eq 0 ] || echo "D: ip6tables $@"
 	$bin_ip6tables "$@" 
 }
 
 dbg_tc() {
-	[ "${DEBUG:-0}" -eq 0 ] || echo D: tc "$@"
+	[ "${DEBUG:-0}" -eq 0 ] || echo "D: tc $@"
 	$bin_tc "$@" 
 }
 dbg_ebtables() {
-	[ "${DEBUG:-0}" -eq 0 ] || echo D: ebtables "$@"
+	[ "${DEBUG:-0}" -eq 0 ] || echo "D: ebtables $@"
 	$bin_ebtables "$@" 
 }
 dbg_ip() {
-	[ "${DEBUG:-0}" -eq 0 ] || echo D: ip "$@"
+	[ "${DEBUG:-0}" -eq 0 ] || echo "D: ip $@"
 	$bin_ip "$@" 
 }
 is_macaddr() {
@@ -97,13 +97,16 @@ init_qosplus() {
 	$tc qdisc add dev ${dev}_ifb root handle 1:0 htb default 1
 	$tc class add dev ${dev}_ifb parent 1:0 classid 1:1 htb rate 80gbit prio 0 quantum 1500
 	
-	# lanipaddr=$(uci -q get network.lan.ipaddr 2>/dev/null | awk -F '.' '{print $1"."$2"."$3".0/24"}')
+	lanipaddr=$(uci -q get network.lan.ipaddr 2>/dev/null | awk -F '.' '{print $1"."$2"."$3".0/24"}')
+	$tc filter add dev $dev parent 1:0 protocol ipv4 prio 1 u32 match ip src "$lanipaddr" match ip dst "$lanipaddr" flowid 1:1
+	$tc filter add dev ${dev}_ifb parent 1:0 protocol ipv4 prio 1 u32 match ip src "$lanipaddr" match ip dst "$lanipaddr" flowid 1:1
+
 	$tc qdisc add dev ${dev} ingress
 	$tc filter add dev ${dev} parent ffff: protocol all prio 2 u32 match u32 0 0 flowid 1:1 action mirred egress redirect dev ${dev}_ifb
 }
 del_id() {
 	id=`expr $1 + 11 `
-   [ "${DEBUG:-0}" -eq 0 ] || echo D: del_id "$@" "--$id --$mac"
+   [ "${DEBUG:-0}" -eq 0 ] || echo "D: del_id $@" "--$id --$mac"
 	$tc qd del dev ${dev} parent 1:$id
 	$tc qd del dev ${dev}_ifb parent 1:$id
 
@@ -121,22 +124,25 @@ del_id() {
 }
 add_mac() {
 	id=`expr $1 + 11 `
-   [ "${DEBUG:-0}" -eq 0 ] || echo D: add_mac "$@" "--$id --$mac"
 	A=`echo $mac | awk -F '[-:]' '{print $1$2}'`
 	B=`echo $mac | awk -F '[-:]' '{print $3$4$5$6}'`
 	C=`echo $mac | awk -F '[-:]' '{print $1$2$3$4}'`
 	D=`echo $mac | awk -F '[-:]' '{print $5$6}'`
+	[ "${DEBUG:-0}" -eq 0 ] || echo "D: add_mac $@ --id:$id --mac:$mac ABCD--$A-$B-$C-$D"
 	if [ "$UL" -gt 0 ]; then
 		$tc class add dev ${dev}_ifb parent 1:1 classid 1:$id htb rate "$UL"kbit ceil "$UL"kbit prio $id quantum 1500
 		$tc qdisc add dev ${dev}_ifb parent 1:"$id" handle "$id": sfq perturb 1
-		$tc filter add dev ${dev}_ifb parent 1:0 protocol ip prio $id u32 match u16 0x0800 0xffff at -2 match u16 0x"$D" 0xffff at -4 match u32 0x"$C" 0xffffffff at -8 flowid 1:$id
+		# $tc filter add dev ${dev}_ifb parent 1:0 protocol ip prio $id u32 match u16 0x0800 0xffff at -2 match u16 0x"$D" 0xffff at -4 match u32 0x"$C" 0xffffffff at -8 flowid 1:$id
+		$tc filter add dev ${dev}_ifb parent 1: protocol ip prio $id u32 match u16 0x0800 0xFFFF at -2 match u32 0x"$C" 0xFFFFFFFF at -12 flowid 1:$id
 	elif [ "$UL" == 0 ]; then
 		$tc filter add dev ${dev}_ifb parent 1:0 protocol ip prio 5 u32 match u16 0x0800 0xffff at -2 match u16 0x"$D" 0xffff at -4 match u32 0x"$C" 0xffffffff at -8 flowid 1:1
 	fi
 	if [ "$DL" -gt 0 ]; then
 		$tc class add dev ${dev} parent 1:1 classid 1:$id htb rate "$DL"kbit ceil "$DL"kbit prio $id quantum 1500
 		$tc qdisc add dev ${dev} parent 1:"$id" handle "$id": sfq perturb 1
-		$tc filter add dev ${dev} parent 1:0 protocol ip prio $id u32 match u16 0x0800 0xffff at -2 match u32 0x"$B" 0xffffffff at -12 match u16 0x"$A" 0xffff at -14 flowid 1:$id
+		#$tc filter add dev ${dev} parent 1:0 protocol ip prio $id u32 match u16 0x0800 0xffff at -2 match u32 0x"$B" 0xffffffff at -12 match u16 0x"$A" 0xffff at -14 flowid 1:$id
+		$tc filter add dev ${dev} parent 1: protocol ip prio $id u32 match u16 0x0800 0xFFFF at -2 match u32 0x"$C" 0xFFFFFFFF at -12 flowid 1:$id
+		# tc filter add dev <interface> parent 1: protocol ip prio 1 u32 match u16 0x0800 0xFFFF at -2 match u32 <source MAC> 0xFFFFFFFF at -12 flowid 1:2
 	elif [ "$DL" == 0 ]; then
 		$tc filter add dev ${dev} parent 1:0 protocol ip prio 5 u32 match u16 0x0800 0xffff at -2 match u32 0x"$B" 0xffffffff at -12 match u16 0x"$A" 0xffff at -14 flowid 1:1
 	fi
@@ -145,7 +151,7 @@ add_mac() {
 add_ip() {
 	id=`expr $1 + 11 `
 	#   id=printf "%x\n" "$1"
-	[ "${DEBUG:-0}" -eq 0 ] || echo D: add_ip "$@" "--$id --$mac"
+	[ "${DEBUG:-0}" -eq 0 ] || echo "D: add_ip $@ --$id --$mac"
 	Z=`echo $mac |awk -F '[/]' '{print $2}' `
 	[ -n "$Z" ] && mac=`echo $mac |awk -F '[/]' '{print $1}' `|| Z=32
 	if [ "$UL" -gt 0 ]; then
@@ -167,11 +173,11 @@ add_ip() {
 }
 
 check_list() {
-	i=$1
-	re=1
-	start_time=$(uci -q get $NAME.@device[$i].timestart 2>/dev/null) || start_time="00:00"
-	end_time=$(uci -q get $NAME.@device[$i].timeend 2>/dev/null) ||  end_time="00:00"
-	wweek=$(uci -q get $NAME.@device[$i].week  |sed 's/ /,/g' 2>/dev/null) ||  wweek="*"
+        i=$1
+	checki='0'
+	start_time=$(uci -q get $NAME.@device[$i].timestart 2>/dev/null)
+	end_time=$(uci -q get $NAME.@device[$i].timeend 2>/dev/null)
+	wweek=`uci -q get $NAME.@device[$i].week `
 	current_time=$(date +%H:%M)
 	current_weekday=$(date +%u)
 	[ "$start_time" = "$end_time" ] || { 
@@ -179,54 +185,62 @@ check_list() {
 	[[ "$start_time" > "$end_time" ]] && { [[ "$current_time" < "$start_time" ]] && [[ "$current_time" > "$end_time" ]] || return ; }
 	}
 	for ww in `echo $wweek | sed 's/,/ /g' `; do 
-		if [ $current_weekday = $ww ] || [ "x*" = "x$ww" ] ; then 
-		      re=""
-		      [ "${DEBUG:-0}" -eq 0 ] || echo D: check_list "$@" "--$re"
+		if [ $current_weekday = $ww ] || [ "x0" = "x$ww" ] ; then 
+		      checki='1'
+		      [ "${DEBUG:-0}" -eq 0 ] || echo "D: check_list ok:$@ --checki:$checki -- week:$current_weekday:$ww"
 		fi
 	done
-	return $re
+	[ "${DEBUG:-0}" -eq 0 ] || echo "D: check_list end:$@ --checki:$checki --week:$wweek"
+	return
 }
 
 case "$crrun" in
 	"stop")
 		stop_qos
+		echo '' >$IDLIST
 	;;
 	"start")
 		idlist=`uci show $NAME | grep "enable='1'" | grep "device" | grep -oE '\[.*?\]' | grep -o '[0-9]' | sed -e 's/^/!/g' -e 's/$/!/g' > $IDLIST ;cat $IDLIST | sed -e 's/!//g' `
-		[ ! $idlist ] && /etc/init.d/eqosplus stop
+		# [ $idlist ] || /etc/init.d/eqosplus stop
+		cat  $IDLIST
 		init_qosplus
-		for i in `echo $idlist | sed -e 's/!//g' ` ;do
-			if check_list $i ;then
-				mac=$(uci -q get $NAME.@device[$i].mac )
-				DL=$(uci -q get $NAME.@device[$i].download 2>/dev/null | awk '{print $1*10^3/2}')
-				UL=$(uci -q get $NAME.@device[$i].upload   2>/dev/null | awk '{print $1*10^3/2}')
+		checki='0'
+		for list in `echo $idlist | sed -e 's/!//g' ` ;do
+			check_list $list
+			if [ $checki == '1' ] ; then
+				mac=$(uci -q get $NAME.@device[$list].mac )
+				DL=$(uci -q get $NAME.@device[$list].download 2>/dev/null | awk '{print $1*10^3/2}')
+				UL=$(uci -q get $NAME.@device[$list].upload   2>/dev/null | awk '{print $1*10^3/2}')
 				if is_macaddr $mac; then
-				    add_mac $i
+				[ "${DEBUG:-0}" -eq 0 ] || echo "D: add_mac startyes  mac:$mac --list:$list --dl:$DL --ul:$UL"
+				    add_mac $list
 				else
-				    add_ip $i
+				[ "${DEBUG:-0}" -eq 0 ] || echo "D: add_ip startyes  mac:$mac --list:$list --dl:$DL --ul:$UL"
+				    add_ip $list
 				fi
 			else
+			[ "${DEBUG:-0}" -eq 0 ] || echo "D: check_list startno  --list:$list"
 				 [ `cat $IDLIST  2>/dev/null | grep "!${list}!" | wc -l ` -gt 0 ] && {
 				 del_id $list
-				 sed -i "/!$i!/d" $IDLIST >/dev/null 2>&1
+				 sed -i "/!$list!/d" $IDLIST >/dev/null 2>&1
 				 }
 			fi
 		done
 	;;
 	"add")
-		for i in `echo $crid | sed -e 's/!//g' | sed 's/,/ /g' ` ;do
-				mac=$(uci -q get $NAME.@device[$i].mac )
-				DL=$(uci -q get $NAME.@device[$i].download 2>/dev/null | awk '{print $1*10^3/2}')
-				UL=$(uci -q get $NAME.@device[$i].upload   2>/dev/null | awk '{print $1*10^3/2}')
+		for list in `echo $crid | sed -e 's/!//g' | sed 's/,/ /g' ` ;do
+				mac=$(uci -q get $NAME.@device[$list].mac )
+				DL=$(uci -q get $NAME.@device[$list].download 2>/dev/null | awk '{print $1*10^3/2}')
+				UL=$(uci -q get $NAME.@device[$list].upload   2>/dev/null | awk '{print $1*10^3/2}')
 				if is_macaddr $mac; then
-				    add_mac $i
+				    add_mac $list
 				else
-				    add_ip $i
+				    add_ip $list
 				fi
 		done
 	;;
 	"del")
-		for i in `echo $crid | sed -e 's/!//g' | sed 's/,/ /g' ` ;do del_id $i;	done
+		for list in `echo $crid | sed -e 's/!//g' | sed 's/,/ /g' ` ;do del_id $list; sed -i "/!$list!/d" $IDLIST >/dev/null 2>&1; done
 	;;
 
 esac

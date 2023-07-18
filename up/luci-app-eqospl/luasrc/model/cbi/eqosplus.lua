@@ -78,7 +78,7 @@ e.size = 4
 
 week=t:option(Value,"week",translate("Week Day(1~7)"))
 week.rmempty = true
-week:value('*',translate("Everyday"))
+week:value('0',translate("Everyday"))
 week:value(7,translate("Sunday"))
 week:value(1,translate("Monday"))
 week:value(2,translate("Tuesday"))
@@ -86,7 +86,7 @@ week:value(3,translate("Wednesday"))
 week:value(4,translate("Thursday"))
 week:value(5,translate("Friday"))
 week:value(6,translate("Saturday"))
-week.default='*'
+week.default='0'
 week.size = 6
 comment = t:option(Value, "comment", translate("Comment"))
 comment.size = 8
