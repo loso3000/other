@@ -31,9 +31,9 @@ function index()
 end
 
 function subscribe()
-	luci.sys.call("/usr/share/bypass/subscribe")
-	luci.http.prepare_content("application/json")
-	luci.http.write_json({ret=1})
+	CALL("/usr/bin/lua /usr/share/bypass/subscribe")
+	http.prepare_content("application/json")
+	http.write_json({ret=1})
 end
 
 function act_status()
