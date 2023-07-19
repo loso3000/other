@@ -106,20 +106,20 @@ init_qosplus() {
 }
 del_id() {
 	id=`expr $1 + 11 `
-   [ "${DEBUG:-0}" -eq 0 ] || echo "D: del_id $@" "--$id --$mac"
-	$tc qd del dev ${dev} parent 1:$id
-	$tc qd del dev ${dev}_ifb parent 1:$id
+	[ "${DEBUG:-0}" -eq 0 ] || echo "D: del_id $@" "--$id --$mac"
+	$tc qd del dev ${dev} parent 1:$id  2>/dev/null
+	$tc qd del dev ${dev}_ifb parent 1:$id 2>/dev/null
 
-	$tc class del dev ${dev} parent 1:1 classid 1:$id
-	$tc class del dev ${dev}_ifb parent 1:1 classid 1:$id
+	$tc class del dev ${dev} parent 1:1 classid 1:$id 2>/dev/null
+	$tc class del dev ${dev}_ifb parent 1:1 classid 1:$id 2>/dev/null
 	
-	 $tc filter del dev ${dev}_ifb pref $id
-	 $tc filter del dev ${dev} pref $id
+	 $tc filter del dev ${dev}_ifb pref $id 2>/dev/null
+	 $tc filter del dev ${dev} pref $id 2>/dev/null
 	 
-	 $tc filter del dev ${dev}_ifb pref 6
-	 $tc filter del dev ${dev} pref 6
-	 $tc filter del dev ${dev}_ifb pref 5
-	 $tc filter del dev ${dev} pref 5
+	 $tc filter del dev ${dev}_ifb pref 6 2>/dev/null
+	 $tc filter del dev ${dev} pref 6 2>/dev/null
+	 $tc filter del dev ${dev}_ifb pref 5 2>/dev/null
+	 $tc filter del dev ${dev} pref 5 2>/dev/null
 
 }
 ### https://openwrt.org/docs/guide-user/network/traffic-shaping/packet.scheduler.example5
@@ -207,7 +207,6 @@ case "$crrun" in
 	"start")
 		idlist=`uci show $NAME | grep "enable='1'" | grep "device" | grep -oE '\[.*?\]' | grep -o '[0-9]' | sed -e 's/^/!/g' -e 's/$/!/g' > $IDLIST ;cat $IDLIST | sed -e 's/!//g' `
 		# [ $idlist ] || /etc/init.d/eqosplus stop
-		cat  $IDLIST
 		init_qosplus
 		checki='0'
 		for list in `echo $idlist | sed -e 's/!//g' ` ;do
@@ -242,7 +241,7 @@ case "$crrun" in
 		done
 	;;
 	"del")
-		for list in `echo $crid | sed -e 's/!//g' | sed 's/,/ /g' ` ;do del_id $list; sed -i "/!$list!/d" $IDLIST >/dev/null 2>&1; done
+		for list in `echo $crid | sed -e 's/!//g' | sed 's/,/ /g' ` ;do del_id $list; done
 	;;
 	"status")
 	echo "### Statistics  $dev ###"

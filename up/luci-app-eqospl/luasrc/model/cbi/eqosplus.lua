@@ -7,7 +7,7 @@ local ipc = require "luci.ip"
 local a, t, e
 
 a = Map("eqosplus", translate("Network speed limit"))
-a.description = translate("Users can limit the network speed for uploading/downloading through MAC, IP.The speed unit is MB/second.")
+a.description = translate("Users can limit the network speed for uploading/downloading through MAC, IP.The speed unit is MB/second.")..translate("Suggested feedback:")..translate("<a href=\'https://github.com/sirpdboy/luci-app-eqosplus.git' target=\'_blank\'>GitHub @sirpdboy/luci-app-eqosplus </a>")
 a.template = "eqosplus/index"
 
 t = a:section(TypedSection, "eqosplus")
@@ -33,17 +33,20 @@ t = a:section(TypedSection, "device")
 t.template = "cbi/tblsection"
 t.anonymous = true
 t.addremove = true
-t.sortable  = true
 
 e = t:option(Flag, "enable", translate("Enabled"))
 e.rmempty = false
 e.size = 4
 
-ip = t:option(Value, "mac", translate("Speed Limiting Machines"))
+ip = t:option(Value, "mac", translate("IP/MAC"))
 
 ipc.neighbors({family = 4, dev = "br-lan"}, function(n)
 	if n.mac and n.dest then
 		ip:value(n.dest:string(), "%s (%s)" %{ n.dest:string(), n.mac })
+	end
+end)
+ipc.neighbors({family = 4, dev = "br-lan"}, function(n)
+	if n.mac and n.dest then
 		ip:value(n.mac, "%s (%s)" %{n.mac, n.dest:string() })
 	end
 end)
@@ -85,13 +88,15 @@ e.size = 4
 week=t:option(Value,"week",translate("Week Day(1~7)"))
 week.rmempty = true
 week:value('0',translate("Everyday"))
-week:value(7,translate("Sunday"))
 week:value(1,translate("Monday"))
 week:value(2,translate("Tuesday"))
 week:value(3,translate("Wednesday"))
 week:value(4,translate("Thursday"))
 week:value(5,translate("Friday"))
 week:value(6,translate("Saturday"))
+week:value(7,translate("Sunday"))
+week:value('1,2,3,4,5',translate("Workday"))
+week:value('6,7',translate("Rest Day"))
 week.default='0'
 week.size = 6
 comment = t:option(Value, "comment", translate("Comment"))
