@@ -3,6 +3,7 @@
 local sys = require "luci.sys"
 local ifaces = sys.net:devices()
 local WADM = require "luci.tools.webadmin"
+local ipc = require "luci.ip"
 local a, t, e
 
 a = Map("eqosplus", translate("Network speed limit"))
@@ -38,10 +39,15 @@ e = t:option(Flag, "enable", translate("Enabled"))
 e.rmempty = false
 e.size = 4
 
-e = t:option(Value, "mac", translate("Speed Limiting Machines"))
-sys.net.mac_hints(function(mac, name)
-	e:value(mac, "%s (%s)" %{ mac, name })
+ip = t:option(Value, "mac", translate("Speed Limiting Machines"))
+
+ipc.neighbors({family = 4, dev = "br-lan"}, function(n)
+	if n.mac and n.dest then
+		ip:value(n.dest:string(), "%s (%s)" %{ n.dest:string(), n.mac })
+		ip:value(n.mac, "%s (%s)" %{n.mac, n.dest:string() })
+	end
 end)
+
 e.size = 8
 dl = t:option(Value, "download", translate("Downloads"))
 dl.default = '0.1'

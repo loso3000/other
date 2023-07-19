@@ -23,7 +23,7 @@ bin_tc=$(which tc)
 bin_ebtables=$(which ebtables)
 bin_ip=$(which ip)
 # Uncomment this to debug commands
-DEBUG=1
+# DEBUG=1
 ## End
 # Debug functions - echo + run
 dbg_iptables() {
@@ -88,7 +88,7 @@ stop_qos() {
 }
 
 init_qosplus() {
-
+	insmod sch_htb 2> /dev/null
 	$ip link add dev ${dev}_ifb name ${dev}_ifb type ifb
 	$ip link set dev ${dev}_ifb up
 	$tc qdisc add dev ${dev} root handle 1:0 htb default 1
@@ -122,33 +122,39 @@ del_id() {
 	 $tc filter del dev ${dev} pref 5
 
 }
+### https://openwrt.org/docs/guide-user/network/traffic-shaping/packet.scheduler.example5
+filter_mac() {
+  M=`echo $mac | awk -F '[-:]' '{print $1$2}'`
+  M0=$(echo $1 | cut -d : -f 1)$(echo $1 | cut -d : -f 2)
+  M1=$(echo $1 | cut -d : -f 3)$(echo $1 | cut -d : -f 4)
+  M2=$(echo $1 | cut -d : -f 5)$(echo $1 | cut -d : -f 6)
+  TCF="${tc} filter add dev $3 parent 1: protocol ip prio 5 u32 match u16 0x0800 0xFFFF at -2"
+  $TCF match u16 0x${M2} 0xFFFF at -4 match u32 0x${M0}${M1} 0xFFFFFFFF at -8 flowid $2
+  $TCF match u32 0x${M1}${M2} 0xFFFFFFFF at -12 match u16 0x${M0} 0xFFFF at -14 flowid $2
+}
 add_mac() {
 	id=`expr $1 + 11 `
-	A=`echo $mac | awk -F '[-:]' '{print $1$2}'`
-	B=`echo $mac | awk -F '[-:]' '{print $3$4$5$6}'`
-	C=`echo $mac | awk -F '[-:]' '{print $1$2$3$4}'`
-	D=`echo $mac | awk -F '[-:]' '{print $5$6}'`
-	[ "${DEBUG:-0}" -eq 0 ] || echo "D: add_mac $@ --id:$id --mac:$mac ABCD--$A-$B-$C-$D"
+	M0=$(echo $mac | cut -d : -f 1)$(echo $mac | cut -d : -f 2)
+	M1=$(echo $mac | cut -d : -f 3)$(echo $mac | cut -d : -f 4)
+	M2=$(echo $mac | cut -d : -f 5)$(echo $mac | cut -d : -f 6)
+	[ "${DEBUG:-0}" -eq 0 ] || echo "D: add_mac $@ --id:$id --mac:$mac M012--$M0-$M1-$M2"
 	if [ "$UL" -gt 0 ]; then
 		$tc class add dev ${dev}_ifb parent 1:1 classid 1:$id htb rate "$UL"kbit ceil "$UL"kbit prio $id quantum 1500
 		$tc qdisc add dev ${dev}_ifb parent 1:"$id" handle "$id": sfq perturb 1
-		# $tc filter add dev ${dev}_ifb parent 1:0 protocol ip prio $id u32 match u16 0x0800 0xffff at -2 match u16 0x"$D" 0xffff at -4 match u32 0x"$C" 0xffffffff at -8 flowid 1:$id
-		# $tc filter add dev ${dev}_ifb parent 1: protocol ip prio $id u32 match u16 0x0800 0xFFFF at -2 match u32 0x"$C" 0xFFFFFFFF at -12 flowid 1:$id
-		$tc filter add dev ${dev}_ifb parent 1: protocol ip prio 1 u32 match u16 0xAAAA at 6 match u32 0x"$C" 0x"$B" police rate "$UL"kbit burst 10k drop flowid 1:$id
+		$tc filter add dev ${dev}_ifb parent 1: protocol ip prio $id u32 match u16 0x0800 0xFFFF at -2 match u16 0x"${M2}" 0xFFFF at -4 match u32 0x"${M0}${M1}" 0xFFFFFFFF at -8 flowid 1:$id
+		# filter_mac $mac 1:$id ${dev}_ifb
 	elif [ "$UL" == 0 ]; then
-		$tc filter add dev ${dev}_ifb parent 1:0 protocol ip prio 5 u32 match u16 0x0800 0xffff at -2 match u16 0x"$D" 0xffff at -4 match u32 0x"$C" 0xffffffff at -8 flowid 1:1
+		$tc filter add dev ${dev}_ifb parent 1: protocol ip prio 5 u32 match u16 0x0800 0xFFFF at -2 match u16 0x"${M2}" 0xFFFF at -4 match u32 0x"${M0}${M1}" 0xFFFFFFFF at -8 flowid 1:1
 	fi
 	if [ "$DL" -gt 0 ]; then
 		$tc class add dev ${dev} parent 1:1 classid 1:$id htb rate "$DL"kbit ceil "$DL"kbit prio $id quantum 1500
 		$tc qdisc add dev ${dev} parent 1:"$id" handle "$id": sfq perturb 1
-		#$tc filter add dev ${dev} parent 1:0 protocol ip prio $id u32 match u16 0x0800 0xffff at -2 match u32 0x"$B" 0xffffffff at -12 match u16 0x"$A" 0xffff at -14 flowid 1:$id
-		# $tc filter add dev ${dev} parent 1: protocol ip prio $id u32 match u16 0x0800 0xFFFF at -2 match u32 0x"$C" 0xFFFFFFFF at -12 flowid 1:$id
-		$tc filter add dev ${dev} parent 1: protocol ip prio 1 u32 match u16 0xAAAA at 6 match u32 0x"$C" 0x"$B" police rate "$DL"kbit burst 10k drop flowid 1:$id
+		# filter_mac $mac 1:$id ${dev}
+		$tc filter add dev ${dev} parent 1: protocol ip prio $id u32 match u16 0x0800 0xFFFF at -2 match u32 0x${M1}${M2} 0xFFFFFFFF at -12 match u16 0x${M0} 0xFFFF at -14 flowid 1:$id
 	elif [ "$DL" == 0 ]; then
-		$tc filter add dev ${dev} parent 1:0 protocol ip prio 5 u32 match u16 0x0800 0xffff at -2 match u32 0x"$B" 0xffffffff at -12 match u16 0x"$A" 0xffff at -14 flowid 1:1
+		$tc filter add dev ${dev} parent 1: protocol ip prio 5 u32 match u16 0x0800 0xFFFF at -2 match u32 0x"${M1}${M2}" 0xFFFFFFFF at -12 match u16 0x"${M0}" 0xFFFF at -14 flowid 1:1
 	fi
 }
-
 add_ip() {
 	id=`expr $1 + 11 `
 	#   id=printf "%x\n" "$1"
@@ -208,8 +214,8 @@ case "$crrun" in
 			check_list $list
 			if [ $checki == '1' ] ; then
 				mac=$(uci -q get $NAME.@device[$list].mac )
-				DL=$(uci -q get $NAME.@device[$list].download 2>/dev/null | awk '{print $1*10^3/2}')
-				UL=$(uci -q get $NAME.@device[$list].upload   2>/dev/null | awk '{print $1*10^3/2}')
+				DL=$(uci -q get $NAME.@device[$list].download 2>/dev/null | awk '{print $1*8*10^3}')
+				UL=$(uci -q get $NAME.@device[$list].upload   2>/dev/null | awk '{print $1*8*10^3}')
 				if is_macaddr $mac; then
 				    add_mac $list
 				else
@@ -226,8 +232,8 @@ case "$crrun" in
 	"add")
 		for list in `echo $crid | sed -e 's/!//g' | sed 's/,/ /g' ` ;do
 				mac=$(uci -q get $NAME.@device[$list].mac )
-				DL=$(uci -q get $NAME.@device[$list].download 2>/dev/null | awk '{print $1*10^3/2}')
-				UL=$(uci -q get $NAME.@device[$list].upload   2>/dev/null | awk '{print $1*10^3/2}')
+				DL=$(uci -q get $NAME.@device[$list].download 2>/dev/null | awk '{print $1*8*10^3}')
+				UL=$(uci -q get $NAME.@device[$list].upload   2>/dev/null | awk '{print $1*8*10^3}')
 				if is_macaddr $mac; then
 				    add_mac $list
 				else
@@ -237,6 +243,24 @@ case "$crrun" in
 	;;
 	"del")
 		for list in `echo $crid | sed -e 's/!//g' | sed 's/,/ /g' ` ;do del_id $list; sed -i "/!$list!/d" $IDLIST >/dev/null 2>&1; done
+	;;
+	"status")
+	echo "### Statistics  $dev ###"
+	echo "# qdiscs #"
+	tc -s qdisc show dev $dev
+	echo "# class #"
+	tc -s class show dev $dev
+ 	echo "# filter #"
+	tc -s filter show dev $dev root
+	tc -s filter show dev $dev parent 1:
+	echo "### Statistics  ${dev}_ifb ###"
+	echo "# qdiscs #"
+	tc -s qdisc show dev ${dev}_ifb
+	echo "# class #"
+	tc -s class show dev ${dev}_ifb
+ 	echo "# filter #"
+	tc -s filter show dev ${dev}_ifb root
+	tc -s filter show dev ${dev}_ifb parent 1:
 	;;
 
 esac
