@@ -5,14 +5,7 @@
 NAME=eqosplus
 IDLIST="/var/$NAME.idlist"
 TMPID="/var/$NAME.tmpid"
-dev="br-lan"
-if [ x$(uci -q get $NAME.@$NAME[0].ifname) = 'x1' ] ;then
- 	     dev=`ifconfig | grep "Point-to-Point" | cut -d " " -f1`
- 	     [ ! $dev ] && dev=` uci -q get network.wan.ifname ` || dev=` uci -q get network.wan.device ` 
- 	     [ ! $dev ] && dev=br-lan
-else
-	      dev=`uci -q get $NAME.@$NAME[0].ifname `
-fi
+
 idlist=`uci show $NAME | grep "enable='1'" | grep "device" | grep -oE '\[.*?\]' | grep -o '[0-9]' `
 
 check_list() {
@@ -49,7 +42,7 @@ idlistusr(){
         else
 	     [ `cat $IDLIST  2>/dev/null | grep "!${list}!" | wc -l ` -gt 0 ] && {
 	         eqosplus del $list
-		 sed -i "/!$i!/d" $IDLIST >/dev/null 2>&1
+		 sed -i "/!$list!/d" $IDLIST >/dev/null 2>&1
 	     }
 	fi
    done

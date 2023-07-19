@@ -23,7 +23,7 @@ bin_tc=$(which tc)
 bin_ebtables=$(which ebtables)
 bin_ip=$(which ip)
 # Uncomment this to debug commands
-# DEBUG=1
+DEBUG=1
 ## End
 # Debug functions - echo + run
 dbg_iptables() {
@@ -133,7 +133,8 @@ add_mac() {
 		$tc class add dev ${dev}_ifb parent 1:1 classid 1:$id htb rate "$UL"kbit ceil "$UL"kbit prio $id quantum 1500
 		$tc qdisc add dev ${dev}_ifb parent 1:"$id" handle "$id": sfq perturb 1
 		# $tc filter add dev ${dev}_ifb parent 1:0 protocol ip prio $id u32 match u16 0x0800 0xffff at -2 match u16 0x"$D" 0xffff at -4 match u32 0x"$C" 0xffffffff at -8 flowid 1:$id
-		$tc filter add dev ${dev}_ifb parent 1: protocol ip prio $id u32 match u16 0x0800 0xFFFF at -2 match u32 0x"$C" 0xFFFFFFFF at -12 flowid 1:$id
+		# $tc filter add dev ${dev}_ifb parent 1: protocol ip prio $id u32 match u16 0x0800 0xFFFF at -2 match u32 0x"$C" 0xFFFFFFFF at -12 flowid 1:$id
+		$tc filter add dev ${dev}_ifb parent 1: protocol ip prio 1 u32 match u16 0xAAAA at 6 match u32 0x"$C" 0x"$B" police rate "$UL"kbit burst 10k drop flowid 1:$id
 	elif [ "$UL" == 0 ]; then
 		$tc filter add dev ${dev}_ifb parent 1:0 protocol ip prio 5 u32 match u16 0x0800 0xffff at -2 match u16 0x"$D" 0xffff at -4 match u32 0x"$C" 0xffffffff at -8 flowid 1:1
 	fi
@@ -141,8 +142,8 @@ add_mac() {
 		$tc class add dev ${dev} parent 1:1 classid 1:$id htb rate "$DL"kbit ceil "$DL"kbit prio $id quantum 1500
 		$tc qdisc add dev ${dev} parent 1:"$id" handle "$id": sfq perturb 1
 		#$tc filter add dev ${dev} parent 1:0 protocol ip prio $id u32 match u16 0x0800 0xffff at -2 match u32 0x"$B" 0xffffffff at -12 match u16 0x"$A" 0xffff at -14 flowid 1:$id
-		$tc filter add dev ${dev} parent 1: protocol ip prio $id u32 match u16 0x0800 0xFFFF at -2 match u32 0x"$C" 0xFFFFFFFF at -12 flowid 1:$id
-		# tc filter add dev <interface> parent 1: protocol ip prio 1 u32 match u16 0x0800 0xFFFF at -2 match u32 <source MAC> 0xFFFFFFFF at -12 flowid 1:2
+		# $tc filter add dev ${dev} parent 1: protocol ip prio $id u32 match u16 0x0800 0xFFFF at -2 match u32 0x"$C" 0xFFFFFFFF at -12 flowid 1:$id
+		$tc filter add dev ${dev} parent 1: protocol ip prio 1 u32 match u16 0xAAAA at 6 match u32 0x"$C" 0x"$B" police rate "$DL"kbit burst 10k drop flowid 1:$id
 	elif [ "$DL" == 0 ]; then
 		$tc filter add dev ${dev} parent 1:0 protocol ip prio 5 u32 match u16 0x0800 0xffff at -2 match u32 0x"$B" 0xffffffff at -12 match u16 0x"$A" 0xffff at -14 flowid 1:1
 	fi
@@ -187,10 +188,8 @@ check_list() {
 	for ww in `echo $wweek | sed 's/,/ /g' `; do 
 		if [ $current_weekday = $ww ] || [ "x0" = "x$ww" ] ; then 
 		      checki='1'
-		      [ "${DEBUG:-0}" -eq 0 ] || echo "D: check_list ok:$@ --checki:$checki -- week:$current_weekday:$ww"
 		fi
 	done
-	[ "${DEBUG:-0}" -eq 0 ] || echo "D: check_list end:$@ --checki:$checki --week:$wweek"
 	return
 }
 
@@ -212,14 +211,11 @@ case "$crrun" in
 				DL=$(uci -q get $NAME.@device[$list].download 2>/dev/null | awk '{print $1*10^3/2}')
 				UL=$(uci -q get $NAME.@device[$list].upload   2>/dev/null | awk '{print $1*10^3/2}')
 				if is_macaddr $mac; then
-				[ "${DEBUG:-0}" -eq 0 ] || echo "D: add_mac startyes  mac:$mac --list:$list --dl:$DL --ul:$UL"
 				    add_mac $list
 				else
-				[ "${DEBUG:-0}" -eq 0 ] || echo "D: add_ip startyes  mac:$mac --list:$list --dl:$DL --ul:$UL"
 				    add_ip $list
 				fi
 			else
-			[ "${DEBUG:-0}" -eq 0 ] || echo "D: check_list startno  --list:$list"
 				 [ `cat $IDLIST  2>/dev/null | grep "!${list}!" | wc -l ` -gt 0 ] && {
 				 del_id $list
 				 sed -i "/!$list!/d" $IDLIST >/dev/null 2>&1
