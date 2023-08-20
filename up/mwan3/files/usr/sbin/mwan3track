@@ -351,31 +351,31 @@ main() {
 
 			if [ $score -lt $up ]; then
 				score=0
-				[ "${keep_failure_interval}" -eq 1 ] && sleep_time=$failure_interval
-			elif [ "$score" -eq "$up" ]; then
+				[ ${keep_failure_interval} -eq 1 ] && sleep_time=$failure_interval
+			elif [ $score -eq $up ]; then
 				disconnecting
 				sleep_time=$failure_interval
 				disconnected
-			elif [ "$score" -gt "$up" ]; then
+			elif [ $score -gt $up ]; then
 				disconnecting
 				sleep_time=$failure_interval
 			fi
 		else
-			if [ "$score" -lt $((down+up)) ] && [ "$lost" -gt 0 ]; then
+			if [ $score -lt $((down+up)) ] && [ $lost -gt 0 ]; then
 				LOG info "Lost $((lost*count)) ping(s) on interface $INTERFACE ($DEVICE). Current score: $score"
 			fi
 
 			let score++
 			lost=0
 
-			if [ "$score" -lt "$up" ]; then
+			if [ $score -lt $up ]; then
 				connecting
 				sleep_time=$recovery_interval
-			elif [ "$score" -eq "$up" ]; then
+			elif [ $score -eq $up ]; then
 				connecting
 				sleep_time=$recovery_interval
 				connected
-			elif [ "$score" -gt "$up" ]; then
+			elif [ $score -gt $up ]; then
 				echo "online" > $MWAN3TRACK_STATUS_DIR/$INTERFACE/STATUS
 				score=$((down+up))
 			fi
@@ -398,8 +398,8 @@ main() {
 
 		if [ "${IFDOWN_EVENT}" -eq 1 ]; then
 			LOG debug "Register ifdown event on interface ${INTERFACE} (${DEVICE})"
-			disabled
 			disconnected
+			disabled
 			IFDOWN_EVENT=0
 		fi
 		if [ "${IFUP_EVENT}" -eq 1 ]; then

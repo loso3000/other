@@ -101,6 +101,10 @@ function diagnosticsData(interface, task)
 		if addr and addr:match("^[a-zA-Z0-9%-%.:_]+$") then
 			local util = io.popen(cmd %{ut.shellquote(device), ut.shellquote(addr)})
 			if util then
+				luci.http.write("Command:\n")
+				luci.http.write(cmd %{ut.shellquote(device),
+					ut.shellquote(addr)} .. "\n\n")
+				luci.http.write("Result:\n")
 				while true do
 					local ln = util:read("*l")
 					if not ln then break end
@@ -113,7 +117,7 @@ function diagnosticsData(interface, task)
 		end
 	end
 
-	function get_gateway(inteface)
+	function get_gateway(interface)
 		local gateway = nil
 		local dump = nil
 

@@ -23,10 +23,10 @@ command -v ip6tables > /dev/null
 NO_IPV6=$?
 
 IPS="ipset"
-IPT4="iptables -w -t mangle"
-IPT6="ip6tables -w -t mangle"
-IPT4R="iptables-restore -w -T mangle -n"
-IPT6R="ip6tables-restore -w -T mangle -n"
+IPT4="iptables -t mangle -w"
+IPT6="ip6tables -t mangle -w"
+IPT4R="iptables-restore -T mangle -w -n"
+IPT6R="ip6tables-restore -T mangle -w -n"
 
 LOG()
 {
