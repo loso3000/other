@@ -7,9 +7,9 @@ log(){
 }
 
 while ! curl -so /dev/null -m 3 www.baidu.com;do
-	log "Please Check network ..."
 	sleep 1
 done
+log "Check network status successful!"
 if [ -z "$(uci -q get $NAME.@global[0].global_server)" ];then
 /etc/init.d/$NAME start &
 elifif [ ! -s $T_FILE/china.txt ] || [ ! -s $T_FILE/china_v6.txt ] || [ ! -s $T_FILE/gfw.list ] ;then

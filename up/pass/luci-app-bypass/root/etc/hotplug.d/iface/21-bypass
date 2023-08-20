@@ -1,5 +1,5 @@
 #!/bin/sh
-[ "$ACTION" = ifup ] && {
+if [ "$ACTION" = ifup -a "$INTERFACE" != wan_6 ];then
 	if uci -q get bypass.@global[0].global_server >/dev/null;then
 		if ipset list bypass_all >/dev/null 2>&1;then
 			ipset -F bypass_all
@@ -11,7 +11,7 @@
 		fi
 		if pidof smartdns >/dev/null;then
 			killall -q -9 smartdns
-			$(which smartdns) -c /tmp/etc/smartdns/smartdns.conf
+			$(which smartdns) -c /var/etc/smartdns/smartdns.conf
 		fi
 	fi
-}
+fi
