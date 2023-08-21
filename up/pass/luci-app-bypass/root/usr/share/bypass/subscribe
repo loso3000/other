@@ -469,14 +469,14 @@ local execute = function()
 	do
 		local i=0
 		if proxy == '0' then -- 不使用代理更新的话先暂停
-			log('服务正在暂停')
+			log('------------------服务正在暂停---------------------')
 			SYS.init.stop(name)
 		end
 		for k, url in ipairs(subscribe_url) do
 		i=i+1
 			local raw = wget(url)
 			if #raw > 0 then
-				log('-------------------------------------------------------')
+				log('-----------------------------------------------------')
 				log('解析第'..i..'个链接:')
 				local nodes, szType
 				local num=0
@@ -554,7 +554,7 @@ local execute = function()
 	end
 	-- diff
 	do
-	log('-------------------------------------------------------')
+	log('-----------------------------------------------------')
 		if next(nodeResult) == nil then
 			log("更新失败，没有可用的节点信息")
 			if proxy == '0' then
@@ -601,48 +601,43 @@ local execute = function()
 		end
 		ucic:commit(name)
 		-- 如果原有服务器节点已经不见了就尝试换为第一个节点
+		log('新增节点数量: ' .. add, '删除节点数量: ' .. del)
+		log('-------------------订阅更新成功--------------------')
 		local globalServer = ucic:get_first(name, 'global', 'global_server', '')
-	if globalServer then
-		if ucic:get_first(name,uciType) then
+		if globalServer ~= "nil" then
+			local firstServer = ucic:get_first(name, uciType)
+			if firstServer then
 				if not ucic:get(name, globalServer) then
-
-				SYS.call("touch /var/lock/bypass-uci.lock")
-					ucic:commit(name)
+					-- SYS.call("touch /var/lock/bypass-uci.lock")
 					ucic:set(name, ucic:get_first(name, 'global'), 'global_server', ucic:get_first(name, uciType))
-					log('当前主服务器节点已被删除，正在自动更换为第一个节点。')
+					ucic:commit(name)
+					log('当前主服务器节点为空，正在自动更换到第一个节点。')
 				else
 					log('维持当前主服务器节点。')
 				end
-			SYS.call("/etc/init.d/bypass restart > /dev/null 2>&1 &")
 			else
 				log('没有服务器节点了，停止服务')
-			SYS.call("/etc/init.d/bypass stop > /dev/null 2>&1 &")
+				SYS.call("/etc/init.d/bypass stop > /dev/null 2>&1 &")
 			end
 		end
-		SYS.call("touch /var/lock/bypass-uci.lock")
-		ucic:commit(name)
-		log('新增节点数量: ' .. add, '删除节点数量: ' .. del)
-		log('订阅更新成功')
-		
+		-- SYS.call("rm -rf /var/lock/bypass-uci.lock")
 		SYS.call("/etc/init.d/bypass start > /dev/null 2>&1 &")
 	end
 end
 
 if subscribe_url and #subscribe_url > 0 then
 	if SYS.call('curl -so /dev/null -m 5 www.baidu.com')~=0 then
-		log("网络不通，停止更新订阅")
+		log("----------------网络不通，停止更新订阅-----------------")
 		return
 	end
 	xpcall(execute, function(e)
 		log(e)
 		log(debug.traceback())
-		log('发生错误, 正在恢复服务')
+		log('----------------发生错误, 正在恢复服务-----------------')
 		if ucic:get_first(name,uciType) then
 			SYS.call("/etc/init.d/" .. name .. " restart > /dev/null 2>&1 &") -- 不加&的话日志会出现的更早
-			log('重启服务成功')
 		else
 			SYS.call("/etc/init.d/" .. name .. " stop > /dev/null 2>&1 &") -- 不加&的话日志会出现的更早
-			log('停止服务成功')
 		end
 	end)
 end

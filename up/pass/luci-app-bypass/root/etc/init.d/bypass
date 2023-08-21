@@ -58,7 +58,7 @@ dns_mode_d=$(uci_get_by_type global dns_mode_d doh)
 socks5_ip=''
 gen_log()(
 
-	[ -s $LOG ] && echo '------------start------------' >> $LOG
+	[ -s $LOG ] && echo '------------Start------------' >> $LOG
 	log "Check network status."
 )
 
@@ -209,7 +209,7 @@ gen_config_file(){
 	hysteria)
 		lua $BIN_DIR/gen_config $1 $smode $lport $ssport >$config_file
 		;;
-		;;
+
 	trojan)
 		case $rtype in
 		tcp|udp|nf) smode=nat;;
@@ -1138,8 +1138,8 @@ start(){
 			add_cron
 		fi
 	fi
-	start_local
-	start_server
+	[ "$SO_SERVER" -a "$socks5_start" != 1 ] && start_local
+	start_server 
 	start_monitor
 	adbin="$(uci -q get AdGuardHome.AdGuardHome.binpath)"
 	if [[ -x /etc/init.d/AdGuardHome && -x "$adbin" ]]; then
@@ -1171,6 +1171,7 @@ start(){
 	fi
 	clean_log 
 	rm -f $LOCK $LOC
+	echo '------------End-------------' >> $LOG
 
 }
 
