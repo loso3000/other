@@ -157,7 +157,7 @@ end
 if is_finded("sslocal") or is_finded("ss-redir") then
 	o:value("ss", translate("Shadowsocks New Version"))
 end
-if is_finded("trojan-plus") then
+if is_finded("trojan") then
 	o:value("trojan", translate("Trojan"))
 end
 if is_finded("naive") then
@@ -773,6 +773,7 @@ o.default = "0"
 o:depends("type", "ssr")
 o:depends("type", "ss")
 o:depends("type", "trojan")
+o:depends("type", "hysteria")
 
 if is_installed("sagernet-core") then
 	o = s:option(ListValue, "packet_encoding", translate("Packet Encoding"))

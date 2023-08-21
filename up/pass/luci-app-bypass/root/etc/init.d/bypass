@@ -199,11 +199,16 @@ gen_config_file(){
 			}
 		EOF
 		;;
-	v2ray|hysteria)
+	v2ray)
 		[ $rtype = udp ] && smode=udp || smode=tcp
 		[ $rtype = socks ] && lport=0
 		lua $BIN_DIR/gen_config $1 $smode $lport $ssport $serv_ip >$config_file
 		sed -i 's/\\//g' $config_file
+		;;
+ 
+	hysteria)
+		lua $BIN_DIR/gen_config $1 $smode $lport $ssport >$config_file
+		;;
 		;;
 	trojan)
 		case $rtype in
@@ -256,7 +261,7 @@ get_soip(){
 		if [ "$1" = 1 ];then
 			cat $LOG 2>/dev/null | sed -n '$p' | grep -q 'Check network status...' || gen_log
 			check_net
-			cat $LOG 2>/dev/null | sed -n '$p' | grep -q 'Check network status success!' || log "Rules      : Check network status success!"
+			cat $LOG 2>/dev/null | sed -n '$p' | grep -q 'Check network status successful!' || log "Rules      : Check network status successful!"
 		fi
 		socks5_ip=$(host_ip $SO_SERVER)
 	fi
@@ -569,7 +574,7 @@ start_local(){
 	case $type in
 	ss|ssr)
 		gen_config_file $SO_SERVER $rtype
-		$cmd -c $config_file -u >/dev/null 2>&1 &
+		$cmd -c $config_file -u >$log_file 2>&1 &
 		[ $type = ss ] && name=Shadowsocks || name=ShadowsocksR
 		log "Socks5 Node: $name $type Started!"
 		;;
@@ -590,7 +595,7 @@ start_local(){
 			name=Trojan-Plus
 			ver="$($cmd --version 2>&1 | head -1 | awk '{print$3}')"
 		}
-		log "Socks5 Node: $name (Ver $ver) Started!"
+		log "Socks5 Node: $name (Ver $ver) $type Started!"
 		;;
 	naiveproxy)
 		gen_config_file $SO_SERVER $rtype
@@ -598,8 +603,8 @@ start_local(){
 		log "Socks5 Node: $($cmd --version | head -1) $type Started!"
 		;;
 	esac
-	ipset add ss_spec_wan_ac $socks5_ip 2>/dev/null
-	log "Socks5 Node: Socks5 Server $(uci_get_by_name $SO_SERVER alias)  Started!"
+	ipset add ss_spec_wan_ac $socks5_ip >/dev/null 2>&1 &
+	log "Socks5 Node: Socks5 Server $(uci_get_by_name $SO_SERVER alias) Started!"
 }
 
 gen_dns(){
