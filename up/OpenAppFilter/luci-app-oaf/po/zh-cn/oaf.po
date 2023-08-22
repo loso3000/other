@@ -174,6 +174,15 @@ msgstr "分"
 msgid "Enable App Filter"
 msgstr "开启应用过滤"
 
+msgid "MAC"
+msgstr "MAC 地址"
+
+msgid "IP"
+msgstr "IP 地址"
+
+msgid "Format 01:00" 
+msgstr "格式 01:00"
+
 msgid "App Feature"
 msgstr "应用特征库"
 
@@ -187,7 +196,7 @@ msgid "Basic Settings"
 msgstr "基本设置"
 
 msgid "Please close the modules that may conflict, such as acceleration, ad filtering, and multi-dial"
-msgstr "请先关闭加速、广告过滤、多拨等可能冲突的模块"
+msgstr "启用服务前，请先关闭流量分载关闭加速、网络加速、广告过滤、多拨等可能冲突的模块"
 
 
 msgid "Work Mode"

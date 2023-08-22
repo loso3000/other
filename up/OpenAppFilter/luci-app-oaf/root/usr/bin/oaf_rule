@@ -35,12 +35,12 @@ load_rule()
         class_name=`echo "$file" | awk -F/ '{print $4}'| awk -F. '{print $1}'`
         config_get appid_list "appfilter" "${class_name}apps"
 
-	if ! test -z "$appid_list";then
-	    for appid in $appid_list:
-	    do
-	        json_add_int "" $appid
-	    done
-	fi
+        if ! test -z "$appid_list";then
+            for appid in $appid_list:
+            do
+                json_add_int "" $appid
+            done
+        fi
     done
 
     json_str=`json_dump`

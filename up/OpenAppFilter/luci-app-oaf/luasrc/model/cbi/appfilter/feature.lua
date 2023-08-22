@@ -21,7 +21,7 @@ if fs.access("/tmp/feature.cfg") then
 end
 format=SYS.exec("uci get appfilter.feature.format")
 if format == "" then
-    format="v1.0"
+    format="v2.0"
 end
 
 local display_str = "<strong>"..translate("Current version")..":  </strong>" .. version .. 
@@ -33,11 +33,14 @@ s.addremove = false
 s.anonymous = true
 
 o = s:option(DynamicList, "update_url", translate('更新特征库地址'))
-o:value("http://www.openappfilter.com/assets/feature/feature2.0_cn_22.12.01.cfg", translate("openappfilter_cn-v221201"))
+
+o:value("http://www.openappfilter.com/assets/feature/feature2.0_cn_23.07.29.cfg", translate("openappfilter2.0_cn-v230729"))
+o:value("http://www.openappfilter.com/assets/feature/feature2.0_cn_22.12.01.cfg", translate("openappfilter2.0_cn-v221201"))
+o:value("http://www.openappfilter.com/assets/feature/feature2.0_en_22.12.01.cfg", translate("openappfilter2.0_en-v221201"))
 o:value("https://gh.404delivr.workers.dev/https://raw.githubusercontent.com/destan19/OpenAppFilter/master/open-app-filter/files/feature_cn.cfg", translate("github-feature_cn"))
 o:value("https://gh.404delivr.workers.dev/https://raw.githubusercontent.com/destan19/OpenAppFilter/master/open-app-filter/files/feature_en.cfg", translate("github-feature_en"))
 o:value("http://www.openappfilter.com/assets/feature/feature2.0_en_22.12.01.cfg", translate("openappfilter_cn-v221201"))
-o.default = "http://www.openappfilter.com/assets/feature/feature2.0_cn_22.12.01.cfg"
+o.default = "http://www.openappfilter.com/assets/feature/feature2.0_cn_23.07.29.cfg"
 
 o = s:option(Button, "Update", translate("手动更新官方特征库"))
 o.inputstyle = "apply"
