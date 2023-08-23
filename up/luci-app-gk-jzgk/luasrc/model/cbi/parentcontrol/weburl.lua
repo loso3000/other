@@ -35,6 +35,12 @@ t.template = "cbi/tblsection"
 t.anonymous = true
 t.addremove = true
 
+remarks = t:option(Value, 'remarks', translate('Remarks'))
+
+e = t:option(Flag, "enable", translate("开启"))
+e.rmempty = false
+e.default = '1'
+
 e = t:option(Value, "mac", translate("MAC地址<font color=\"green\">(必指定客户端)</font>"))
 e.rmempty = true
 o.net.mac_hints(function(t, a) e:value(t, "%s (%s)" % {t, a}) end)
@@ -77,12 +83,6 @@ week:value(4,translate("Thursday"))
 week:value(5,translate("Friday"))
 week:value(6,translate("Saturday"))
 week.default='*'
-
-e = t:option(Flag, "enable", translate("开启"))
-e.rmempty = false
-e.default = '1'
-
-remarks = t:option(Value, 'remarks', translate('Remarks'))
 
 
 return a

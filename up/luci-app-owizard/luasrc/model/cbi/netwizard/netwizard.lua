@@ -148,11 +148,9 @@ e:value("8.8.8.8", translate("Google DNS:8.8.8.8"))
 e:value("1.1.1.1", translate("Cloudflare DNS:1.1.1.1"))
 e.anonymous = false
 e:depends("dnsset", true)
-e.default = "1"
 
 lan_snat = s:taboption("wansetup", Flag, "lan_snat", translate("Custom firewall"),translate("Bypass firewall settings, when Xiaomi or Huawei are used as the main router, the WIFI signal cannot be used normally"))
 lan_snat:depends({wan_proto="siderouter"})
-lan_snat.default = 1
 lan_snat.anonymous = false
 
 e = s:taboption("wansetup", Value, "snat_tables", translate(" "))
@@ -167,12 +165,10 @@ redirectdns = s:taboption("wansetup", Flag, "redirectdns", translate("Custom fir
 redirectdns:depends({wan_proto="dhcp"})
 redirectdns:depends({wan_proto="static"})
 redirectdns:depends({wan_proto="pppoe"})
-redirectdns.default = 1
 redirectdns.anonymous = false
 
 masq = s:taboption("wansetup", Flag, "masq", translate("Enable IP dynamic camouflage"),translate("Enable IP dynamic camouflage when the side routing network is not ideal"))
 masq:depends({wan_proto="siderouter"})
-masq.default = 1
 masq.anonymous = false
 
 if has_wifi then

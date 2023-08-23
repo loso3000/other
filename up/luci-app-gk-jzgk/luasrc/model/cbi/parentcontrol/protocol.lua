@@ -29,6 +29,12 @@ t.template = "cbi/tblsection"
 t.anonymous = true
 t.addremove = true
 
+e = t:option(Value, 'remarks', translate('Remarks'))
+
+e = t:option(Flag, "enable", translate("开启"))
+e.rmempty = false
+e.default = '1'
+
 e = t:option(Value, "mac", translate("MAC地址<font color=\"green\">(留空为全部客户端)</font>"))
 e.placeholder = "ALL"
 e.rmempty = true
@@ -98,11 +104,6 @@ week:value(5,translate("Friday"))
 week:value(6,translate("Saturday"))
 week.default='*'
 
-e = t:option(Flag, "enable", translate("开启"))
-e.rmempty = false
-e.default = '1'
-
-e = t:option(Value, 'remarks', translate('Remarks'))
 
 return a
 

@@ -88,9 +88,9 @@ add_netwizard() {
 	config_get dnsset "$cfg" dnsset '223.5.5.5'
 	config_get wan_interface "$cfg" wan_interface 'eth1'
 	config_get lan_dhcp "$cfg" lan_dhcp '0'
-	config_get synflood "$cfg" synflood '1'
-	config_get redirectdns "$cfg" redirectdns '1'
-	config_get lan_ipaddr "$cfg" lan_ipaddr
+	config_get synflood "$cfg" synflood '0'
+	config_get redirectdns "$cfg" redirectdns '0'
+	config_get lan_ipaddr "$cfg" lan_ipaddr `uci -q get network.lan.ipaddr`
 	config_get lan_netmask "$cfg" lan_netmask '255.255.255.0'
 	config_get dns_tables "$cfg" dns_tables 'iptables -t nat -I POSTROUTING -o br-lan -j MASQUERADE'
  	if [ "x$showhide" = "x1" ] ; then
@@ -183,7 +183,6 @@ add_netwizard() {
 					     [ "x$ifname" = "xdevice" ] &&  uci -q set network.@$ifname[0].ports="${lannet} ${wan_interface}"  || uci -q set network.lan.$ifname="${lannet} ${wan_interface}"
 					fi
 				[ "x$masq" = "x1" ] && uci -q set firewall.@zone[0].masq='1' || uci -q delete firewall.@zone[0].masq
-
 				[ "x$lan_snat" = "x1" ] && echo "${snat_tables}" >> /etc/firewall.user 
 			}
 			setipv6 $ipv6
@@ -194,8 +193,6 @@ add_netwizard() {
 				uci -q set network.lan6.$ifname="@lan"
 				netzone=`uci -q get firewall.@zone[0].network`
 				[ $netzone = 'lan lan6' ] || uci -q set firewall.@zone[0].network='lan lan6'
-				# uci -q delete firewall.@zone[1]
-				# uci  -q set firewall.@zone[1]
 			}	
 		;;		
 	esac
@@ -203,14 +200,12 @@ add_netwizard() {
 		uci -q set network.lan.ipaddr="${lan_ipaddr}"
 		uci -q set network.lan.netmask="${lan_netmask}"
 	}
-	
-	sed -i '/--dport 53 -j REDIRECT --to-ports 53/d' /etc/firewall.user
 	[ "x$redirectdns" = "x1" ] && {
         	echo "iptables -t nat -A PREROUTING -p udp --dport 53 -j REDIRECT --to-ports 53" >> /etc/firewall.user
         	echo "iptables -t nat -A PREROUTING -p tcp --dport 53 -j REDIRECT --to-ports 53" >> /etc/firewall.user
         	echo "[ -n "$(command -v ip6tables)" ] && ip6tables -t nat -A PREROUTING -p udp --dport 53 -j REDIRECT --to-ports 53" >> /etc/firewall.user
         	echo "[ -n "$(command -v ip6tables)" ] && ip6tables -t nat -A PREROUTING -p tcp --dport 53 -j REDIRECT --to-ports 53" >> /etc/firewall.user
-	}
+	} || sed -i '/--dport 53 -j REDIRECT --to-ports 53/d' /etc/firewall.user
 	[ "x$synflood" = "x1" ] && uci -q set firewall.@defaults[0].syn_flood='1' || uci -q delete firewall.@defaults[0].syn_flood
 	sed -i "/dhcp_option '6/d" /etc/config/dhcp
 	sed -i "/list dns/d" /etc/config/dhcp
