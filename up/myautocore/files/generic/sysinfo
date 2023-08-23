@@ -131,9 +131,9 @@ ethinfo() {
 	m=$(ifconfig | grep "$i" | head -n1 | awk -F 'HWaddr ' '{print $2}')
 	e=$(echo "$d" | grep "Link detected" | awk -F: '{printf $2}' | sed 's/^[ \t]*//g')
 	[ $e = yes ] && l=1 || l=0
-	f=$(echo "$d" | grep "Speed" | awk -F: '{printf $2}' | sed 's/^[ \t]*//g' | tr -d "Unknown!")
+	f=$(echo "$d" |grep Speed | awk '{print $2/1000 " Gb/s"}' | sed 's/^[ \t]*//g' | tr -d "Unknown!")
 	[ $i == "eth0" -a -z "$f"  ]  && f="10Gb/s"  
-	[ -z "$f" ] && f="-Mb/s"
+	[ -z "$f" ] && f="- Gb/s"
 	g=$(echo "$d" | grep "Duplex" | awk -F: '{printf $2}' | sed 's/^[ \t]*//g')
 	[ "$g" == "Full" ] && x=1 || x=0
 	echo -n "$h \"$face[$i]\", \"status\": $l, \"duplex\": $x, \"speed\": \"$f\", \"mac\": \"$m\"},"
