@@ -30,6 +30,7 @@ local save_words = ucic:get_first(name, 'server_subscribe', 'save_words', '')
 local v2_ss = SYS.exec('type -t -p ss-redir sslocal') ~= "" and "ss" or "v2ray"
 local v2_ssr = SYS.exec('type -t -p ssr-redir') ~= "" and "ssr" or "v2ray"
 local v2_tj = SYS.exec('type -t -p trojan') ~= "" and "trojan" or "v2ray"
+local ua = ucic:get_first(name, 'server_subscribe', 'user_agent', '')
 local log = function(...)
 	local file=io.open("/tmp/log/bypass.log","a")
 	io.output(file)
@@ -418,12 +419,23 @@ local function processData(szType, content)
 	result.switch_enable = switch_enable
 	return result
 end
+
+local function curl(url)
+	if not ua or ua == "" then
+		ua = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36"
+	end
+	-- local stdout=SYS.exec('curl --retry 3 -m 10 -LfsA "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.183 Safari/537.36" "'..url..'"')
+	-- local stdout=SYS.exec('curl --retry 3 -m 10 -LfsA "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36'" "'..url..'"')
+	local stdout=SYS.exec('curl --retry 3 -m 10 -LfsA "'..ua..'" "'..url..'"')
+	return trim(stdout)
+end
+
+
 -- wget
 local function wget(url)
 	local stdout = SYS.exec('wget -q --user-agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.157 Safari/537.36" --no-check-certificate -O- "' .. url .. '"')
 	return trim(stdout)
 end
-
 local function check_filer(result)
 	do
 		-- 过滤的关键词列表
@@ -470,18 +482,19 @@ local execute = function()
 	-- exec
 	do
 		local i=0
-		if proxy == '0' then -- 不使用代理更新的话先暂停
-			log('服务正在暂停...')
+		log('--------------------开始订阅---------------------')
+		if proxy=='0' then
+			log('服务正在暂停')
 			SYS.init.stop(name)
 		end
-		for k, url in ipairs(subscribe_url) do
-		i=i+1
-			local raw = wget(url)
-			if #raw > 0 then
+		for k,url in ipairs(subscribe_url) do
+			i=i+1
+			local raw=curl(url)
+			if raw and #raw > 0 then
 				if i ~= 1 then
-				log('--------------------------------------------------')
+				     log('--------------------------------------------------')
 				end
-				log('解析第'..i..'个链接:')
+				log('解析第'..i..'个链接:'.. url)
 				local nodes, szType
 				local num=0
 				local groupHash = md5(url)
@@ -494,24 +507,13 @@ local execute = function()
 					local nEnd = select(2, raw:find('ssd://'))
 					nodes = base64Decode(raw:sub(nEnd + 1, #raw))
 					nodes = jsonParse(nodes)
-			local extra = {
-				airport = nodes.airport,
-				port = nodes.port,
-				encryption = nodes.encryption,
-				password = nodes.password
-			}
+					local extra={airport=nodes.airport,port=nodes.port,encryption=nodes.encryption,password=nodes.password}
 					local servers = {}
 					-- SS里面包着 干脆直接这样
 					for _, server in ipairs(nodes.servers) do
 						tinsert(servers, setmetatable(server, {__index = extra}))
 					end
 					nodes = servers
-				-- SS SIP008 直接使用 Json 格式
-				elseif jsonParse(raw) then
-					nodes = jsonParse(raw).servers or jsonParse(raw)
-					if nodes[1].server and nodes[1].method then
-						szType = 'sip008'
-					end
 				else
 					-- ssd 外的格式
 					nodes = split(base64Decode(raw):gsub(" ", "\n"), "\n")
@@ -519,7 +521,7 @@ local execute = function()
 				for _, v in ipairs(nodes) do
 					if v then
 						local result
-						if szType then
+						if szType=='ssd' then
 							result = processData(szType, v)
 						elseif not szType then
 							local node = trim(v)
@@ -641,7 +643,6 @@ if subscribe_url and #subscribe_url > 0 then
 		-- log("网络不通，停止更新订阅")
 		return
 	end
-	log('--------------------开始订阅---------------------')
 	xpcall(execute, function(e)
 		log(e)
 		log(debug.traceback())

@@ -28,7 +28,6 @@ msgstr "停用"
 msgid "UDP Server"
 msgstr "游戏模式UDP服务器"
 
-
 msgid "Same as Global Server"
 msgstr "与全局服务器相同"
 
@@ -230,6 +229,9 @@ msgstr "自定义DNS格式为 223.5.5.5:53,223.6.6.6 ,端口号可选"
 msgid "Severs Nodes"
 msgstr "服务器节点"
 
+msgid "Subscribe"
+msgstr "订阅"
+
 msgid "Servers subscription and manage"
 msgstr "服务器节点订阅与管理"
 
@@ -257,9 +259,8 @@ msgstr "命中关键字的节点将被丢弃。多个关键字用 / 分隔"
 msgid "Save Words splited by /"
 msgstr "命中关键字的节点将被保留。多个关键字用 / 分隔。此项为空则不启用保留匹配"
 
-
-msgid "Save Subscribe Settings"
-msgstr "保存订阅设置"
+msgid "Save Subscribe Setting"
+msgstr "保存订阅列表及设置"
 
 msgid "Update Subscribe List"
 msgstr "更新订阅URL列表"
@@ -270,8 +271,8 @@ msgstr "更新规则"
 msgid "Update All Rule List"
 msgstr "手动更新规则列表"
 
-msgid "Update subscribe url list first"
-msgstr "修改订阅URL和节点关键字后，请先点击更新"
+msgid "Update subscribe url or Setting list first"
+msgstr "修改订阅URL和节点关键字后，点击保存才生效"
 
 msgid "Subscribe Default Auto-Switch"
 msgstr "订阅新节点故障转移设置"

@@ -11,7 +11,9 @@ function index()
 	e.dependent=false
 	e.acl_depends={ "luci-app-bypass" }
 	entry({"admin","services","bypass","base"},cbi("bypass/base"),_("Base Setting"),10).leaf=true
+	-- entry({"admin","services","bypass","servers"},cbi('bypass/servers'), _('Severs Nodes'), 20).leaf = true
 	entry({"admin","services","bypass","servers"},arcombine(cbi("bypass/servers",{autoapply=true}),cbi("bypass/client-config")),_("Severs Nodes"),20).leaf=true
+	entry({'admin', 'services','bypass','servers-subscribe'}, cbi('bypass/servers-subscribe', {hideapplybtn = true, hidesavebtn = true, hideresetbtn = true}), _('Subscribe'), 30).leaf = true
 	entry({"admin","services","bypass","control"},cbi("bypass/control"),_("Access Control"),40).leaf=true
 	entry({"admin","services","bypass","advanced"},cbi("bypass/advanced"),_("Advanced Settings"),60).leaf=true
 	if luci.sys.call("which ssr-server >/dev/null")==0 or luci.sys.call("which ss-server >/dev/null")==0 or luci.sys.call("which microsocks >/dev/null")==0 then
