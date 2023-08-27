@@ -227,10 +227,13 @@ msgid "Custom DNS format is 223.5.5.5:53,223.6.6.6 ,Port optional"
 msgstr "自定义DNS格式为 223.5.5.5:53,223.6.6.6 ,端口号可选"
 
 msgid "Severs Nodes"
-msgstr "服务器节点"
+msgstr "节点列表"
 
 msgid "Subscribe"
-msgstr "订阅"
+msgstr "节点订阅"
+
+msgid "User-Agent"
+msgstr "用户代理(User-Agent)"
 
 msgid "Servers subscription and manage"
 msgstr "服务器节点订阅与管理"
