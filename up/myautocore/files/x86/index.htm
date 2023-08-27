@@ -444,7 +444,7 @@ end
 									     dname = aname.substring(0,index1) ;
 									else
 									     dname = aname.substring(0);
-									if ( dname == "rpi" ||dname == "r" || dname == "raspberrypi" ||dname == "openwrt" )
+									if ( dname == "rpi" ||dname == "r" || dname == "raspberrypi" ||dname == "openwrt" ||dname == "ImmortalWrt")
 										return String.format('<img src="<%=resource%>/icons/devices/router.png" />');
 									if ( dname == "ap" ||dname == "miwifi" || dname == "linksys" || dname == "tp" || dname == "dlink" || dname == "mercury" || dname == "ruijie" || dname == "tenda")
 										return String.format('<img src="<%=resource%>/icons/devices/router.png" />');
@@ -1063,16 +1063,5 @@ end
 </fieldset>
 <% end %>
 
-<%-
-	local incdir = util.libpath() .. "/view/admin_status/index/"
-	if fs.access(incdir) then
-		local inc
-		for inc in fs.dir(incdir) do
-			if inc:match("%.htm$") then
-				include("admin_status/index/" .. inc:gsub("%.htm$", ""))
-			end
-		end
-	end
--%>
 
 <%+footer%>
