@@ -58,7 +58,7 @@ dns_mode_d=$(uci_get_by_type global dns_mode_d doh)
 socks5_ip=''
 gen_log()(
 
-	[ -s $LOG ] && echo '------------Start------------' >> $LOG
+	[ -s $LOG ] && echo -e '\n------------Start------------' >> $LOG
 	log "Check network status."
 )
 
@@ -1171,7 +1171,6 @@ start(){
 	fi
 	clean_log 
 	rm -f $LOCK $LOC
-	echo '------------End-------------' >> $LOG
 
 }
 

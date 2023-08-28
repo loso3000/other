@@ -424,12 +424,9 @@ local function curl(url)
 	if not ua or ua == "" then
 		ua = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36"
 	end
-	-- local stdout=SYS.exec('curl --retry 3 -m 10 -LfsA "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.183 Safari/537.36" "'..url..'"')
-	-- local stdout=SYS.exec('curl --retry 3 -m 10 -LfsA "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36'" "'..url..'"')
 	local stdout=SYS.exec('curl --retry 3 -m 10 -LfsA "'..ua..'" "'..url..'"')
 	return trim(stdout)
 end
-
 
 -- wget
 local function wget(url)
