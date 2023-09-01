@@ -99,12 +99,12 @@ There is no root password defined on this device!
 Use the "passwd" command to set up a new password
 in order to prevent unauthorized SSH logins.
 ------------------------------------------------
-EG " menu->调用菜单(Call Menu) 进阶设置可取消SSH登陆菜单 "
 EOF
 fi
-
+EG " menu->调用菜单(Call Menu) 进阶设置可取消SSH登陆菜单 "
+EW ""
 alias menu='zsh'
-# alias dh='df -h'
-# alias ls='ls --color=auto'
-# alias top='top -d 1'
+alias dh='df -h'
+alias ls='ls --color=auto'
+alias top='top -d 1'
 /usr/bin/zsh
