@@ -27,9 +27,9 @@ local dsp=require "luci.dispatcher"
 					if (result.ping < 300) col='#ff3300';
 					if (result.ping < 200) col='#ff7700';
 					if (result.ping < 100) col='#249400';
-					port.innerHTML='<font color="#249400"><%:ok%></font>'
+					port.innerHTML='<font color="#249400"><%:ok%></font>';
 				}else{
-					port.innerHTML='<font color="#ff0000"><%:fail%></font>'
+					port.innerHTML='<font color="#ff0000"><%:fail%></font>';
 				}
 				dom.innerHTML =`<font color=${col}>${(result.ping?result.ping:"--")+" ms"}</font>`
 				res();

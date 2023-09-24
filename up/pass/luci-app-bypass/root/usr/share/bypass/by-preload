@@ -6,7 +6,7 @@ fi
 
 if [ "$(uci -q get bypass.@global[0].nf_server)" ];then
 		B=1
-	while ! A=$(curl -Lfsm 9 https://fastly.jsdelivr.net/gh/QiuSimons/Netflix_IP@master/getflix.txt || curl -Lfsm 9 https://fastly.jsdelivr.net/gh/QiuSimons/Netflix_IP@master/NF_only.txt );do
+	while ! A=$(curl -Lfsm 9 https://fastly.jsdelivr.net/gh/QiuSimons/Netflix_IP@master/getflix.txt || curl -Lfsm 9 https://raw.githubusercontent.com/QiuSimons/Netflix_IP/master/getflix.txt );do
 		[ $B -ge 20 ] && break || let B++
 		sleep 2
 	done

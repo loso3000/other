@@ -66,6 +66,12 @@ log(){
 	echo "$(date +'%Y-%m-%d %H:%M:%S') $*" >> $LOG
 }
 
+firstdown(){
+	[ $1 = 1 ] && A=$BIN_DIR/checknetwork && B=check
+	[ $1 = 2 ] && A=$BIN_DIR/update && B=--F
+	service_start ${A} ${B}
+}
+
 clean_log() {
 	[ `cat $LOG  | wc -l ` -gt 500 ] && {
 		echo "$(date "+%Y-%m-%d %H:%M:%S") LOG long ,clear log!" >$LOG

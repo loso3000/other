@@ -7,8 +7,8 @@ log(){
 }
 
 while ! curl -so /dev/null -m 3 www.baidu.com;do
-	log "Please Check network ..."
-	sleep 1
+	log "请检查网络..."
+	sleep 2
 done
 if [ -z "$(uci -q get $NAME.@global[0].global_server)" ];then
 /etc/init.d/$NAME start &

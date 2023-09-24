@@ -28,7 +28,6 @@ local subscribe_url = ucic:get_first(name, 'server_subscribe', 'subscribe_url', 
 local filter_words = ucic:get_first(name, 'server_subscribe', 'filter_words', '时间/剩余')
 local save_words = ucic:get_first(name, 'server_subscribe', 'save_words', '')
 local v2_ss = SYS.exec('type -t -p ss-redir sslocal') ~= "" and "ss" or "v2ray"
-local v2_ssr = SYS.exec('type -t -p ssr-redir') ~= "" and "ssr" or "v2ray"
 local v2_tj = SYS.exec('type -t -p trojan') ~= "" and "trojan" or "v2ray"
 local ua = ucic:get_first(name, 'server_subscribe', 'user_agent', '')
 local log = function(...)
@@ -153,8 +152,7 @@ local function processData(szType, content)
 	if szType == 'ssr' then
 		local dat = split(content, "/%?")
 		local hostInfo = split(dat[1], ':')
-		result.type = v2_ssr
-		result.v2ray_protocol = (v2_ssr == "v2ray") and "shadowsocksr" or nil
+		result.type = 'ssr'
 		result.server = hostInfo[1]
 		result.server_port = hostInfo[2]
 		result.protocol = hostInfo[3]
@@ -182,7 +180,6 @@ local function processData(szType, content)
 		result.transport = info.net
 		result.vmess_id = info.id
 		result.alias = info.ps
-		result.packet_encoding = packet_encoding
 		-- result.mux = 1
 		-- result.concurrency = 8
 		if info.net == 'ws' then
@@ -366,15 +363,19 @@ local function processData(szType, content)
 		result.vmess_id = url.user
 		result.vless_encryption = params.encryption or "none"
 		result.transport = params.type or "tcp"
-		result.packet_encoding = packet_encoding
-		result.tls = (params.security == "tls") and "1" or "0"
+		result.tls = (params.security == "tls" or params.security == "xtls") and "1" or "0"
 		result.tls_host = params.sni
-		result.xtls = params.security == "xtls" and "1" or nil
-		result.vless_flow = params.flow
+		result.tls_flow = (params.security == "tls" or params.security == "reality") and params.flow or nil
+		result.fingerprint = params.fp
+		result.reality = (params.security == "reality") and "1" or "0"
+		result.reality_publickey = params.pbk and UrlDecode(params.pbk) or nil
+		result.reality_shortid = params.sid
+		result.reality_spiderx = params.spx and UrlDecode(params.spx) or nil
 		if result.transport == "ws" then
 			result.ws_host = (result.tls ~= "1") and (params.host and UrlDecode(params.host)) or nil
 			result.ws_path = params.path and UrlDecode(params.path) or "/"
-		elseif result.transport == "http" then
+		-- make it compatible with bullshit, "h2" transport is non-existent at all
+		elseif result.transport == "http" or result.transport == "h2" then
 			result.transport = "h2"
 			result.h2_host = params.host and UrlDecode(params.host) or nil
 			result.h2_path = params.path and UrlDecode(params.path) or nil
@@ -518,7 +519,7 @@ local execute = function()
 				for _, v in ipairs(nodes) do
 					if v then
 						local result
-						if szType=='ssd' then
+						if szType then
 							result = processData(szType, v)
 						elseif not szType then
 							local node = trim(v)
@@ -617,16 +618,17 @@ local execute = function()
 			local firstServer = ucic:get_first(name, uciType)
 			if firstServer then
 				if not ucic:get(name, globalServer) then
-					-- SYS.call("touch /var/lock/bypass-uci.lock")
+					luci.sys.call("/etc/init.d/" .. name .. " stop > /dev/null 2>&1 &")
+					ucic:commit(name)
 					ucic:set(name, ucic:get_first(name, 'global'), 'global_server', ucic:get_first(name, uciType))
 					ucic:commit(name)
-					log('当前主服务器节点为空，自动切换到第一个节点。')
+					log('当前主服务器节点已被删除，正在自动更换为第一个节点。')
 				else
 					log('维持当前主服务器节点。')
 				end
 			else
 				log('没有服务器节点了，停止服务')
-				SYS.call("/etc/init.d/bypass stop > /dev/null 2>&1 &")
+				luci.sys.call("/etc/init.d/" .. name .. " stop > /dev/null 2>&1 &")
 			end
 		end
 		-- SYS.call("rm -rf /var/lock/bypass-uci.lock")
@@ -636,10 +638,6 @@ end
 
 if subscribe_url and #subscribe_url > 0 then
 
-	if SYS.call('curl -so /dev/null -m 5 www.baidu.com')~=0 then
-		-- log("网络不通，停止更新订阅")
-		return
-	end
 	xpcall(execute, function(e)
 		log(e)
 		log(debug.traceback())
