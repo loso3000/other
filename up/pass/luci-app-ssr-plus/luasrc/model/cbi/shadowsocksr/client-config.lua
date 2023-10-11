@@ -146,9 +146,6 @@ end
 if is_finded("ss-local") or is_finded("ss-redir") then
 	o:value("ss", translate("Shadowsocks-libev Version"))
 end
-if is_finded("sslocal") or is_finded("ssmanager") then
-	o:value("ss", translate("Shadowsocks-rust Version"))
-end
 if is_finded("trojan") then
 	o:value("trojan", translate("Trojan"))
 end
@@ -160,9 +157,6 @@ if is_finded("hysteria") then
 end
 if is_finded("tuic-client") then
 	o:value("tuic", translate("TUIC"))
-end
-if is_finded("shadow-tls") and is_finded("sslocal") then
-	o:value("shadowtls", translate("Shadow-TLS"))
 end
 if is_finded("ipt2socks") then
 	o:value("socks5", translate("Socks5"))
@@ -206,12 +200,11 @@ o:depends("type", "trojan")
 o:depends("type", "naiveproxy")
 o:depends("type", "hysteria")
 o:depends("type", "tuic")
-o:depends("type", "shadowtls")
 o:depends("type", "socks5")
 
 o = s:option(Value, "server_port", translate("Server Port"))
 o.datatype = "port"
-o.rmempty = true
+o.rmempty = ({port_hopping=0 and false or true})
 o:depends("type", "ssr")
 o:depends("type", "ss")
 o:depends("type", "v2ray")
@@ -219,7 +212,6 @@ o:depends("type", "trojan")
 o:depends("type", "naiveproxy")
 o:depends({type = "hysteria",port_hopping = false})
 o:depends("type", "tuic")
-o:depends("type", "shadowtls")
 o:depends("type", "socks5")
 
 o = s:option(Flag, "auth_enable", translate("Enable Authentication"))
@@ -243,7 +235,6 @@ o:depends("type", "ssr")
 o:depends("type", "ss")
 o:depends("type", "trojan")
 o:depends("type", "naiveproxy")
-o:depends("type", "shadowtls")
 o:depends({type = "socks5", auth_enable = true})
 o:depends({type = "v2ray", v2ray_protocol = "http", auth_enable = true})
 o:depends({type = "v2ray", v2ray_protocol = "socks", socks_ver = "5", auth_enable = true})

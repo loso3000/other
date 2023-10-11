@@ -243,7 +243,7 @@ local trojan = {
 		cipher_tls13 = cipher13,
 		sni = server.tls_host,
 		alpn = server.tls_alpn or {"h2", "http/1.1"},
-		curve = "",
+		curves = "",
 		reuse_session = true,
 		session_ticket = (server.tls_sessionTicket == "1") and true or false
 	},
