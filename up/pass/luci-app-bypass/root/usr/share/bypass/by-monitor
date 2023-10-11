@@ -29,7 +29,7 @@ gfw_mode=$(uci_get_by_type global gfw_mode 0)
 LOG=/tmp/log/$NAME.log
 [ "$password" != "" ] && password="--key "${password}
 
-echolog() {
+log() {
 	local d="$(date "+%Y-%m-%d %H:%M:%S")"
 	echo -e "$d:  Monitor  :$*" >>$LOG
 }
@@ -40,7 +40,7 @@ while :;do
 	if [ $redir_tcp -gt 0 ];then
 		t=`ps -w | grep by-retcp | grep -v grep | wc -l`
 		if [ $t -lt $redir_tcp ];then
-			echolog "Redir TCP Error. Restart!"
+			log "Redir TCP Error. Restart!"
 			/etc/init.d/bypass restart >/dev/null 2>&1
 			exit 0
 		fi
@@ -49,7 +49,7 @@ while :;do
 	if [ $kcp = 1 ];then
 		t=`ps -w | grep kcptun-client | grep -v grep | wc -l`
 		if [ $t = 0 ];then
-			echolog "SSR KCPTUN Error. Restart!"
+			log "SSR KCPTUN Error. Restart!"
 			killall -q -9 kcptun-client
 			$(which kcptun-client) -r $server:$kcp_port -l :$server_port $password $kcp_param >/dev/null 2>&1 &
 		fi
@@ -58,7 +58,7 @@ while :;do
 	if [ $redir_udp = 1 ];then
 		t=`ps -w | grep by-reudp | grep -v grep | wc -l`
 		if [ $t = 0 ];then
-			echolog "Redir UDP Error. Restart!"
+			log "Redir UDP Error. Restart!"
 			/etc/init.d/bypass restart >/dev/null 2>&1
 			exit 0
 		fi
@@ -67,7 +67,7 @@ while :;do
 	if [ $redir_nf = 1 ];then
 		t=`ps -w | grep by-nf | grep -v grep | wc -l`
 		if [ $t = 0 ];then
-			echolog "Redir Netflix Error. Restart!"
+			log "Redir Netflix Error. Restart!"
 			/etc/init.d/bypass restart >/dev/null 2>&1
 			exit 0
 		fi
@@ -76,7 +76,7 @@ while :;do
 	if [ $smartdns = 1 ];then
 		t=`ps -w | grep smartdns | grep -v grep | wc -l`
 		if [ $t = 0 ];then
-			echolog "SmartDNS Error. Restart!"
+			log "SmartDNS Error. Restart!"
 			killall -q -9 smartdns >/dev/null 2>&1
 			$(which smartdns) -c /tmp/etc/smartdns/smartdns.conf
 		fi
@@ -85,7 +85,7 @@ while :;do
 	if [ $chinadns = 1 ];then
 		t=`ps -w | grep chinadns-ng | grep -v grep | wc -l`
 		if [ $t = 0 ];then
-			echolog "ChinaDNS-NG Error. Restart!"
+			log "ChinaDNS-NG Error. Restart!"
 			$(which chinadns-ng) -l 5337 -c '127.0.0.1#5336' -t '127.0.0.1#5335' -4 china_v4  -p 3  -6 china_v6 -f -n $([ $gfw_mode = 1 ] && echo -g /tmp/etc/bypass/gfw.list) >/dev/null 2>&1 &
 		fi
 	fi
@@ -93,7 +93,7 @@ while :;do
 	if [ $socks5 = 1 ];then
 		t=`ps -w | grep by-socks | grep -v grep | wc -l`
 		if [ $t = 0 ];then
-			echolog "Global Socks Server Error. Restart!"
+			log "Global Socks Server Error. Restart!"
 			/etc/init.d/bypass restart >/dev/null 2>&1
 			exit 0
 		fi
@@ -102,7 +102,7 @@ while :;do
 	if [ $server_count -gt 0 ];then
 		t=`ps -w | grep by-server | grep -v grep | wc -l`
 		if [ $t -lt $server_count ];then
-			echolog "SSR Server Error. Restart!"
+			log "SSR Server Error. Restart!"
 			/etc/init.d/bypass restart >/dev/null 2>&1
 			exit 0
 		fi

@@ -71,7 +71,6 @@ local encrypt_methods_ss = {
 }
 -- 分割字符串
 local function split(full, sep)
-	if full then
 	full = full:gsub("%z", "") -- 这里不是很清楚 有时候结尾带个\0
 	local off, result = 1, {}
 	while true do
@@ -89,8 +88,6 @@ local function split(full, sep)
 	end
 	return result
 end
-	return {}
-end
 -- urlencode
 local function get_urlencode(c)
 	return sformat("%%%02X", sbyte(c))
@@ -102,7 +99,9 @@ local function urlEncode(szText)
 	return str
 end
 
-local function get_urldecode(h) return schar(tonumber(h, 16)) end
+local function get_urldecode(h)
+	return schar(tonumber(h, 16))
+end
 local function UrlDecode(szText)
 	return (szText and szText:gsub("+", " "):gsub("%%(%x%x)", get_urldecode)) or nil
 end
@@ -209,17 +208,17 @@ local function processData(szType, content)
 			result.write_buffer_size = 2
 		end
 
-		if info.net == 'quic' then
-			result.quic_guise = info.type
-			result.quic_key = info.key
-			result.quic_security = info.securty
-		end
 		if info.net == 'grpc' then
 			if info.path then
 				result.serviceName = info.path
 			elseif info.serviceName then
 				result.serviceName = info.serviceName
 			end
+		end
+		if info.net == 'quic' then
+			result.quic_guise = info.type
+			result.quic_key = info.key
+			result.quic_security = info.securty
 		end
 		if info.security then
 			result.security = info.security
@@ -283,7 +282,10 @@ local function processData(szType, content)
 		else
 			result.server_port = host[2]:gsub("/","")
 		end
-		if not checkTabValue(encrypt_methods_ss)[method] then
+		if checkTabValue(encrypt_methods_ss)[method] then
+			result.encrypt_method_ss = method
+			result.password = password
+		else
 			-- 1202 年了还不支持 SS AEAD 的屑机场
 			result.server = nil
 		end
@@ -430,11 +432,6 @@ local function curl(url)
 	return trim(stdout)
 end
 
--- wget
-local function wget(url)
-	local stdout = SYS.exec('wget -q --user-agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.157 Safari/537.36" --no-check-certificate -O- "' .. url .. '"')
-	return trim(stdout)
-end
 local function check_filer(result)
 	do
 		-- 过滤的关键词列表

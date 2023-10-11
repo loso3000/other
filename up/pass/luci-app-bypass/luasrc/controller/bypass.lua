@@ -1,6 +1,6 @@
 module("luci.controller.bypass",package.seeall)
 local fs=require"nixio.fs"
-local http=require"luci.http"
+local HTTP=require"luci.http"
 CALL=luci.sys.call
 EXEC=luci.sys.exec
 function index()
@@ -15,7 +15,7 @@ function index()
 	entry({'admin', 'services','bypass','servers-subscribe'}, cbi('bypass/servers-subscribe', {hideapplybtn = true, hidesavebtn = true, hideresetbtn = true}), _('Subscribe'), 30).leaf = true
 	entry({"admin","services","bypass","control"},cbi("bypass/control"),_("Access Control"),40).leaf=true
 	entry({"admin","services","bypass","advanced"},cbi("bypass/advanced"),_("Advanced Settings"),60).leaf=true
-	if luci.sys.call("which ssr-server >/dev/null")==0 or luci.sys.call("which ss-server >/dev/null")==0 or luci.sys.call("which microsocks >/dev/null")==0 then
+	if CALL("which ssr-server >/dev/null")==0 or CALL("which ss-server >/dev/null")==0 or CALL("which microsocks >/dev/null")==0 then
 	      entry({"admin","services","bypass","server"},arcombine(cbi("bypass/server"),cbi("bypass/server-config")),_("Server"),70).leaf=true
 	end
 	entry({"admin","services","bypass","log"},form("bypass/log"),_("Log"),80).leaf=true
@@ -33,8 +33,8 @@ end
 
 function subscribe()
 	CALL("/usr/bin/lua /usr/share/bypass/subscribe")
-	http.prepare_content("application/json")
-	http.write_json({ret=1})
+	HTTP.prepare_content("application/json")
+	HTTP.write_json({ret=1})
 end
 
 function act_status()
@@ -43,8 +43,8 @@ function act_status()
 	e.udp = CALL('busybox ps -w | grep by-reudp | grep -v grep  >/dev/null ') == 0
 	e.smartdns = CALL("ps -w | grep smartdns | grep -v grep   >/dev/null")==0
 	e.chinadns=CALL("ps -w | grep 'chinadns-ng -l 5337 -c 127.0.0.1' | grep -v grep >/dev/null")==0
-	http.prepare_content("application/json")
-	http.write_json(e)
+	HTTP.prepare_content("application/json")
+	HTTP.write_json(e)
 end
 
 function check_net()
@@ -59,8 +59,8 @@ function check_net()
 			if r=="0" then r="0.1" end
 		end
 	end
-	http.prepare_content("application/json")
-	http.write_json({ret=r})
+	HTTP.prepare_content("application/json")
+	HTTP.write_json({ret=r})
 end
 
 
@@ -78,19 +78,19 @@ function act_ping()
 	if (iret==0) then
 		luci.sys.call(" ipset del ss_spec_wan_ac " .. ip)
 	end
-	luci.http.prepare_content("application/json")
-	luci.http.write_json(e)
+	HTTP.prepare_content("application/json")
+	HTTP.write_json(e)
 end
 
 function check_status()
-	sret=luci.sys.call("curl -so /dev/null -m 3 www."..luci.http.formvalue("set")..".com")
+	sret=luci.sys.call("curl -so /dev/null -m 3 www."..HTTP.formvalue("set")..".com")
 	if sret==0 then
 		retstring="0"
 	else
 		retstring="1"
 	end
-	luci.http.prepare_content("application/json")
-	luci.http.write_json({ret=retstring})
+	HTTP.prepare_content("application/json")
+	HTTP.write_json({ret=retstring})
 end
 
 function check_port()
@@ -124,13 +124,13 @@ function check_port()
 			luci.sys.call("ipset del ss_spec_wan_ac "..ip)
 		end
 	end)
-	luci.http.prepare_content("application/json")
-	luci.http.write_json({ret=retstring})
+	HTTP.prepare_content("application/json")
+	HTTP.write_json({ret=retstring})
 end
 
 local function http_write_json(content)
-	http.prepare_content("application/json")
-	http.write_json(content or {code = 1})
+	HTTP.prepare_content("application/json")
+	HTTP.write_json(content or {code = 1})
 end
 
 
@@ -145,12 +145,12 @@ function getlog()
 	local a=f:read("*a") or ""
 	f:close()
 	a=string.gsub(a,"\n$","")
-	http.prepare_content("text/plain; charset=utf-8")
-	http.write(a)
+	HTTP.prepare_content("text/plain; charset=utf-8")
+	HTTP.write(a)
 end
 
 function dellog()
 	fs.writefile("/tmp/log/bypass.log","")
-	http.prepare_content("application/json")
-	http.write('')
+	HTTP.prepare_content("application/json")
+	HTTP.write('')
 end

@@ -16,6 +16,32 @@ log(){
 	echo "$(date +'%Y-%m-%d %H:%M:%S') By-Switch : $*" >> /tmp/log/$NAME.log
 }
 
+first_type() {
+	type -t -p "/bin/${1}" -p "${TMP_BIN_PATH}/${1}" -p "${1}" "$@" | head -n1
+}
+
+ln_bin() {
+	local file_func=${1}
+	local ln_name=${2}
+	shift 2
+	if [ "${file_func%%/*}" != "${file_func}" ]; then
+		[ ! -L "${file_func}" ] && {
+			ln -s "${file_func}" "${TMP_BIN_PATH}/${ln_name}" >/dev/null 2>&1
+			file_func="${TMP_BIN_PATH}/${ln_name}"
+		}
+		[ -x "${file_func}" ] || log "$(readlink ${file_func}) no run£º${file_func} $*"
+	fi
+	echo "${file_func} $*" 
+	[ -x "${file_func}" ] || {
+		log "not find ${file_func}..."
+		log "-----------end------------"
+		_exit 2
+	}
+	ulimit -n 1000000
+	${file_func:-log "  - ${ln_name}"} "$@" >/dev/null 2>&1 &
+}
+
+
 get_ip(){
 	if ! echo $ip | grep -E "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$">/dev/null;then
 		r=1
@@ -29,16 +55,8 @@ get_ip(){
 	return $i
 }
 
-f_bin(){
-	case $1 in
-		ss)w=$(which ss-local);;
-		ssr)w=$(which ssr-local);;
-		v2ray)w=$(which xray)||w=$(which r2ray);;
-		trojan)w=$(which trojan-plus);;
-		naiveproxy)w=$(which naive);;
-	esac
-	echo ${w:=0}
-}
+
+
 
 gen_port(){
 	lport=1090
@@ -107,12 +125,7 @@ curl_check(){
 	if [ $type = tun ];then
 		curl --interface $(uci_get_by_name $1 iface br-lan) --resolve dns.google:443:8.8.8.8 -so /dev/null --connect-timeout 20 https://dns.google;return $?
 	elif [ $type != socks5 ];then
-		cmd=$(f_bin $type)
-		if [ ! -x $cmd ];then
-			[ $type = ss -o $type = ssr ] && type=$type-local
-			log "Can't find $(echo $type) program, Skip this Node($($UCI$1.alias || uci_get_by_name $1 server))."
-			return 1
-		fi
+
 	fi
 	gen_port
 	J=/var/etc/$NAME/by-socks5-check.json
@@ -121,17 +134,25 @@ curl_check(){
 	param=
 	case $type in
 		ss|ssr)
-			$cmd -c $J >/dev/null 2>&1 &;;
-		v2ray|hysteria)
+			ln_bin $(first_type ${type}local ${type}-redir) ${type}-redir -c  $J
+			;;
+		v2ray)
 			$S/gen_config $1 tcp 0 $lport $ip > $J
 			sed -i 's/\\//g' $J
-			$cmd -c $J >/dev/null 2>&1 &;;
+			ln_bin $(first_type xray v2ray) v2ray run -config $J
+			;;
+		hysteria)
+		        $S/gen_config $1 tcp 0 $lport $ip > $J
+			sed -i 's/\\//g' $J
+			ln_bin $(first_type hysteria) hysteria client --config $J
+			;;
 		trojan)
 			$S/gen_config $1 client $lport $ip > $J
 			sed -i 's/\\//g' $J
-			$cmd --config $J >/dev/null 2>&1 &;;
+			ln_bin $(first_type $type) $type --config  $J
+			;;
 		naiveproxy)
-			$cmd $J 2>&1 &;;
+			ln_bin $(first_type naive) naive $J  ;;
 		socks5)IP=$ip
 			if [ $(uci_get_by_name $1 auth_enable 0) = 1 ];then
 				username=$(uci_get_by_name $1 username)
