@@ -11,9 +11,9 @@ while ! curl -so /dev/null -m 3 www.baidu.com;do
 	sleep 2
 done
 if [ -z "$(uci -q get $NAME.@global[0].global_server)" ];then
-/etc/init.d/$NAME start &
+/etc/init.d/$NAME stop &
 elif  [ ! -s $T_FILE/china.txt ] || [ ! -s $T_FILE/china_v6.txt ] || [ ! -s $T_FILE/gfw.list ] ;then
-	log "Rules      :Download IP/GFW files."
+	log "Update      :Download IP/GFW files."
 	/usr/share/$NAME/update --f ;exit 0;
 else
 	/etc/init.d/$NAME start &

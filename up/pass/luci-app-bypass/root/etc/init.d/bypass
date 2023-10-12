@@ -1,5 +1,5 @@
 #!/bin/sh /etc/rc.common
-START=99
+START=95
 STOP=15
 SERVICE_DAEMONIZE=1
 NAME=bypass
@@ -18,18 +18,9 @@ CON_AD=$T_FILE/ad_smartdns.txt
 PID=/tmp/run/smartdns.pid
 LOG=/tmp/log/bypass.log
 
-
 ipt=$(command -v iptables-legacy || command -v iptables)
 ip6t=$(command -v ip6tables-legacy || command -v ip6tables)
 
-IPT_M="$ipt -t mangle"
-IPT6_M="$ip6t -t mangle"
-IPT_N="$ipt -t nat"
-IPT6_N="$ip6t -t nat"
-[ -z "$ip6t" -o -z "$(lsmod | grep 'ip6table_nat')" ] && IPT6_N="eval #$IPT6_N"
-[ -z "$ip6t" -o -z "$(lsmod | grep 'ip6table_mangle')" ] && IPT6_M="eval #$IPT6_M"
-
-PS="/bin/busybox ps"
 BIN_DIR=/usr/share/bypass
 DNS_FILE=/tmp/dnsmasq.d/dnsmasq-by.conf
 DNS_DIR=/tmp/dnsmasq.d/dnsmasq-by.d
@@ -45,6 +36,10 @@ local_enable=0
 switch_enable=0
 switch_server=$1
 server_count=0
+EXTRA_COMMANDS='reset'
+EXTRA_HELP="        reset   Reset to default settings"
+#extra_command "reset" "Reset to default settings"
+PS="/bin/busybox ps"
 STATUS=Y
 tmp_tcp_local_port="306"   #tcp socks temporary port
 uci_get_by_name() {
@@ -205,7 +200,7 @@ gen_config_file(){
 			}
 		EOF
 		plugin=$(uci_get_by_name $1 plugin 0)
-		if [ $plugin != 0 -a -x "$(which $plugin)" ];then
+		if [ $plugin != 0 -a -x "$(command -v  $plugin)" ];then
 			sed -i "s@$hostip\",@$hostip\",\n\"plugin\":\"$plugin\",\n\"plugin_opts\":\"$(uci_get_by_name $1 plugin_opts)\",@" $config_file
 		fi
 		;;
@@ -262,9 +257,9 @@ gen_config_file(){
 }
 
 start_dns(){
-	$(which smartdns) -c $DNS_T
+	$(command -v  smartdns) -c $DNS_T
 	if [ $run_mode = router ];then
-		service_start $(which chinadns-ng) -l 5337 -c '127.0.0.1#5336' -t '127.0.0.1#5335' -4 china_v4  -p 3 -6 china_v6 -f -n $([ $gfw_mode = 1 ] && echo -g $VAR/gfw.list)
+		service_start $(command -v  chinadns-ng) -l 5337 -c '127.0.0.1#5336' -t '127.0.0.1#5335' -4 china_v4  -p 3 -6 china_v6 -f -n $([ $gfw_mode = 1 ] && echo -g $VAR/gfw.list)
 		log "ChinaDNS : Start ChinaDNS-NG success!"
 	fi
 	if [[ "$(uci -q get dhcp.@dnsmasq[0].cachesize)" == "0" && $adguardhome == 0 ]]; then
@@ -318,8 +313,7 @@ rules(){
 	cat $LOG 2>/dev/null | sed -n '$p' | grep -q 'Check network status.\|Download IP/GFW files.' || gen_log
 	check_net
 	cat $LOG 2>/dev/null | sed -n '$p' | grep -q 'Download IP/GFW files...' || (log "Rules      : Check network status successful!";log "Rules      : Check IP/GFW files...")
-	[ ! -d $VAR  ] && mkdir -p $VAR
-	[ ! -d /tmp/run ] &&  mkdir -p /tmp/run 
+
 	[ ! -s $VAR/china.txt ] || [ ! -s $VAR/china_v6.txt ] || [ ! -s $VAR/gfw.list ] && {
 		if [ ! -s $T_FILE/china.txt ] || [ ! -s $T_FILE/china_v6.txt ] || [ ! -s $T_FILE/gfw.list ] ;then
 			log "Rules      : Download IP/GFW files."
@@ -403,7 +397,7 @@ start_retcp(){
 	rtype=tcp
 	local type=$(uci_get_by_name $GLOBAL_SERVER type)
 	if [ $kcp_enable = 1 ];then
-		cmd=$(which kcptun-client) || cmd=0
+		cmd=$(command -v  kcptun-client) || cmd=0
 		[ ! $cmd ] && 	log "Main Node: Can't find KCPTUN program, start failed!" && return 1
 
 		[ $($cmd -v 2>/dev/null | grep kcptun | wc -l) = 0 ] && return 1
@@ -423,7 +417,7 @@ start_retcp(){
 		ss_program="$(first_type ${type}local ${type}-redir)"
 		redir_tcp=$threads
 		for i in $(seq 1 $threads);do
-			ln_bin $(first_type ${type}local ${type}-redir) ${type}-redir -c  $config_file
+			ln_bin $(first_type ${type}local ${type}-redir) ${type}-redir -c  $config_file >$log_file 2>&1 &
 		done
 		[ $type = ss ] && name=Shadowsocks || name=ShadowsocksR
 		log "Main Node: $name $threads Threads Started!"
@@ -436,7 +430,7 @@ start_retcp(){
 			port=0
 		fi
 		gen_config_file $GLOBAL_SERVER $rtype $port $server
-		ln_bin $(first_type xray v2ray) v2ray run -config  $config_file
+		ln_bin $(first_type xray v2ray) v2ray run -config  $config_file >$log_file 2>&1 &
 		log "Main Node: $($(first_type xray v2ray) version | head -1) Started!"
 		if [ "$socks5_start" = 1 ];then
 			log "Socks5 Node: $($(first_type xray v2ray) version | head -1) $type Started!"
@@ -450,7 +444,7 @@ start_retcp(){
 			port=0
 		fi
 		gen_config_file $GLOBAL_SERVER $rtype $port $server
-		ln_bin $(first_type hysteria) hysteria client --config $config_file
+		ln_bin $(first_type hysteria) hysteria client --config $config_file >$log_file 2>&1 &
 
 		log "Main Node: $($(first_type hysteria) version | awk '{print $1,$3}') Started!"
 		if [ "$socks5_start" = 1 ];then
@@ -461,13 +455,13 @@ start_retcp(){
 		gen_config_file $GLOBAL_SERVER $rtype "" $server
 		redir_tcp=$threads
 		for i in $(seq 1 $threads);do
-			ln_bin $(first_type $type) $type --config  $config_file
+			ln_bin $(first_type $type) $type --config  $config_file >$log_file 2>&1 &
 		done
 		log "Main Node: $($(first_type $type) --version 2>&1 | head -1) , $threads Threads Started!"
 		;;
 	naiveproxy)
 		gen_config_file $GLOBAL_SERVER $rtype
-		ln_bin $(first_type naive) naive $config_file
+		ln_bin $(first_type naive) naive $config_file >$log_file 2>&1 &
 		log "Main Node: $($(first_type naive) --version 2>&1 | head -1) , Threads Started!"
 		;;
 	socks5)
@@ -475,7 +469,7 @@ start_retcp(){
 		$BIN_DIR/genred2config $VAR/redsocks-by-retcp.json socks5 tcp $local_port $server $(uci_get_by_name $GLOBAL_SERVER server_port) \
 		$(uci_get_by_name $GLOBAL_SERVER auth_enable 0) $(uci_get_by_name $GLOBAL_SERVER username) $(uci_get_by_name $GLOBAL_SERVER password)
 		for i in $(seq 1 $threads);do
-		    ln_bin $(first_type redsocks2) redsocks2 -c $VAR/redsocks-by-retcp.json
+		    ln_bin $(first_type redsocks2) redsocks2 -c $VAR/redsocks-by-retcp.json >$log_file 2>&1 &
 		done
 		log "Main Node: Socks5 $threads Threads Started!"
 		;;
@@ -483,7 +477,7 @@ start_retcp(){
 		redir_tcp=$threads
 		$BIN_DIR/genred2config $VAR/redsocks-by-retcp.json vpn $(uci_get_by_name $GLOBAL_SERVER iface br-lan) $local_port
 		for i in $(seq 1 $threads);do
-			ln_bin $(first_type redsocks2) redsocks2 -c $VAR/redsocks-by-retcp.json
+			ln_bin $(first_type redsocks2) redsocks2 -c $VAR/redsocks-by-retcp.json >$log_file 2>&1 &
 		done
 		log "Main Node: Network Tunnel $threads Threads Started!"
 		;;
@@ -502,20 +496,20 @@ start_reudp(){
 
 		ss_program="$(first_type ${type}local ${type}-redir)"
 		for i in $(seq 1 $threads);do
-			ln_bin "$ss_program" ${type}-redir -c  $config_file
+			ln_bin "$ss_program" ${type}-redir -c  $config_file  >$log_file 2>&1 &
 		done
 		[ $type = ss ] && name=Shadowsocks || name=ShadowsocksR
 		log "UDP Node: $name  $type Started!"
 		;;
 	v2ray)
 		gen_config_file $UDP_RELAY_SERVER $rtype 0 $udp_server
-		ln_bin $(first_type xray v2ray) v2ray run -config  $config_file
+		ln_bin $(first_type xray v2ray) v2ray run -config  $config_file >$log_file 2>&1 &
 		log "UDP Node: $($(first_type xray v2ray) version | head -1) Started!"
 
 		;;
 	trojan)
 		gen_config_file $UDP_RELAY_SERVER $rtype "" $udp_server
-		ln_bin $(first_type $type) $type --config  $config_file
+		ln_bin $(first_type $type) $type --config  $config_file >$log_file 2>&1 &
 		log "UDP Node: $($(first_type $type) --version 2>&1 | head -1) , $threads Threads Started!"
 		;;
 	naiveproxy)
@@ -526,7 +520,7 @@ start_reudp(){
 
 	hysteria)
 		gen_config_file $UDP_RELAY_SERVER $rtype 0 $udp_server
-		ln_bin $(first_type hysteria) hysteria client --config $config_file
+		ln_bin $(first_type hysteria) hysteria client --config $config_file >$log_file 2>&1 &
 		log "UDP Node: $($(first_type "hysteria") version | awk '{print $1,$3}') Started!"
 		;;
 	tuic) 
@@ -538,7 +532,7 @@ start_reudp(){
 
 		$BIN_DIR/genred2config $VAR/redsocks-by-reudp.json socks5 udp $udp_local_port $udp_server \
 		$(uci_get_by_name $UDP_RELAY_SERVER server_port) $(uci_get_by_name $UDP_RELAY_SERVER auth_enable 0) $(uci_get_by_name $UDP_RELAY_SERVER username) $(uci_get_by_name $UDP_RELAY_SERVER password)
-		ln_bin $(first_type redsocks2) redsocks2  -c $VAR/redsocks-by-reudp.json
+		ln_bin $(first_type redsocks2) redsocks2  -c $VAR/redsocks-by-reudp.json >$log_file 2>&1 &
 		log "UDP Node: Socks5 Started!"
 		;;
 	tun)
@@ -558,53 +552,53 @@ start_renf(){
 	ss|ssr)
 		gen_config_file $NF_SERVER $rtype
 		ss_program="$(first_type ${type}local ${type}-redir)"
-		ln_bin "$ss_program" ${type}-redir -c  $config_file
+		ln_bin "$ss_program" ${type}-redir -c  $config_file >$log_file 2>&1 &
 		[ $type = ss ] && name=Shadowsocks || name=ShadowsocksR
 		log "NF  Shunt : $name $threads Threads Started!"
 		;;
 	v2ray)
 
 		gen_config_file $NF_SERVER $rtype 0 $nf_ip
-		ln_bin $(first_type xray v2ray) v2ray run -c $config_file
+		ln_bin $(first_type xray v2ray) v2ray run -c $config_file >$log_file 2>&1 &
 		log "NF  Shunt : $($(first_type xray v2ray) version | head -1) Started!"
 
 		;;
 	hysteria)
 		gen_config_file $NF_SERVER $rtype 0 $nf_ip
-		ln_bin $(first_type hysteria) hysteria client --config $config_file
+		ln_bin $(first_type hysteria) hysteria client --config $config_file >$log_file 2>&1 &
 		log "NF  Shunt : $($(first_type hysteria) version | awk '{print $1,$3}') Started!"
 		;;
 	tuic)
 		#local chain_shunt_port="30${tmp_shunt_port}"
 		#gen_config_file $NF_SERVER $rtype 3 $nf_local_port 0 chain #make a tuic socks:30303, make a ipt2socks redir:303
-		#ln_bin $(first_type tuic-client) tuic-client --config $config_file
-		#ln_bin $(first_type ipt2socks) ipt2socks -R -b 0.0.0.0 -4 -s 127.0.0.1 -p $chain_shunt_port -l $tmp_shunt_port
+		#ln_bin $(first_type tuic-client) tuic-client --config $config_file >$log_file 2>&1 &
+		#ln_bin $(first_type ipt2socks) ipt2socks -R -b 0.0.0.0 -4 -s 127.0.0.1 -p $chain_shunt_port -l $tmp_shunt_port >$log_file 2>&1 &
 		#[ -n "$tmp_local_port" ] && tmp_port=$tmp_local_port || tmp_port=$tmp_shunt_local_port
 		#gen_config_file $NF_SERVER $rtype 3 $nf_local_port		# make a tuic socks :304
-		#ln_bin $(first_type tuic-client) tuic-client --config $shunt_dns_config_file
-		#ln_bin $(first_type dns2socks) dns2socks 127.0.0.1:$tmp_port 8.8.8.8:53 127.0.0.1:$tmp_shunt_dns_port -q
+		#ln_bin $(first_type tuic-client) tuic-client --config $shunt_dns_config_file >$log_file 2>&1 &
+		#ln_bin $(first_type dns2socks) dns2socks 127.0.0.1:$tmp_port 8.8.8.8:53 127.0.0.1:$tmp_shunt_dns_port -q >$log_file 2>&1 &
 		#log "NF  Shunt : tuic-client $($(first_type tuic-client) --version) Started!"
 		;;
 	socks5)
 		$BIN_DIR/genred2config $VAR/redsocks-by-nf.json socks5 tcp $nf_local_port $nf_ip $(uci_get_by_name $NF_SERVER server_port) \
 		$(uci_get_by_name $NF_SERVER auth_enable 0) $(uci_get_by_name $NF_SERVER username) $(uci_get_by_name $NF_SERVER password)
-		ln_bin $(first_type redsocks2) redsocks2  -c $VAR/redsocks-by-nf.json
+		ln_bin $(first_type redsocks2) redsocks2  -c $VAR/redsocks-by-nf.json >$log_file 2>&1 &
 		log "NF  Shunt : $ntype Started!"
 		;;
 	trojan)
 		gen_config_file $NF_SERVER $rtype "" $nf_ip
-		ln_bin $(first_type $type) $type --config  $config_file
+		ln_bin $(first_type $type) $type --config  $config_file >$log_file 2>&1 &
 		log "NF  Shunt :  $($(first_type $type) --version 2>&1 | head -1) , $threads Threads Started!"
 		;;
 	naiveproxy)
 		gen_config_file $NF_SERVER $rtype
-		ln_bin $(first_type naive) naive $config_file
+		ln_bin $(first_type naive) naive $config_file >$log_file 2>&1 &
 		log "NF  Shunt : $($(first_type naive) --version 2>&1 | head -1) , Threads Started!"
 		;;
 
 	tun)
 		$BIN_DIR/genred2config $VAR/redsocks-by-nf.json vpn $(uci_get_by_name $NF_SERVER iface "br-lan") $nf_local_port
-		ln_bin $(first_type redsocks2) redsocks2 -c $VAR/redsocks-by-nf.json
+		ln_bin $(first_type redsocks2) redsocks2 -c $VAR/redsocks-by-nf.json >$log_file 2>&1 &
 		log "NF  Shunt : Network Tunnel REDIRECT $ntype Started!"
 		;;
 	esac
@@ -624,36 +618,36 @@ start_local(){
 		gen_config_file $SO_SERVER $rtype
 		ss_program="$(first_type ${type}local ${type}-redir)"
 		for i in $(seq 1 $threads);do
-			ln_bin "$ss_program" ${type}-redir -c  $config_file
+			ln_bin "$ss_program" ${type}-redir -c  $config_file >$log_file 2>&1 &
 		done
 		[ $type = ss ] && name=Shadowsocks || name=ShadowsocksR
 		log "Socks5 Node:  $name $type Started!"
 		;;
 	v2ray)
 		gen_config_file $SO_SERVER $rtype $socks5_port $socks5_ip
-		ln_bin $(first_type xray v2ray) v2ray run -c  $config_file
+		ln_bin $(first_type xray v2ray) v2ray run -c  $config_file >$log_file 2>&1 &
 		log "Socks5 Node:  $($(first_type xray v2ray) version | head -1)  $type Started!"
 		;;
 
 	trojan)
 		gen_config_file $SO_SERVER $rtype "" $socks5_ip
-		ln_bin $(first_type $type) $type --config  $config_file
+		ln_bin $(first_type $type) $type --config  $config_file >$log_file 2>&1 &
 
 		log "Socks5 Node:  $($(first_type $type) --version 2>&1 | head -1) , $threads Threads Started!"
 		;;
 	naiveproxy)
 		gen_config_file $SO_SERVER $rtype
-		ln_bin $(first_type naive) naive $config_file
+		ln_bin $(first_type naive) naive $config_file >$log_file 2>&1 &
 		log "Socks5 Node:  $($(first_type naive) --version 2>&1 | head -1) , Threads Started!"
 		;;
 	hysteria)
 		gen_config_file $SO_SERVER $rtype $socks5_port $socks5_ip
-		ln_bin $(first_type hysteria) hysteria client --config $config_file
+		ln_bin $(first_type hysteria) hysteria client --config $config_file >$log_file 2>&1 &
 		log "Socks5 Node:  $($(first_type hysteria) version | awk '{print $1,$3}')   $type Started!"
 		;;
 	tuic)
 		gen_config_file $SO_SERVER $rtype $socks5_port $socks5_ip
-		ln_bin $(first_type tuic-client) tuic-client --config $config_file
+		ln_bin $(first_type tuic-client) tuic-client --config $config_file >$log_file 2>&1 &
 		log "Socks5 Node:  tuic-client $($(first_type tuic-client) --version) Started!"
 		;;
 	socks5)
@@ -661,19 +655,19 @@ start_local(){
 		if [ "$(uci_get_by_name $GLOBAL_SERVER auth_enable 0)" == "1" ]; then
 			local auth="-a $(uci_get_by_name $GLOBAL_SERVER username) -k $(uci_get_by_name $GLOBAL_SERVER password)"
 		fi
-		ln_bin $(first_type ipt2socks) ipt2socks $tcp_config_file -R -4 -j $threads -s $(uci_get_by_name $GLOBAL_SERVER server) -p $(uci_get_by_name $GLOBAL_SERVER server_port) -l $tcp_port $auth
+		ln_bin $(first_type ipt2socks) ipt2socks $tcp_config_file -R -4 -j $threads -s $(uci_get_by_name $GLOBAL_SERVER server) -p $(uci_get_by_name $GLOBAL_SERVER server_port) -l $tcp_port $auth  >$log_file 2>&1 &
 		log "Socks5 Node:  Socks5 $threads Threads Started!"
 		;;
 	tun)
 		redir_tcp=$threads
 		$BIN_DIR/genred2config $VAR/redsocks-by-retcp.json vpn $(uci_get_by_name $GLOBAL_SERVER iface br-lan) $local_port
 		for i in $(seq 1 $threads);do
-			ln_bin $(first_type redsocks2) redsocks2 -c $VAR/redsocks-by-retcp.json
+			ln_bin $(first_type redsocks2) redsocks2 -c $VAR/redsocks-by-retcp.json >$log_file 2>&1 &
 		done
 		log "Socks5 Node:  Network Tunnel $threads Threads Started!"
 		;;
 	esac
-	ipset add ss_spec_wan_ac $socks5_ip >/dev/null 2>&1 &
+	ipset add bypass_wan_ac $socks5_ip >/dev/null 2>&1 &
 	log "Socks5 Node: Socks5 Server $(uci_get_by_name $SO_SERVER alias) Started!"
 }
 
@@ -731,7 +725,7 @@ gen_dns(){
 		for i in $dns;do
 			case $run_mode in
 			gfw|oversea) ipset add blacklist $i 2>/dev/null;;
-			*) ipset del ss_spec_wan_ac $i 2>/dev/null || ipset add ss_spec_wan_ac $i nomatch 2>/dev/null;;
+			*) ipset del bypass_wan_ac $i 2>/dev/null || ipset add bypass_wan_ac $i nomatch 2>/dev/null;;
 			esac
 		done
 		[ -n "$NF" ] && doh_dns_nf=google
@@ -799,7 +793,7 @@ gen_dns(){
 		for i in $dns;do
 			case $run_mode in
 			gfw|oversea) ipset add blacklist $i 2>/dev/null;;
-			*) ipset del ss_spec_wan_ac $i 2>/dev/null || ipset add ss_spec_wan_ac $i nomatch 2>/dev/null;;
+			*) ipset del bypass_wan_ac $i 2>/dev/null || ipset add bypass_wan_ac $i nomatch 2>/dev/null;;
 			esac
 		done
 		[ -n "$NF" ] && dot_dns_nf=google
@@ -970,11 +964,11 @@ gen_dns(){
 	if [ $dns_mode_d = "doh" ];then
 		echo $doh_d | sed 's/,/\n/g' | sed -e 's/^/server-https /g' -e 's/$/ -group e  -exclude-default-group/g' >> $DNS_T
 		doh_d_dom=$(echo $doh_d | sed 's/,/\n/g' | awk '-F[/:]' '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$" | grep -Ev "\[[0-9]")
-		[ "$doh_d_dom" ] && for i in $doh_d_dom;do echo "domain-rules /$i/ -nameserver f -ipset ss_spec_wan_ac" >>$DNS_T;done
+		[ "$doh_d_dom" ] && for i in $doh_d_dom;do echo "domain-rules /$i/ -nameserver f -ipset bypass_wan_ac" >>$DNS_T;done
 	elif [ $dns_mode_d = "dot" ];then
 		echo $dot_d | sed 's/,/\n/g' | sed -e 's/^/server-https /g' -e 's/$/ -group e  -exclude-default-group/g' >> $DNS_T
 		dot_d_dom=$(echo $dot_d | sed 's/,/\n/g' | awk '-F[/:]' '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$" | grep -Ev "\[[0-9]")
-		[ "$dot_d_dom" ] && for i in $dot_d_dom;do echo "domain-rules /$i/ -nameserver f -ipset ss_spec_wan_ac" >>$DNS_T;done
+		[ "$dot_d_dom" ] && for i in $dot_d_dom;do echo "domain-rules /$i/ -nameserver f -ipset bypass_wan_ac" >>$DNS_T;done
 		
 
 	else	
@@ -985,7 +979,7 @@ gen_dns(){
 	for i in $dns;do echo "server-tcp $i -group b" >>$DNS_T;done
 	for i in $dns_d;do echo "server $i -group f " >>$DNS_T;done
 	# for i in $dns_d;do echo "server $i -group f -bootstrap-dns" >>$DNS_T;done
-	for i in $dns_d;do ipset add ss_spec_wan_ac $i 2>/dev/null;done
+	for i in $dns_d;do ipset add bypass_wan_ac $i 2>/dev/null;done
 	
 	case $run_mode in
 		all)port=5335;;
@@ -1051,7 +1045,7 @@ gen_dns(){
 				sed -i -e "/\/$i\//d" -e "/\.$i\//d" $CON_T 2>/dev/null
 			done
 			awk '!/^$/&&!/^#/{printf("server=/%s/'"127.0.0.1#5336"'\n",$0)}' $O >>$DNS_DIR/white.conf
-			awk '!/^$/&&!/^#/{printf("ipset /%s/'"ss_spec_wan_ac"'\n",$0)}' $O >>$CON_T
+			awk '!/^$/&&!/^#/{printf("ipset /%s/'"bypass_wan_ac"'\n",$0)}' $O >>$CON_T
 		fi
 	fi
 	[ -s $CON_T ] && echo "conf-file $CON_T" >>$DNS_T
@@ -1089,6 +1083,11 @@ add_cron(){
 	fi
 }
 
+del_cron() {
+	grep -q bypass $CRON_FILE && sed -i '/bypass/d' $CRON_FILE && /etc/init.d/cron restart
+}
+
+
 gen_service_file(){
 	[ $(uci_get_by_name $1 fast_open 0) = 1 ] && fast=true || fast=false
 	if [ $2 = ss ];then
@@ -1103,7 +1102,7 @@ gen_service_file(){
 			}
 		EOF
 		plugin=$(uci_get_by_name $1 plugin 0)
-		if [ $plugin != 0 -a -x "$(which $plugin)" ];then
+		if [ $plugin != 0 -a -x "$(command -v  $plugin)" ];then
 			sed -i "s@0.0.0.0\",@0.0.0.0\",\n\"plugin\":\"$plugin\",\n\"plugin_opts\":\"$(uci_get_by_name $1 plugin_opts)\",@" $3
 		fi
 	else
@@ -1136,8 +1135,7 @@ run_server(){
 	ss|ssr)
 		timeout=$(uci_get_by_name $1 timeout 60)
 		gen_service_file $1 $type $VAR/$name.json
-		
-		ln_start_bin $(first_type ${type}server ${type}-server) ${type}-server -c $VAR/$name.json -u 
+		ln_bin $(first_type ${type}server ${type}-server) ${type}-server -c $VAR/$name.json -u   >$log_file 2>&1 &
 		[ $type = ss ] && name=Shadowsocks || name=ShadowsocksR
 		log "By server: $name Server$server_count Started!"
 		;;
@@ -1151,7 +1149,7 @@ run_server(){
 				return 1
 			fi
 		fi
-		ln_start_bin $(first_type microsocks) microsocks -p $port $param $name
+		ln_bin $(first_type microsocks) microsocks -p $port $param $name >$log_file 2>&1 &
 		log "By server: Socks5 Server$server_count Started!"
 		;;
 	esac
@@ -1191,9 +1189,12 @@ start_monitor(){
 }
 
 start(){
-	touch $LOC
 	set_lock
 	[ ! -s $LOG ]  && echo '' > $LOG
+	[ ! -d $VAR  ] && mkdir -p $VAR
+	[ ! -d /tmp/run ] &&  mkdir -p /tmp/run 
+	[ ! -d $TMP_BIN_PATH ] && mkdir $TMP_BIN_PATH
+	[ ! -d $SDNS ] && mkdir $SDNS
 	if [ -n "$switch_server" ];then
 		GLOBAL_SERVER=$switch_server
 		switch_enable=1
@@ -1244,6 +1245,11 @@ start(){
 
 }
 
+boot(){
+	echo '#!/bin/sh' > $FWI
+	mkdir -p /var/run /var/lock /var/log /tmp/dnsmasq.d $TMP_BIN_PATH
+	start
+}
 stop(){
 	unlock
 	set_lock
@@ -1267,14 +1273,13 @@ stop(){
 	kill -9 $(ps -w | grep by-monitor | grep -v grep | awk '{print$1}') 2>/dev/null
 	kill -9 $(ps -w | grep by-preload | grep -v grep | awk '{print$1}') 2>/dev/null
 	kill -9 $(ps -w | grep $VAR | grep -v grep | awk '{print$1}') 2>/dev/null
-	kill_all smartdns chinadns-ng kcptun-client microsocks v2ray-plugin obfs-local xray-plugin
+	kill_all smartdns chinadns-ng kcptun-client microsocks v2ray-plugin obfs-local xray-plugin taojan
 	rm -rf $DNS_DIR $VAR $DNS_FILE $CON_T /tmp/lock/bypass-update.lock
-	[ -z "$GLOBAL_SERVER" ] && grep -q bypass $CRON_FILE && sed -i '/bypass/d' $CRON_FILE && /etc/init.d/cron restart
 	if [ $STATUS = Y -o -z "$GLOBAL_SERVER" ];then
 		if [[ -f /etc/init.d/AdGuardHome && ` uci -q get AdGuardHome.AdGuardHome.redirectold ` ]]; then
 			/etc/init.d/AdGuardHome stop >/dev/null 2>&1 &
 		fi
-		rm -rf $SDNS $PID $LOC
+		rm -rf $SDNS $PID
 		/etc/init.d/dnsmasq restart >/dev/null 2>&1
 		if [ $STATUS = Y -a -z "$GLOBAL_SERVER" ];then
 			rm -rf $LOG
@@ -1304,7 +1309,7 @@ stop(){
 			dns_d_l=$(echo $dns_d_l | sed -e 's/，/,/g' -e 's/。/./g' -e 's/：/:/g' -e 's/,/\n/g')
 			for i in $dns_d_l;do echo "server $i" >> $DNS_T;done
 		fi
-		$(which smartdns) -c $DNS_T
+		$(command -v  smartdns) -c $DNS_T
 		r=1
 		while ! ps -w | grep smartdns | grep -v grep >/dev/null;do
 			[ $r -ge 10 ] && return 1 || let r++
@@ -1312,6 +1317,7 @@ stop(){
 		done
 	fi
 	kill_all smartdns chinadns-ng AdGuardHome
+	del_cron
 	unset_lock
 }
 
@@ -1320,15 +1326,55 @@ kill_all() {
 }
 
 restart(){
-	[ -f $LOC ] && exit 1
-	touch $LOC
 	STATUS=N
 	stop
 	start
 }
 
-boot(){
-	echo '#!/bin/sh' > $FWI
-	touch $LOCK
-	start
+reset() {
+	stop
+	set_lock
+	rm -rf /etc/config/bypass
+	touch /etc/config/bypass
+	uci -q batch <<-EOF >/dev/null
+		add bypass global
+		set bypass.@global[0]=global
+		set bypass.@global[0].dports='2'
+		set bypass.@global[0].threads='0'
+		set bypass.@global[0].run_mode='router'
+		set bypass.@global[0].tcp_dns_o='1.1.1.1,1.0.0.1'
+		set bypass.@global[0].gfw_mode='1'
+		set bypass.@global[0].dns_mode_d='doh'
+		set bypass.@global[0].doh_dns_d='dnspod'
+		set bypass.@global[0].monitor_enable='1'
+		set bypass.@global[0].enable_switch='1'
+		set bypass.@global[0].switch_time='300'
+		set bypass.@global[0].switch_timeout='5'
+		set bypass.@global[0].switch_try_count='3'
+		set bypass.@global[0].udp_relay_server='same'
+		set bypass.@global[0].adguardhome='0'
+		set bypass.@global[0].ad_smartdns='0'
+		set bypass.@global[0].proxy_ipv6_mode='1'
+		set bypass.@global[0].dns_mode_o='doh'
+		set bypass.@global[0].doh_dns_o='cloudflare'
+		add bypass socks5_proxy
+		set bypass.@socks5_proxy[0]=socks5_proxy
+		add bypass access_control
+		set bypass.@access_control[0]=access_control
+		set bypass.@access_control[0].lan_ac_mode='b'
+		add bypass server_global
+		set bypass.@server_global[0]=server_global
+		add bypass global_rules
+		set bypass.@global_rules[0]=global_rules
+		add bypass server_subscribe
+		set bypass.@server_subscribe[0]=server_subscribe
+		set bypass.@server_subscribe[0].proxy='0'
+		set bypass.@server_subscribe[0].auto_update_time='4'
+		set bypass.@server_subscribe[0].filter_words='时间/剩余/QQ群/官网/防失联地址/回国/反馈/到期/流量'
+		set bypass.@server_subscribe[0].switch='1'
+		set bypass.@server_subscribe[0].auto_update='0'
+		set bypass.@server_subscribe[0].user_agent='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36'
+		commit bypass
+	EOF
+	unset_lock
 }

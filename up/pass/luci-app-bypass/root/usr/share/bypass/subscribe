@@ -122,9 +122,7 @@ end
 -- base64
 local function base64Decode(text)
 	local raw = text
-	if not text then
-		return ''
-	end
+	if not text then return '' end
 	text = text:gsub("%z", "")
 	text = text:gsub("_", "/")
 	text = text:gsub("-", "+")
@@ -282,10 +280,7 @@ local function processData(szType, content)
 		else
 			result.server_port = host[2]:gsub("/","")
 		end
-		if checkTabValue(encrypt_methods_ss)[method] then
-			result.encrypt_method_ss = method
-			result.password = password
-		else
+		if not checkTabValue(encrypt_methods_ss)[method] then
 			-- 1202 年了还不支持 SS AEAD 的屑机场
 			result.server = nil
 		end
@@ -619,13 +614,13 @@ local execute = function()
 					-- SYS.call("touch /var/lock/bypass-uci.lock")
 					ucic:set(name, ucic:get_first(name, 'global'), 'global_server', ucic:get_first(name, uciType))
 					ucic:commit(name)
-					log('当前主服务器节点已被删除，正在自动更换为第一个节点。')
+					log('当前主服务器节点为空，自动切换到第一个节点。')
 				else
 					log('维持当前主服务器节点。')
 				end
 			else
 				log('没有服务器节点了，停止服务')
-				luci.sys.call("/etc/init.d/" .. name .. " stop > /dev/null 2>&1 &")
+			SYS.call("/etc/init.d/bypass stop > /dev/null 2>&1 &")
 			end
 		end
 		-- SYS.call("rm -rf /var/lock/bypass-uci.lock")

@@ -1,7 +1,8 @@
 #!/bin/sh
 NAME=bypass
 S=/usr/share/$NAME
-
+TMP_PATH=/var/etc/$NAME
+TMP_BIN_PATH=$TMP_PATH/bin
 uci_get_by_name(){
 	w=$(uci -q get $NAME.$1.$2)
 	echo ${w:=$3}
@@ -29,7 +30,7 @@ ln_bin() {
 			ln -s "${file_func}" "${TMP_BIN_PATH}/${ln_name}" >/dev/null 2>&1
 			file_func="${TMP_BIN_PATH}/${ln_name}"
 		}
-		[ -x "${file_func}" ] || log "$(readlink ${file_func}) no run£º${file_func} $*"
+		[ -x "${file_func}" ] || log "$(readlink ${file_func}) no run ${file_func} $*"
 	fi
 	echo "${file_func} $*" 
 	[ -x "${file_func}" ] || {
@@ -134,25 +135,25 @@ curl_check(){
 	param=
 	case $type in
 		ss|ssr)
-			ln_bin $(first_type ${type}local ${type}-redir) ${type}-redir -c  $J
+			ln_bin $(first_type ${type}local ${type}-redir) ${type}-redir -c  $J  >/dev/null 2>&1 &
 			;;
 		v2ray)
 			$S/gen_config $1 tcp 0 $lport $ip > $J
 			sed -i 's/\\//g' $J
-			ln_bin $(first_type xray v2ray) v2ray run -config $J
+			ln_bin $(first_type xray v2ray) v2ray run -config $J  >/dev/null 2>&1 &
 			;;
 		hysteria)
 		        $S/gen_config $1 tcp 0 $lport $ip > $J
 			sed -i 's/\\//g' $J
-			ln_bin $(first_type hysteria) hysteria client --config $J
+			ln_bin $(first_type hysteria) hysteria client --config $J  >/dev/null 2>&1 &
 			;;
 		trojan)
 			$S/gen_config $1 client $lport $ip > $J
 			sed -i 's/\\//g' $J
-			ln_bin $(first_type $type) $type --config  $J
+			ln_bin $(first_type $type) $type --config  $J >/dev/null 2>&1 &
 			;;
 		naiveproxy)
-			ln_bin $(first_type naive) naive $J  ;;
+			ln_bin $(first_type naive) naive $J  >/dev/null 2>&1 & ;;
 		socks5)IP=$ip
 			if [ $(uci_get_by_name $1 auth_enable 0) = 1 ];then
 				username=$(uci_get_by_name $1 username)
@@ -179,7 +180,7 @@ test_proxy(){
 	ip=$(uci_get_by_name $1 server)
 	get_ip || return 1
 	port=$(uci_get_by_name $1 server_port)
-	ipset add ss_spec_wan_ac $ip 2>/dev/null
+	ipset add bypass_wan_ac $ip 2>/dev/null
 	a=$?
 	b=$(tcping -c $time_b -i 1 -t 2 -p $port $ip 2>/dev/null | grep 'failed' | awk -F ',' '{print$3}' | awk -F . '{print$1}')
 	if [ -z "$b" -o "$b" -gt 50 ];then
@@ -187,7 +188,7 @@ test_proxy(){
 	else
 		curl_check $1;b=$?
 	fi
-	[ $a = 0 ] && ipset del ss_spec_wan_ac $ip 2>/dev/null
+	[ $a = 0 ] && ipset del bypass_wan_ac $ip 2>/dev/null
 	return $b
 }
 
@@ -211,11 +212,11 @@ select_proxy(){
 		ip=$(uci_get_by_name $d server)
 		get_ip || continue
 		port=$(uci_get_by_name $d server_port)
-		ipset add ss_spec_wan_ac $ip 2>/dev/null
+		ipset add bypass_wan_ac $ip 2>/dev/null
 		x=$?
 		$S/by-check $ip $port $time_b && curl_check $d
 		y=$?
-		[ $x = 0 ] && ipset del ss_spec_wan_ac $ip 2>/dev/null
+		[ $x = 0 ] && ipset del bypass_wan_ac $ip 2>/dev/null
 		if [ $y = 0 ];then
 			SERVER_C=$d
 			c=$i
