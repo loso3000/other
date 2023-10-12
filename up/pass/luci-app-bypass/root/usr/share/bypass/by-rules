@@ -181,6 +181,7 @@ gen_include(){
 			EOT
 		EOF
 		)
+	}
 	local __ip6t=""
 	[ -n "${ip6t}" ] && {
 		__ip6t=$(cat <<- EOF
@@ -191,6 +192,7 @@ gen_include(){
 			EOT
 		EOF
 		)
+	}
 	cat <<-EOF >> $FWI
 		${__ipt}
 		
