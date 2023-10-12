@@ -1,6 +1,6 @@
 #!/bin/sh
 
-uci -q batch <<EOF
+uci batch <<EOF
 	delete ucitrack.@bypass[-1]
 	add ucitrack bypass
 	set ucitrack.@bypass[-1].init=bypass

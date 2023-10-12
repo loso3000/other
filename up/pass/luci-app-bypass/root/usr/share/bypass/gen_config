@@ -7,12 +7,12 @@ local server_section = arg[1]
 local proto = arg[2]
 local local_port = arg[3] or "0"
 local socks_port = arg[4] or "0"
-local chain = arg[5] or "0"
-local chain_local_port = string.split(chain, "/")[2] or "0"
+local ip_addr = arg[5]
 
 local server = ucursor:get_all("bypass", server_section)
 local outbound_settings = nil
 
+local tls_host = (server.tls_host) and server.tls_host or server.server
 
 function vmess_vless()
 	outbound_settings = {
@@ -97,6 +97,9 @@ function outbound:handleIndex(index)
 			trojan_shadowsocks()
 		end,
 		shadowsocks = function()
+			trojan_shadowsocks()
+		end,
+		shadowsocksr = function()
 			trojan_shadowsocks()
 		end,
 		socks = function()

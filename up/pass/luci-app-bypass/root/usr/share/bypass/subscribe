@@ -485,7 +485,7 @@ local execute = function()
 				if i ~= 1 then
 				     log('--------------------------------------------------')
 				end
-				log('解析第'..i..'个链接:'.. url)
+				log('解析第'..i..'个链接:')
 				local nodes, szType
 				local num=0
 				local groupHash = md5(url)
