@@ -14,7 +14,8 @@ uci batch <<EOF
 EOF
 
 chmod +x /etc/init.d/bypass /usr/share/bypass/* >/dev/null 2>&1
-[ -s "/etc/config/bypass" ] || /etc/init.d/bypass reset
+rm -rf /tmp/luci-*
+#[ -s "/etc/config/bypass" ] || /etc/init.d/bypass reset
 sed -i "s/option type 'vmess'/option type 'v2ray'\n\toption v2ray_protocol 'vmess'/g" /etc/config/bypass
 sed -i "s/option type 'vless'/option type 'v2ray'\n\toption v2ray_protocol 'vless'/g" /etc/config/bypass
 sed -i "s/option encrypt_method_v2ray_ss/option encrypt_method_ss/g" /etc/config/bypass
@@ -22,6 +23,4 @@ sed -i "s/option xtls/option tls/g" /etc/config/bypass
 sed -i "/option vless_flow/d" /etc/config/bypass
 sed -i "/option fingerprint 'disable'/d" /etc/config/bypass
 
-rm -rf /tmp/luci-modulecache /tmp/luci-indexcache
-/etc/init.d/bypass restart
 exit 0

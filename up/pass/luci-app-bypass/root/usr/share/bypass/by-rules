@@ -149,30 +149,18 @@ tp_rule(){
 
 gen_include(){
 	extract_rules() {
-		local _ipt="${ipt}"
-		[ "$1" == "6" ] && _ipt="${ip6t}"
-		[ -z "${_ipt}" ] && return
-
 		echo "*$2"
-		${_ipt}-save -t $2 | grep BYPASS_ |\
+		$1-save -t $2 | grep SS_SPEC_ |\
 			sed -e "s/^-A \(OUTPUT\|PREROUTING\)/-I \1 1/"
 		echo 'COMMIT'
 	}
-	local __ipt=""
-	[ -n "${ipt}" ] && {
-		__ipt=$(cat <<- EOF
-			${ipt}-save -c | grep -v "BYPASS" | ${ipt}-restore -c
-			${ipt}-restore -n <<-EOT
-			$(extract_rules 4 nat)
-			$(extract_rules 4 mangle)
-			EOT
-		EOF
-		)
-	}
-
 	cat <<-EOF >> $FWI
-		${__ipt}
-	EOF
+	${ipt}-save -c | grep -v "SS_SPEC" | ${ipt}-restore -c
+	${ipt}-restore -n <<-EOT
+	$(extract_rules ${ipt} nat)
+	$(extract_rules ${ipt} mangle)
+	EOT
+EOF
 }
 
 while getopts ":s:l:S:L:N:P:a:b:w:p:G:D:rczf" arg;do
