@@ -28,7 +28,7 @@ local subscribe_url = ucic:get_first(name, 'server_subscribe', 'subscribe_url', 
 local filter_words = ucic:get_first(name, 'server_subscribe', 'filter_words', '时间/剩余')
 local save_words = ucic:get_first(name, 'server_subscribe', 'save_words', '')
 local v2_ss = SYS.exec('type -t -p ss-redir sslocal') ~= "" and "ss" or "v2ray"
-
+local v2_ssr = SYS.exec('type -t -p ssr-redir') ~= "" and "ssr" or "v2ray"
 local v2_tj = SYS.exec('type -t -p trojan') ~= "" and "trojan" or "v2ray"
 local ua = ucic:get_first(name, 'server_subscribe', 'user_agent', '')
 local log = function(...)
@@ -71,6 +71,7 @@ local encrypt_methods_ss = {
 }
 -- 分割字符串
 local function split(full, sep)
+	if full then
 	full = full:gsub("%z", "") -- 这里不是很清楚 有时候结尾带个\0
 	local off, result = 1, {}
 	while true do
@@ -88,6 +89,8 @@ local function split(full, sep)
 	end
 	return result
 end
+	return {}
+end
 -- urlencode
 local function get_urlencode(c)
 	return sformat("%%%02X", sbyte(c))
@@ -99,9 +102,7 @@ local function urlEncode(szText)
 	return str
 end
 
-local function get_urldecode(h)
-	return schar(tonumber(h, 16))
-end
+local function get_urldecode(h) return schar(tonumber(h, 16)) end
 local function UrlDecode(szText)
 	return (szText and szText:gsub("+", " "):gsub("%%(%x%x)", get_urldecode)) or nil
 end
@@ -122,7 +123,9 @@ end
 -- base64
 local function base64Decode(text)
 	local raw = text
-	if not text then return '' end
+	if not text then
+		return ''
+	end
 	text = text:gsub("%z", "")
 	text = text:gsub("_", "/")
 	text = text:gsub("-", "+")
@@ -206,17 +209,17 @@ local function processData(szType, content)
 			result.write_buffer_size = 2
 		end
 
+		if info.net == 'quic' then
+			result.quic_guise = info.type
+			result.quic_key = info.key
+			result.quic_security = info.securty
+		end
 		if info.net == 'grpc' then
 			if info.path then
 				result.serviceName = info.path
 			elseif info.serviceName then
 				result.serviceName = info.serviceName
 			end
-		end
-		if info.net == 'quic' then
-			result.quic_guise = info.type
-			result.quic_key = info.key
-			result.quic_security = info.securty
 		end
 		if info.security then
 			result.security = info.security
@@ -620,7 +623,7 @@ local execute = function()
 				end
 			else
 				log('没有服务器节点了，停止服务')
-			SYS.call("/etc/init.d/bypass stop > /dev/null 2>&1 &")
+				SYS.call("/etc/init.d/bypass stop > /dev/null 2>&1 &")
 			end
 		end
 		-- SYS.call("rm -rf /var/lock/bypass-uci.lock")
@@ -634,7 +637,6 @@ if subscribe_url and #subscribe_url > 0 then
 		log("网络不通，停止更新订阅")
 		return
 	end
-
 	xpcall(execute, function(e)
 		log(e)
 		log(debug.traceback())

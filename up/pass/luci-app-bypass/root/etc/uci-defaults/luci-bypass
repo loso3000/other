@@ -1,5 +1,4 @@
 #!/bin/sh
-
 uci batch <<EOF
 	delete ucitrack.@bypass[-1]
 	add ucitrack bypass

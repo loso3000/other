@@ -333,18 +333,7 @@ local hysteria = {
 	fast_open = (server.fast_open == "1") and true or false,
 	lazy = (server.lazy_mode == "1") and true or false
 }
-local shadowtls = {
-	client = {
-		server_addr = server.server_port and server.server .. ":" .. server.server_port or nil,
-		listen = "127.0.0.1:" .. tonumber(local_port),
-		tls_names = server.shadowtls_sni,
-		password = server.password 
-	},
-	v3 = (server.shadowtls_protocol == "v3") and true or false,
-	disable_nodelay = (server.disable_nodelay == "1") and true or false,
-	fastopen = (server.fastopen == "1") and true or false,
-	strict = (server.strict == "1") and true or false
-}
+
 local chain_sslocal = {
 		locals = local_port ~= "0" and {
 		{
@@ -476,28 +465,7 @@ function config:handleIndex(index)
 		hysteria = function()
 			print(json.stringify(hysteria, 1))
 		end,
-		shadowtls = function()
-			local chain_switch = {
-				sslocal = function()
-					if (chain:find("chain")) then
-						print(json.stringify(chain_sslocal, 1))
-					else
-						print(json.stringify(shadowtls, 1))
-					end
-				end,
-				vmess = function()
-					if (chain:find("chain")) then
-						print(json.stringify(chain_vmess, 1))
-					else
-						print(json.stringify(shadowtls, 1))
-					end
-				end
-			}
-			local ChainType = server.chain_type
-				if chain_switch[ChainType] then
-					chain_switch[ChainType]()
-				end
-			end,
+		
 		tuic = function()
 			print(json.stringify(tuic, 1))
 		end

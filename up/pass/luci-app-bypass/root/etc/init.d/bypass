@@ -18,7 +18,6 @@ LOG=/tmp/log/bypass.log
 
 ipt=$(command -v iptables-legacy || command -v iptables)
 ip6t=$(command -v ip6tables-legacy || command -v ip6tables)
-
 BIN_DIR=/usr/share/bypass
 DNS_FILE=/tmp/dnsmasq.d/dnsmasq-by.conf
 DNS_DIR=/tmp/dnsmasq.d/dnsmasq-by.d
@@ -34,7 +33,6 @@ local_enable=0
 switch_enable=0
 switch_server=$1
 server_count=0
-
 STATUS=Y
 tmp_tcp_local_port="306"   #tcp socks temporary port
 uci_get_by_name() {
@@ -70,15 +68,11 @@ log(){
 	echo "$(date +'%Y-%m-%d %H:%M:%S') $*" >> $LOG
 }
 
-
-
 clean_log() {
 	[ `cat $LOG  | wc -l ` -gt 500 ] && {
 		echo "$(date "+%Y-%m-%d %H:%M:%S") LOG long ,clear log!" >$LOG
 	}
 }
-
-
 f_bin(){
 	case $1 in
 	ss) ret=$(which ss-redir);;
@@ -392,14 +386,14 @@ start_retcp(){
 		fi
 		;;
 	hysteria)
-        	if [ $SO_SERVER = $GLOBAL_SERVER ];then
+		if [ $SO_SERVER = $GLOBAL_SERVER ];then
 			port=$(uci_get_by_type socks5_proxy local_port 1080)
 			socks5_start=1
 		else
 			port=0
 		fi
 		gen_config_file $GLOBAL_SERVER $rtype $port $server
-		$cmd  client --config $config_file >$log_file 2>&1 &
+		$cmd -c $config_file >$log_file 2>&1 &
 
 		log "Main Node: $($cmd -version | head -1 | awk '{print$1,$2}') Started!"
 		if [ "$socks5_start" = 1 ];then
@@ -418,7 +412,7 @@ start_retcp(){
 		;;
 	naiveproxy)
 		gen_config_file $GLOBAL_SERVER $rtype
-		$cmd --config $config_file >$log_file 2>&1 & 
+		$cmd --config $config_file >$log_file 2>&1 &
 		log "Main Node: $($cmd --version | head -1) Threads Started!"
 		;;
 	socks5)
@@ -461,11 +455,10 @@ start_reudp(){
 		gen_config_file $UDP_RELAY_SERVER $rtype 0 $udp_server
 		$cmd  run -c $config_file >$log_file 2>&1 &
 		log "UDP Node: $($cmd -version | head -1 | awk '{print$1,$2}') $utype Started!"
-
 		;;
 	trojan)
 		gen_config_file $UDP_RELAY_SERVER $rtype "" $udp_server
-		$cmd  --config  $config_file >$log_file 2>&1 &
+		$cmd --config $config_file >$log_file 2>&1 &
 		name=Trojan-Plus
 		ver="$($cmd --version 2>&1 | head -1 | awk '{print$3}')"
 		log "UDP Node: $name (Ver $ver) $utype Started!"
@@ -477,14 +470,12 @@ start_reudp(){
 		;;
 
 	hysteria)
+	
 		gen_config_file $UDP_RELAY_SERVER $rtype 0 $udp_server
-		$cmd --config $config_file >$log_file 2>&1 &
+		$cmd -c $config_file >$log_file 2>&1 &
 		log "UDP Node: $($cmd -version | head -1 | awk '{print$1,$2}') $utype Started!"
 		;;
-
 	socks5)
-	
-
 		$BIN_DIR/genred2config $VAR/redsocks-by-reudp.json socks5 udp $udp_local_port $udp_server \
 		$(uci_get_by_name $UDP_RELAY_SERVER server_port) $(uci_get_by_name $UDP_RELAY_SERVER auth_enable 0) $(uci_get_by_name $UDP_RELAY_SERVER username) $(uci_get_by_name $UDP_RELAY_SERVER password)
 		$cmd --config $VAR/redsocks-by-reudp.json >$log_file 2>&1
@@ -514,37 +505,23 @@ start_renf(){
 		log "NF  Shunt : $name $ntype Started!"
 		;;
 	v2ray)
-
 		gen_config_file $NF_SERVER $rtype 0 $nf_ip
 		$cmd run -c $config_file >$log_file 2>&1 &
 		log "NF  Shunt : $($cmd -version | head -1 | awk '{print$1,$2}') $ntype Started!"
-
 		;;
 	hysteria)
 		gen_config_file $NF_SERVER $rtype 0 $nf_ip
-		$cmd client --config $config_file >$log_file 2>&1 &
+		$cmd -c $config_file >$log_file 2>&1 &
 		log "NF  Shunt : $($cmd -version | head -1 | awk '{print$1,$2}') $ntype Started!"
 		;;
-	tuic)
-		#local chain_shunt_port="30${tmp_shunt_port}"
-		#gen_config_file $NF_SERVER $rtype 3 $nf_local_port 0 chain #make a tuic socks:30303, make a ipt2socks redir:303
-		#ln_bin $(first_type tuic-client) tuic-client --config $config_file >$log_file 2>&1 &
-		#ln_bin $(first_type ipt2socks) ipt2socks -R -b 0.0.0.0 -4 -s 127.0.0.1 -p $chain_shunt_port -l $tmp_shunt_port >$log_file 2>&1 &
-		#[ -n "$tmp_local_port" ] && tmp_port=$tmp_local_port || tmp_port=$tmp_shunt_local_port
-		#gen_config_file $NF_SERVER $rtype 3 $nf_local_port		# make a tuic socks :304
-		#ln_bin $(first_type tuic-client) tuic-client --config $config_file >$log_file 2>&1 &
-		#ln_bin $(first_type dns2socks) dns2socks 127.0.0.1:$tmp_port 8.8.8.8:53 127.0.0.1:$tmp_shunt_dns_port -q >$log_file 2>&1 &
-		#log "NF  Shunt : tuic-client $($(first_type tuic-client) --version) Started!"
-		;;
-
 	trojan)
 		gen_config_file $NF_SERVER $rtype "" $nf_ip
-		$cmd --config  $config_file >$log_file 2>&1 &
+		$cmd --config $config_file >$log_file 2>&1 &
 		[ $ntype = trojan ] && {
 			name=Trojan-Plus
 			ver="$($cmd --version 2>&1 | head -1 | awk '{print$3}')"
 		}
-		log "NF  Shunt : $name (Ver $ver) $type Started!"
+		log "NF  Shunt : $name (Ver $ver) $ntype Started!"
 		;;
 	naiveproxy)
 		gen_config_file $NF_SERVER $rtype
@@ -582,7 +559,7 @@ start_local(){
 		gen_config_file $SO_SERVER $rtype
 		$cmd -c $config_file -u >$log_file 2>&1 &
 		[ $type = ss ] && name=Shadowsocks || name=ShadowsocksR
-		log "Socks5 Node:  $name $type Started!"
+		log "Socks5 Node: $name $type Started!"
 		;;
 	v2ray)
 		gen_config_file $SO_SERVER $rtype $socks5_port $socks5_ip
@@ -591,7 +568,7 @@ start_local(){
 		;;
 	hysteria)
 		gen_config_file $SO_SERVER $rtype $socks5_port $socks5_ip
-		$cmd client --config $config_file >$log_file 2>&1 &
+		$cmd -c $config_file >$log_file 2>&1 &
 		log "Socks5 Node: $($cmd -version | head -1 | awk '{print$1,$2}') $type Started!"
 		;;
 	trojan)
@@ -609,7 +586,7 @@ start_local(){
 		log "Socks5 Node: $($cmd --version | head -1) $type Started!"
 		;;
 	esac
-	ipset add bypass_wan_ac $socks5_ip >/dev/null 2>&1 &
+	ipset add ss_spec_wan_ac $socks5_ip >/dev/null 2>&1 &
 	log "Socks5 Node: Socks5 Server $(uci_get_by_name $SO_SERVER alias) Started!"
 }
 
@@ -667,7 +644,7 @@ gen_dns(){
 		for i in $dns;do
 			case $run_mode in
 			gfw|oversea) ipset add blacklist $i 2>/dev/null;;
-			*) ipset del bypass_wan_ac $i 2>/dev/null || ipset add bypass_wan_ac $i nomatch 2>/dev/null;;
+			*) ipset del ss_spec_wan_ac $i 2>/dev/null || ipset add ss_spec_wan_ac $i nomatch 2>/dev/null;;
 			esac
 		done
 		[ -n "$NF" ] && doh_dns_nf=google
@@ -735,7 +712,7 @@ gen_dns(){
 		for i in $dns;do
 			case $run_mode in
 			gfw|oversea) ipset add blacklist $i 2>/dev/null;;
-			*) ipset del bypass_wan_ac $i 2>/dev/null || ipset add bypass_wan_ac $i nomatch 2>/dev/null;;
+			*) ipset del ss_spec_wan_ac $i 2>/dev/null || ipset add ss_spec_wan_ac $i nomatch 2>/dev/null;;
 			esac
 		done
 		[ -n "$NF" ] && dot_dns_nf=google
@@ -906,11 +883,11 @@ gen_dns(){
 	if [ $dns_mode_d = "doh" ];then
 		echo $doh_d | sed 's/,/\n/g' | sed -e 's/^/server-https /g' -e 's/$/ -group e  -exclude-default-group/g' >> $DNS_T
 		doh_d_dom=$(echo $doh_d | sed 's/,/\n/g' | awk '-F[/:]' '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$" | grep -Ev "\[[0-9]")
-		[ "$doh_d_dom" ] && for i in $doh_d_dom;do echo "domain-rules /$i/ -nameserver f -ipset bypass_wan_ac" >>$DNS_T;done
+		[ "$doh_d_dom" ] && for i in $doh_d_dom;do echo "domain-rules /$i/ -nameserver f -ipset ss_spec_wan_ac" >>$DNS_T;done
 	elif [ $dns_mode_d = "dot" ];then
 		echo $dot_d | sed 's/,/\n/g' | sed -e 's/^/server-https /g' -e 's/$/ -group e  -exclude-default-group/g' >> $DNS_T
 		dot_d_dom=$(echo $dot_d | sed 's/,/\n/g' | awk '-F[/:]' '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$" | grep -Ev "\[[0-9]")
-		[ "$dot_d_dom" ] && for i in $dot_d_dom;do echo "domain-rules /$i/ -nameserver f -ipset bypass_wan_ac" >>$DNS_T;done
+		[ "$dot_d_dom" ] && for i in $dot_d_dom;do echo "domain-rules /$i/ -nameserver f -ipset ss_spec_wan_ac" >>$DNS_T;done
 		
 
 	else	
@@ -921,7 +898,7 @@ gen_dns(){
 	for i in $dns;do echo "server-tcp $i -group b" >>$DNS_T;done
 	for i in $dns_d;do echo "server $i -group f " >>$DNS_T;done
 	# for i in $dns_d;do echo "server $i -group f -bootstrap-dns" >>$DNS_T;done
-	for i in $dns_d;do ipset add bypass_wan_ac $i 2>/dev/null;done
+	for i in $dns_d;do ipset add ss_spec_wan_ac $i 2>/dev/null;done
 	
 	case $run_mode in
 		all)port=5335;;
@@ -987,7 +964,7 @@ gen_dns(){
 				sed -i -e "/\/$i\//d" -e "/\.$i\//d" $CON_T 2>/dev/null
 			done
 			awk '!/^$/&&!/^#/{printf("server=/%s/'"127.0.0.1#5336"'\n",$0)}' $O >>$DNS_DIR/white.conf
-			awk '!/^$/&&!/^#/{printf("ipset /%s/'"bypass_wan_ac"'\n",$0)}' $O >>$CON_T
+			awk '!/^$/&&!/^#/{printf("ipset /%s/'"ss_spec_wan_ac"'\n",$0)}' $O >>$CON_T
 		fi
 	fi
 	[ -s $CON_T ] && echo "conf-file $CON_T" >>$DNS_T
@@ -1024,8 +1001,6 @@ add_cron(){
 		fi
 	fi
 }
-
-
 
 gen_service_file(){
 	[ $(uci_get_by_name $1 fast_open 0) = 1 ] && fast=true || fast=false
@@ -1076,7 +1051,7 @@ run_server(){
 	ss|ssr)
 		timeout=$(uci_get_by_name $1 timeout 60)
 		gen_service_file $1 $type $VAR/$name.json
-		$cmd -c $VAR/$name.json -u  >/dev/null 2>&1
+		$cmd -c $VAR/$name.json -u >/dev/null 2>&1 &
 		[ $type = ss ] && name=Shadowsocks || name=ShadowsocksR
 		log "By server: $name Server$server_count Started!"
 		;;
@@ -1090,7 +1065,7 @@ run_server(){
 				return 1
 			fi
 		fi
-		$cmd  -p $port $param $name >/dev/null 2>&1
+		$cmd -p $port $param $name >/dev/null 2>&1 &
 		log "By server: Socks5 Server$server_count Started!"
 		;;
 	esac
@@ -1178,10 +1153,10 @@ start(){
 	fi
 	clean_log 
 	rm -f $LOCK $LOC
+
 }
 
 stop(){
-
 	kill -9 $(ps -w | grep by-rules | grep -v grep | awk '{print$1}') 2>/dev/null
 	kill -9 $(ps -w | grep gfw.b64 | grep -v grep | awk '{print$1}') 2>/dev/null
 	kill -9 $(ps -w | grep $BIN_DIR/checknetwork | grep -v grep | awk '{print$1}') 2>/dev/null
@@ -1194,12 +1169,12 @@ stop(){
 		$ipt -X BY-SERVER-RULE 2>/dev/null
 	fi
 	[ -z "$switch_server" ] && kill -9 $(ps -w | grep by-switch | grep -v grep | awk '{print$1}') 2>/dev/null
-
 	kill -9 $(ps -w | grep by-monitor | grep -v grep | awk '{print$1}') 2>/dev/null
 	kill -9 $(ps -w | grep by-preload | grep -v grep | awk '{print$1}') 2>/dev/null
 	kill -9 $(ps -w | grep $VAR | grep -v grep | awk '{print$1}') 2>/dev/null
 	killall -q -9 smartdns chinadns-ng kcptun-client microsocks
-	rm -rf $DNS_DIR $VAR $DNS_FILE $CON_T /var/lock/bypass-update.lock
+
+	rm -rf $DNS_DIR $VAR $DNS_FILE $CON_T /tmp/lock/bypass-update.lock
 	[ -z "$GLOBAL_SERVER" ] && grep -q bypass $CRON_FILE && sed -i '/bypass/d' $CRON_FILE && /etc/init.d/cron restart
 	if [ $STATUS = Y -o -z "$GLOBAL_SERVER" ];then
 		if [[ -f /etc/init.d/AdGuardHome && ` uci -q get AdGuardHome.AdGuardHome.redirectold ` ]]; then
@@ -1243,7 +1218,6 @@ stop(){
 		done
 	fi
 
-	killall -q -9 smartdns chinadns-ng kcptun-client microsocks
 }
 
 restart(){

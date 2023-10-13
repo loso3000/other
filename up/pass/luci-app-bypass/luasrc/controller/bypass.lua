@@ -15,7 +15,9 @@ function index()
 	entry({'admin', 'services','bypass','servers-subscribe'}, cbi('bypass/servers-subscribe', {hideapplybtn = true, hidesavebtn = true, hideresetbtn = true}), _('Subscribe'), 30).leaf = true
 	entry({"admin","services","bypass","control"},cbi("bypass/control"),_("Access Control"),40).leaf=true
 	entry({"admin","services","bypass","advanced"},cbi("bypass/advanced"),_("Advanced Settings"),60).leaf=true
-	entry({"admin","services","bypass","server"},arcombine(cbi("bypass/server"),cbi("bypass/server-config")),_("Server"),70).leaf=true
+	if luci.sys.call("which ssr-server >/dev/null")==0 or luci.sys.call("which ss-server >/dev/null")==0 or luci.sys.call("which microsocks >/dev/null")==0 then
+	      entry({"admin","services","bypass","server"},arcombine(cbi("bypass/server"),cbi("bypass/server-config")),_("Server"),70).leaf=true
+	end
 	entry({"admin","services","bypass","log"},form("bypass/log"),_("Log"),80).leaf=true
 	entry({"admin","services","bypass","run"},call("act_status"))
 	entry({"admin", "services", "bypass", "checknet"}, call("check_net"))
@@ -70,11 +72,11 @@ function act_ping()
 	local dp=EXEC("netstat -unl | grep 5336 >/dev/null && echo -n 5336 || echo -n 53")
 	local ip=EXEC("echo "..domain.." | grep -E ^[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}$ || nslookup "..domain.." 2>/dev/null | grep Address | awk -F' ' '{print$NF}' | grep -E ^[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}$ | sed -n 1p")
 	ip=EXEC("echo -n "..ip)
-	local iret=luci.sys.call("ipset add bypass_wan_ac "..ip.." 2>/dev/null")
+	local iret=luci.sys.call("ipset add ss_spec_wan_ac "..ip.." 2>/dev/null")
 	e.ping = luci.sys.exec(string.format("tcping -q -c 1 -i 1 -t 2 -p %s %s 2>&1 | awk -F 'time=' '{print $2}' | awk -F ' ' '{print $1}'",port,ip))
 
 	if (iret==0) then
-		luci.sys.call(" ipset del bypass_wan_ac " .. ip)
+		luci.sys.call(" ipset del ss_spec_wan_ac " .. ip)
 	end
 	luci.http.prepare_content("application/json")
 	luci.http.write_json(e)
@@ -107,7 +109,7 @@ function check_port()
 		local ip=luci.sys.exec("echo "..s.server.." | grep -E \"^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$\" || \\\
 		nslookup "..s.server.." 127.0.0.1:"..dp.." 2>/dev/null | grep Address | awk -F' ' '{print$NF}' | grep -E \"^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$\" | sed -n 1p")
 		ip=luci.sys.exec("echo -n "..ip)
-		iret=luci.sys.call("ipset add bypass_wan_ac "..ip.." 2>/dev/null")
+		iret=luci.sys.call("ipset add ss_spec_wan_ac "..ip.." 2>/dev/null")
 		socket=nixio.socket("inet","stream")
 		socket:setopt("socket","rcvtimeo",3)
 		socket:setopt("socket","sndtimeo",3)
@@ -119,7 +121,7 @@ function check_port()
 			retstring=retstring.."<font color='red'>["..server_name.."] Error.</font><br/>"
 		end
 		if  iret==0 then
-			luci.sys.call("ipset del bypass_wan_ac "..ip)
+			luci.sys.call("ipset del ss_spec_wan_ac "..ip)
 		end
 	end)
 	luci.http.prepare_content("application/json")
