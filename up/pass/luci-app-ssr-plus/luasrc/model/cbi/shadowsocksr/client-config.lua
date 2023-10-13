@@ -146,6 +146,9 @@ end
 if is_finded("ss-local") or is_finded("ss-redir") then
 	o:value("ss", translate("Shadowsocks-libev Version"))
 end
+if is_finded("sslocal") or is_finded("ssmanager") then
+	o:value("ss", translate("Shadowsocks-rust Version"))
+end
 if is_finded("trojan") then
 	o:value("trojan", translate("Trojan"))
 end
@@ -204,7 +207,7 @@ o:depends("type", "socks5")
 
 o = s:option(Value, "server_port", translate("Server Port"))
 o.datatype = "port"
-o.rmempty = ({port_hopping=0 and false or true})
+o.rmempty = true
 o:depends("type", "ssr")
 o:depends("type", "ss")
 o:depends("type", "v2ray")
@@ -366,6 +369,7 @@ o:depends({type = "hysteria",flag_quicparam = "1"})
 o.datatype = "uinteger"
 o.rmempty = true
 o.default = "20971520"
+
 o = s:option(Value, "maxconnreceivewindow", translate("QUIC maxConnReceiveWindow"))
 o:depends({type = "hysteria",flag_quicparam = "1"})
 o.datatype = "uinteger"
@@ -389,69 +393,6 @@ o:depends({type = "hysteria",flag_quicparam = "1"})
 o.rmempty = true
 o.default = false
 
-
---[[ Shadow-TLS Options ]]
-o = s:option(ListValue, "shadowtls_protocol", translate("shadowTLS protocol Version"))
-o:depends("type", "shadowtls")
-o:value("v3", translate("Enable V3 protocol."))
-o:value("v2", translate("Enable V2 protocol."))
-o.default = "v3"
-o.rmempty = true
-o = s:option(Flag, "strict", translate("TLS 1.3 Strict mode"))
-o:depends("type", "shadowtls")
-o.default = "1"
-o.rmempty = false
-
-o = s:option(Flag, "fastopen", translate("TCP Fast Open"))
-o:depends("type", "shadowtls")
-o.default = "0"
-o.rmempty = false
-
-o = s:option(Flag, "disable_nodelay", translate("Disable TCP No_delay"))
-o:depends("type", "shadowtls")
-o.default = "0"
-o.rmempty = true
-
-o = s:option(Value, "shadowtls_sni", translate("shadow-TLS SNI"))
-o:depends("type", "shadowtls")
-o.datatype = "host"
-o.rmempty = true
-o.default = ""
-
---[[ add a ListValue for Choose chain type,sslocal or vmess ]]
-o = s:option(ListValue, "chain_type", translate("Shadow-TLS ChainPoxy type"))
-o:depends("type", "shadowtls")
-if is_finded("sslocal") then
-	o:value("sslocal", translate("Shadowsocks-rust Version"))
-end
-if is_finded("xray") or is_finded("v2ray") then
-	o:value("vmess", translate("Vmess Protocol"))
-end
-o.default = "sslocal"
-o.rmempty = false
-
-o = s:option(Value, "sslocal_password",translate("Shadowsocks password"))
-o:depends({type = "shadowtls", chain_type = "sslocal"})
-o.rmempty = true
-
-o = s:option(ListValue, "sslocal_method", translate("Encrypt Method"))
-o:depends({type = "shadowtls", chain_type = "sslocal"})
-for _, v in ipairs(encrypt_methods_ss) do
-	o:value(v)
-end
-
-o = s:option(Value, "vmess_uuid", translate("Vmess UUID"))
-o:depends({type = "shadowtls", chain_type = "vmess"})
-o.rmempty = false
-o.default = uuid
-
-o = s:option(ListValue, "vmess_method", translate("Encrypt Method"))
-o:depends({type = "shadowtls", chain_type = "vmess"})
-for _, v in ipairs(securitys) do
-	o:value(v, v:lower())
-end
-o.rmempty = true
-o.default="auto"
 
 -- [[ TUIC ]]
 -- TuicNameId
@@ -527,18 +468,18 @@ o.rmempty = true
 
 o = s:option(Flag, "disable_sni", translate("Disable SNI"))
 o:depends("type", "tuic")
-o.default = "0"
+o.default = 0
 o.rmempty = true
 
 o = s:option(Flag, "zero_rtt_handshake", translate("Enable 0-RTT QUIC handshake"))
 o:depends("type", "tuic")
-o.default = "0"
+o.default = 0
 o.rmempty = true
 
 --Tuic settings for the local inbound socks5 server
 o = s:option(Flag, "tuic_dual_stack", translate("Dual-stack Listening Socket"))
 o:depends("type", "tuic")
-o.default = "0"
+o.default = 0
 o.rmempty = true
 
 o = s:option(Value, "tuic_max_package_size", translate("Maximum packet size the socks5 server can receive from external"))

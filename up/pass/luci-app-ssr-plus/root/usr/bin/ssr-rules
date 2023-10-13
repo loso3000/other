@@ -7,7 +7,9 @@
 # See /LICENSE for more information.
 #
 TAG="_SS_SPEC_RULE_"                                  # comment tag
-IPT="iptables -t nat"                                 # alias of iptables
+ip4t=$(command -v iptables-legacy || command -v iptables)
+ip6t=$(command -v ip6tables-legacy || command -v ip6tables)
+IPT="${ip4t} -t nat"                                 # alias of iptables
 FWI=$(uci get firewall.shadowsocksr.path 2>/dev/null) # firewall include file
 usage() {
 	cat <<-EOF
@@ -57,11 +59,11 @@ loger() {
 
 flush_r() {
 	flush_iptables() {
-		local ipt="iptables -t $1"
-		local DAT=$(iptables-save -t $1)
-		eval $(echo "$DAT" | grep "$TAG" | sed -e 's/^-A/$ipt -D/' -e 's/$/;/')
+		local iptt="${ip4t} -t $1"
+		local DAT=$(${ip4t}-save -t $1)
+		eval $(echo "$DAT" | grep "$TAG" | sed -e 's/^-A/$iptt -D/' -e 's/$/;/')
 		for chain in $(echo "$DAT" | awk '/^:SS_SPEC/{print $1}'); do
-			$ipt -F ${chain:1} 2>/dev/null && $ipt -X ${chain:1}
+			$iptt -F ${chain:1} 2>/dev/null && $iptt -X ${chain:1}
 		done
 	}
 	flush_iptables nat
@@ -220,7 +222,7 @@ tp_rule() {
 	[ -n "$TPROXY" ] || return 0
 	ip rule add fwmark 0x01/0x01 table 100
 	ip route add local 0.0.0.0/0 dev lo table 100
-	local ipt="iptables -t mangle"
+	local ipt="${ip4t} -t mangle"
 	$ipt -N SS_SPEC_TPROXY
 	$ipt -A SS_SPEC_TPROXY -p udp --dport 53 -j RETURN
 	$ipt -A SS_SPEC_TPROXY -p udp -d 0.0.0.0/8 -j RETURN
@@ -304,12 +306,12 @@ gen_include() {
 	[ -n "$FWI" ] || return 0
 	extract_rules() {
 		echo "*$1"
-		iptables-save -t $1 | grep SS_SPEC_ | sed -e "s/^-A \(OUTPUT\|PREROUTING\)/-I \1 1/"
+		${ip4t}-save -t $1 | grep SS_SPEC_ | sed -e "s/^-A \(OUTPUT\|PREROUTING\)/-I \1 1/"
 		echo 'COMMIT'
 	}
 	cat <<-EOF >>$FWI
-		iptables-save -c | grep -v "SS_SPEC" | iptables-restore -c
-		iptables-restore -n <<-EOT
+		${ip4t}-save -c | grep -v "SS_SPEC" | ${ip4t}-restore -c
+		${ip4t}-restore -n <<-EOT
 		$(extract_rules nat)
 		$(extract_rules mangle)
 		EOT
