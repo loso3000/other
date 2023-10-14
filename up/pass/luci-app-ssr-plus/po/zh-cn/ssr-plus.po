@@ -387,7 +387,7 @@ msgid "Connect Error"
 msgstr "连接错误"
 
 msgid "Check..."
-msgstr "正在检查.."
+msgstr "正在检查..."
 
 msgid "Proxy Check"
 msgstr "代理检查"
