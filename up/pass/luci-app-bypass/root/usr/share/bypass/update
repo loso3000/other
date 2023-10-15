@@ -1,0 +1,90 @@
+#!/bin/sh
+[ "$1" = --F ] && A=Y || A=N
+LOCKU=/tmp/lock/bypass-update.lock
+[ -f $LOCKU ] && exit 1
+touch $LOCKU
+DIR=/usr/share/bypass
+TMP=/etc/bypass
+TMP2=/tmp/etc/bypass
+LOG=/tmp/log/bypass.log
+chnroute_url=$(uci -q get bypass.@global_rules[0].chnroute_url)
+chnroute6_url=$(uci -q get bypass.@global_rules[0].chnroute6_url)
+gfwlist_url="$(uci -q get bypass.@global_rules[0].gfwlist_url)"
+ad_smartdns_url="$(uci -q get bypass.@global_rules[0].ad_smartdns_url)"
+log(){
+	echo "$(date +'%Y-%m-%d %H:%M:%S') $*" >> $LOG
+}
+
+echo '------------Update start------------' >> $LOG
+[ ! -d $TMP ] && mkdir -p $TMP 2>/dev/null
+[ ! -d $TMP2 ] && mkdir -p $TMP2 2>/dev/null
+	B=1
+	while ! (curl -kLfsm 5 -o /tmp/china.txt "${chnroute_url}"  || curl -kLfsm 3 -o /tmp/china.txt https://ispip.clang.cn/all_cn.txt);do
+			[ $B -ge 20 ] && break || let B++
+			sleep 2
+	done
+
+	[[ -f /tmp/china.txt && $? == 0 ]] && {
+	if ! cmp -s /tmp/china.txt $TMP/china.txt;then
+			cp -f /tmp/china.txt $TMP/china.txt
+			mv /tmp/china.txt $TMP2/china.txt
+			log "By Update  : Updated China IPv4 List Total Number of Items :`cat /etc/bypass/china.txt | wc -l` "
+			[ $A = N ] && ipset list china_v4 >/dev/null 2>&1 && $DIR/chinaipset
+
+	else
+			log "By Update  : China IPv4 List Total Number of Items  :` cat /etc/bypass/china.txt | wc -l` "
+	fi
+	}
+ 	B=1
+	while ! (wget --no-check-certificate -q -O /tmp/gfw.b64 "${gfwlist_url}" || curl -kLfsm 5 -o /tmp/gfw.b64 https://supes.top/bypass/gfwlist.txt );do
+			[ $B -ge 20 ] && break || let B++
+			sleep 2
+	done
+
+	[[ -f /tmp/gfw.b64 && $? == 0 ]] && {
+	   $DIR/by-gfw  >/dev/null 2>&1
+	   if ! cmp -s /tmp/gfwnew.txt  $TMP/gfw.list ;then
+			cp -f /tmp/gfwnew.txt $TMP/gfw.list   >/dev/null 2>&1
+			mv /tmp/gfwnew.txt $TMP2/gfw.list 
+			log "By Update  : Updated GFW List Total Number of Items : `cat /etc/bypass/gfw.list | wc -l` "
+	   else
+			log "By Update  : GFW List Total Number of Items : `cat /etc/bypass/gfw.list | wc -l` "
+	   fi
+	}
+	B=1
+
+	while ! (curl -kLfsm 3 -o /tmp/china_v6.txt "${chnroute6_url}" || curl -kLfsm 3 -o /tmp/china_v6.txt https://ispip.clang.cn/all_cn_ipv6.txt );do
+			[ $B -ge 20 ] && break || let B++
+			sleep 2
+	done
+
+	[[ -f /tmp/china_v6.txt && $? == 0 ]] && {
+	if ! cmp -s /tmp/china_v6.txt $TMP/china_v6.txt;then
+			cp -f /tmp/china_v6.txt $TMP/china_v6.txt 
+			mv /tmp/china_v6.txt $TMP2/china_v6.txt 
+			log "By Update  : Updated China IPv6 List Total Number of Items :` cat /etc/bypass/china_v6.txt | wc -l` "
+		[ $A = N ] && ipset list china_v6 >/dev/null 2>&1 && $DIR/chinaipset v6
+	else
+			log "By Update  : China IPv6 List Total Number of Items :`cat /etc/bypass/china_v6.txt | wc -l)` "
+	fi
+	}
+	B=1
+	while ! (curl -kLfsm 3 -o /tmp/ad_smartdns.txt "${ad_smartdns_url}" || curl -kLfsm 3 -o /tmp/china_v6.txt https://fastly.jsdelivr.net/gh/privacy-protection-tools/anti-AD/anti-ad-smartdns.conf );do
+			[ $B -ge 20 ] && break || let B++
+			sleep 2
+	done
+
+	[[ -f /tmp/ad_smartdns.txt && $? == 0 ]] && {
+	if ! cmp -s /tmp/ad_smartdns.txt $TMP/ad_smartdns.txt;then
+			cp -f /tmp/ad_smartdns.txt $TMP/ad_smartdns.txt
+			mv /tmp/ad_smartdns.txt $TMP2/ad_smartdns.txt
+			log "By Update  : Smartdns anti-AD Update List Total Number of Items :` cat /etc/bypass/ad_smartdns.txt | wc -l` "
+	else
+			log "By Update  : Smartdns anti-AD List Total Number of Items :`cat /etc/bypass/ad_smartdns.txt | wc -l)` "
+	fi
+	}
+log  "By Update  : Check or update IPV4/IPV6/GFW/AD list complete!  "
+echo '------------Update end------------' >> $LOG
+rm -f $LOCKU /tmp/china*.txt /tmp/gfwnew.txt /tmp/gfw.b64 /tmp/ad_smartdns.txt 
+
+[ $A = Y ] && /etc/init.d/bypass start &
