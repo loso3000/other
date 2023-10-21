@@ -116,6 +116,7 @@ done
 }
 
 function k_change_ip() {
+
   echo -e "\n q. 返回(return)"
   export k_ip="请输入新IP(Please input the new IP[eg:192.168.11.1])"
   echo
@@ -125,9 +126,12 @@ function k_change_ip() {
   if [[ -n "${keyip}" ]] && [[ "$(echo ${keyip} |grep -Eoc '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+')" == '1' ]]; then
     keyipy="Y"
   fi 
-    if [[ -n "${keyip}" ]] && [[ ${keyip} == 'q'  ||  ${keyip} == 'Q'  ]]; then
+  if [[ -n "${keyip}" ]] && [[ ${keyip} == 'q'  ||  ${keyip} == 'Q'  ]]; then
     keyipy="Q"
   fi
+
+ [ ! -s /etc/config/network ] && echo "The network is not ready, please wait " && sleep 30
+ [ ! -s /etc/config/network ] && echo "The network is not ready, please wait... " && sleep 60
   case $keyipy in
   Y)
     export keyipn="${keyip}"
