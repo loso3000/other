@@ -51,10 +51,11 @@ echo '# iptables -t nat -A PREROUTING -p udp --dport 53 -j REDIRECT --to-ports 5
 echo '# iptables -t nat -A PREROUTING -p tcp --dport 53 -j REDIRECT --to-ports 53' >> /etc/firewall.user
 echo '# [ -n "$(command -v ip6tables)" ] && ip6tables -t nat -A PREROUTING -p udp --dport 53 -j REDIRECT --to-ports 53' >> /etc/firewall.user
 echo '# [ -n "$(command -v ip6tables)" ] && ip6tables -t nat -A PREROUTING -p tcp --dport 53 -j REDIRECT --to-ports 53' >> /etc/firewall.user
-sed -i '/DISTRIB_REVISION/d' /etc/openwrt_release
-cat /etc/openwrt_release1 >> /etc/openwrt_release
-sed -i '/DISTRIB_DESCRIPTION/d' /etc/openwrt_release
-echo "DISTRIB_DESCRIPTION='EzOpWrt '" >> /etc/openwrt_release
+[ -f /etc/ezopenwrt_version ]  && { 
+    sed -i '/DISTRIB_REVISION/d' /etc/openwrt_release
+    new_DISTRIB_REVISION=`cat  /etc/ezopenwrt_version`
+    echo "DISTRIB_REVISION='EzOpWrt "${new_DISTRIB_REVISION}"'" >> /etc/openwrt_release
+}
 
 sed -i '/lcp-echo/d' /etc/ppp/options
 echo "lcp-echo-failure 10" >>  /etc/ppp/options
