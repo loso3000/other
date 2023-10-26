@@ -62,15 +62,17 @@ read -p "是否恢复向导和默认主题?(Do you want to restore the wizard an
 case ${YN} in
 [Yy]) 
     ER "已恢复向导和默认主题(The wizard and default theme has been restored.)..."
-    /etc/init.d/advancedplus reset   
+    [  -s /etc/init.d/advancedplus ] && /etc/init.d/advancedplus reset   
     uci set luci.main.mediaurlbase='/luci-static/kucat'
     uci set luci.themes.KuCat=/luci-static/kucat
     uci set luci.themes.Bootstrap='/luci-static/bootstrap'
     uci commit luci
+    uci set argon.@global[0].bing_background=0
+    uci commit argon
     /etc/init.d/rpcd restart
     rm -rf /etc/config/wizard
     rm -rf /etc/config/netwizard_hide
-    sleep 2
+    sleep 5
     . /etc/profiles 
 ;;
 [Nn])
@@ -116,9 +118,8 @@ done
 }
 
 function k_change_ip() {
-
-  echo -e "\n q. 返回(return)"
-  export k_ip="请输入新IP(Please input the new IP[eg:192.168.11.1])"
+  echo -e " q. 返回(return)"
+  export k_ip="请输入新IP(Please input the new IP[eg:192.168.1.1])"
   echo
   while :; do
   domainy=""
@@ -126,22 +127,20 @@ function k_change_ip() {
   if [[ -n "${keyip}" ]] && [[ "$(echo ${keyip} |grep -Eoc '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+')" == '1' ]]; then
     keyipy="Y"
   fi 
-  if [[ -n "${keyip}" ]] && [[ ${keyip} == 'q'  ||  ${keyip} == 'Q'  ]]; then
+    if [[ -n "${keyip}" ]] && [[ ${keyip} == 'q'  ||  ${keyip} == 'Q'  ]]; then
     keyipy="Q"
   fi
-
  [ ! -s /etc/config/network ] && echo "The network is not ready, please wait " && sleep 30
  [ ! -s /etc/config/network ] && echo "The network is not ready, please wait... " && sleep 60
   case $keyipy in
   Y)
     export keyipn="${keyip}"
     uci set network.lan.ipaddr="${keyip}"
-    ER "您的IP已经改为(Your IP has been changed to)：${keyip}！"
     uci commit network
+    ER "您的IP已经改为(Your IP has been changed to)：${keyip}！"
     /etc/init.d/network restart
-    sleep 2
+    sleep 5
     . /etc/profiles 
-
   ;; 
 
  Q)
@@ -206,7 +205,6 @@ case ${YN} in
     EW "返回主菜单(return)"
     sleep 2
     . /etc/profiles 
-
 ;;
 [Qq])
     sleep 2
@@ -245,6 +243,78 @@ case ${YN} in
 ;;
 *)
     ER "输入正确选择!(Enter the correct choice!)"
+;;
+esac
+done
+}
+
+
+function k_kmodregdrv() {
+echo
+while :; do
+echo -e "\n q. 返回(return)"
+echo -e "\n 装载全部驱动可能对系统有影响.(May have an impact on the system stability.)"
+read -p "是否确定?(are you sure? )[Y/n]:" YN
+
+case ${YN} in
+[Yy]) 
+
+    echo
+    ER "正在装载中，请稍等。。。(In mount, Please wait....)"
+    bash /etc/kmodreg drv 2 > /dev/null 2>&1 
+    echo
+    EY "已装载全部的网卡驱动！(All NIC drivers are loaded!)"
+    echo
+    sleep 5
+    . /etc/profiles 
+;;
+[Nn])
+    EW "返回主菜单(return)"
+    sleep 2
+    . /etc/profiles 
+
+;;
+[Qq])
+    . /etc/profiles
+;;
+*)
+    ER "输入正确选择(Enter the correct choice!)"
+;;
+esac
+done
+}
+
+
+
+function k_kmodregdocker() {
+echo
+while :; do
+echo -e "\n q. 返回(return)"
+read -p "是否装载docker服务?(Whether to load Docker service?)[Y/n]:" YN
+
+case ${YN} in
+[Yy]) 
+
+    echo
+    ER "正在装载中，请稍等。。。(In mount, Please wait....)"
+    bash /etc/kmodreg docker 2 > /dev/null 2>&1 
+    echo
+    EY "docker服务装载成功！请重新登录！(Docker service successfully loaded!)"
+    echo
+    sleep 5
+    . /etc/profiles 
+;;
+[Nn])
+    EW "返回主菜单(return)"
+    sleep 2
+    . /etc/profiles 
+
+;;
+[Qq])
+    . /etc/profiles
+;;
+*)
+    ER "输入正确选择(Enter the correct choice!)"
 ;;
 esac
 done
@@ -289,13 +359,13 @@ clear
 [ -e /tmp/.failsafe ] && export FAILSAFE=1
 [ -f /etc/banner ] && echo -e "${Skyb}$(cat /etc/banner)${White}"
 [ -n "$FAILSAFE" ] && cat /etc/banner.failsafe
-
 Sysinfo
 
 fgrep -sq '/ overlay ro,' /proc/mounts && {
 	echo -e "${Red}Your JFFS2-partition seems full and overlayfs is mounted read-only."
 	echo -e "Please try to remove files from /overlay/upper/... and reboot!${}"
 }
+
 
 export PATH="/usr/sbin:/usr/bin:/sbin:/bin"
 export HOME=$(grep -e "^${USER:-root}:" /etc/passwd | cut -d ":" -f 6)
@@ -340,13 +410,15 @@ function mainmenu() {
   EY " 1. 修改后台IPv4地址(Modify IPv4 address)"
   EY " 2. 清除密码并重启(Clear password and Reboot)"
   EY " 3. 修复向导默认主题(Restore wizard default theme)"
-  EY " 4. 重启服务器(Reboot)"
-  EY " 5. 关闭服务器(Shutdown)"
+  EY " 4. 重启系统(Reboot)"
+  EY " 5. 关闭系统(Shutdown)"
   EY " 6. 恢复出厂设置(Restore factory settings)"
   EY " 7. 网络连接检查(Check network connectivity)"
   EY " 8. 刷新释放内存(Refresh and free memory)"
   EY " 9. 停止家长控制(Stop Parentcontrol)"
-  
+  EY " 10. 装载全部网卡驱动(Load all network card drivers)"
+  EY " 11. 装载docker服务(Loading Docker Service)"
+  echo
   EW " 0. 退出菜单(Exit)"
   echo
   KEY="请输入数字(please enter a number)"
@@ -381,7 +453,6 @@ function mainmenu() {
 	nslookup -type=a baidu.com > /dev/null 2>&1 &&\
 	EY  " 基础 IPv4 DNS 解析正常!(Basic IPv4 DNS resolution is OK!)" || EG  " 基础 IPv4 DNS 解析错误!(Basic IPv4 DNS resolution error!)"
 	Google_Check=$(curl -I -s --connect-timeout 3 http://www.google.com/generate_204 -w %{http_code} | tail -n1)
-			
 	case ${Google_Check} in
 	204)
 		EY " Google 连接正常!(Google connection is OK!)"
@@ -391,26 +462,29 @@ function mainmenu() {
 	;;
 	 esac
 		ER " "
-	    sleep 3
+	 sleep 5
     . /etc/profiles 
-
-	;;
+    ;;
     8)
         EY " 刷新状态清除内存完成!(Refresh status clear memory completed!)"
         sync && echo 3 > /proc/sys/vm/drop_caches
         rm -rf /tmp/luci*
 	ER " "
-    sleep 3
+    sleep 5
     . /etc/profiles 
-
     ;;
     9)
       EY " 停卡家长控制插件成功!(Stop Parentcontrol completed!)"
       EW " "
       /etc/init.d/parentcontrol stop
-    sleep 3
+    sleep 5
     . /etc/profiles 
-
+    ;;
+    10)
+       k_kmodregdrv
+    ;;
+    11)
+       k_kmodregdocker
     ;;
     0)
       EW " 退出程序成功(Exit the program successfully)"
