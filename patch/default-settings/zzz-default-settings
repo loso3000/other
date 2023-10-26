@@ -82,6 +82,8 @@ ln -sf /sbin/ip /usr/bin/ip
 
 sed -i 's/immortalwrt.org/openwrt.org/g'  /etc/config/luci
 
+sed -i '/DISTRIB_DESCRIPTION/d' /etc/openwrt_release
+echo "DISTRIB_DESCRIPTION='OpenWrt '" >> /etc/openwrt_release
 [ -f /etc/ezopenwrt_version ]  && { 
     sed -i '/DISTRIB_REVISION/d' /etc/openwrt_release
     new_DISTRIB_REVISION=`cat  /etc/ezopenwrt_version`
