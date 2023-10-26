@@ -82,10 +82,12 @@ ln -sf /sbin/ip /usr/bin/ip
 
 sed -i 's/immortalwrt.org/openwrt.org/g'  /etc/config/luci
 
-sed -i '/DISTRIB_REVISION/d' /etc/openwrt_release
-cat /etc/openwrt_release1 >> /etc/openwrt_release
-sed -i '/DISTRIB_DESCRIPTION/d' /etc/openwrt_release
-echo "DISTRIB_DESCRIPTION='EzOpWrt '" >> /etc/openwrt_release
+[ -f /etc/ezopenwrt_version ]  && { 
+    sed -i '/DISTRIB_REVISION/d' /etc/openwrt_release
+    new_DISTRIB_REVISION=`cat  /etc/ezopenwrt_version`
+    echo "DISTRIB_REVISION='EzOpWrt "${new_DISTRIB_REVISION}"'" >> /etc/openwrt_release
+}
+
 sed -i '/REDIRECT --to-ports 53/d' /etc/firewall.user
 echo "iptables -t nat -I POSTROUTING -o br-lan -j MASQUERADE" >> /etc/firewall.user
 echo 'iptables -I zone_lan_forward -t filter -m conntrack --ctstate DNAT -j ACCEPT' >> /etc/firewall.user
