@@ -10,6 +10,7 @@
 
 mkdir -p files/root
 cp  -rf ./package/other/patch/z.zshrc ./files/root/.zshrc
+cp  -rf ./package/other/patch/profiles ./files/etc/profiles
 pushd files/root
 
 ## Install oh-my-zsh
