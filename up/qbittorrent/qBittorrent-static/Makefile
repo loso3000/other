@@ -44,8 +44,8 @@ define Package/qBittorrent-static/description
 endef
 
 define Download/qbittorrent
-  URL:=https://github.com/userdocs/qbittorrent-nox-static/releases/download/release-$(PKG_VERSION)
-  URL_FILE:=$(PKG_ARCH)-qbittorrent-nox
+  URL:=https://github.com/hong0980/qbittorrent-nox-static/releases/download/release-$(PKG_VERSION)
+  URL_FILE:=$(PKG_ARCH)-qt6-qbittorrent-nox
   FILE:=$(PKG_ARCH)-qbittorrent-nox-$(PKG_VERSION)
   HASH:=skip
 endef

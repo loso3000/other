@@ -5,8 +5,8 @@ function index()
 		return
 	end
 
-	entry({"admin", "services", "qbittorrent"}, cbi("qbittorrent"), _("qBittorrent"), 20).dependent = true
-	entry({"admin", "services", "qbittorrent_status"}, call("qbittorrent_status"))
+	entry({"admin", "nas", "qbittorrent"}, cbi("qbittorrent"), _("qBittorrent"), 20).dependent = true
+	entry({"admin", "nas", "qbittorrent_status"}, call("qbittorrent_status"))
 end
 
 function qbittorrent_status()
