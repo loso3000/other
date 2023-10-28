@@ -430,6 +430,11 @@ local function curl(url)
 	return trim(stdout)
 end
 
+-- wget
+local function wget(url)
+	local stdout = SYS.exec('wget -q --user-agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.157 Safari/537.36" --no-check-certificate -O- "' .. url .. '"')
+	return trim(stdout)
+end
 local function check_filer(result)
 	do
 		-- 过滤的关键词列表
@@ -637,6 +642,7 @@ if subscribe_url and #subscribe_url > 0 then
 		log("网络不通，停止更新订阅")
 		return
 	end
+
 	xpcall(execute, function(e)
 		log(e)
 		log(debug.traceback())

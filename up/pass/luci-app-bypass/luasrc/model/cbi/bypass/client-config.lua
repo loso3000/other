@@ -145,13 +145,10 @@ end
 if is_finded("ssr-redir") then
 	o:value("ssr", translate("ShadowsocksR"))
 end
-if is_finded("ss-local") or is_finded("ss-redir") then
-	o:value("ss", translate("Shadowsocks-libev Version"))
+if is_finded("sslocal") or is_finded("ss-redir") then
+	o:value("ss", translate("Shadowsocks New Version"))
 end
-if is_finded("sslocal") or is_finded("ssmanager") then
-	o:value("ss", translate("Shadowsocks-rust Version"))
-end
-if is_finded("trojan") then
+if is_finded("trojan-plus") then
 	o:value("trojan", translate("Trojan"))
 end
 if is_finded("naive") then
@@ -163,7 +160,6 @@ end
 if is_finded("tuic-client") then
 	o:value("tuic", translate("TUIC"))
 end
-
 if is_finded("ipt2socks") then
 	o:value("socks5", translate("Socks5"))
 end
@@ -210,13 +206,13 @@ o:depends("type", "socks5")
 
 o = s:option(Value, "server_port", translate("Server Port"))
 o.datatype = "port"
-o.rmempty = true
+o.rmempty = false
 o:depends("type", "ssr")
 o:depends("type", "ss")
 o:depends("type", "v2ray")
 o:depends("type", "trojan")
 o:depends("type", "naiveproxy")
-o:depends({type = "hysteria",port_hopping = false})
+o:depends("type", "hysteria")
 o:depends("type", "tuic")
 o:depends("type", "socks5")
 
@@ -241,6 +237,7 @@ o:depends("type", "ssr")
 o:depends("type", "ss")
 o:depends("type", "trojan")
 o:depends("type", "naiveproxy")
+o:depends("type", "tuic")
 o:depends({type = "socks5", auth_enable = true})
 o:depends({type = "v2ray", v2ray_protocol = "http", auth_enable = true})
 o:depends({type = "v2ray", v2ray_protocol = "socks", socks_ver = "5", auth_enable = true})
@@ -312,129 +309,54 @@ o:depends("type", "ssr")
 o = s:option(Value, "obfs_param", translate("Obfs param (optional)"))
 o:depends("type", "ssr")
 
-
--- [[ Hysteria2 ]]--
-o = s:option(Value, "hy2_auth", translate("Users Authentication"))
-o:depends("type", "hysteria")
-o.rmempty = false
-o = s:option(ListValue, "transport_protocol", translate("Protocol"))
+-- [[ Hysteria ]]--
+o = s:option(ListValue, "hysteria_protocol", translate("Protocol"))
 o:depends("type", "hysteria")
 o:value("udp", translate("udp"))
+o:value("wechat-video", translate("wechat-video"))
+o:value("faketcp", translate("faketcp"))
 o.default = "udp"
 o.rmempty = true
 
-o = s:option(Flag, "port_hopping", translate("Enable Port Hopping"))
+o = s:option(ListValue, "auth_type", translate("Authentication type"))
+o:depends("type", "hysteria")
+o:value("0", translate("disabled"))
+o:value("1", translate("base64"))
+o:value("2", translate("string"))
+o.rmempty = true
+
+o = s:option(Value, "auth_payload", translate("Authentication payload"))
+o:depends({type = "hysteria", auth_type = "1"})
+o:depends({type = "hysteria", auth_type = "2"})
+o.rmempty = true
+
+o = s:option(Value, "recv_window", translate("QUIC connection receive window"))
+o.datatype = "uinteger"
+o:depends("type", "hysteria")
+o.rmempty = true
+
+o = s:option(Value, "recv_window_conn", translate("QUIC stream receive window"))
+o.datatype = "uinteger"
+o:depends("type", "hysteria")
+o.rmempty = true
+
+o = s:option(Flag, "disable_mtu_discovery", translate("Disable Path MTU discovery"))
+o:depends("type", "hysteria")
+o.rmempty = true
+o = s:option(Flag, "lazy_start", translate("Lazy Start"))
 o:depends("type", "hysteria")
 o.rmempty = true
 o.default = "0"
-
-o = s:option(Value, "hopinterval", translate("Port Hopping Interval(Unit:Second)"))
-o:depends({type = "hysteria", port_hopping = true})
-o.datatype = "uinteger"
-o.rmempty = true
-o.default = "30"
-
-o = s:option(Value, "port_range", translate("Port Range"))
-o:depends({type = "hysteria", port_hopping = true})
-o.rmempty = false
-
-o = s:option(Flag, "lazy_mode", translate("Enable Lazy Mode"))
-o:depends("type", "hysteria")
-o.rmempty = true
-o.default = "0"
-
-o = s:option(Flag, "flag_obfs", translate("Enable Obfuscation"))
-o:depends("type", "hysteria")
-o.rmempty = true
-o.default = "0"
-
-o = s:option(Value, "obfs_type", translate("Obfuscation Type"))
-o:depends({type = "hysteria", flag_obfs = "1"})
-o.rmempty = true
-o.default = "salamander"
-
-o = s:option(Value, "salamander", translate("Obfuscation Password"))
-o:depends({type = "hysteria", flag_obfs = "1"})
-o.rmempty = true
-o.default = "cry_me_a_r1ver"
-
-o = s:option(Flag, "flag_quicparam", translate("Hysterir QUIC parameters"))
-o:depends("type", "hysteria")
-o.rmempty = true
-o.default = "0"
-
---[[Hysteria2 QUIC parameters setting]]
-o = s:option(Value, "initstreamreceivewindow", translate("QUIC initStreamReceiveWindow"))
-o:depends({type = "hysteria",flag_quicparam = "1"})
-o.datatype = "uinteger"
-o.rmempty = true
-o.default = "8388608"
-
-o = s:option(Value, "maxstreamseceivewindow", translate("QUIC maxStreamReceiveWindow"))
-o:depends({type = "hysteria",flag_quicparam = "1"})
-o.datatype = "uinteger"
-o.rmempty = true
-o.default = "8388608"
-
-o = s:option(Value, "initconnreceivewindow", translate("QUIC initConnReceiveWindow"))
-o:depends({type = "hysteria",flag_quicparam = "1"})
-o.datatype = "uinteger"
-o.rmempty = true
-o.default = "20971520"
-
-o = s:option(Value, "maxconnreceivewindow", translate("QUIC maxConnReceiveWindow"))
-o:depends({type = "hysteria",flag_quicparam = "1"})
-o.datatype = "uinteger"
-o.rmempty = true
-o.default = "20971520"
-
-o = s:option(Value, "maxidletimeout", translate("QUIC maxIdleTimeout(Unit:second)"))
-o:depends({type = "hysteria",flag_quicparam = "1"})
-o.rmempty = true
-o.datatype = "uinteger"
-o.default = "30"
-
-o = s:option(Value, "keepaliveperiod", translate("The keep-alive period.(Unit:second)"))
-o:depends({type = "hysteria",flag_quicparam = "1"})
-o.rmempty = true
-o.datatype = "uinteger"
-o.default = "10"
-
-o = s:option(Flag, "disablepathmtudiscovery", translate("Disable Path MTU discovery"))
-o:depends({type = "hysteria",flag_quicparam = "1"})
-o.rmempty = true
-o.default = false
-
 
 -- [[ TUIC ]]
--- TuicNameId
-o = s:option(Value, "tuic_uuid", translate("TUIC User UUID"))
-o.rmempty = true
-o.default = uuid
-o:depends("type", "tuic")
-
---Tuic IP
-o = s:option(Value, "tuic_ip", translate("TUIC Server IP Address"))
-o.rmempty = true
-o.datatype = "ip4addr"
-o.default = ""
-o:depends("type", "tuic")
-
--- Tuic Password
-o = s:option(Value, "tuic_passwd", translate("TUIC User Password"))
-o.rmempty = true
-o.default = ""
-o:depends("type", "tuic")
-
-
 o = s:option(ListValue, "udp_relay_mode", translate("UDP relay mode"))
 o:depends("type", "tuic")
-o:value("native", translate("native UDP characteristics"))
-o:value("quic", translate("lossless UDP relay using QUIC streams"))
+o:value("native", translate("native"))
+o:value("quic", translate("QUIC"))
 o.default = "native"
 o.rmempty = true
 
-o = s:option(ListValue, "congestion_control", translate("Congestion control algorithm"))
+o = s:option(ListValue, "congestion_controller", translate("Congestion control algorithm"))
 o:depends("type", "tuic")
 o:value("bbr", translate("BBR"))
 o:value("cubic", translate("CUBIC"))
@@ -442,62 +364,24 @@ o:value("new_reno", translate("New Reno"))
 o.default = "cubic"
 o.rmempty = true
 
-o = s:option(Value, "heartbeat", translate("Heartbeat interval(second)"))
+o = s:option(Value, "heartbeat_interval", translate("Heartbeat interval"))
 o:depends("type", "tuic")
 o.datatype = "uinteger"
-o.default = "3"
-o.rmempty = true
-
-o = s:option(Value, "timeout", translate("Timeout for establishing a connection to server(second)"))
-o:depends("type", "tuic")
-o.datatype = "uinteger"
-o.default = "8"
-o.rmempty = true
-
-o = s:option(Value, "gc_interval", translate("Garbage collection interval(second)"))
-o:depends("type", "tuic")
-o.datatype = "uinteger"
-o.default = "3"
-o.rmempty = true
-
-o = s:option(Value, "gc_lifetime", translate("Garbage collection lifetime(second)"))
-o:depends("type", "tuic")
-o.datatype = "uinteger"
-o.default = "15"
-o.rmempty = true
-
-o = s:option(Value, "send_window", translate("TUIC send window"))
-o:depends("type", "tuic")
-o.datatype = "uinteger"
-o.default = 20971520
-o.rmempty = true
-
-o = s:option(Value, "receive_window", translate("TUIC receive window"))
-o:depends("type", "tuic")
-o.datatype = "uinteger"
-o.default = 10485760
+o.default = "10000"
 o.rmempty = true
 
 o = s:option(Flag, "disable_sni", translate("Disable SNI"))
 o:depends("type", "tuic")
-o.default = "0"
+o.default = 0
 o.rmempty = true
-
-o = s:option(Flag, "zero_rtt_handshake", translate("Enable 0-RTT QUIC handshake"))
+o = s:option(Flag, "reduce_rtt", translate("Enable 0-RTT QUIC handshake"))
 o:depends("type", "tuic")
-o.default = "0"
+o.default = 0
 o.rmempty = true
-
--- Tuic settings for the local inbound socks5 server
-o = s:option(Flag, "tuic_dual_stack", translate("Dual-stack Listening Socket"))
-o:depends("type", "tuic")
-o.default = "0"
-o.rmempty = true
-
-o = s:option(Value, "tuic_max_package_size", translate("Maximum packet size the socks5 server can receive from external"))
+o = s:option(Value, "max_udp_relay_packet_size", translate("Max UDP relay packet size"))
 o:depends("type", "tuic")
 o.datatype = "uinteger"
-o.default = 1500
+o.default = "1500"
 o.rmempty = true
 
 -- VmessId
@@ -582,13 +466,13 @@ if is_finded("v2ray") then
 	o = s:option(Value, "ws_ed", translate("Max Early Data"))
 	o:depends("ws_ed_enable", true)
 	o.datatype = "uinteger"
-	o.default = 2048
+	o:value("2048")
 	o.rmempty = true
 
 	-- WS前置数据标头
 	o = s:option(Value, "ws_ed_header", translate("Early Data Header Name"))
 	o:depends("ws_ed_enable", true)
-	o.default = "Sec-WebSocket-Protocol"
+	o:value("Sec-WebSocket-Protocol")
 	o.rmempty = true
 end
 
@@ -729,6 +613,7 @@ o.rmempty = true
 
 o = s:option(Value, "seed", translate("Obfuscate password (optional)"))
 o:depends("transport", "kcp")
+o:depends("type", "hysteria")
 o.rmempty = true
 
 o = s:option(Flag, "congestion", translate("Congestion"))
@@ -737,6 +622,7 @@ o.rmempty = true
 
 -- [[ WireGuard 部分 ]]--
 o = s:option(DynamicList, "local_addresses", translate("Local addresses"))
+o.datatype = "cidr"
 o:depends({type = "v2ray", v2ray_protocol = "wireguard"})
 o.rmempty = true
 
@@ -765,7 +651,6 @@ o:depends({type = "v2ray", v2ray_protocol = "shadowsocks", reality = false})
 o:depends({type = "v2ray", v2ray_protocol = "socks", socks_ver = "5", reality = false})
 o:depends({type = "v2ray", v2ray_protocol = "http", reality = false})
 o:depends("type", "trojan")
-o:depends("type", "hysteria")
 
 -- [[ TLS部分 ]] --
 o = s:option(Flag, "tls_sessionTicket", translate("Session Ticket"))
@@ -781,7 +666,6 @@ if is_finded("xray") then
 	o = s:option(Value, "reality_publickey", translate("Public key"))
 	o.rmempty = true
 	o:depends({type = "v2ray", v2ray_protocol = "vless", reality = true})
-
 	o = s:option(Value, "reality_shortid", translate("Short ID"))
 	o.rmempty = true
 	o:depends({type = "v2ray", v2ray_protocol = "vless", reality = true})
@@ -821,11 +705,14 @@ o = s:option(Value, "tls_host", translate("TLS Host"))
 o.datatype = "hostname"
 o:depends("tls", true)
 o:depends("reality", true)
+o:depends("type", "hysteria")
 o.rmempty = true
-
 o = s:option(DynamicList, "tls_alpn", translate("TLS ALPN"))
 o:depends("tls", true)
 o:depends("type", "tuic")
+o.rmempty = true
+
+o = s:option(Value, "quic_tls_alpn", translate("QUIC TLS ALPN"))
 o:depends("type", "hysteria")
 o.rmempty = true
 
@@ -835,10 +722,7 @@ o.rmempty = false
 o:depends("tls", true)
 o:depends("type", "hysteria")
 o.description = translate("If true, allowss insecure connection at TLS client, e.g., TLS server uses unverifiable certificates.")
--- [[ Hysteria2 TLS pinSHA256 ]] --
-o = s:option(Value, "pinsha256", translate("Certificate fingerprint"))
-o:depends({type ="hysteria", insecure = true })
-o.rmempty = true
+o.default = "1"
 
 -- [[ Mux ]]--
 o = s:option(Flag, "mux", translate("Mux"))

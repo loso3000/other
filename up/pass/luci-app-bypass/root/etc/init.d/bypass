@@ -68,6 +68,12 @@ log(){
 	echo "$(date +'%Y-%m-%d %H:%M:%S') $*" >> $LOG
 }
 
+firstdown(){
+	[ $1 = 1 ] && A=$BIN_DIR/checknetwork && B=check
+	[ $1 = 2 ] && A=$BIN_DIR/update && B=--F
+	service_start ${A} ${B}
+}
+
 clean_log() {
 	[ `cat $LOG  | wc -l ` -gt 500 ] && {
 		echo "$(date "+%Y-%m-%d %H:%M:%S") LOG long ,clear log!" >$LOG
@@ -994,7 +1000,7 @@ gen_dns(){
 	fi
 	[ -s $CON_T ] && echo "conf-file $CON_T" >>$DNS_T
 	# no AD 
-	ad_samrtdns=$(uci -q get $NAME.@global[0].ad_smartdns)
+	ad_samrtdns=$(uci -q get bypass.@global[0].ad_smartdns)
 	[[ $ad_samrtdns = 1  &&  -s $T_FILE/ad_smartdns.txt ]] && { 
            cp $T_FILE/ad_smartdns.txt $VAR/ad_smartdns.txt
 	   echo "conf-file $VAR/ad_smartdns.txt" >>$DNS_T
@@ -1065,7 +1071,7 @@ gen_service_file(){
 run_server(){
 	[ $(uci_get_by_name $1 enable 0) = 0 ] && return 1
 	let server_count=server_count+1
-	[ $server_count = 1 ] && $ipt-save -t filter | grep BY-SERVER-RULE >/dev/null || $ipt -N BY-SERVER-RULE && $ipt -t filter -I INPUT -j BY-SERVER-RULE
+	[ $server_count = 1 ] && iptables-save -t filter | grep BY-SERVER-RULE >/dev/null || iptables -N BY-SERVER-RULE && iptables -t filter -I INPUT -j BY-SERVER-RULE
 	type=$(uci_get_by_name $1 type ssr)
 	[ $type = ss -o $type = ssr ] && cmd=$(f_bin $type-server) || cmd=$(which microsocks)
 	[ ! -x $cmd ] && log "SSR server: Can't find $cmd program, start failed!" && return 1
@@ -1094,8 +1100,8 @@ run_server(){
 		log "By server: Socks5 Server$server_count Started!"
 		;;
 	esac
-	$ipt -t filter -A BY-SERVER-RULE -p tcp --dport $port -j ACCEPT
-	$ipt -t filter -A BY-SERVER-RULE -p udp --dport $port -j ACCEPT
+	iptables -t filter -A BY-SERVER-RULE -p tcp --dport $port -j ACCEPT
+	iptables -t filter -A BY-SERVER-RULE -p udp --dport $port -j ACCEPT
 	return 0
 }
 
@@ -1103,12 +1109,12 @@ gen_serv_include(){
 	[ -s $FWI ] || echo '#!/bin/sh' >$FWI
 	extract_rules(){
 		echo "*filter"
-		$ipt-save -t filter | grep BY-SERVER-RULE | sed -e "s/^-A INPUT/-I INPUT/"
+		iptables-save -t filter | grep BY-SERVER-RULE | sed -e "s/^-A INPUT/-I INPUT/"
 		echo 'COMMIT'
 	}
 	cat <<-EOF >>$FWI
-		$ipt-save -c | grep -v "SSR-SERVER" | $ipt-restore -c
-		$ipt-restore -n <<-EOT
+		iptables-save -c | grep -v "SSR-SERVER" | iptables-restore -c
+		iptables-restore -n <<-EOT
 		$(extract_rules)
 		EOT
 	EOF
@@ -1188,11 +1194,11 @@ stop(){
 	kill -9 $(ps -w | grep $BIN_DIR/checknetwork | grep -v grep | awk '{print$1}') 2>/dev/null
 	kill -9 $(ps -w | grep $BIN_DIR/update | grep -v grep | awk '{print$1}') 2>/dev/null
 	$BIN_DIR/by-rules -f
-	srulecount=$($ipt -nL | grep BY-SERVER-RULE | wc -l)
+	srulecount=$(iptables -nL | grep BY-SERVER-RULE | wc -l)
 	if [ $srulecount -gt 0 ];then
-		$ipt -F BY-SERVER-RULE
-		$ipt -t filter -D INPUT -j BY-SERVER-RULE
-		$ipt -X BY-SERVER-RULE 2>/dev/null
+		iptables -F BY-SERVER-RULE
+		iptables -t filter -D INPUT -j BY-SERVER-RULE
+		iptables -X BY-SERVER-RULE 2>/dev/null
 	fi
 	[ -z "$switch_server" ] && kill -9 $(ps -w | grep by-switch | grep -v grep | awk '{print$1}') 2>/dev/null
 	kill -9 $(ps -w | grep by-monitor | grep -v grep | awk '{print$1}') 2>/dev/null
@@ -1200,8 +1206,8 @@ stop(){
 	kill -9 $(ps -w | grep $VAR | grep -v grep | awk '{print$1}') 2>/dev/null
 	killall -q -9 smartdns chinadns-ng kcptun-client microsocks
 
-	rm -rf $DNS_DIR $VAR $DNS_FILE $CON_T /tmp/lock/$NAME-update.lock
-	[ -z "$GLOBAL_SERVER" ] && grep -q $NAME $CRON_FILE && sed -i '/$NAME/d' $CRON_FILE && /etc/init.d/cron restart
+	rm -rf $DNS_DIR $VAR $DNS_FILE $CON_T /tmp/lock/bypass-update.lock
+	[ -z "$GLOBAL_SERVER" ] && grep -q bypass $CRON_FILE && sed -i '/bypass/d' $CRON_FILE && /etc/init.d/cron restart
 	if [ $STATUS = Y -o -z "$GLOBAL_SERVER" ];then
 		if [[ -f /etc/init.d/AdGuardHome && ` uci -q get AdGuardHome.AdGuardHome.redirectold ` ]]; then
 			/etc/init.d/AdGuardHome stop >/dev/null 2>&1 &
