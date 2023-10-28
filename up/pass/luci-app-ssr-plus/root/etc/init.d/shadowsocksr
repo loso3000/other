@@ -993,9 +993,9 @@ start_rules() {
 }
 
 start_mosdns(){
-	killall -q -9 mosdns
-	sed "s/255.255.255.255/$mosdns_bypass_ip/" /etc/ssrplus/config.yaml.tpl > /etc/mosdns/config.yaml
-	/usr/bin/mosdns start -d /etc/mosdns/ -c config.yaml >/dev/null 2>&1 &
+	killall -q -9 mosdns4
+	sed "s/255.255.255.255/$mosdns_bypass_ip/" /etc/ssrplus/config.yaml.tpl > /etc/mosdns4/config.yaml
+	/usr/bin/mosdns4 start -d /etc/mosdns4/ -c config.yaml >/dev/null 2>&1 &
 	sed -i "/list server/d" /etc/config/dhcp
 	uci add_list dhcp.@dnsmasq[0].server='127.0.0.1#5335'
 	uci set dhcp.@dnsmasq[0].noresolv="1"
@@ -1005,10 +1005,10 @@ start_mosdns(){
 	ipset add blacklist 76.76.19.19 >/dev/null 2>&1
 	ipset add blacklist 208.67.222.222 >/dev/null 2>&1
 	config_get_bool adg_enabled AdGuardHome enabled 0
-	[ "$enabled" == "1" ] && /etc/init.d/AdGuardHome stop
+	[ "$enabled" == "1" ] && /etc/init.d/AdGuardHome restart
 }
 stop_mosdns(){
-	killall -q -9 mosdns
+	killall -q -9 mosdns4
 	sed -i "/list server/d" /etc/config/dhcp
 	uci set dhcp.@dnsmasq[0].noresolv="0"
 	uci commit dhcp
@@ -1017,7 +1017,7 @@ stop_mosdns(){
 	ipset del blacklist 76.76.19.19 >/dev/null 2>&1
 	ipset del blacklist 208.67.222.222 >/dev/null 2>&1
 	config_get_bool adg_enabled AdGuardHome enabled 0
-	[ "$enabled" == "1" ] && /etc/init.d/AdGuardHome start
+	[ "$enabled" == "1" ] && /etc/init.d/AdGuardHome restart
 }
 start() {
 	set_lock
