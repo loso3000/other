@@ -5,7 +5,7 @@ function index()
 		return
 	end
 
-	entry({"admin", "nas", "qbittorrent"}, cbi("qbittorrent"), _("qBittorrent"), 20).dependent = true
+  entry({"admin","nas","qBittorrent"},cbi("qbittorrent"),_("qBittorrent")).acl_depends = { "luci-app-qbittorrent" }
 	entry({"admin", "nas", "qbittorrent_status"}, call("qbittorrent_status"))
 end
 
@@ -15,7 +15,7 @@ function qbittorrent_status()
 	local port = tonumber(uci:get_first("qbittorrent", "qbittorrent", "port"))
 
 	local status = {
-		running = (sys.call("pidof qbittorrent-nox >/dev/null") == 0),
+		running = (sys.call("pgrep qbittorrent-nox >/dev/null") == 0),
 		port = (port or 8080)
 	}
 

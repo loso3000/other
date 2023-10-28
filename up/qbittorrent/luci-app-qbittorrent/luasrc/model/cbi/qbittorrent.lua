@@ -12,4 +12,9 @@ s:option(Flag, "enabled", translate("Enable")).rmempty=false
 s:option(Value, "port", translate("WebUI Port")).rmempty=false
 s:option(Value, "profile_dir", translate("Configuration files Path")).rmempty=false
 
+
+m.apply_on_parse = true
+m.on_after_apply = function(self,map)
+	luci.sys.exec("/etc/init.d/qbittorrent restart >/dev/null 2>&1")
+end
 return m
