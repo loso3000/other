@@ -76,7 +76,7 @@ flush_r() {
 	ipset -X gmlan 2>/dev/null
 	ipset -X oversea 2>/dev/null
 	ipset -X whitelist 2>/dev/null
-	#ipset -X blacklist 2>/dev/null
+	ipset -X blacklist 2>/dev/null
 	ipset -X netflix 2>/dev/null
 	[ -n "$FWI" ] && echo '#!/bin/sh' >$FWI
 	return 0
