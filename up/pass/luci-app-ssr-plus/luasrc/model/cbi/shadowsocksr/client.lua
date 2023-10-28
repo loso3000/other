@@ -79,6 +79,7 @@ o.default = "0"
 o.rmempty = false
 
 o = s:option(ListValue, "run_mode", translate("Running Mode"))
+o:value("dyn", translate("Dynamic Mode"))
 o:value("gfw", translate("GFW List Mode"))
 o:value("router", translate("IP Route Mode"))
 o:value("all", translate("Global Mode"))
@@ -95,6 +96,10 @@ o:value("1", translate("Use DNS2TCP query"))
 o:value("2", translate("Use DNS2SOCKS query and cache"))
 o:value("0", translate("Use Local DNS Service listen port 5335"))
 o.default = 1
+o:depends("run_mode", "gfw")
+o:depends("run_mode", "router")
+o:depends("run_mode", "all")
+o:depends("run_mode", "oversea")
 
 o = s:option(Value, "tunnel_forward", translate("Anti-pollution DNS Server"))
 o:value("8.8.4.4:53", translate("Google Public DNS (8.8.4.4)"))

@@ -184,6 +184,11 @@ if args then
 		update(uci:get_first("shadowsocksr", "global", "nfip_url"), "/etc/ssrplus/netflixip.list", args)
 		os.exit(0)
 	end
+	if args == "mosdns" then
+		ret = luci.sys.exec("/bin/bash /usr/share/shadowsocksr/updatemosdns.sh")
+		log(ret, 0)
+		os.exit(0)
+	end
 else
 	log("正在更新【GFW列表】数据库")
 	update(uci:get_first("shadowsocksr", "global", "gfwlist_url"), "/etc/ssrplus/gfw_list.conf", "gfw_data", TMP_DNSMASQ_PATH .. "/gfw_list.conf")

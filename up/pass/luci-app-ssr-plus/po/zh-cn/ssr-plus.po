@@ -114,8 +114,10 @@ msgstr "验证类型"
 
 msgid "Users Authentication"
 msgstr "用户验证"
+
 msgid "NOTE: If the server uses the userpass authentication, the format must be username:password."
 msgstr "注意： 如果服务器使用 userpass 验证，格式必须是 username:password。"
+
 msgid "Enable Port Hopping"
 msgstr "启用端口跃迁"
 
@@ -138,22 +140,22 @@ msgid "Obfuscation Password"
 msgstr "混淆密码"
 
 msgid "Hysterir QUIC parameters"
-msgstr "QUIC参数"
+msgstr "QUIC 参数"
 
 msgid "QUIC initStreamReceiveWindow"
-msgstr "QUIC初始流接收窗口大小。"
+msgstr "QUIC 初始流接收窗口大小。"
 
 msgid "QUIC maxStreamReceiveWindow"
-msgstr "QUIC最大的流接收窗口大小"
+msgstr "QUIC 最大的流接收窗口大小"
 
 msgid "QUIC initConnReceiveWindow"
-msgstr "QUIC初始的连接接收窗口大小"
+msgstr "QUIC 初始的连接接收窗口大小"
 
 msgid "QUIC maxConnReceiveWindow"
-msgstr "QUIC最大的连接接收窗口大小"
+msgstr "QUIC 最大的连接接收窗口大小"
 
 msgid "QUIC maxIdleTimeout(Unit:second)"
-msgstr "QUIC最长空闲超时时间（单位：秒）"
+msgstr "QUIC 最长空闲超时时间（单位：秒）"
 
 msgid "The keep-alive period.(Unit:second)"
 msgstr "心跳包发送间隔（单位：秒）"
@@ -163,13 +165,13 @@ msgid "Certificate fingerprint"
 msgstr "证书指纹"
 
 msgid "shadowTLS protocol Version"
-msgstr "ShadowTLS协议版本"
+msgstr "ShadowTLS 协议版本"
 
 msgid "TLS 1.3 Strict mode"
 msgstr "TLS 1.3 限定模式"
 
 msgid "Disable TCP No_delay"
-msgstr "禁用TCP无延迟"
+msgstr "禁用 TCP 无延迟"
 
 msgid "shadow-TLS SNI"
 msgstr "服务器名称指示"
@@ -178,18 +180,20 @@ msgid "Shadow-TLS ChainPoxy type"
 msgstr "代理链类型"
 
 msgid "Shadowsocks-rust Version"
-msgstr "shadowsocks rust版本"
+msgstr "shadowsocks rust 版本"
 
 msgid "Vmess Protocol"
-msgstr "VMESS协议"
+msgstr "VMESS 协议"
 
 msgid "Shadowsocks password"
-msgstr "shadowsocks密码"
+msgstr "shadowsocks 密码"
+
 msgid "QUIC connection receive window"
 msgstr "QUIC 连接接收窗口"
 
 msgid "QUIC stream receive window"
 msgstr "QUIC 流接收窗口"
+
 
 msgid "Lazy Start"
 msgstr "延迟启动"
@@ -387,7 +391,7 @@ msgid "Connect Error"
 msgstr "连接错误"
 
 msgid "Check..."
-msgstr "正在检查..."
+msgstr "正在检查.."
 
 msgid "Proxy Check"
 msgstr "代理检查"
@@ -542,11 +546,12 @@ msgstr "格式为 IP:Port（默认：8.8.4.4:53）"
 msgid "Use DNS2TCP query"
 msgstr "使用 DNS2TCP 查询"
 
-msgid "Use Pdnsd tcp query and cache"
-msgstr "使用PDNSD TCP 查询并缓存"
 
 msgid "Use DNS2SOCKS query and cache"
 msgstr "使用 DNS2SOCKS 查询并缓存"
+
+msgid "Use Pdnsd tcp query and cache"
+msgstr "使用 PDNSD TCP 查询并缓存"
 
 msgid "DNS Server IP:Port"
 msgstr "DNS服务器 IP:Port"
@@ -902,6 +907,9 @@ msgstr "微信视频通话"
 msgid "DTLS 1.2"
 msgstr "DTLS 1.2 数据包"
 
+msgid "WireGuard"
+msgstr "WireGuard 数据包"
+
 msgid "MTU"
 msgstr "最大传输单元"
 
@@ -980,6 +988,9 @@ msgstr "TUIC 服务器IP地址"
 msgid "TUIC User Password"
 msgstr "TUIC用户密钥"
 
+msgid "TUIC UserName For Local Socks"
+msgstr "用于本地 Socks 服务器连接的用户名"
+
 msgid "UDP relay mode"
 msgstr "UDP中继模式"
 
@@ -1016,6 +1027,8 @@ msgstr "发送窗口（无需确认即可发送的最大字节数：默认8Mb*2�
 msgid "TUIC receive window"
 msgstr "接收窗口（无需确认即可接收的最大字节数：默认8Mb）"
 
+msgid "Set if the listening socket should be dual-stack"
+msgstr "设置监听套接字为双栈"
 msgid "Dual-stack Listening Socket"
 msgstr "双栈Socket监听"
 
@@ -1024,3 +1037,9 @@ msgstr "socks5服务器可以从外部接收的最大数据包大小（单位：
 
 msgid "Disable ChinaDNS-NG"
 msgstr "直通模式（禁用ChinaDNS-NG）"
+
+msgid "MosDNS GeoIP List Data"
+msgstr "【MosDNS GeoIP】数据库"
+
+msgid "Dynamic Mode"
+msgstr "MosDNS动态模式"

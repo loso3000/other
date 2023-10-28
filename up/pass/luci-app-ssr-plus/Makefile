@@ -2,7 +2,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-ssr-plus
 PKG_VERSION:=187
-PKG_RELEASE:=3
+PKG_RELEASE:=2
 
 PKG_CONFIG_DEPENDS:= \
 	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_NONE_V2RAY \
@@ -26,9 +26,10 @@ PKG_CONFIG_DEPENDS:= \
 	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_Shadowsocks_V2ray_Plugin \
 	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_ShadowsocksR_Libev_Client \
 	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_ShadowsocksR_Libev_Server \
+	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_Mosdns \
 	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_Trojan
 
-LUCI_TITLE:=SS/SSR/V2Ray/Trojan/NaiveProxy/Tuci/ShadowTLS/Hysteria/Socks5/Tun LuCI interface
+LUCI_TITLE:=SS/SSR/V2Ray/Trojan/NaiveProxy/Tuic/ShadowTLS/Hysteria/Socks5/Tun LuCI interface
 LUCI_PKGARCH:=all
 LUCI_DEPENDS:= \
 	@(PACKAGE_libustream-mbedtls||PACKAGE_libustream-openssl||PACKAGE_libustream-wolfssl) \
@@ -41,7 +42,7 @@ LUCI_DEPENDS:= \
 	+PACKAGE_$(PKG_NAME)_INCLUDE_Xray:xray-core \
 	+PACKAGE_$(PKG_NAME)_INCLUDE_ChinaDNS_NG:chinadns-ng \
 	+PACKAGE_$(PKG_NAME)_INCLUDE_Hysteria:hysteria \
-	+PACKAGE_$(PKG_NAME)_INCLUDE_Tuci_Client:tuic-client \
+	+PACKAGE_$(PKG_NAME)_INCLUDE_Tuic_Client:tuic-client \
 	+PACKAGE_$(PKG_NAME)_INCLUDE_Shadow_TLS:shadow-tls \
 	+PACKAGE_$(PKG_NAME)_INCLUDE_IPT2Socks:ipt2socks \
 	+PACKAGE_$(PKG_NAME)_INCLUDE_Kcptun:kcptun-client \
@@ -57,6 +58,7 @@ LUCI_DEPENDS:= \
 	+PACKAGE_$(PKG_NAME)_INCLUDE_ShadowsocksR_Libev_Client:shadowsocksr-libev-ssr-local \
 	+PACKAGE_$(PKG_NAME)_INCLUDE_ShadowsocksR_Libev_Client:shadowsocksr-libev-ssr-redir \
 	+PACKAGE_$(PKG_NAME)_INCLUDE_ShadowsocksR_Libev_Server:shadowsocksr-libev-ssr-server \
+	+PACKAGE_$(PKG_NAME)_INCLUDE_Mosdns:mosdns \
 	+PACKAGE_$(PKG_NAME)_INCLUDE_Trojan:trojan
 
 define Package/$(PKG_NAME)/config
@@ -121,21 +123,21 @@ config PACKAGE_$(PKG_NAME)_INCLUDE_Hysteria
 	select PACKAGE_$(PKG_NAME)_INCLUDE_ChinaDNS_NG
 	default n
 
-config PACKAGE_$(PKG_NAME)_INCLUDE_Tuci_Client
+config PACKAGE_$(PKG_NAME)_INCLUDE_Tuic_Client
 	bool "Include tuic-client"
 	select PACKAGE_$(PKG_NAME)_INCLUDE_ChinaDNS_NG
 	select PACKAGE_$(PKG_NAME)_INCLUDE_IPT2Socks
 	depends on aarch64||arm||i386||x86_64
 	depends on !(TARGET_x86_geode||TARGET_x86_legacy)
 	default n
-
 config PACKAGE_$(PKG_NAME)_INCLUDE_Shadow_TLS
-	bool "Include shadow-TLS"
+	bool "Include Shadow-TLS"
 	select PACKAGE_$(PKG_NAME)_INCLUDE_ChinaDNS_NG
 	select PACKAGE_$(PKG_NAME)_INCLUDE_Shadowsocks_Rust_Client
 	depends on aarch64||arm||x86_64
 	depends on !(TARGET_x86_geode||TARGET_x86_legacy)
 	default n
+
 config PACKAGE_$(PKG_NAME)_INCLUDE_IPT2Socks
 	bool "Include IPT2Socks"
 	default n
@@ -173,11 +175,15 @@ config PACKAGE_$(PKG_NAME)_INCLUDE_Trojan
 	bool "Include Trojan"
 	select PACKAGE_$(PKG_NAME)_INCLUDE_IPT2Socks
 	default n
+config PACKAGE_$(PKG_NAME)_INCLUDE_mosdns
+	bool "Include mosdns"
+	default y
 endef
 
 define Package/$(PKG_NAME)/conffiles
 /etc/config/shadowsocksr
 /etc/ssrplus/
+/etc/mosdns/config.yaml
 endef
 
 include $(TOPDIR)/feeds/luci/luci.mk

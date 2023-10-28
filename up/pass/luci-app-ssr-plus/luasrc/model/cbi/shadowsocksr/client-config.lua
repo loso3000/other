@@ -344,10 +344,12 @@ o = s:option(Flag, "flag_obfs", translate("Enable Obfuscation"))
 o:depends("type", "hysteria")
 o.rmempty = true
 o.default = "0"
+
 o = s:option(Value, "obfs_type", translate("Obfuscation Type"))
 o:depends({type = "hysteria", flag_obfs = "1"})
 o.rmempty = true
 o.default = "salamander"
+
 o = s:option(Value, "salamander", translate("Obfuscation Password"))
 o:depends({type = "hysteria", flag_obfs = "1"})
 o.rmempty = true
@@ -357,47 +359,49 @@ o = s:option(Flag, "flag_quicparam", translate("Hysterir QUIC parameters"))
 o:depends("type", "hysteria")
 o.rmempty = true
 o.default = "0"
+
 --[[Hysteria2 QUIC parameters setting]]
 o = s:option(Value, "initstreamreceivewindow", translate("QUIC initStreamReceiveWindow"))
-o:depends({type = "hysteria",flag_quicparam = "1"})
+o:depends({type = "hysteria", flag_quicparam = "1"})
 o.datatype = "uinteger"
 o.rmempty = true
 o.default = "8388608"
 
 o = s:option(Value, "maxstreamseceivewindow", translate("QUIC maxStreamReceiveWindow"))
-o:depends({type = "hysteria",flag_quicparam = "1"})
+o:depends({type = "hysteria", flag_quicparam = "1"})
 o.datatype = "uinteger"
 o.rmempty = true
 o.default = "8388608"
 
 o = s:option(Value, "initconnreceivewindow", translate("QUIC initConnReceiveWindow"))
-o:depends({type = "hysteria",flag_quicparam = "1"})
+o:depends({type = "hysteria", flag_quicparam = "1"})
 o.datatype = "uinteger"
 o.rmempty = true
 o.default = "20971520"
 
 o = s:option(Value, "maxconnreceivewindow", translate("QUIC maxConnReceiveWindow"))
-o:depends({type = "hysteria",flag_quicparam = "1"})
+o:depends({type = "hysteria", flag_quicparam = "1"})
 o.datatype = "uinteger"
 o.rmempty = true
 o.default = "20971520"
 
 o = s:option(Value, "maxidletimeout", translate("QUIC maxIdleTimeout(Unit:second)"))
-o:depends({type = "hysteria",flag_quicparam = "1"})
+o:depends({type = "hysteria", flag_quicparam = "1"})
 o.rmempty = true
 o.datatype = "uinteger"
 o.default = "30"
 
 o = s:option(Value, "keepaliveperiod", translate("The keep-alive period.(Unit:second)"))
-o:depends({type = "hysteria",flag_quicparam = "1"})
+o:depends({type = "hysteria", flag_quicparam = "1"})
 o.rmempty = true
 o.datatype = "uinteger"
 o.default = "10"
 
 o = s:option(Flag, "disablepathmtudiscovery", translate("Disable Path MTU discovery"))
-o:depends({type = "hysteria",flag_quicparam = "1"})
+o:depends({type = "hysteria", flag_quicparam = "1"})
 o.rmempty = true
 o.default = false
+
 
 --[[ Shadow-TLS Options ]]
 o = s:option(ListValue, "shadowtls_protocol", translate("shadowTLS protocol Version"))
@@ -406,10 +410,12 @@ o:value("v3", translate("Enable V3 protocol."))
 o:value("v2", translate("Enable V2 protocol."))
 o.default = "v3"
 o.rmempty = true
+
 o = s:option(Flag, "strict", translate("TLS 1.3 Strict mode"))
 o:depends("type", "shadowtls")
 o.default = "1"
 o.rmempty = false
+
 o = s:option(Flag, "fastopen", translate("TCP Fast Open"))
 o:depends("type", "shadowtls")
 o.default = "0"
@@ -893,7 +899,7 @@ o:depends("type", "hysteria")
 o.description = translate("If true, allowss insecure connection at TLS client, e.g., TLS server uses unverifiable certificates.")
 -- [[ Hysteria2 TLS pinSHA256 ]] --
 o = s:option(Value, "pinsha256", translate("Certificate fingerprint"))
-o:depends({type ="hysteria", insecure = true })
+o:depends({type = "hysteria", insecure = true })
 o.rmempty = true
 
 -- [[ Mux ]]--

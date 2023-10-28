@@ -122,7 +122,7 @@ local Xray = {
 		port = tonumber(local_port),
 		protocol = "dokodemo-door",
 		settings = {network = proto, followRedirect = true},
-		sniffing = {enabled = true, destOverride = {"http", "tls"}}
+		sniffing = {enabled = false, destOverride = {"http", "tls"}}
 	} or nil,
 	-- 开启 socks 代理
 	inboundDetour = (proto:find("tcp") and socks_port ~= "0") and {
@@ -317,7 +317,7 @@ local hysteria = {
 	auth = server.hy2_auth,
 	tls = (server.tls_host) and {
 		sni = server.tls_host,
-		insecure = (server.insecure == "1") and true or false,
+	insecure = (server.insecure == "1") and true or false,
 		pinSHA256 = (server.insecure == "1") and server.pinsha256 or nil
 	} or {
 		sni = server.server,

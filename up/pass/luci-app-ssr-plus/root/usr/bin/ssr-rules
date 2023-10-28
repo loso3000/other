@@ -7,9 +7,7 @@
 # See /LICENSE for more information.
 #
 TAG="_SS_SPEC_RULE_"                                  # comment tag
-ip4t=$(command -v iptables-legacy || command -v iptables)
-ip6t=$(command -v ip6tables-legacy || command -v ip6tables)
-IPT="${ip4t} -t nat"                                 # alias of iptables
+IPT="iptables -t nat"                                 # alias of iptables
 FWI=$(uci get firewall.shadowsocksr.path 2>/dev/null) # firewall include file
 usage() {
 	cat <<-EOF
@@ -59,11 +57,11 @@ loger() {
 
 flush_r() {
 	flush_iptables() {
-		local iptt="${ip4t} -t $1"
-		local DAT=$(${ip4t}-save -t $1)
-		eval $(echo "$DAT" | grep "$TAG" | sed -e 's/^-A/$iptt -D/' -e 's/$/;/')
+		local ipt="iptables -t $1"
+		local DAT=$(iptables-save -t $1)
+		eval $(echo "$DAT" | grep "$TAG" | sed -e 's/^-A/$ipt -D/' -e 's/$/;/')
 		for chain in $(echo "$DAT" | awk '/^:SS_SPEC/{print $1}'); do
-			$iptt -F ${chain:1} 2>/dev/null && $iptt -X ${chain:1}
+			$ipt -F ${chain:1} 2>/dev/null && $ipt -X ${chain:1}
 		done
 	}
 	flush_iptables nat
@@ -78,7 +76,7 @@ flush_r() {
 	ipset -X gmlan 2>/dev/null
 	ipset -X oversea 2>/dev/null
 	ipset -X whitelist 2>/dev/null
-	ipset -X blacklist 2>/dev/null
+	#ipset -X blacklist 2>/dev/null
 	ipset -X netflix 2>/dev/null
 	[ -n "$FWI" ] && echo '#!/bin/sh' >$FWI
 	return 0
@@ -100,12 +98,14 @@ ipset_r() {
 		$IPT -A SS_SPEC_WAN_AC -m set --match-set china dst -j RETURN
 		$IPT -A SS_SPEC_WAN_AC -m set --match-set gmlan src -m set ! --match-set china dst -j SS_SPEC_WAN_FW
 		$IPT -A SS_SPEC_WAN_AC -j SS_SPEC_WAN_FW
+		[ -n "$(command -v ip6tables)" ] && . /etc/ssrplus/blockipv6.sh
 		;;
 	gfw)
 		ipset -N gfwlist hash:net 2>/dev/null
 		$IPT -A SS_SPEC_WAN_AC -m set --match-set china dst -j RETURN
 		$IPT -A SS_SPEC_WAN_AC -m set --match-set gfwlist dst -j SS_SPEC_WAN_FW
 		$IPT -A SS_SPEC_WAN_AC -m set --match-set gmlan src -m set ! --match-set china dst -j SS_SPEC_WAN_FW
+		[ -n "$(command -v ip6tables)" ] && . /etc/ssrplus/blockipv6.sh
 		;;
 	oversea)
 		ipset -N oversea hash:net 2>/dev/null
@@ -125,6 +125,11 @@ ipset_r() {
 	$IPT -I SS_SPEC_WAN_AC -m set --match-set bplan src -j RETURN
 	ipset -N whitelist hash:net 2>/dev/null
 	ipset -N blacklist hash:net 2>/dev/null
+	if [ $? -eq 0 ]; then
+	while read ip; do
+		ipset -! add blacklist $ip
+	done < /etc/ssrplus/blackipv4.sh
+	fi
 	$IPT -I SS_SPEC_WAN_AC -m set --match-set blacklist dst -j SS_SPEC_WAN_FW
 	$IPT -I SS_SPEC_WAN_AC -m set --match-set whitelist dst -j RETURN
 	if [ $(ipset list music -name -quiet | grep music) ]; then
@@ -222,7 +227,7 @@ tp_rule() {
 	[ -n "$TPROXY" ] || return 0
 	ip rule add fwmark 0x01/0x01 table 100
 	ip route add local 0.0.0.0/0 dev lo table 100
-	local ipt="${ip4t} -t mangle"
+	local ipt="iptables -t mangle"
 	$ipt -N SS_SPEC_TPROXY
 	$ipt -A SS_SPEC_TPROXY -p udp --dport 53 -j RETURN
 	$ipt -A SS_SPEC_TPROXY -p udp -d 0.0.0.0/8 -j RETURN
@@ -241,13 +246,11 @@ tp_rule() {
 	router)
 		$ipt -A SS_SPEC_TPROXY -p udp -m set --match-set ss_spec_wan_ac dst -j RETURN
 		$ipt -A SS_SPEC_TPROXY -p udp -m set --match-set china dst -j RETURN
-		$ipt -A SS_SPEC_TPROXY -p udp --dport 80 -j DROP
 		$ipt -A SS_SPEC_TPROXY -p udp -m set --match-set gmlan src -m set ! --match-set china dst -j TPROXY --on-port "$LOCAL_PORT" --tproxy-mark 0x01/0x01
 		$ipt -A SS_SPEC_TPROXY -p udp $PROXY_PORTS -m set ! --match-set ss_spec_wan_ac dst -j TPROXY --on-port "$LOCAL_PORT" --tproxy-mark 0x01/0x01
 		;;
 	gfw)
 		$ipt -A SS_SPEC_TPROXY -p udp -m set --match-set china dst -j RETURN
-		$ipt -A SS_SPEC_TPROXY -p udp --dport 80 -j DROP
 		$ipt -A SS_SPEC_TPROXY -p udp $PROXY_PORTS -m set --match-set gfwlist dst -j TPROXY --on-port "$LOCAL_PORT" --tproxy-mark 0x01/0x01
 		$ipt -A SS_SPEC_TPROXY -p udp -m set --match-set gmlan src -m set ! --match-set china dst -j TPROXY --on-port "$LOCAL_PORT" --tproxy-mark 0x01/0x01
 		;;
@@ -255,6 +258,10 @@ tp_rule() {
 		$ipt -A SS_SPEC_TPROXY -p udp $PROXY_PORTS -m set --match-set oversea src -m dst -j TPROXY --on-port "$LOCAL_PORT" --tproxy-mark 0x01/0x01
 		$ipt -A SS_SPEC_TPROXY -p udp -m set --match-set gmlan src -m set -j TPROXY --on-port "$LOCAL_PORT" --tproxy-mark 0x01/0x01
 		$ipt -A SS_SPEC_TPROXY -p udp $PROXY_PORTS -m set --match-set china dst -j TPROXY --on-port "$LOCAL_PORT" --tproxy-mark 0x01/0x01
+		;;
+	dyn)
+		#$ipt -A SS_SPEC_TPROXY -p udp -m set --match-set blacklist dst -j DROP
+		$ipt -A SS_SPEC_TPROXY -p udp -m set --match-set blacklist dst -j TPROXY --on-port "$LOCAL_PORT" --tproxy-mark 0x01/0x01
 		;;
 	all)
 		$ipt -A SS_SPEC_TPROXY -p udp $PROXY_PORTS -j TPROXY --on-port "$LOCAL_PORT" --tproxy-mark 0x01/0x01
@@ -306,12 +313,12 @@ gen_include() {
 	[ -n "$FWI" ] || return 0
 	extract_rules() {
 		echo "*$1"
-		${ip4t}-save -t $1 | grep SS_SPEC_ | sed -e "s/^-A \(OUTPUT\|PREROUTING\)/-I \1 1/"
+		iptables-save -t $1 | grep SS_SPEC_ | sed -e "s/^-A \(OUTPUT\|PREROUTING\)/-I \1 1/"
 		echo 'COMMIT'
 	}
 	cat <<-EOF >>$FWI
-		${ip4t}-save -c | grep -v "SS_SPEC" | ${ip4t}-restore -c
-		${ip4t}-restore -n <<-EOT
+		iptables-save -c | grep -v "SS_SPEC" | iptables-restore -c
+		iptables-restore -n <<-EOT
 		$(extract_rules nat)
 		$(extract_rules mangle)
 		EOT
@@ -319,7 +326,7 @@ gen_include() {
 	return 0
 }
 
-while getopts ":m:s:l:S:L:i:e:a:B:b:w:p:G:D:F:N:M:I:oOuUfgrczh" arg; do
+while getopts ":m:s:l:S:L:i:e:a:B:b:w:p:G:D:F:N:M:I:oOuUfgrczdh" arg; do
 	case "$arg" in
 	m)
 		Interface=$OPTARG
@@ -398,6 +405,9 @@ while getopts ":m:s:l:S:L:i:e:a:B:b:w:p:G:D:F:N:M:I:oOuUfgrczh" arg; do
 		;;
 	z)
 		RUNMODE=all
+		;;
+	d)
+		RUNMODE=dyn
 		;;
 	f)
 		flush_r

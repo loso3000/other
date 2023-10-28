@@ -88,7 +88,7 @@ if Process_list:find("ssr.server") then
 	server_run = 1
 end
 
-if Process_list:find("ssrplus/bin/dns2tcp") or (Process_list:find("ssrplus.dns") and Process_list:find("dns2socks.127.0.0.1.*127.0.0.1.5335")) then
+if Process_list:find("/usr/bin/mosdns") or Process_list:find("ssrplus/bin/dns2tcp") or (Process_list:find("ssrplus.dns") and Process_list:find("dns2socks.127.0.0.1.*127.0.0.1.5335")) then
 	pdnsd_run = 1
 end
 
@@ -112,7 +112,7 @@ else
 	s.value = style_blue .. bold_on .. translate("Not Running") .. bold_off .. font_off
 end
 
-if uci:get_first("shadowsocksr", 'global', 'pdnsd_enable', '0') ~= '0' then
+if uci:get_first("shadowsocksr", 'global', 'pdnsd_enable', '0') ~= '0' or uci:get_first("shadowsocksr", 'global', 'run_mode', '0') == 'dyn' then
 	s = m:field(DummyValue, "pdnsd_run", translate("DNS Anti-pollution"))
 	s.rawhtml = true
 	if pdnsd_run == 1 then
@@ -182,6 +182,11 @@ if uci:get_first("shadowsocksr", 'global', 'adblock', '0') == '1' then
 	s.template = "shadowsocksr/refresh"
 	s.value = ad_count .. " " .. translate("Records")
 end
+
+s = m:field(DummyValue, "mosdns", translate("MosDNS GeoIP List Data"))
+s.rawhtml = true
+s.template = "shadowsocksr/refresh"
+s.value = translate("No Check")
 
 s = m:field(DummyValue, "check_port", translate("Check Server Port"))
 s.template = "shadowsocksr/checkport"
