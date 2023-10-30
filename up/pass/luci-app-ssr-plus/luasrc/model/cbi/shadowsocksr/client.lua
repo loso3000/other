@@ -49,7 +49,7 @@ for _, key in pairs(key_table) do
 	o:value(key, server_table[key])
 end
 
-if uci:get_first("shadowsocksr", 'global', 'netflix_enable', '0') ~= '0' then
+if uci:get_first("shadowsocksr", 'global', 'netflix_enable', '0') == '1' then
 o = s:option(ListValue, "netflix_server", translate("Netflix Node"))
 o:value("nil", translate("Disable"))
 o:value("same", translate("Same as Global Server"))
@@ -94,7 +94,9 @@ o.default = 1
 o = s:option(ListValue, "pdnsd_enable", translate("Resolve Dns Mode"))
 o:value("1", translate("Use DNS2TCP query"))
 o:value("2", translate("Use DNS2SOCKS query and cache"))
+if is_finded("mosdns") then
 o:value("3", translate("Use MOSDNS query (Not Support Oversea Mode)"))
+end
 o:value("0", translate("Use Local DNS Service listen port 5335"))
 o.default = 1
 

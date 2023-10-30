@@ -48,7 +48,6 @@ EXTRA_COMMANDS='reset'
 EXTRA_HELP="        reset   Reset to default settings"
 #extra_command "reset" "Reset to default settings"
 PS="/bin/busybox ps"
-mosdns_bypass_ip=''
 
 uci_get_by_name() {
 	local ret=$(uci get $NAME.$1.$2 2>/dev/null)
