@@ -62,7 +62,7 @@ function act_status()
 
     e.global = CALL('busybox ps -w | grep ssr-xretcp | grep -v grep  >/dev/null ') == 0
 
-    e.pdnsd = CALL('busybox ps -w | grep dns2tcp |  grep -v grep  >/dev/null   || busybox ps -w |  grep mosdns | grep -v grep  >/dev/null   || busybox ps -w |  grep dns2socks | grep -v grep  >/dev/null '  ) == 0
+    e.pdnsd = CALL("ps -w | grep dns2tcp |  grep -v grep  >/dev/null   || ps -w |  grep 'mosdns-config' | grep -v grep  >/dev/null   || ps -w |  grep dns2socks | grep -v grep  >/dev/null "  ) == 0
 
     e.udp = CALL('busybox ps -w | grep ssr-xreudp | grep -v grep  >/dev/null') == 0
 

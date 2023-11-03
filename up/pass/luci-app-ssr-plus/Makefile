@@ -2,7 +2,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-ssr-plus
 PKG_VERSION:=188
-PKG_RELEASE:=2
+PKG_RELEASE:=3
 
 PKG_CONFIG_DEPENDS:= \
 	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_NONE_V2RAY \
@@ -120,7 +120,8 @@ config PACKAGE_$(PKG_NAME)_INCLUDE_ChinaDNS_NG
 
 config PACKAGE_$(PKG_NAME)_INCLUDE_MosDNS
 	bool "Include MosDNS"
-	default n
+	default y if i386||x86_64||arm
+
 config PACKAGE_$(PKG_NAME)_INCLUDE_Hysteria
 	bool "Include Hysteria"
 	select PACKAGE_$(PKG_NAME)_INCLUDE_ChinaDNS_NG
@@ -133,6 +134,7 @@ config PACKAGE_$(PKG_NAME)_INCLUDE_Tuic_Client
 	depends on aarch64||arm||i386||x86_64
 	depends on !(TARGET_x86_geode||TARGET_x86_legacy)
 	default n
+
 config PACKAGE_$(PKG_NAME)_INCLUDE_Shadow_TLS
 	bool "Include Shadow-TLS"
 	select PACKAGE_$(PKG_NAME)_INCLUDE_ChinaDNS_NG
