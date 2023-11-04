@@ -23,5 +23,11 @@ wget -qO- $CLASH_TUN_URL | gunzip -c > files/etc/openclash/core/clash_tun
 wget -qO- $CLASH_META_URL | tar xOvz > files/etc/openclash/core/clash_meta
 wget -qO- $GEOIP_URL > files/etc/openclash/GeoIP.dat
 wget -qO- $GEOSITE_URL > files/etc/openclash/GeoSite.dat
+
+[ -f files/etc/openclash/core/clash ] || mv -f ./package/other/patch/openclash/core/clash files/etc/openclash/core/clash
+[ -f files/etc/openclash/core/clash_tun ] || mv -f ./package/other/openclash/core/clash_tun files/etc/openclash/core/clash_tun
+[ -f files/etc/openclash/core/clash_meta ] || mv -f ./package/other/openclash/core/clash_meta files/etc/openclash/core/clash_meta
+[ -f files/etc/openclash/GeoIP.dat ] || mv -f ./package/other/patch/openclash/GeoIP.dat files/etc/openclash/GeoIP.dat
+[ -f files/etc/openclash/GeoSite.dat ] || mv -f ./package/other/patch/openclash/GeoSite.dat files/etc/openclash/GeoSite.dat
 chmod +x files/etc/openclash/core/clash*
 
