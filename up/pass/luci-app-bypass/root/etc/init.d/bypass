@@ -714,16 +714,16 @@ gen_smartdns(){
 		prefetch-domain yes
 		serve-expired yes
 		cache-size 32768
-		#log-level fatal
-		#log-file $LOG
+		og-level fatal
+		log-file $LOG
 		max-reply-ip-num 3
 
-		log-level debug
-		log-file /var/log/smartdns/smartdns-debug.log
-		audit-enable yes
-		audit-num 16
-		audit-size 16M
-		audit-file /var/log/smartdns/smartdns-audit.log
+		#log-level debug
+		#log-file /var/log/smartdns/smartdns-debug.log
+		#audit-enable yes
+		#audit-num 16
+		#audit-size 16M
+		#audit-file /var/log/smartdns/smartdns-audit.log
 		
 		cache-file /tmp/bysmartdns.cache
 	EOF
@@ -788,12 +788,14 @@ gen_smartdns(){
 	 case $remote_ in
 		_doh) 
 		        echo $dnsname | sed 's/,/\n/g' | sed -e 's/^/server-https /g' -e 's/$/ -group a  -exclude-default-group/g' >> $DNS_T
-			for i in $dns;do echo "server-tcp $i -group b -exclude-default-group" >> $DNS_T;done
+			# for i in $dns;do echo "server-tcp $i -group b -exclude-default-group" >> $DNS_T;done
 			echo -e "nameserver /dnsleaktest.com/b\nnameserver /whrq.net/b\nnameserver /speedtest.net/b\nnameserver /ooklaserver.net/b\nnameserver /in-addr.arpa/b\nnameserver /browserleaks.com/b\nnameserver /expressvpn.com/b\nnameserver /ipleak.net/b\nnameserver /whoer.net/b " >> $DNS_T
 		        dnsname_dom=$(echo $dnsname | sed 's/,/\n/g' | awk '-F[/:]' '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$" | grep -Ev "\[[0-9]")
 			# dnsname_dom=$(echo $dnsname | sed 's/,/\n/g' | awk -F[/:] '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$")
 			if [ "$dnsname_dom" ];then
 			   for dom in $dnsname_dom;do
+				for i in $dns;do echo "server-tcp $i -group b -exclude-default-group" >> $DNS_T;done
+				for i in $dnsname_dom;do echo "server-tcp $i -group b -exclude-default-group" >> $DNS_T;done
 				case $run_mode in
 					router|all)echo "nameserver /$dom/b" >> $DNS_T;;
 					*)echo "domain-rules /$dom/ -nameserver b -ipset blacklist" >> $DNS_T;;
@@ -804,12 +806,14 @@ gen_smartdns(){
 			fi;;
 		_dot)
 			echo $dnsname | sed 's/,/\n/g' | sed -e 's/^/server-tls /g' -e 's/$/ -group a  -exclude-default-group/g' >> $DNS_T
-			for i in $dns;do echo "server-tcp $i -group b -exclude-default-group" >> $DNS_T;done
+			# for i in $dns;do echo "server-tcp $i -group b -exclude-default-group" >> $DNS_T;done
 			echo -e "nameserver /dnsleaktest.com/b\nnameserver /whrq.net/b\nnameserver /speedtest.net/b\nnameserver /ooklaserver.net/b\nnameserver /in-addr.arpa/b\nnameserver /browserleaks.com/b\nnameserver /expressvpn.com/b\nnameserver /ipleak.net/b\nnameserver /whoer.net/b " >> $DNS_T
 		        dnsname_dom=$(echo $dnsname | sed 's/,/\n/g' | awk '-F[/:]' '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$" | grep -Ev "\[[0-9]")
 			# dnsname_dom=$(echo $dnsname | sed 's/,/\n/g' | awk -F[/:] '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$")
 			if [ "$dnsname_dom" ];then
 			   for dom in $dnsname_dom;do
+				for i in $dns;do echo "server-tcp $i -group b -exclude-default-group" >> $DNS_T;done
+				for i in $dnsname_dom;do echo "server-tcp $i -group b -exclude-default-group" >> $DNS_T;done
 				case $run_mode in
 					router|all)echo "nameserver /$dom/b" >> $DNS_T;;
 					*)echo "domain-rules /$dom/ -nameserver b -ipset blacklist" >> $DNS_T;;
@@ -823,7 +827,6 @@ gen_smartdns(){
 			echo -e "nameserver /dnsleaktest.com/a\nnameserver /whrq.net/a\nnameserver /speedtest.net/a\nnameserver /ooklaserver.net/a\nnameserver /in-addr.arpa/a\nnameserver /browserleaks.com/a\nnameserver /expressvpn.com/a\nnameserver /ipleak.net/a\nnameserver /whoer.net/a " >> $DNS_T
 		;;
 	esac
-	# for i in $dns;do echo "server $i -group b" >>$DNS_T;done
 	log "SAMARTDNS : start in $remote Remote DNS Resolution!"
     done
     
@@ -835,29 +838,32 @@ gen_smartdns(){
 	 case $local_ in
 		_doh) 
 			 echo $dnsname | sed 's/,/\n/g' | sed -e 's/^/server-https /g' -e 's/$/ -group e  -exclude-default-group/g' >> $DNS_T
-			 for i in $dns;do echo "server $i -group f -exclude-default-group" >> $DNS_T;done
+			 # for i in $dns;do echo "server $i -group f -exclude-default-group" >> $DNS_T;done
 			 dnsname_dom=$(echo $dnsname | sed 's/,/\n/g' | awk '-F[/:]' '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$" | grep -Ev "\[[0-9]")
 			 if [ "$dnsname_dom" ];then
-					for i in $dnsname_dom;do echo "domain-rules /$i/ -nameserver f -ipset ss_spec_wan_ac" >> $DNS_T
+				for i in $dns;do echo "server-tcp $i -group f -exclude-default-group" >> $DNS_T;done
+				for i in $dnsname_dom;do echo "server-tcp $i -group f -exclude-default-group" >> $DNS_T;done
+				for i in $dnsname_dom;do echo "domain-rules /$i/ -nameserver f -ipset ss_spec_wan_ac" >> $DNS_T
 					[ $run_mode = all ] && echo "server=/$i/127.0.0.1#5336" >$DNS_DIR/white.conf
-					done
+				done
 			fi
 			echo "nameserver /in-addr.arpa/f" >> $DNS_T;;
 		_dot)
 			echo $dnsname | sed 's/,/\n/g' | sed -e 's/^/server-tls /g' -e 's/$/ -group e  -exclude-default-group/g' >> $DNS_T
-			 for i in $dns;do echo "server $i -group f -exclude-default-group" >> $DNS_T;done
+			# for i in $dns;do echo "server $i -group f -exclude-default-group" >> $DNS_T;done
 			dnsname_dom=$(echo $dnsname | sed 's/,/\n/g' | awk '-F[/:]' '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$" | grep -Ev "\[[0-9]")
 			if [ "$dnsname_dom" ];then
-					# for i in $dnsname;do echo "server $i -group f -exclude-default-group" >> $DNS_T;done
-					for i in $dnsname_dom;do echo "domain-rules /$i/ -nameserver f -ipset ss_spec_wan_ac" >> $DNS_T
+
+				for i in $dns;do echo "server-tcp $i -group f -exclude-default-group" >> $DNS_T;done
+				for i in $dnsname_dom;do echo "server-tcp $i -group f -exclude-default-group" >> $DNS_T;done
+				for i in $dnsname_dom;do echo "domain-rules /$i/ -nameserver f -ipset ss_spec_wan_ac" >> $DNS_T
 					[ $run_mode = all ] && echo "server=/$i/127.0.0.1#5336" >$DNS_DIR/white.conf
-					done
+				done
 			fi;;
 		*)
 			for i in $dns;do echo "server $i -group e " >>$DNS_T;done
 			echo "nameserver /in-addr.arpa/e" >> $DNS_T;;
 	 esac	
-	# for i in $dns;do echo "server $i -group f " >>$DNS_T;done
 	for i in $dns;do ipset add ss_spec_wan_ac $i 2>/dev/null;done
 	log "SAMARTDNS : start in $local Local DNS Resolution!"
     done
@@ -872,18 +878,22 @@ gen_smartdns(){
 	   case $dnsnf_ in
 	 	_doh) 
 		        echo $dnsname | sed 's/,/\n/g' | sed -e 's/^/server-https /g' -e 's/$/ -group h  -exclude-default-group/g' >> $DNS_T
+			 # for i in $dns;do echo "server-tcp $i -group i -exclude-default-group" >> $DNS_T;done
 			dnsname_dom=$(echo $dnsname | sed 's/,/\n/g' | awk -F[/:] '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$")
 			if [ "$dnsname_dom" ];then
-				for i in $dnsname;do echo "server-tcp $i -group i -exclude-default-group" >> $DNS_T;done
+				for i in $dns;do echo "server-tcp $i -group i -exclude-default-group" >> $DNS_T;done
+				for i in $dnsname_dom;do echo "server-tcp $i -group i -exclude-default-group" >> $DNS_T;done
 				for i in $dnsname_dom;do echo "domain-rules /$i/ -nameserver i -ipset netflix" >> $DNS_T
 				[ -s $DNS_DIR/black.conf ] && sed -i -e "/\/$i/d" -e "/\.$i/d" $DNS_DIR/black.conf
 				done
 			fi;;
 		_dot)
 		        echo $dnsname | sed 's/,/\n/g' | sed -e 's/^/server-tls /g' -e 's/$/ -group h  -exclude-default-group/g' >> $DNS_T
+			 # for i in $dns;do echo "server-tcp $i -group i -exclude-default-group" >> $DNS_T;done
 			dnsname_dom=$(echo $dnsname | sed 's/,/\n/g' | awk -F[/:] '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$")
 			if [ "$dnsname_dom" ];then
-				for i in $dnsname;do echo "server-tcp $i -group i -exclude-default-group" >> $DNS_T;done
+				for i in $dns;do echo "server-tcp $i -group i -exclude-default-group" >> $DNS_T;done
+				for i in $dnsname_dom;do echo "server-tcp $i -group i -exclude-default-group" >> $DNS_T;done
 				for i in $dnsname_dom;do echo "domain-rules /$i/ -nameserver i -ipset netflix" >> $DNS_T
 				[ -s $DNS_DIR/black.conf ] && sed -i -e "/\/$i/d" -e "/\.$i/d" $DNS_DIR/black.conf
 				done

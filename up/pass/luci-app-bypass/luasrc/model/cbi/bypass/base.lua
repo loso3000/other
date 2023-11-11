@@ -42,8 +42,10 @@ o:depends("run_mode","gfw")
 o:depends("run_mode","router")
 o:depends("run_mode","all")
 
-o = s:taboption("Main",Flag,"nf_proxy",translate("External Proxy Mode"),
-translate("Forward Netflix Proxy through Main Proxy"))
+-- o = s:taboption("Main",Flag,"nf_proxy",translate("Netflix parsing Dns"),
+-- translate("Forward Netflix Proxy through Main Proxy"))
+-- for _,key in pairs(key_table) do o:depends("nf_server",key) end
+
 o = s:taboption("Main",DynamicList,"nf_dns",translate("Netflix parsing Dns list"))
 o:value("cloudflare_doh","Cloudflare DNS DoH")
 o:value("google_doh",""..translate("Google").." DNS DoH")
