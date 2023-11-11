@@ -926,6 +926,7 @@ gen_smartdns(){
 				awk '!/^$/&&!/^#/{printf("server=/%s/'"127.0.0.1#5335"'\n",$0)}' $O >>$DNS_DIR/black.conf
 			fi
 		fi
+
 		if [ -s $T_FILE/white.list ];then
 			cp -f $T_FILE/white.list $O
 			sed -i "s/\r//g" $O
@@ -937,7 +938,6 @@ gen_smartdns(){
 			awk '!/^$/&&!/^#/{printf("server=/%s/'"127.0.0.1#5336"'\n",$0)}' $O >>$DNS_DIR/white.conf
 			awk '!/^$/&&!/^#/{printf("ipset /%s/'"ss_spec_wan_ac"'\n",$0)}' $O >>$CON_T
 		fi
-
 	fi
 	[ -s $CON_T ] && echo "conf-file $CON_T" >>$DNS_T
 	# no AD 
@@ -957,15 +957,12 @@ gen_smartdns(){
 }
 
 gen_mosdns(){
-
 echo  mosdns
-
 }
 gen_dns(){
 	dns_mode=$(uci_get_by_type global dns_mode 1)
         # [ $(uci_get_by_type global dns_mode 1) = 1 ] && gen_smartdns || gen_mosdns
         [ "x$dns_mode" = "x1" ] && gen_smartdns || gen_mosdns
-
 }
 
 start_switch(){

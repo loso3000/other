@@ -2,7 +2,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-bypass
 PKG_VERSION:=1.6
-PKG_RELEASE:=45
+PKG_RELEASE:=46
 
 PKG_CONFIG_DEPENDS:= \
 	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_Shadowsocks_Libev_Server \
@@ -16,7 +16,6 @@ PKG_CONFIG_DEPENDS:= \
 	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_Trojan \
 	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_NaiveProxy \
 	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_Kcptun \
-	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_Hysteria \
 	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_Socks5_Proxy \
 	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_Socks_Server
 
@@ -36,7 +35,6 @@ LUCI_DEPENDS:=+ipset +kmod-ipt-nat +ip-full +iptables-mod-tproxy +lua-neturl +dn
 	+PACKAGE_$(PKG_NAME)_INCLUDE_Trojan:trojan-plus \
 	+PACKAGE_$(PKG_NAME)_INCLUDE_NaiveProxy:naiveproxy \
 	+PACKAGE_$(PKG_NAME)_INCLUDE_Kcptun:kcptun-client \
-	+PACKAGE_$(PKG_NAME)_INCLUDE_Hysteria:hysteria \
 	+PACKAGE_$(PKG_NAME)_INCLUDE_Socks5_Proxy:redsocks2 \
 	+PACKAGE_$(PKG_NAME)_INCLUDE_Socks_Server:microsocks
 
@@ -84,11 +82,6 @@ config PACKAGE_$(PKG_NAME)_INCLUDE_NaiveProxy
 config PACKAGE_$(PKG_NAME)_INCLUDE_Kcptun
 	bool "Include Kcptun"
 	default n
-
-config PACKAGE_$(PKG_NAME)_INCLUDE_Hysteria
-	bool "Include Hysteria"
-	default n
-
 config PACKAGE_$(PKG_NAME)_INCLUDE_Socks5_Proxy
 	bool "Include Socks5 Transparent Proxy"
 	default n
