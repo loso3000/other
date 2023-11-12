@@ -404,10 +404,13 @@ msgstr "【国内IP段】数据库"
 
 msgid "Netflix IP Data"
 msgstr "【Netflix IP段】数据库"
+
 msgid "Loyalsoldier's GeoData"
 msgstr "【GeoData】数据库 (Loyalsoldier)"
+
 msgid "Loyalsoldier's GeoData: Mainland Domain Data"
 msgstr "【GeoData 中的大陆域名】数据库 (Loyalsoldier)"
+
 msgid "Loyalsoldier's GeoData: Non-Mainland Domain Data"
 msgstr "【GeoData 中的非大陆域名】数据库 (Loyalsoldier)"
 
@@ -576,10 +579,13 @@ msgstr "MOSDNS 自定义 DNS 服务器"
 
 msgid "Domestic DNS Server (ChinaDNS Mode With MosDNS)"
 msgstr "国内 DNS 服务器 (MosDNS 下的 ChinaDNS 模式)"
+
 msgid "Disable IPv6 In MOSDNS Query Mode (Shunt Mode)"
 msgstr "禁止 MOSDNS 返回 IPv6 记录 (分流模式)"
+
 msgid "Prevent DNS leak (Only Work With ChinaDNS Mode)"
 msgstr "防止DNS泄漏 (仅适用于ChinaDNS模式)"
+
 msgid "Disable ChinaDNS in MosDNS"
 msgstr "禁用 MosDNS 下的 ChinaDNS 模式"
 
@@ -1020,6 +1026,9 @@ msgstr "TUIC用户密钥"
 
 msgid "TUIC UserName For Local Socks"
 msgstr "用于本地 Socks 服务器连接的用户名"
+
+msgid "TUIC Password For Local Socks"
+msgstr "用于本地 Socks 服务器连接的密码"
 
 msgid "UDP relay mode"
 msgstr "UDP中继模式"
