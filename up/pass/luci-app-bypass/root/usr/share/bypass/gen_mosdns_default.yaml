@@ -1,0 +1,214 @@
+log:
+  level: log_level
+
+plugins:
+    # Num0: Cache
+    - tag: lazy_cache
+      type: cache
+      args:
+        size: 20000
+        lazy_cache_ttl: 86400
+
+  - tag: domain_cn
+    type: domain_set
+    args:
+      files:
+        - "/var/etc/bypass/domains_cn.txt"
+        # - "/etc/bypass/white.list"
+
+  - tag: domain_not_cn
+    type: domain_set
+    args:
+      files:
+        - "/var/etc/bypass/gfw.list"
+	# - "/etc/ssrplus/black.list"
+
+  - tag: china_v4
+    type: ip_set
+    args:
+      files:
+        - "/var/etc/bypass/china.txt"
+
+  - tag: china_v6
+    type: ip_set
+    args:
+      files:
+        - "/var/etc/bypass/china_v6.txt"
+
+  - tag: domain_apple
+    type: domain_set
+    args:
+      files:
+        - "/var/etc/bypass/domain_apple.txt"
+
+  - tag: adlist
+    type: domain_set
+    args:
+      files:
+        ADBLOCK_LIST
+
+  - tag: forward_xinfeng_udp
+    type: forward
+    args:
+      concurrent: 2
+      upstreams:
+        - addr: "114.114.114.114"
+        - addr: "114.114.115.115"
+
+  - tag: forward_local
+    type: forward
+    args:
+      concurrent: concurrent_num
+      upstreams:
+        - addr: local_dns
+
+  - tag: forward_remote
+    type: forward
+    args:
+      concurrent: concurrent_num
+      upstreams:
+        - addr: remote_dns
+
+  - tag: forward_remote_upstream
+    type: sequence
+    args:
+      - exec: prefer_ipv4
+      - exec: ecs_remote
+      - exec: $forward_remote
+
+  - tag: modify_ttl
+    type: sequence
+    args:
+      - exec: ttl minimal_ttl_custom-maximum_ttl_custom
+
+  - tag: modify_ddns_ttl
+    type: sequence
+    args:
+      - exec: ttl 5-5
+
+  - tag: has_resp_sequence
+    type: sequence
+    args:
+      - matches: qname $ddnslist
+        exec: $modify_ddns_ttl
+      - matches: "!qname $ddnslist"
+        exec: $modify_ttl
+      - matches: "resp_ip $cloudflare_cidr"
+        exec: black_hole CLOUDFLARE_IP
+      - matches: has_resp
+        exec: accept
+
+  - tag: query_is_non_local_ip
+    type: sequence
+    args:
+      - exec: $forward_local
+      - matches: "!resp_ip $geoip_cn"
+        exec: drop_resp
+
+  - tag: fallback
+    type: fallback
+    args:
+      primary: UNDEFINED
+      secondary: forward_remote_upstream
+      threshold: 500
+      always_standby: true
+
+  - tag: apple_domain_fallback
+    type: fallback
+    args:
+      primary: query_is_non_local_ip
+      secondary: forward_xinfeng_udp
+      threshold: 100
+      always_standby: true
+
+  - tag: query_is_apple_domain
+    type: sequence
+    args:
+      - matches: "!qname $geosite_apple"
+        exec: return
+      - exec: $apple_domain_fallback
+
+  - tag: query_is_ddns_domain
+    type: sequence
+    args:
+      - matches: qname $ddnslist
+        exec: $forward_local
+
+  - tag: query_is_local_domain
+    type: sequence
+    args:
+      - matches: qname $geosite_cn
+        exec: $forward_local
+
+  - tag: query_is_no_local_domain
+    type: sequence
+    args:
+      - matches: qname $geosite_no_cn
+        exec: $forward_remote_upstream
+
+  - tag: query_is_whitelist_domain
+    type: sequence
+    args:
+      - matches: qname $whitelist
+        exec: $forward_local
+
+  - tag: query_is_greylist_domain
+    type: sequence
+    args:
+      - matches: qname $greylist
+        exec: $forward_remote_upstream
+
+  - tag: query_is_reject_domain
+    type: sequence
+    args:
+      - matches: qname $blocklist
+        exec: reject 3
+      - matches: qname $adlist
+        exec: reject 3
+      - matches:
+        - qtype 12
+        - qname $local_ptr
+        exec: reject 3
+      - matches: qtype 65
+        exec: reject 3
+
+  - tag: main_sequence
+    type: sequence
+    args:
+      - exec: $hosts
+      - exec: jump has_resp_sequence
+      - matches:
+        - "!qname $ddnslist"
+        - "!qname $blocklist"
+        - "!qname $adlist"
+        - "!qname $local_ptr"
+        exec: $lazy_cache
+      - exec: $redirect
+      - exec: jump has_resp_sequence
+      - exec: $query_is_apple_domain
+      - exec: jump has_resp_sequence
+      - exec: $query_is_ddns_domain
+      - exec: jump has_resp_sequence
+      - exec: $query_is_whitelist_domain
+      - exec: jump has_resp_sequence
+      - exec: $query_is_reject_domain
+      - exec: jump has_resp_sequence
+      - exec: $query_is_greylist_domain
+      - exec: jump has_resp_sequence
+      - exec: $query_is_local_domain
+      - exec: jump has_resp_sequence
+      - exec: $query_is_no_local_domain
+      - exec: jump has_resp_sequence
+      - exec: $fallback
+
+  - tag: udp_server
+    type: udp_server
+    args:
+      entry: main_sequence
+      listen: ":listen_port"
+
+  - tag: tcp_server
+    type: tcp_server
+    args:
+      entry: main_sequence
+      listen: ":listen_port"
