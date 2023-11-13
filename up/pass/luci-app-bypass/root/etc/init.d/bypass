@@ -937,8 +937,12 @@ gen_smartdns(){
 			awk '!/^$/&&!/^#/{printf("server=/%s/'"127.0.0.1#5336"'\n",$0)}' $O >>$DNS_DIR/white.conf
 			awk '!/^$/&&!/^#/{printf("ipset /%s/'"ss_spec_wan_ac"'\n",$0)}' $O >>$CON_T
 		fi
-		
-
+		if [ -s $T_FILE/domains_cn.txt ];then
+			cp -f $T_FILE/domains_cn.txt $O
+			sed -i "s/\r//g" $O
+			awk '!/^$/&&!/^#/{printf("server=/%s/'"127.0.0.1#5336"'\n",$0)}' $O >>$DNS_DIR/white.conf
+			awk '!/^$/&&!/^#/{printf("ipset /%s/'"ss_spec_wan_ac"'\n",$0)}' $O >>$CON_T
+		fi
 	fi
 	[ -s $CON_T ] && echo "conf-file $CON_T" >>$DNS_T
 	# no AD 
