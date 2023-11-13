@@ -11,9 +11,12 @@ LOCK=/tmp/lock/bypassboot.lock
 LOC=/tmp/lock/$NAME.lock
 SDNS=/tmp/etc/smartdns
 DNS_T=$SDNS/smartdns.conf
+DNS_T_TMP="${DNS_T}.tmp"
 
 MDNS=/var/etc/mosdns
+MDNS_D=$T_FILE/gen_mosdns_default.yaml
 MDNS_T=$MDNS/mosdns-bypass.yaml
+
 
 CON_T=$SDNS/rules.conf
 CON_AD=$T_FILE/ad_smartdns.txt
@@ -613,36 +616,36 @@ start_local(){
 
 get_smartdns(){  #$1:name/dnslnk  $2:dns/dnsip
     case $1 in
-		cloudflare_doh)dnslnk="https://162.159.36.1/dns-query,https://162.159.46.1/dns-query";dnsip="162.159.36.1 162.159.46.1 1.1.1.1 1.0.0.1 2606:4700:4700::1111 2606:4700:4700::1001";;
-		google_doh)dnslnk="https://8.8.4.4/dns-query,https://8.8.8.8/dns-query";dnsip="8.8.4.4 8.8.8.8 2001:4860:4860::8888 2001:4860:4860::8844";;
-		quad9_doh)dnslnk="https://9.9.9.9/dns-query,https://149.112.112.112/dns-query";dnsip="9.9.9.9 149.112.112.112 2620:fe::fe 2620:fe::fe:9";;
-		opendns_doh)dnslnk="https://146.112.41.2/dns-query";dnsip="208.67.222.222 208.67.220.220 2620:119:35::35 2620:119:53::53";;
-		quad101tw_doh)dnslnk="https://101.101.101.101/dns-query";dnsip="101.101.101.101 101.102.103.104 2001:de4::101 2001:de4::102";;
-		tiardns_doh)dnslnk="https://172.67.173.59/dns-query,https://174.138.29.175/dns-query";dnsip="174.138.21.128 172.67.173.59 174.138.29.175 2400:6180:0:d0::5f6e:4001" ;;
-		tiardnsjp_doh)dnslnk="https://104.21.30.162/dns-query,https://172.104.93.80/dns-query";dnsip="104.21.30.162 172.104.93.80 2400:8902::f03c:91ff:feda:c514";;
-		blahdnsgermany_doh)dnslnk="https://78.46.244.143/dns-query,https://doh-de.blahdns.com/dns-query";dnsip="78.46.244.143 159.69.198.101 2a01:4f8:1c1c:6b4b::1";;
-		ahadnsny_doh)dnslnk="https://185.213.26.187/dns-query,https://doh.ny.ahadns.net/dns-query";dnsip="185.213.26.187 2a0d:5600:33:3::3";;
-		cloudflare_dot)dnslnk="1.0.0.1:853,1.1.1.1:853,1dot1dot1dot1.cloudflare-dns.com:853";dnsip="1.1.1.1 1.0.0.1 2606:4700:4700::1111 2606:4700:4700::1001";;
-		google_dot)dnslnk="8.8.4.4:853,8.8.8.8:853,dns.google:853";dnsip="8.8.4.4 8.8.8.8 2001:4860:4860::8888 2001:4860:4860::8844";;
-		quad9_dot)dnslnk="9.9.9.9:853,149.112.112.112:853,dns.quad9.net:853";dnsip="9.9.9.9 149.112.112.112 2620:fe::fe 2620:fe::fe:9";;
-		quad101tw_dot)dnslnk="101.101.101.101:853,dns.twnic.tw:853";dnsip="101.101.101.101 101.102.103.104 2001:de4::101 2001:de4::102";;
-		tiardns_dot)dnslnk="174.138.29.175:853,dot.tiar.app:853";dnsip="174.138.29.175 174.138.21.128 2400:6180:0:d0::5f6e:4001" ;;
-		tiardnsjp_dot)dnslnk="172.104.93.80:853,jp.tiar.app:853";dnsip="172.104.93.80 104.21.30.162 2400:8902::f03c:91ff:feda:c514";;
-		blahdnsgermany_dot)dnslnk="78.46.244.143:853,dot-de.blahdns.com:853";dnsip="78.46.244.143 159.69.198.101 2400:8904:e001:43::43";;
-		ahadnsny_dot)dnslnk="185.213.26.187:853,dot.ny.ahadns.net:853";dnsip="185.213.26.187 2a0d:5600:33:3::3";;
-		cloudflare_tcp)dnslnk="1.1.1.1,1.0.0.1";dnsip="1.1.1.1,1.0.0.1";;
-		google_tcp)dnslnk="8.8.8.8,8.8.4.4";dnsip="8.8.8.8,8.8.4.4";;
-		quad9_tcp)dnslnk="9.9.9.9,149.112.112.112";dnsip="9.9.9.9,149.112.112.112";;
-		opendns_tcp)dnslnk="208.67.222.222,208.67.220.220";dnsip="208.67.222.222,208.67.220.220";;
-		alidns_doh)dnslnk="https://223.5.5.5/dns-query,https://223.6.6.6/dns-query,https://[2400:3200::1]/dns-query,https://[2400:3200:baba::1]/dns-query";dnsip="223.5.5.5 223.6.6.6 2400:3200::1 2400:3200:baba::1";;
+		cloudflare_doh)dnslnk="https://162.159.36.1/dns-query,https://162.159.46.1/dns-query";dnsip="162.159.36.1 162.159.46.1 1.1.1.1 1.0.0.1";;
+		google_doh)dnslnk="https://8.8.4.4/dns-query,https://8.8.8.8/dns-query";dnsip="8.8.4.4 8.8.8.8";;
+		quad9_doh)dnslnk="https://9.9.9.9/dns-query,https://149.112.112.112/dns-query";dnsip="9.9.9.9 149.112.112.112";;
+		opendns_doh)dnslnk="https://146.112.41.2/dns-query";dnsip="208.67.222.222 208.67.220.220";;
+		quad101tw_doh)dnslnk="https://101.101.101.101/dns-query";dnsip="101.101.101.101 101.102.103.104";;
+		tiardns_doh)dnslnk="https://172.67.173.59/dns-query,https://174.138.29.175/dns-query";dnsip="174.138.21.128 172.67.173.59 174.138.29.175" ;;
+		tiardnsjp_doh)dnslnk="https://104.21.30.162/dns-query,https://172.104.93.80/dns-query";dnsip="104.21.30.162 172.104.93.80";;
+		blahdnsgermany_doh)dnslnk="https://78.46.244.143/dns-query,https://doh-de.blahdns.com/dns-query";dnsip="78.46.244.143 159.69.198.101";;
+		ahadnsny_doh)dnslnk="https://185.213.26.187/dns-query,https://doh.ny.ahadns.net/dns-query";dnsip="185.213.26.187";;
+		cloudflare_dot)dnslnk="1.0.0.1:853,1.1.1.1:853,1dot1dot1dot1.cloudflare-dns.com:853";dnsip="1.1.1.1 1.0.0.1";;
+		google_dot)dnslnk="8.8.4.4:853,8.8.8.8:853,dns.google:853";dnsip="8.8.4.4 8.8.8.8";;
+		quad9_dot)dnslnk="9.9.9.9:853,149.112.112.112:853,dns.quad9.net:853";dnsip="9.9.9.9 149.112.112.112";;
+		quad101tw_dot)dnslnk="101.101.101.101:853,dns.twnic.tw:853";dnsip="101.101.101.101 101.102.103.104";;
+		tiardns_dot)dnslnk="174.138.29.175:853,dot.tiar.app:853";dnsip="174.138.29.175 174.138.21.128" ;;
+		tiardnsjp_dot)dnslnk="172.104.93.80:853,jp.tiar.app:853";dnsip="172.104.93.80 104.21.30.162";;
+		blahdnsgermany_dot)dnslnk="78.46.244.143:853,dot-de.blahdns.com:853";dnsip="78.46.244.143 159.69.198.101";;
+		ahadnsny_dot)dnslnk="185.213.26.187:853,dot.ny.ahadns.net:853";dnsip="185.213.26.187";;
+		cloudflare_tcp)dnslnk="1.1.1.1,1.0.0.1";dnsip="1.1.1.1 1.0.0.1";;
+		google_tcp)dnslnk="8.8.8.8,8.8.4.4";dnsip="8.8.8.8 8.8.4.4";;
+		quad9_tcp)dnslnk="9.9.9.9,149.112.112.112";dnsip="9.9.9.9 149.112.112.112";;
+		opendns_tcp)dnslnk="208.67.222.222,208.67.220.220";dnsip="208.67.222.222 208.67.220.220";;
+		alidns_doh)dnslnk="https://223.5.5.5/dns-query,https://223.6.6.6/dns-query";dnsip="223.5.5.5 223.6.6.6";;
 		dnspod_doh)dnslnk="https://175.24.219.66/dns-query,https://162.14.21.178/dns-query";dnsip="119.29.29.29 175.24.219.66 119.28.28.28 162.14.21.178";;
 		360dns_doh)dnslnk="https://101.198.191.4/dns-query,https://doh.360.cn/dns-query";dnsip="101.226.4.6 101.198.191.4";;	
-		alidns_dot)dnslnk="223.5.5.5:853,223.6.6.6:853,dns.alidns.com:853";dnsip="223.5.5.5 223.6.6.6 2400:3200::1 2400:3200:baba::1";;
+		alidns_dot)dnslnk="223.5.5.5:853,223.6.6.6:853,dns.alidns.com:853";dnsip="223.5.5.5 223.6.6.6";;
 		dnspod_dot)dnslnk="1.12.12.12:853,dot.pub:853";dnsip="119.29.29.29 1.12.12.12";;
 		360dns_dot)dnslnk="23.6.48.18:853,180.163.249.75:853,dot.360.cn:853";dnsip="101.226.4.6 123.6.48.18";;
-		alidns_tcp)dnslnk="223.5.5.5 223.6.6.6,2400:3200::1 2400:3200:baba::1";dnsip="223.5.5.5 223.6.6.6,2400:3200::1 2400:3200:baba::1";;
-		dnspod_tcp)dnslnk="119.29.29.29,119.28.28.28";dnsip="119.29.29.29,119.28.28.28";;
-		360dns_tcp)dnslnk="101.226.4.6,123.6.48.18";dnsip="101.226.4.6,123.6.48.18";;
+		alidns_tcp)dnslnk="223.5.5.5 223.6.6.6,2400:3200::1 2400:3200:baba::1";dnsip="223.5.5.5 223.6.6.6";;
+		dnspod_tcp)dnslnk="119.29.29.29,119.28.28.28";dnsip="119.29.29.29 119.28.28.28";;
+		360dns_tcp)dnslnk="101.226.4.6,123.6.48.18";dnsip="101.226.4.6 123.6.48.18";;
 		114dns_tcp)dnslnk="114.114.114.114,114.114.115.115";dnsip="114.114.114.114,114.114.115.115";;
 		baidu_tcp)dnslnk="180.76.76.76";dnsip="180.76.76.76";;
 		isp)
@@ -672,6 +675,291 @@ get_smartdns(){  #$1:name/dnslnk  $2:dns/dnsip
 gen_smartdns(){ 
 
 	smartdns_flag=1
+	killall -q -9 smartdns
+	ipv6mode=$(uci_get_by_type global proxy_ipv6_mode 1)
+	mkdir -p /tmp/run /tmp/dnsmasq.d $SDNS $DNS_DIR
+	cat >$DNS_T_TMP <<-EOF
+		speed-check-mode tcp:443,tcp:80,ping
+		cache-persist yes
+		cache-checkpoint-time 120
+		force-qtype-SOA 65
+		prefetch-domain yes
+		serve-expired yes
+		cache-size 32768
+		og-level fatal
+		log-file $LOG
+		max-reply-ip-num 3
+		cache-file /tmp/bysmartdns.cache
+	EOF
+	case $ipv6mode in
+		1)
+		        echo "force-AAAA-SOA no" >> $DNS_T_TMP
+			echo "dualstack-ip-selection yes" >> $DNS_T_TMP
+			echo "dualstack-ip-selection-threshold 100" >> $DNS_T_TMP
+			BINDIPV6=" "
+			;;
+		 *)
+			echo "dualstack-ip-selection no" >> $DNS_T_TMP
+			echo "dualstack-ip-selection-threshold 20" >> $DNS_T_TMP
+			echo "dualstack-ip-allow-force-AAAA no" >> $DNS_T_TMP
+			BINDIPV6=" -force-aaaa-soa -no-dualstack-selection -no-rule-soa"
+			;;
+	 	esac
+	echo "bind [::]:5335 -group a -no-speed-check -no-cache ${BINDIPV6}" >>$DNS_T_TMP
+	echo "bind-tcp [::]:5335 -group a -no-speed-check -no-cache ${BINDIPV6}" >>$DNS_T_TMP
+	echo "bind [::]:5336 -group e  -whitelist-ip -blacklist-ip " >>$DNS_T_TMP
+	echo "bind-tcp [::]:5336 -group e  -whitelist-ip -blacklist-ip" >>$DNS_T_TMP
+	
+	case $run_mode in
+		all)port=5335;;
+		gfw|oversea)port=5336;;
+		*)port=5337;;
+	esac
+	cat >$DNS_FILE <<-EOF
+		no-resolv
+		no-poll
+		server=127.0.0.1#$port
+	EOF
+	if [ $run_mode = oversea ];then
+		awk '!/^$/&&!/^#/{printf("server=/%s/'"127.0.0.1#5335"'\n",$0)}' $T_FILE/oversea.list >$DNS_DIR/oversea.conf
+	else
+		[ $run_mode != gfw ] && echo -e "server=/msftconnecttest.com/127.0.0.1#5336\nserver=/msftncsi.com/127.0.0.1#5336" >> $DNS_FILE
+
+		if [ $run_mode != all ];then
+			cp -f $T_FILE/black.list $O
+			awk '!/^$/&&!/^#/{printf("server=/%s/'"127.0.0.1#5335"'\n",$0)}' $O >$DNS_DIR/black.conf
+			if [ $run_mode = gfw ];then
+				cp -f $VAR/gfw.list $O
+				awk '!/^$/&&!/^#/{printf("server=/%s/'"127.0.0.1#5335"'\n",$0)}' $O >>$DNS_DIR/black.conf
+				echo "domain-set -name gfw-domain-rule-list -file $VAR/gfw.list" >>$DNS_T_TMP   #gfw
+				echo "domain-rules /domain-set:gfw-domain-rule-list/  -nameserver a -dualstack-ip-selection no -address #6 -ipset blacklist" >>$DNS_T_TMP
+			fi
+
+		fi
+
+	fi
+
+
+    dns_remote=$(uci_get_by_type global dns_remote cloudflare_doh)
+    for remote in $dns_remote;do
+	dnsname=$(get_smartdns $remote)
+	dns=$(get_smartdns $remote dns)
+	for i in $dns;do
+		case $run_mode in
+			gfw|oversea) ipset add blacklist $i 2>/dev/null;;
+			*) ipset del ss_spec_wan_ac $i 2>/dev/null || ipset add ss_spec_wan_ac $i nomatch 2>/dev/null;;
+		esac
+	done
+	[ "$dns" = "162.159.36.1 162.159.46.1 1.1.1.1 1.0.0.1 2606:4700:4700::1111 2606:4700:4700::1001" ] && dns="1.1.1.1 1.0.0.1 2606:4700:4700::1111 2606:4700:4700::1001"
+
+	 remote_=`echo $remote | grep -o '_.*' `
+	 case $remote_ in
+		_doh) 
+		        echo $dnsname | sed 's/,/\n/g' | sed -e 's/^/server-https /g' -e 's/$/ -group a  -exclude-default-group/g' >> $DNS_T_TMP
+			# echo -e "nameserver /dnsleaktest.com/a\nnameserver /whrq.net/a\nnameserver /speedtest.net/a\nnameserver /ooklaserver.net/a\nnameserver /in-addr.arpa/a\nnameserver /browserleaks.com/a\nnameserver /expressvpn.com/a\nnameserver /ipleak.net/a\nnameserver /whoer.net/a " >> $DNS_T_TMP
+		        dnsname_dom=$(echo $dnsname | sed 's/,/\n/g' | awk '-F[/:]' '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$" | grep -Ev "\[[0-9]")
+			# dnsname_dom=$(echo $dnsname | sed 's/,/\n/g' | awk -F[/:] '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$")
+			if [ "$dnsname_dom" ];then
+			
+			for i in $dns;do echo "server-tcp $i -group b -exclude-default-group" >> $DNS_T_TMP;done
+			#echo -e "nameserver /dnsleaktest.com/b\nnameserver /whrq.net/b\nnameserver /speedtest.net/b\nnameserver /ooklaserver.net/b\nnameserver /in-addr.arpa/b\nnameserver /browserleaks.com/b\nnameserver /expressvpn.com/b\nnameserver /ipleak.net/b\nnameserver /whoer.net/b " >> $DNS_T_TMP
+
+			for i in $dnsname;do echo "server $i -group b -exclude-default-group" >> $DNS_T_TMP;done
+			   for dom in $dnsname_dom;do
+			   
+				case $run_mode in
+					router|all)echo "nameserver /$dom/b" >> $DNS_T_TMP;;
+					*)echo "domain-rules /$dom/ -nameserver b -ipset blacklist" >> $DNS_T_TMP;;
+				esac
+				[ $run_mode = oversea ] && echo "server=/$dom/127.0.0.1#5335" >>$DNS_DIR/oversea.conf
+				[ $run_mode = gfw ] && echo "server=/$dom/127.0.0.1#5335" >>$DNS_DIR/black.conf
+			   done
+			fi;;
+		_dot)
+			echo $dnsname | sed 's/,/\n/g' | sed -e 's/^/server-tls /g' -e 's/$/ -group a  -exclude-default-group/g' >> $DNS_T_TMP
+			# echo -e "nameserver /dnsleaktest.com/a\nnameserver /whrq.net/a\nnameserver /speedtest.net/a\nnameserver /ooklaserver.net/a\nnameserver /in-addr.arpa/a\nnameserver /browserleaks.com/a\nnameserver /expressvpn.com/a\nnameserver /ipleak.net/a\nnameserver /whoer.net/a " >> $DNS_T_TMP
+		        dnsname_dom=$(echo $dnsname | sed 's/,/\n/g' | awk '-F[/:]' '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$" | grep -Ev "\[[0-9]")
+			# dnsname_dom=$(echo $dnsname | sed 's/,/\n/g' | awk -F[/:] '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$")
+			if [ "$dnsname_dom" ];then
+			 for i in $dns;do echo "server-tcp $i -group b -exclude-default-group" >> $DNS_T_TMP;done
+			 #echo -e "nameserver /dnsleaktest.com/b\nnameserver /whrq.net/b\nnameserver /speedtest.net/b\nnameserver /ooklaserver.net/b\nnameserver /in-addr.arpa/b\nnameserver /browserleaks.com/b\nnameserver /expressvpn.com/b\nnameserver /ipleak.net/b\nnameserver /whoer.net/b " >> $DNS_T_TMP
+			 for i in $dnsname;do echo "server $i -group b -exclude-default-group" >> $DNS_T_TMP;done
+			   for dom in $dnsname_dom;do
+				case $run_mode in
+					router|all)echo "nameserver /$dom/b" >> $DNS_T_TMP;;
+					*)echo "domain-rules /$dom/ -nameserver b -ipset blacklist" >> $DNS_T_TMP;;
+				esac
+				[ $run_mode = oversea ] && echo "server=/$dom/127.0.0.1#5335" >>$DNS_DIR/oversea.conf
+				[ $run_mode = gfw ] && echo "server=/$dom/127.0.0.1#5335" >>$DNS_DIR/black.conf
+			   done
+			fi;;
+		*)
+			for i in $dns;do echo "server-tcp $i -group a -exclude-default-group" >> $DNS_T_TMP;done
+			echo -e "nameserver /dnsleaktest.com/a\nnameserver /whrq.net/a\nnameserver /speedtest.net/a\nnameserver /ooklaserver.net/a\nnameserver /in-addr.arpa/a\nnameserver /browserleaks.com/a\nnameserver /expressvpn.com/a\nnameserver /ipleak.net/a\nnameserver /whoer.net/a " >> $DNS_T_TMP
+		;;
+	esac
+	# for i in $dns;do echo "server $i -group b" >>$DNS_T_TMP;done
+	log "SAMARTDNS : start in $remote Remote DNS Resolution!"
+    done
+    dns_leakage=$(uci_get_by_type global dns_leakage 0)
+    [ x$dns_leakage = 'x1' ] && dns_local=$(uci_get_by_type global dns_remote cloudflare_doh) || dns_local=$(uci_get_by_type global dns_local alidns_dot)
+    for local in $dns_local;do
+	dnsname=$(get_smartdns $local)
+	dns=$(get_smartdns $local dns)
+	 local_=`echo $local | grep -o '_.*' `
+	 case $local_ in
+		_doh) 
+			 echo $dnsname | sed 's/,/\n/g' | sed -e 's/^/server-https /g' -e 's/$/ -group e  -exclude-default-group/g' >> $DNS_T_TMP
+
+			# for i in $dns;do echo "server $i -group f -exclude-default-group" >> $DNS_T_TMP;done
+			 dnsname_dom=$(echo $dnsname | sed 's/,/\n/g' | awk '-F[/:]' '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$" | grep -Ev "\[[0-9]")
+			 if [ "$dnsname_dom" ];then
+			 
+				for i in $dns;do echo "server $i -group f -exclude-default-group" >> $DNS_T_TMP;done
+				for i in $dnsname;do echo "server $i -group f -exclude-default-group" >> $DNS_T_TMP;done
+				for i in $dnsname_dom;do echo "domain-rules /$i/ -nameserver f -ipset ss_spec_wan_ac" >> $DNS_T_TMP
+					[ $run_mode = all ] && echo "server=/$i/127.0.0.1#5336" >$DNS_DIR/white.conf
+				done
+			fi
+			echo "nameserver /in-addr.arpa/f" >> $DNS_T_TMP;;
+		_dot)
+			echo $dnsname | sed 's/,/\n/g' | sed -e 's/^/server-tls /g' -e 's/$/ -group e  -exclude-default-group/g' >> $DNS_T_TMP
+			# for i in $dns;do echo "server $i -group f -exclude-default-group" >> $DNS_T_TMP;done
+			dnsname_dom=$(echo $dnsname | sed 's/,/\n/g' | awk '-F[/:]' '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$" | grep -Ev "\[[0-9]")
+			if [ "$dnsname_dom" ];then
+				for i in $dns;do echo "server $i -group f -exclude-default-group" >> $DNS_T_TMP;done
+				for i in $dnsname;do echo "server $i -group f -exclude-default-group" >> $DNS_T_TMP;done
+				for i in $dnsname_dom;do echo "domain-rules /$i/ -nameserver f -ipset ss_spec_wan_ac" >> $DNS_T_TMP
+					[ $run_mode = all ] && echo "server=/$i/127.0.0.1#5336" >$DNS_DIR/white.conf
+				done
+			fi;;
+		*)
+			for i in $dns;do echo "server $i -group e " >>$DNS_T_TMP;done
+			echo "nameserver /in-addr.arpa/e" >> $DNS_T_TMP;;
+	 esac	
+	# for i in $dns;do echo "server $i -group f " >>$DNS_T_TMP;done
+	for i in $dns;do ipset add ss_spec_wan_ac $i 2>/dev/null;done
+	log "SAMARTDNS : start in $local Local DNS Resolution!"
+    done
+
+    if [ "$NF" ];then
+	dns_nf=$(uci_get_by_type global nf_dns google_dot)
+	for dnsnf in $dns_nf;do
+	   dnsname=$(get_smartdns $dnsnf)
+	   dns=$(get_smartdns $dnsnf dns)
+	   for i in $dns;do ipset add netflix $i 2>/dev/null;done
+	   dnsnf_=`echo $dnsnf | grep -o '_.*' `
+	   case $dnsnf_ in
+	 	_doh) 
+		        echo $dnsname | sed 's/,/\n/g' | sed -e 's/^/server-https /g' -e 's/$/ -group h  -exclude-default-group/g' >> $DNS_T_TMP
+			dnsname_dom=$(echo $dnsname | sed 's/,/\n/g' | awk -F[/:] '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$")
+			if [ "$dnsname_dom" ];then
+				for i in $dnsname;do echo "server-tcp $i -group i -exclude-default-group" >> $DNS_T_TMP;done
+				for i in $dnsname_dom;do echo "domain-rules /$i/ -nameserver i -ipset netflix" >> $DNS_T_TMP
+				[ -s $DNS_DIR/black.conf ] && sed -i -e "/\/$i/d" -e "/\.$i/d" $DNS_DIR/black.conf
+				done
+			fi;;
+		_dot)
+		        echo $dnsname | sed 's/,/\n/g' | sed -e 's/^/server-tls /g' -e 's/$/ -group h  -exclude-default-group/g' >> $DNS_T_TMP
+			dnsname_dom=$(echo $dnsname | sed 's/,/\n/g' | awk -F[/:] '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$")
+			if [ "$dnsname_dom" ];then
+				for i in $dnsname;do echo "server-tcp $i -group i -exclude-default-group" >> $DNS_T_TMP;done
+				for i in $dnsname_dom;do echo "domain-rules /$i/ -nameserver i -ipset netflix" >> $DNS_T_TMP
+				[ -s $DNS_DIR/black.conf ] && sed -i -e "/\/$i/d" -e "/\.$i/d" $DNS_DIR/black.conf
+				done
+			fi;;
+		*)
+			for i in $dns;do echo "server $i -group h -exclude-default-group" >> $DNS_T_TMP;done;;
+	    esac
+	    log "SAMARTDNS : start in $dns_nf netflix DNS Resolution!"
+	done
+    fi
+        
+	bootstrap_dns=$(uci_get_by_type global bootstrap_dns '114.114.114.114')
+	[ "$bootstrap_dns" ] && {
+	for i in $bootstrap_dns;do echo "server $i -bootstrap-dns" >>$DNS_T_TMP;done 
+	log "SAMARTDNS : start in $bootstrap_dns Bootstrap DNS Resolution!"
+	}
+
+	if [ $run_mode = oversea ];then
+	    echo $run_mode
+	else
+
+		if [ -s $DNS_DIR/black.conf ];then
+			echo "$(sort -u $DNS_DIR/black.conf)" >$DNS_DIR/black.conf
+			sed -e 's/.*=/ipset /g' -e 's/127.0.0.1#5335/blacklist/g' $DNS_DIR/black.conf >$CON_T
+		else
+			rm -f $DNS_DIR/black.conf
+		fi
+
+		if [ -n "$NF" ];then
+			cp -f $T_FILE/netflix.list $O
+			D=$(cat $O)
+			for i in $D;do
+				sed -i -e "/\/$i\//d" -e "/\.$i\//d" $DNS_DIR/black.conf 2>/dev/null
+				sed -i -e "/\/$i\//d" -e "/\.$i\//d" $CON_T 2>/dev/null
+				echo "domain-rules /$i/ -nameserver c -ipset netflix" >>$CON_T
+			done
+			if [ $run_mode = gfw ];then
+				awk '!/^$/&&!/^#/{printf("server=/%s/'"127.0.0.1#5335"'\n",$0)}' $O >>$DNS_DIR/black.conf
+			fi
+		fi
+
+		if [ -s $T_FILE/white.list ];then
+			cp -f $T_FILE/white.list $O
+			sed -i "s/\r//g" $O
+			D=$(cat $O)
+			for i in $D;do
+				sed -i -e "/\/$i\//d" -e "/\.$i\//d" $DNS_DIR/black.conf 2>/dev/null
+				sed -i -e "/\/$i\//d" -e "/\.$i\//d" $CON_T 2>/dev/null
+			done
+			awk '!/^$/&&!/^#/{printf("server=/%s/'"127.0.0.1#5336"'\n",$0)}' $O >>$DNS_DIR/white.conf
+			awk '!/^$/&&!/^#/{printf("ipset /%s/'"ss_spec_wan_ac"'\n",$0)}' $O >>$CON_T
+		fi
+		if [ -s $T_FILE/domains_cn.txt ];then
+			cp -f $T_FILE/domains_cn.txt $VAR/domains_cn.txt
+
+			sed -i "s/\r//g" $O
+			awk '!/^$/&&!/^#/{printf("server=/%s/'"127.0.0.1#5336"'\n",$0)}' $O >>$DNS_DIR/white.conf
+			# awk '!/^$/&&!/^#/{printf("ipset /%s/'"ss_spec_wan_ac"'\n",$0)}' $O >>$CON_T
+			echo "domain-set -name domains-cn-rule-list -file $VAR/domains_cn.txt" >>$DNS_T_TMP
+			echo "domain-rules /domain-set:domains-cn-rule-list/  -nameserver f -dualstack-ip-selection no -address #6 -ipset ss_spec_wan_ac" >>$DNS_T_TMP
+		fi
+	fi
+	echo "ip-rules ip-set:china_v4 -whitelist-ip" >>$DNS_T_TMP
+	echo "ip-rules ip-set:china_v6 -whitelist-ip" >>$DNS_T_TMP
+	[ -s $CON_T ] && echo "conf-file $CON_T" >>$DNS_T_TMP
+	# no AD 
+	ad_list=$(uci -q get bypass.@global[0].ad_list)
+	[[ $ad_list = 1  && -s $T_FILE/ad_list.txt ]] && {
+	   cp -f $T_FILE/ad_list.txt $O
+	   if [ -f "$O" ]; then
+			for line in $(cat $T_FILE/black.list); do sed -i "/$line/d" $O; done
+			for line in $(cat $T_FILE/white.list); do sed -i "/$line/d" $O; done
+			for line in $(cat $T_FILE/domain-block.list); do sed -i "/$line/d" $O; done
+	   fi
+	   cat  $O | sed '/^$/d' | sed '/#/d' | sed "/.*/s/.*/address=\/&\//" >$DNS_DIR/ad_list.txt
+	   cat  $O | grep -v "^#" | awk '{print "address /"$2"/#"}' > $VAR/ad_list.txt
+	   echo "conf-file $VAR/ad_list.txt" >>$DNS_T_TMP
+	}
+	echo "domain-set -name domain-block-list -file $T_FILE/domain-block.list" >>$DNS_T_TMP
+	echo "domain-rules /domain-set:domain-block-list/ --address #" >>$DNS_T_TMP
+	awk '!/^$/&&!/^#/{printf("blacklist-ip %s\n",$0)}' $T_FILE/blacklist-ip.conf >>$VAR/blacklist-ip.conf
+	echo "conf-file $VAR/blacklist-ip.conf" >>$DNS_T_TMP
+	rm -f $O
+	[ $(find $DNS_DIR -name \* -exec cat {} \; 2>/dev/null | wc -l) = 0 ] && rm -rf $DNS_DIR
+	echo "conf-dir=${DNS_DIR}" >$DNS_FILE
+	[ $run_mode = router ] && chinadns_flag=1
+	mv -f $DNS_T_TMP $DNS_T
+	start_dns
+	/etc/init.d/dnsmasq restart >/dev/null 2>&1
+	service_start $BIN_DIR/by-preload $run_mode
+}
+
+gen_mosdns(){
+
+	smartdns_flag=1
+	killall -q -9 smartdns
 	ipv6mode=$(uci_get_by_type global proxy_ipv6_mode 1)
 	mkdir -p /tmp/run /tmp/dnsmasq.d $SDNS $DNS_DIR
 	cat >$DNS_T <<-EOF
@@ -696,13 +984,15 @@ gen_smartdns(){
 			;;
 		 *)
 			echo "dualstack-ip-selection no" >> $DNS_T
+			echo "dualstack-ip-selection-threshold 20" >> $DNS_T
+			echo "dualstack-ip-allow-force-AAAA no" >> $DNS_T
 			BINDIPV6=" -force-aaaa-soa -no-dualstack-selection -no-rule-soa"
 			;;
 	 	esac
 	echo "bind [::]:5335 -group a -no-speed-check -no-cache ${BINDIPV6}" >>$DNS_T
 	echo "bind-tcp [::]:5335 -group a -no-speed-check -no-cache ${BINDIPV6}" >>$DNS_T
-	echo "bind [::]:5336 -group e " >>$DNS_T
-	echo "bind-tcp [::]:5336 -group e " >>$DNS_T
+	echo "bind [::]:5336 -group e  -whitelist-ip " >>$DNS_T
+	echo "bind-tcp [::]:5336 -group e  -whitelist-ip " >>$DNS_T
 	
 	case $run_mode in
 		all)port=5335;;
@@ -725,8 +1015,8 @@ gen_smartdns(){
 			if [ $run_mode = gfw ];then
 				cp -f $VAR/gfw.list $O
 				awk '!/^$/&&!/^#/{printf("server=/%s/'"127.0.0.1#5335"'\n",$0)}' $O >>$DNS_DIR/black.conf
-				echo domain-set -name gfw-domain-rule-list -file $VAR/gfw.list >>$DNS_T   #gfw
-				echo domain-rules /domain-set:gfw-domain-rule-list/  -nameserver a -dualstack-ip-selection no -address #6 -ipset blacklist >>$DNS_T
+				echo "domain-set -name gfw-domain-rule-list -file $VAR/gfw.list" >>$DNS_T   #gfw
+				echo "domain-rules /domain-set:gfw-domain-rule-list/  -nameserver a -dualstack-ip-selection no -address #6 -ipset blacklist" >>$DNS_T
 			fi
 
 		fi
@@ -750,12 +1040,17 @@ gen_smartdns(){
 	 case $remote_ in
 		_doh) 
 		        echo $dnsname | sed 's/,/\n/g' | sed -e 's/^/server-https /g' -e 's/$/ -group a  -exclude-default-group/g' >> $DNS_T
-			for i in $dns;do echo "server-tcp $i -group b -exclude-default-group" >> $DNS_T;done
-			echo -e "nameserver /dnsleaktest.com/b\nnameserver /whrq.net/b\nnameserver /speedtest.net/b\nnameserver /ooklaserver.net/b\nnameserver /in-addr.arpa/b\nnameserver /browserleaks.com/b\nnameserver /expressvpn.com/b\nnameserver /ipleak.net/b\nnameserver /whoer.net/b " >> $DNS_T
+			echo -e "nameserver /dnsleaktest.com/a\nnameserver /whrq.net/a\nnameserver /speedtest.net/a\nnameserver /ooklaserver.net/a\nnameserver /in-addr.arpa/a\nnameserver /browserleaks.com/a\nnameserver /expressvpn.com/a\nnameserver /ipleak.net/a\nnameserver /whoer.net/a " >> $DNS_T
 		        dnsname_dom=$(echo $dnsname | sed 's/,/\n/g' | awk '-F[/:]' '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$" | grep -Ev "\[[0-9]")
 			# dnsname_dom=$(echo $dnsname | sed 's/,/\n/g' | awk -F[/:] '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$")
 			if [ "$dnsname_dom" ];then
+			
+			for i in $dns;do echo "server-tcp $i -group b -exclude-default-group" >> $DNS_T;done
+			#echo -e "nameserver /dnsleaktest.com/b\nnameserver /whrq.net/b\nnameserver /speedtest.net/b\nnameserver /ooklaserver.net/b\nnameserver /in-addr.arpa/b\nnameserver /browserleaks.com/b\nnameserver /expressvpn.com/b\nnameserver /ipleak.net/b\nnameserver /whoer.net/b " >> $DNS_T
+
+			for i in $dnsname;do echo "server $i -group b -exclude-default-group" >> $DNS_T;done
 			   for dom in $dnsname_dom;do
+			   
 				case $run_mode in
 					router|all)echo "nameserver /$dom/b" >> $DNS_T;;
 					*)echo "domain-rules /$dom/ -nameserver b -ipset blacklist" >> $DNS_T;;
@@ -766,11 +1061,13 @@ gen_smartdns(){
 			fi;;
 		_dot)
 			echo $dnsname | sed 's/,/\n/g' | sed -e 's/^/server-tls /g' -e 's/$/ -group a  -exclude-default-group/g' >> $DNS_T
-			for i in $dns;do echo "server-tcp $i -group b -exclude-default-group" >> $DNS_T;done
-			echo -e "nameserver /dnsleaktest.com/b\nnameserver /whrq.net/b\nnameserver /speedtest.net/b\nnameserver /ooklaserver.net/b\nnameserver /in-addr.arpa/b\nnameserver /browserleaks.com/b\nnameserver /expressvpn.com/b\nnameserver /ipleak.net/b\nnameserver /whoer.net/b " >> $DNS_T
+			echo -e "nameserver /dnsleaktest.com/a\nnameserver /whrq.net/a\nnameserver /speedtest.net/a\nnameserver /ooklaserver.net/a\nnameserver /in-addr.arpa/a\nnameserver /browserleaks.com/a\nnameserver /expressvpn.com/a\nnameserver /ipleak.net/a\nnameserver /whoer.net/a " >> $DNS_T
 		        dnsname_dom=$(echo $dnsname | sed 's/,/\n/g' | awk '-F[/:]' '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$" | grep -Ev "\[[0-9]")
 			# dnsname_dom=$(echo $dnsname | sed 's/,/\n/g' | awk -F[/:] '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$")
 			if [ "$dnsname_dom" ];then
+			 for i in $dns;do echo "server-tcp $i -group b -exclude-default-group" >> $DNS_T;done
+			 #echo -e "nameserver /dnsleaktest.com/b\nnameserver /whrq.net/b\nnameserver /speedtest.net/b\nnameserver /ooklaserver.net/b\nnameserver /in-addr.arpa/b\nnameserver /browserleaks.com/b\nnameserver /expressvpn.com/b\nnameserver /ipleak.net/b\nnameserver /whoer.net/b " >> $DNS_T
+			 for i in $dnsname;do echo "server $i -group b -exclude-default-group" >> $DNS_T;done
 			   for dom in $dnsname_dom;do
 				case $run_mode in
 					router|all)echo "nameserver /$dom/b" >> $DNS_T;;
@@ -788,8 +1085,8 @@ gen_smartdns(){
 	# for i in $dns;do echo "server $i -group b" >>$DNS_T;done
 	log "SAMARTDNS : start in $remote Remote DNS Resolution!"
     done
-    
-    dns_local=$(uci_get_by_type global dns_local alidns_dot)
+    dns_leakage=$(uci_get_by_type global dns_leakage 0)
+    [ x$dns_leakage = 'x1' ] && dns_local=$(uci_get_by_type global dns_remote cloudflare_doh) || dns_local=$(uci_get_by_type global dns_local alidns_dot)
     for local in $dns_local;do
 	dnsname=$(get_smartdns $local)
 	dns=$(get_smartdns $local dns)
@@ -797,9 +1094,13 @@ gen_smartdns(){
 	 case $local_ in
 		_doh) 
 			 echo $dnsname | sed 's/,/\n/g' | sed -e 's/^/server-https /g' -e 's/$/ -group e  -exclude-default-group/g' >> $DNS_T
-			 for i in $dns;do echo "server $i -group f -exclude-default-group" >> $DNS_T;done
+
+			# for i in $dns;do echo "server $i -group f -exclude-default-group" >> $DNS_T;done
 			 dnsname_dom=$(echo $dnsname | sed 's/,/\n/g' | awk '-F[/:]' '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$" | grep -Ev "\[[0-9]")
 			 if [ "$dnsname_dom" ];then
+			 
+				for i in $dns;do echo "server $i -group f -exclude-default-group" >> $DNS_T;done
+				for i in $dnsname;do echo "server $i -group f -exclude-default-group" >> $DNS_T;done
 				for i in $dnsname_dom;do echo "domain-rules /$i/ -nameserver f -ipset ss_spec_wan_ac" >> $DNS_T
 					[ $run_mode = all ] && echo "server=/$i/127.0.0.1#5336" >$DNS_DIR/white.conf
 				done
@@ -807,10 +1108,11 @@ gen_smartdns(){
 			echo "nameserver /in-addr.arpa/f" >> $DNS_T;;
 		_dot)
 			echo $dnsname | sed 's/,/\n/g' | sed -e 's/^/server-tls /g' -e 's/$/ -group e  -exclude-default-group/g' >> $DNS_T
-			 for i in $dns;do echo "server $i -group f -exclude-default-group" >> $DNS_T;done
+			# for i in $dns;do echo "server $i -group f -exclude-default-group" >> $DNS_T;done
 			dnsname_dom=$(echo $dnsname | sed 's/,/\n/g' | awk '-F[/:]' '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$" | grep -Ev "\[[0-9]")
 			if [ "$dnsname_dom" ];then
-					# for i in $dnsname;do echo "server $i -group f -exclude-default-group" >> $DNS_T;done
+				for i in $dns;do echo "server $i -group f -exclude-default-group" >> $DNS_T;done
+				for i in $dnsname;do echo "server $i -group f -exclude-default-group" >> $DNS_T;done
 				for i in $dnsname_dom;do echo "domain-rules /$i/ -nameserver f -ipset ss_spec_wan_ac" >> $DNS_T
 					[ $run_mode = all ] && echo "server=/$i/127.0.0.1#5336" >$DNS_DIR/white.conf
 				done
@@ -860,8 +1162,6 @@ gen_smartdns(){
 	bootstrap_dns=$(uci_get_by_type global bootstrap_dns '114.114.114.114')
 	[ "$bootstrap_dns" ] && {
 	for i in $bootstrap_dns;do echo "server $i -bootstrap-dns" >>$DNS_T;done 
-	#echo "server dns.alidns.com" >>$DNS_T
-	#echo "server doh.pub" >>$DNS_T
 	log "SAMARTDNS : start in $bootstrap_dns Bootstrap DNS Resolution!"
 	}
 
@@ -901,31 +1201,34 @@ gen_smartdns(){
 			awk '!/^$/&&!/^#/{printf("ipset /%s/'"ss_spec_wan_ac"'\n",$0)}' $O >>$CON_T
 		fi
 		if [ -s $T_FILE/domains_cn.txt ];then
-			cp -f $T_FILE/domains_cn.txt $O
+			cp -f $T_FILE/domains_cn.txt $VAR/domains_cn.txt
 			sed -i "s/\r//g" $O
 			awk '!/^$/&&!/^#/{printf("server=/%s/'"127.0.0.1#5336"'\n",$0)}' $O >>$DNS_DIR/white.conf
-			awk '!/^$/&&!/^#/{printf("ipset /%s/'"ss_spec_wan_ac"'\n",$0)}' $O >>$CON_T
+			# awk '!/^$/&&!/^#/{printf("ipset /%s/'"ss_spec_wan_ac"'\n",$0)}' $O >>$CON_T
+			echo "domain-set -name domains-cn-rule-list -file $VAR/domains_cn.txt" >>$DNS_T   #gfw
+			echo "domain-rules /domain-set:domains-cn-rule-list/  -nameserver f -dualstack-ip-selection no -address #6 -ipset ss_spec_wan_ac" >>$DNS_T
+			domain-set 
 		fi
 	fi
+	
+	echo "ip-rules ip-set:china_v4 -whitelist-ip" >>$DNS_T
+	echo "ip-rules ip-set:china_v6 -whitelist-ip" >>$DNS_T
 	[ -s $CON_T ] && echo "conf-file $CON_T" >>$DNS_T
 	# no AD 
 	ad_list=$(uci -q get bypass.@global[0].ad_list)
 	[[ $ad_list = 1  &&  -s $T_FILE/ad_list.txt ]] && { 
 	   awk '!/^$/&&!/^#/{printf("address /%s/'"#"'\n",$0)}'  $T_FILE/ad_list.txt > $VAR/ad_list.txt
+	   # cat  $T_FILE/ad_list.txt | grep -v "^#" | awk '{print "address /"$2"/#"}' > $VAR/ad_list.txt
 	   echo "conf-file $VAR/ad_list.txt" >>$DNS_T
 	}
 	rm -f $O
 	[ $(find $DNS_DIR -name \* -exec cat {} \; 2>/dev/null | wc -l) = 0 ] && rm -rf $DNS_DIR
 	echo "conf-dir=${DNS_DIR}" >$DNS_FILE
 	[ $run_mode = router ] && chinadns_flag=1
-	killall -q -9 smartdns
 	start_dns
 	/etc/init.d/dnsmasq restart >/dev/null 2>&1
 	service_start $BIN_DIR/by-preload $run_mode
-}
 
-gen_mosdns(){
-   service_start $BIN_DIR/by-preload $run_mode
 }
 gen_dns(){
 	dns_mode=$(uci_get_by_type global dns_mode 1)
@@ -1136,7 +1439,7 @@ stop(){
 			rm -rf $LOG
 		fi
 	elif [ -s $DNS_T ];then
-		cat > $DNS_T <<-EOF
+		cat > $DNS_T_TMP <<-EOF
 			speed-check-mode none
 			cache-persist no
 			cache-size 0
@@ -1148,7 +1451,7 @@ stop(){
 		EOF
 		if [ $dns_local = alidns_dot ];then
 			dns_d_l="223.5.5.5 223.6.6.6"
-			for i in $dns_d_l;do echo "server-https https://$i/dns-query" >> $DNS_T;done
+			for i in $dns_d_l;do echo "server-https https://$i/dns-query" >> $DNS_T_TMP;done
 		else
 			dns_d_l=$REF
 			if [ -z "$dns_d_l" ];then
@@ -1156,8 +1459,9 @@ stop(){
 				exit 1
 			fi
 			dns_d_l=$(echo $dns_d_l | sed -e 's/，/,/g' -e 's/。/./g' -e 's/：/:/g' -e 's/,/\n/g')
-			for i in $dns_d_l;do echo "server $i" >> $DNS_T;done
+			for i in $dns_d_l;do echo "server $i" >> $DNS_T_TMP;done
 		fi
+		mv -f $DNS_T_TMP $DNS_T
 		$(which smartdns) -c $DNS_T
 		r=1
 		while ! ps -w | grep smartdns | grep -v grep >/dev/null;do

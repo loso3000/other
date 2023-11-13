@@ -747,9 +747,26 @@ msgstr "国内IPv4列表"
 msgid "China IPv6 List"
 msgstr "国内IPv6列表"
 
+msgid "Select to use remote DNS resolution to prevent DNS pollution"
+msgstr "选择表示使用远程DNS解析，防DNS污染"
+
+msgid "Preventing DNS pollution"
+msgstr "防止DNS污染"
 
 msgid "China Domains Update URL"
 msgstr "国内域名列表"
+
+msgid "Configure block domain list."
+msgstr "配置屏蔽域名列表（禁止联网）"
+
+msgid "Domain DNS Block Setting"
+msgstr "域名屏蔽设置"
+
+msgid "IP Blacklist Setting"
+msgstr "IP黑名单屏蔽设置"
+
+msgid "Set Specific ip blacklist."
+msgstr "设置指定的IP黑名单屏蔽列表（禁止联网）。"
 
 msgid "Check Server Port"
 msgstr "【服务器端口】检查"

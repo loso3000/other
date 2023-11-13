@@ -53,8 +53,44 @@ end)
 
 s:tab("direct_list", translate("Direct Domain List"))
 s:tab("proxy_list", translate("Proxy Domain List"))
+s:tab("domain_block", translate("Domain DNS Block Setting"))
+s:tab("blacklist_ip", translate("IP Blacklist Setting"))
 s:tab("netflix_list", translate("Netflix Domain List"))
 s:tab("oversea_list", translate("Oversea Domain List"))
+
+---- domain_block
+local domain_host = string.format("/etc/bypass/domain-block.list")
+o = s:taboption("domain_block", TextValue, "domain_host", "", "<font color='red'>" .. translate("Configure block domain list.") .. "</font>")
+o.rows = 15
+o.wrap = "off"
+o.cfgvalue = function(self, section) return fs.readfile(domain_host) or "" end
+o.write = function(self, section, value) fs.writefile(domain_host, value:gsub("\r\n", "\n")) end
+o.remove = function(self, section, value) fs.writefile(domain_host, "") end
+o.validate = function(self, value)
+    local hosts= {}
+    string.gsub(value, '[^' .. "\r\n" .. ']+', function(w) table.insert(hosts, w) end)
+    for index, host in ipairs(hosts) do
+        if not datatypes.hostname(host) then
+            return nil, host .. " " .. translate("Not valid domain name, please re-enter!")
+        end
+    end
+    return value
+end
+
+local blacklist_host = "/etc/bypass/blacklist-ip.conf"
+o = s:taboption("blacklist_ip", TextValue, "blacklist_host", "", "<font color='red'>" .. translate("Set Specific ip blacklist.") .. "</font>")
+o.rows = 15
+o.wrap = "off"
+o.rmempty = true
+o.cfgvalue = function(self, section)
+	return nixio.fs.readfile(blacklist_host) or " "
+end
+o.write = function(self, section, value)
+	nixio.fs.writefile(blacklist_host, value:gsub("\r\n", "\n"))
+end
+o.remove = function(self, section, value)
+	nixio.fs.writefile(blacklist_host, "")
+end
 
 ---- Direct Hosts
 local direct_host = string.format("/etc/bypass/white.list")

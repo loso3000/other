@@ -105,6 +105,8 @@ o.default=0
 o = s:taboption("DNS",Flag,"proxy_ipv6_mode",translate("IPV6 parsing"), translate("Use DNS to return IPv6 records"))
 o.default=0
 
+o = s:taboption("DNS",Flag,"dns_pollution",translate("Preventing DNS pollution"), translate("Select to use remote DNS resolution to prevent DNS pollution"))
+o.default=0
 
 o = s:taboption("DNS",DynamicList,"dns_remote",translate("Remote DNS Resolution List"))
 
@@ -132,7 +134,7 @@ o:value("114dns_tcp","114DNS DNS Tcp")
 o.default="alidns_doh"
 
 
-o = s:taboption("DNS", ListValue, "bootstrap_dns", translate("Bootstrap DNS servers"), translate("Bootstrap DNS server is used to resolve IP addresses in the upstream DoH/DoT resolution list"))
+o = s:taboption("DNS", DynamicList, "bootstrap_dns", translate("Bootstrap DNS servers"), translate("Bootstrap DNS server is used to resolve IP addresses in the upstream DoH/DoT resolution list"))
 o:value("119.29.29.29", ""..translate("Tencent").." DNS (119.29.29.29)")
 o:value("119.28.28.28", ""..translate("Tencent").." DNS (119.28.28.28)")
 o:value("223.5.5.5", ""..translate("Ali").."(223.5.5.5)")
