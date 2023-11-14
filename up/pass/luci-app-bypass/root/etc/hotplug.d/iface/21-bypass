@@ -1,0 +1,6 @@
+#!/bin/sh
+if [ "$ACTION" = ifup ];then
+	if uci -q get bypass.@global[0].global_server >/dev/null;then
+		/etc/init.d/bypass stop && /etc/init.d/bypass start
+	fi
+fi
