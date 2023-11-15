@@ -67,6 +67,7 @@ SO_SERVER=$(uci_get_by_type socks5_proxy server 0)
 [ $SO_SERVER = same ] && SO_SERVER=$GLOBAL_SERVER
 [ $(uci_get_by_name $SO_SERVER server) ] || SO_SERVER=
 dns_local=$(uci_get_by_type global dns_local alidns_dot)
+dns_mode=$(uci_get_by_type global dns_mode 1)
 socks5_ip=''
 gen_log()(
 
@@ -240,7 +241,8 @@ gen_config_file(){
 }
 
 start_dns(){
-	$(which smartdns) -c $DNS_T
+
+        [ "x$dns_mode" = "x1" ] && $(which smartdns) -c $DNS_T || $(which mosdns) -c $MDNS_T 
 	if [ $run_mode = router ];then
 		service_start $(which chinadns-ng) -l 5337 -c '127.0.0.1#5336' -t '127.0.0.1#5335' -4 china_v4  -p 3 -6 china_v6 -f -n $([ $gfw_mode = 1 ] && echo -g $VAR/gfw.list)
 		log "ChinaDNS : Start ChinaDNS-NG success!"
@@ -616,7 +618,7 @@ start_local(){
 
 smartdns_append()
 {
-	echo "$1 $2" >> $DNS_T_TMP
+	echo "$*" >> $DNS_T_TMP
 }
 
 
@@ -699,22 +701,22 @@ gen_smartdns(){
 	EOF
 	case $ipv6mode in
 		1)
-		        echo "force-AAAA-SOA no" >> $DNS_T_TMP
-			echo "dualstack-ip-selection yes" >> $DNS_T_TMP
-			echo "dualstack-ip-selection-threshold 100" >> $DNS_T_TMP
+		        smartdns_append "force-AAAA-SOA no"
+			smartdns_append "dualstack-ip-selection yes"
+			smartdns_append "dualstack-ip-selection-threshold 100"
 			BINDIPV6=" "
 			;;
 		 *)
-			echo "dualstack-ip-selection no" >> $DNS_T_TMP
-			echo "dualstack-ip-selection-threshold 20" >> $DNS_T_TMP
-			echo "dualstack-ip-allow-force-AAAA no" >> $DNS_T_TMP
+			smartdns_append dualstack-ip-selection no
+			smartdns_append "dualstack-ip-selection-threshold 20"
+			smartdns_append "dualstack-ip-allow-force-AAAA no"
 			BINDIPV6=" -force-aaaa-soa -no-dualstack-selection -no-rule-soa"
 			;;
 	 	esac
-	echo "bind [::]:5335 -group a -no-speed-check -no-cache ${BINDIPV6}" >>$DNS_T_TMP
-	echo "bind-tcp [::]:5335 -group a -no-speed-check -no-cache ${BINDIPV6}" >>$DNS_T_TMP
-	echo "bind [::]:5336 -group e " >>$DNS_T_TMP
-	echo "bind-tcp [::]:5336 -group e " >>$DNS_T_TMP
+	smartdns_append "bind [::]:5335 -group a -no-speed-check -no-cache ${BINDIPV6}"
+	smartdns_append "bind-tcp [::]:5335 -group a -no-speed-check -no-cache ${BINDIPV6}"
+	smartdns_append "bind [::]:5336 -group e "
+	smartdns_append "bind-tcp [::]:5336 -group e "
 	
 	case $run_mode in
 		all)port=5335;;
@@ -737,8 +739,8 @@ gen_smartdns(){
 			if [ $run_mode = gfw ];then
 				cp -f $VAR/gfw.list $O
 				awk '!/^$/&&!/^#/{printf("server=/%s/'"127.0.0.1#5335"'\n",$0)}' $O >>$DNS_DIR/black.conf
-				echo "domain-set -name gfw-domain-rule-list -file $VAR/gfw.list" >>$DNS_T_TMP   #gfw
-				echo "domain-rules /domain-set:gfw-domain-rule-list/  -nameserver a -dualstack-ip-selection no -address #6 -ipset blacklist" >>$DNS_T_TMP
+				smartdns_append "domain-set -name gfw-domain-rule-list -file $VAR/gfw.list"   #gfw
+				smartdns_append "domain-rules /domain-set:gfw-domain-rule-list/  -nameserver a -dualstack-ip-selection no -address #6 -ipset blacklist"
 			fi
 
 		fi
@@ -761,21 +763,18 @@ gen_smartdns(){
 	 remote_=`echo $remote | grep -o '_.*' `
 	 case $remote_ in
 		_doh) 
-		        echo $dnsname | sed 's/,/\n/g' | sed -e 's/^/server-https /g' -e 's/$/ -group a  -exclude-default-group/g' >> $DNS_T_TMP
-			# echo -e "nameserver /dnsleaktest.com/a\nnameserver /whrq.net/a\nnameserver /speedtest.net/a\nnameserver /ooklaserver.net/a\nnameserver /in-addr.arpa/a\nnameserver /browserleaks.com/a\nnameserver /expressvpn.com/a\nnameserver /ipleak.net/a\nnameserver /whoer.net/a " >> $DNS_T_TMP
+		        echo  $dnsname | sed 's/,/\n/g' | sed -e 's/^/server-https /g' -e 's/$/ -group a  -exclude-default-group/g' >> $DNS_T_TMP
+			for i in $dns;do echo "server-tcp $i -group b -exclude-default-group" >>$DNS_T_TMP;done
 		        dnsname_dom=$(echo $dnsname | sed 's/,/\n/g' | awk '-F[/:]' '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$" | grep -Ev "\[[0-9]")
 			# dnsname_dom=$(echo $dnsname | sed 's/,/\n/g' | awk -F[/:] '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$")
 			if [ "$dnsname_dom" ];then
-			
-			for i in $dns;do echo "server-tcp $i -group b -exclude-default-group" >> $DNS_T_TMP;done
-			#echo -e "nameserver /dnsleaktest.com/b\nnameserver /whrq.net/b\nnameserver /speedtest.net/b\nnameserver /ooklaserver.net/b\nnameserver /in-addr.arpa/b\nnameserver /browserleaks.com/b\nnameserver /expressvpn.com/b\nnameserver /ipleak.net/b\nnameserver /whoer.net/b " >> $DNS_T_TMP
-
-			for i in $dnsname;do echo "server $i -group b -exclude-default-group" >> $DNS_T_TMP;done
+			   #for i in $dns;do smartdns_append "server-tcp $i -group b -exclude-default-group";done
+			   for i in $dnsname;do smartdns_append "server $i -group b -exclude-default-group";done
 			   for dom in $dnsname_dom;do
 			   
 				case $run_mode in
-					router|all)echo "nameserver /$dom/b" >> $DNS_T_TMP;;
-					*)echo "domain-rules /$dom/ -nameserver b -ipset blacklist" >> $DNS_T_TMP;;
+					router|all)smartdns_append "nameserver /$dom/b";;
+					*)smartdns_append "domain-rules /$dom/ -nameserver b -ipset blacklist";;
 				esac
 				[ $run_mode = oversea ] && echo "server=/$dom/127.0.0.1#5335" >>$DNS_DIR/oversea.conf
 				[ $run_mode = gfw ] && echo "server=/$dom/127.0.0.1#5335" >>$DNS_DIR/black.conf
@@ -783,27 +782,26 @@ gen_smartdns(){
 			fi;;
 		_dot)
 			echo $dnsname | sed 's/,/\n/g' | sed -e 's/^/server-tls /g' -e 's/$/ -group a  -exclude-default-group/g' >> $DNS_T_TMP
-			# echo -e "nameserver /dnsleaktest.com/a\nnameserver /whrq.net/a\nnameserver /speedtest.net/a\nnameserver /ooklaserver.net/a\nnameserver /in-addr.arpa/a\nnameserver /browserleaks.com/a\nnameserver /expressvpn.com/a\nnameserver /ipleak.net/a\nnameserver /whoer.net/a " >> $DNS_T_TMP
+			for i in $dns;do echo "server-tcp $i -group b -exclude-default-group" >>$DNS_T_TMP;done
 		        dnsname_dom=$(echo $dnsname | sed 's/,/\n/g' | awk '-F[/:]' '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$" | grep -Ev "\[[0-9]")
 			# dnsname_dom=$(echo $dnsname | sed 's/,/\n/g' | awk -F[/:] '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$")
 			if [ "$dnsname_dom" ];then
-			 for i in $dns;do echo "server-tcp $i -group b -exclude-default-group" >> $DNS_T_TMP;done
-			 #echo -e "nameserver /dnsleaktest.com/b\nnameserver /whrq.net/b\nnameserver /speedtest.net/b\nnameserver /ooklaserver.net/b\nnameserver /in-addr.arpa/b\nnameserver /browserleaks.com/b\nnameserver /expressvpn.com/b\nnameserver /ipleak.net/b\nnameserver /whoer.net/b " >> $DNS_T_TMP
-			 for i in $dnsname;do echo "server $i -group b -exclude-default-group" >> $DNS_T_TMP;done
+			   #for i in $dns;do smartdns_append "server-tcp $i -group b -exclude-default-group";done
+			   for i in $dnsname;do smartdns_append "server $i -group b -exclude-default-group";done
 			   for dom in $dnsname_dom;do
 				case $run_mode in
-					router|all)echo "nameserver /$dom/b" >> $DNS_T_TMP;;
-					*)echo "domain-rules /$dom/ -nameserver b -ipset blacklist" >> $DNS_T_TMP;;
+					router|all)smartdns_append "nameserver /$dom/b";;
+					*)smartdns_append "domain-rules /$dom/ -nameserver b -ipset blacklist";;
 				esac
 				[ $run_mode = oversea ] && echo "server=/$dom/127.0.0.1#5335" >>$DNS_DIR/oversea.conf
 				[ $run_mode = gfw ] && echo "server=/$dom/127.0.0.1#5335" >>$DNS_DIR/black.conf
 			   done
 			fi;;
 		*)
-			for i in $dns;do echo "server-tcp $i -group a -exclude-default-group" >> $DNS_T_TMP;done
+			for i in $dns;do smartdns_append "server-tcp $i -group a -exclude-default-group";done
 		;;
 	esac
-	# for i in $dns;do echo "server $i -group b" >>$DNS_T_TMP;done
+	# for i in $dns;do smartdns_append "server $i -group b";done
 	log "SAMARTDNS : start in $remote Remote DNS Resolution!"
     done
     echo -e "nameserver /dnsleaktest.com/a\nnameserver /whrq.net/a\nnameserver /speedtest.net/a\nnameserver /ooklaserver.net/a\nnameserver /in-addr.arpa/a\nnameserver /browserleaks.com/a\nnameserver /expressvpn.com/a\nnameserver /ipleak.net/a\nnameserver /whoer.net/a " >> $DNS_T_TMP
@@ -815,39 +813,36 @@ gen_smartdns(){
 	 local_=`echo $local | grep -o '_.*' `
 	 case $local_ in
 		_doh) 
-			 echo $dnsname | sed 's/,/\n/g' | sed -e 's/^/server-https /g' -e 's/$/ -group e -whitelist-ip -exclude-default-group/g' >> $DNS_T_TMP
+			 echo $dnsname | sed 's/,/\n/g' | sed -e 's/^/server-https /g' -e 's/$/ -group e  -exclude-default-group/g'  >> $DNS_T_TMP
 
-			# for i in $dns;do echo "server $i -group f -whitelist-ip -exclude-default-group" >> $DNS_T_TMP;done
+			 for i in $dns;do smartdns_append "server-tcp $i -group f -exclude-default-group -whitelist-ip";done
 			 dnsname_dom=$(echo $dnsname | sed 's/,/\n/g' | awk '-F[/:]' '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$" | grep -Ev "\[[0-9]")
 			 if [ "$dnsname_dom" ];then
-			 
-				for i in $dns;do echo "server $i -group f -whitelist-ip -exclude-default-group" >> $DNS_T_TMP;done
-				for i in $dnsname;do echo "server $i -group f -whitelist-ip -exclude-default-group" >> $DNS_T_TMP;done
-				for i in $dnsname_dom;do echo "domain-rules /$i/ -nameserver f -ipset ss_spec_wan_ac" >> $DNS_T_TMP
+				#for i in $dns;do smartdns_append server $i -group f -exclude-default-group;done
+				for i in $dnsname;do smartdns_append server $i -group f -exclude-default-group;done
+				for i in $dnsname_dom;do smartdns_append "domain-rules /$i/ -nameserver f -ipset ss_spec_wan_ac"
 					[ $run_mode = all ] && echo "server=/$i/127.0.0.1#5336" >$DNS_DIR/white.conf
 				done
-			fi
-			echo "nameserver /in-addr.arpa/f" >> $DNS_T_TMP;;
+			fi;;
 		_dot)
-			echo $dnsname | sed 's/,/\n/g' | sed -e 's/^/server-tls /g' -e 's/$/ -group e  -whitelist-ip -exclude-default-group/g' >> $DNS_T_TMP
-			# for i in $dns;do echo "server $i -group f -whitelist-ip -exclude-default-group" >> $DNS_T_TMP;done
+			echo $dnsname | sed 's/,/\n/g' | sed -e 's/^/server-tls /g' -e 's/$/ -group e  -exclude-default-group/g'  >> $DNS_T_TMP
+			for i in $dns;do smartdns_append "server-tcp $i -group f -exclude-default-group -whitelist-ip";done
 			dnsname_dom=$(echo $dnsname | sed 's/,/\n/g' | awk '-F[/:]' '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$" | grep -Ev "\[[0-9]")
 			if [ "$dnsname_dom" ];then
-				for i in $dns;do echo "server $i -group f -whitelist-ip -exclude-default-group" >> $DNS_T_TMP;done
-				for i in $dnsname;do echo "server $i -group f -whitelist-ip -exclude-default-group" >> $DNS_T_TMP;done
-				for i in $dnsname_dom;do echo "domain-rules /$i/ -nameserver f -ipset ss_spec_wan_ac" >> $DNS_T_TMP
+				#for i in $dns;do smartdns_append "server $i -group f -exclude-default-group";done
+				for i in $dnsname;do smartdns_append "server $i -group f -exclude-default-group";done
+				for i in $dnsname_dom;do smartdns_append "domain-rules /$i/ -nameserver f -ipset ss_spec_wan_ac"
 					[ $run_mode = all ] && echo "server=/$i/127.0.0.1#5336" >$DNS_DIR/white.conf
 				done
 			fi;;
 		*)
-			for i in $dns;do echo "server $i -group e -whitelist-ip " >>$DNS_T_TMP;done
-			echo "nameserver /in-addr.arpa/e" >> $DNS_T_TMP;;
-	 esac	
-	# for i in $dns;do echo "server $i -group f " >>$DNS_T_TMP;done
+			for i in $dns;do smartdns_append "server $i -group e ";done;;
+	 esac
 	for i in $dns;do ipset add ss_spec_wan_ac $i 2>/dev/null;done
 	log "SAMARTDNS : start in $local Local DNS Resolution!"
     done
 
+    smartdns_append "nameserver /in-addr.arpa/e"
     if [ "$NF" ];then
 	dns_nf=$(uci_get_by_type global nf_dns google_dot)
 	for dnsnf in $dns_nf;do
@@ -857,25 +852,25 @@ gen_smartdns(){
 	   dnsnf_=`echo $dnsnf | grep -o '_.*' `
 	   case $dnsnf_ in
 	 	_doh) 
-		        echo $dnsname | sed 's/,/\n/g' | sed -e 's/^/server-https /g' -e 's/$/ -group h  -exclude-default-group/g' >> $DNS_T_TMP
+		        echo $dnsname | sed 's/,/\n/g' | sed -e 's/^/server-https /g' -e 's/$/ -group h  -exclude-default-group/g'  >> $DNS_T_TMP
 			dnsname_dom=$(echo $dnsname | sed 's/,/\n/g' | awk -F[/:] '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$")
 			if [ "$dnsname_dom" ];then
-				for i in $dnsname;do echo "server-tcp $i -group i -exclude-default-group" >> $DNS_T_TMP;done
-				for i in $dnsname_dom;do echo "domain-rules /$i/ -nameserver i -ipset netflix" >> $DNS_T_TMP
+				for i in $dnsname;do smartdns_append "server-tcp $i -group i -exclude-default-group";done
+				for i in $dnsname_dom;do smartdns_append "domain-rules /$i/ -nameserver i -ipset netflix"
 				[ -s $DNS_DIR/black.conf ] && sed -i -e "/\/$i/d" -e "/\.$i/d" $DNS_DIR/black.conf
 				done
 			fi;;
 		_dot)
-		        echo $dnsname | sed 's/,/\n/g' | sed -e 's/^/server-tls /g' -e 's/$/ -group h  -exclude-default-group/g' >> $DNS_T_TMP
+		        echo $dnsname | sed 's/,/\n/g' | sed -e 's/^/server-tls /g' -e 's/$/ -group h  -exclude-default-group/g'  >> $DNS_T_TMP
 			dnsname_dom=$(echo $dnsname | sed 's/,/\n/g' | awk -F[/:] '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$")
 			if [ "$dnsname_dom" ];then
-				for i in $dnsname;do echo "server-tcp $i -group i -exclude-default-group" >> $DNS_T_TMP;done
-				for i in $dnsname_dom;do echo "domain-rules /$i/ -nameserver i -ipset netflix" >> $DNS_T_TMP
+				for i in $dnsname;do smartdns_append "server-tcp $i -group i -exclude-default-group";done
+				for i in $dnsname_dom;do smartdns_append "domain-rules /$i/ -nameserver i -ipset netflix"
 				[ -s $DNS_DIR/black.conf ] && sed -i -e "/\/$i/d" -e "/\.$i/d" $DNS_DIR/black.conf
 				done
 			fi;;
 		*)
-			for i in $dns;do echo "server $i -group h -exclude-default-group" >> $DNS_T_TMP;done;;
+			for i in $dns;do smartdns_append "server $i -group h -exclude-default-group";done;;
 	    esac
 	    log "SAMARTDNS : start in $dns_nf netflix DNS Resolution!"
 	done
@@ -883,7 +878,7 @@ gen_smartdns(){
         
 	bootstrap_dns=$(uci_get_by_type global bootstrap_dns '114.114.114.114')
 	[ "$bootstrap_dns" ] && {
-	for i in $bootstrap_dns;do echo "server $i -bootstrap-dns" >>$DNS_T_TMP;done 
+	for i in $bootstrap_dns;do smartdns_append "server $i -bootstrap-dns";done 
 	log "SAMARTDNS : start in $bootstrap_dns Bootstrap DNS Resolution!"
 	}
 
@@ -922,9 +917,9 @@ gen_smartdns(){
 			awk '!/^$/&&!/^#/{printf("server=/%s/'"127.0.0.1#5336"'\n",$0)}' $O >>$DNS_DIR/white.conf
 			awk '!/^$/&&!/^#/{printf("ipset /%s/'"ss_spec_wan_ac"'\n",$0)}' $O >>$CON_T
 		fi
+		#中国域名
 		if [ -s $T_FILE/domains_cn.txt ];then
 			cp -f $T_FILE/domains_cn.txt $VAR/domains_cn.txt
-
 			sed -i "s/\r//g" $O
 			awk '!/^$/&&!/^#/{printf("server=/%s/'"127.0.0.1#5336"'\n",$0)}' $O >>$DNS_DIR/white.conf
 			# awk '!/^$/&&!/^#/{printf("ipset /%s/'"ss_spec_wan_ac"'\n",$0)}' $O >>$CON_T
@@ -932,8 +927,14 @@ gen_smartdns(){
 			echo "domain-rules /domain-set:domains-cn-rule-list/  -nameserver f -dualstack-ip-selection no -address #6 -ipset ss_spec_wan_ac" >>$DNS_T_TMP
 		fi
 	fi
+	#中国IP段白名单
+	ip-set -name china_v4 -type list -file $VAR/china.txt
+	ip-set -name china_v6 -type list -file $VAR/china_v6.txt
 	echo "ip-rules ip-set:china_v4 -whitelist-ip" >>$DNS_T_TMP
 	echo "ip-rules ip-set:china_v6 -whitelist-ip" >>$DNS_T_TMP
+	#域名禁止连接名单
+	# echo "domain-set -name domain-block-list -file /etc/smartdns/domain-block.list" >>$DNS_T_TMP
+	# echo "domain-rules /domain-set:domain-block-list/ --address #" >>$DNS_T_TMP
 	[ -s $CON_T ] && echo "conf-file $CON_T" >>$DNS_T_TMP
 	# no AD 
 	ad_list=$(uci -q get bypass.@global[0].ad_list)
@@ -946,12 +947,8 @@ gen_smartdns(){
 	   fi
 	   cat  $O | sed '/^$/d' | sed '/#/d' | sed "/.*/s/.*/address=\/&\//" >$DNS_DIR/ad_list.txt
 	   cat  $O | grep -v "^#" | awk '{print "address /"$2"/#"}' > $VAR/ad_list.txt
-	   echo "conf-file $VAR/ad_list.txt" >>$DNS_T_TMP
+	   smartdns_append "conf-file $VAR/ad_list.txt"
 	}
-	echo "domain-set -name domain-block-list -file $T_FILE/domain-block.list" >>$DNS_T_TMP
-	echo "domain-rules /domain-set:domain-block-list/ --address #" >>$DNS_T_TMP
-	awk '!/^$/&&!/^#/{printf("blacklist-ip %s\n",$0)}' $T_FILE/blacklist-ip.conf >>$VAR/blacklist-ip.conf
-	echo "conf-file $VAR/blacklist-ip.conf" >>$DNS_T_TMP
 	rm -f $O
 	[ $(find $DNS_DIR -name \* -exec cat {} \; 2>/dev/null | wc -l) = 0 ] && rm -rf $DNS_DIR
 	echo "conf-dir=${DNS_DIR}" >$DNS_FILE
@@ -967,11 +964,7 @@ gen_mosdns(){
 echo  mosdns
 
 }
-gen_dns(){
-	dns_mode=$(uci_get_by_type global dns_mode 1)
-        # [ $(uci_get_by_type global dns_mode 1) = 1 ] && gen_smartdns || gen_mosdns
-        [ "x$dns_mode" = "x1" ] && gen_smartdns || gen_mosdns
-}
+
 
 start_switch(){
 	if [ $(uci_get_by_type global enable_switch 0) = 1 -a -z "$switch_server" ];then
@@ -1105,7 +1098,7 @@ start(){
 		if start_retcp;then
 			[ -n "$UDP_RELAY_SERVER" ] && start_reudp
 			[ -n "$NF" ] && start_renf
-			gen_dns
+			[ "x$dns_mode" = "x1" ] && gen_smartdns || gen_mosdns
 			start_switch
 			add_cron
 		fi
@@ -1163,7 +1156,6 @@ stop(){
 	kill -9 $(ps -w | grep by-preload | grep -v grep | awk '{print$1}') 2>/dev/null
 	kill -9 $(ps -w | grep $VAR | grep -v grep | awk '{print$1}') 2>/dev/null
 	killall -q -9 smartdns chinadns-ng kcptun-client microsocks
-
 	rm -rf $DNS_DIR $VAR $DNS_FILE $CON_T /tmp/lock/$NAME-update.lock
 	[ -z "$GLOBAL_SERVER" ] && grep -q $NAME $CRON_FILE && sed -i '/$NAME/d' $CRON_FILE && /etc/init.d/cron restart
 	if [ $STATUS = Y -o -z "$GLOBAL_SERVER" ];then
@@ -1188,7 +1180,7 @@ stop(){
 		EOF
 		if [ $dns_local = alidns_dot ];then
 			dns_d_l="223.5.5.5 223.6.6.6"
-			for i in $dns_d_l;do echo "server-https https://$i/dns-query" >> $DNS_T_TMP;done
+			for i in $dns_d_l;do smartdns_append "server-https https://$i/dns-query";done
 		else
 			dns_d_l=$REF
 			if [ -z "$dns_d_l" ];then
@@ -1196,7 +1188,7 @@ stop(){
 				exit 1
 			fi
 			dns_d_l=$(echo $dns_d_l | sed -e 's/，/,/g' -e 's/。/./g' -e 's/：/:/g' -e 's/,/\n/g')
-			for i in $dns_d_l;do echo "server $i" >> $DNS_T_TMP;done
+			for i in $dns_d_l;do smartdns_append "server $i";done
 		fi
 		mv -f $DNS_T_TMP $DNS_T
 		$(which smartdns) -c $DNS_T

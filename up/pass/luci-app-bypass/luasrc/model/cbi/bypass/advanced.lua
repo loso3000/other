@@ -38,6 +38,9 @@ m=Map("bypass")
 s=m:section(TypedSection,"global",translate("Server failsafe auto swith settings"))
 s.anonymous=true
 
+o=s:option(Flag,"ad_list",translate("Enable DNS anti-AD"))
+o.default=0
+
 o=s:option(Flag,"monitor_enable",translate("Enable Process Deamon"))
 o.default=1
 

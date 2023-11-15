@@ -251,5 +251,12 @@ while :;do
 	elif [ $a = 2 ];then
 		log "Network Problem. Do nothing."
 	fi
+		
+	B=1
+	while ! curl -so /dev/null -m 3 www.baidu.com ;do
+	   [ $B -ge 3 ] && /usr/share/bypass/checknetwork check
+ 	  let B++
+ 	  sleep 2
+	done
 	sleep $time_a
 done

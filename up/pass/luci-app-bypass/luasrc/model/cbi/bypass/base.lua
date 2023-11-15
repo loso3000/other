@@ -1,6 +1,6 @@
 local m,s,o
 local bypass="bypass"
-local function is_finded(e)
+local function is_bin(e)
 	return luci.sys.exec('type -t -p "%s"' % e) ~= "" and true or false
 end
 
@@ -42,11 +42,7 @@ o:depends("run_mode","gfw")
 o:depends("run_mode","router")
 o:depends("run_mode","all")
 
--- o = s:taboption("Main",Flag,"nf_proxy",translate("Netflix parsing Dns"),
--- translate("Forward Netflix Proxy through Main Proxy"))
--- for _,key in pairs(key_table) do o:depends("nf_server",key) end
-
-o = s:taboption("Main",DynamicList,"nf_dns",translate("Netflix parsing Dns list"))
+o = s:taboption("Main",DynamicList,"nf_dns",translate("Netflix Query DNS"))
 o:value("cloudflare_doh","Cloudflare DNS DoH")
 o:value("google_doh",""..translate("Google").." DNS DoH")
 o:value("quad9_doh","Quad9 DNS DoH")
@@ -94,27 +90,22 @@ o.default=0
 end
 end
 
-o = s:taboption("DNS",ListValue,"dns_mode",translate("DNS resolution method"))
+o = s:taboption("DNS",ListValue,"dns_mode",translate("DNS Query Method"))
 o:value(1, translate("Use SmartDNS query"))
-if is_finded("mosdns") then
+if is_bin("mosdns") then
 -- o:value(2, translate("Use MOSDNS query(Not Support Oversea Mode)"))
 end
-o = s:taboption("DNS",Flag,"ad_list",translate("Enable DNS anti-AD"))
-o:depends("dns_mode",1)
-o.default=0
 
 o = s:taboption("DNS",Flag,"proxy_ipv6_mode",translate("IPV6 parsing"), translate("Use DNS to return IPv6 records"))
 o.default=0
 
-o = s:taboption("DNS",Flag,"dns_pollution",translate("Preventing DNS pollution"), translate("Select to use remote DNS resolution to prevent DNS pollution"))
+o = s:taboption("DNS",Flag,"dns_pollution",translate("Preventing DNS pollution"))
 o.default=0
 
-o = s:taboption("DNS",DynamicList,"dns_remote",translate("Remote DNS Resolution List"))
-
+o = s:taboption("DNS",DynamicList,"dns_remote",translate("Remote Query DNS"))
 o:value("cloudflare_doh","Cloudflare DNS DoH")
 o:value("google_doh",""..translate("Google").." DNS DoH")
 o:value("quad9_doh","Quad9 DNS DoH")
-
 o:value("cloudflare_tcp","Cloudflare DNS Tcp")
 o:value("google_tcp",""..translate("Google").." DNS Tcp")
 o:value("quad9_tcp","Quad9 DNS Tcp")
@@ -122,7 +113,7 @@ o:value("opendns_tcp","OpenDNS DNS Tcp")
 
 o.default="cloudflare_doh"
 
-o = s:taboption("DNS",DynamicList,"dns_local",translate("Local DNS Resolution List"),translate("If DoT/DoH resolution is not normal,use UDP mode and select ISP DNS"))
+o = s:taboption("DNS",DynamicList,"dns_local",translate("Local Query DNS"))
 o:value("isp",translate("ISP DNS"))
 o:value("alidns_doh",""..translate("Ali").." DNS DoH")
 o:value("dnspod_doh",""..translate("Tencent").." DNS DoH")
@@ -133,7 +124,6 @@ o:value("360dns_tcp","360DNS DNS Tcp")
 o:value("baidu_tcp",""..translate("BaiDu").."DNS Tcp")
 o:value("114dns_tcp","114DNS DNS Tcp")
 o.default="alidns_doh"
-
 
 o = s:taboption("DNS", DynamicList, "bootstrap_dns", translate("Bootstrap DNS servers"), translate("Bootstrap DNS server is used to resolve IP addresses in the upstream DoH/DoT resolution list"))
 o:value("119.29.29.29", ""..translate("Tencent").." DNS (119.29.29.29)")

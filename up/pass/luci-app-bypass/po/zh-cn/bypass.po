@@ -34,12 +34,9 @@ msgstr "与全局服务器相同"
 msgid "Netflix Server"
 msgstr "Netflix服务器"
 
-msgid "Netflix parsing Dns"
-msgstr "Netflix解析Dns"
+msgid "Netflix Query DNS"
+msgstr "Netflix查询DNS"
 
-
-msgid "Netflix parsing Dns list"
-msgstr "Netflix解析Dns列表"
 
 msgid "Multi Threads Option"
 msgstr "多线程并发转发"
@@ -108,8 +105,7 @@ msgid "anti-AD Update URL"
 msgstr "去广告更新链接"
 
 msgid "Enable DNS anti-AD"
-msgstr "启用DNS去广告功能"
-
+msgstr "开启DNS去广告"
 
 msgid "All Ports"
 msgstr "所有端口（默认）"
@@ -117,11 +113,11 @@ msgstr "所有端口（默认）"
 msgid "Only Common Ports"
 msgstr "仅常用端口（不走P2P流量到代理）"
 
-msgid "Remote DNS Resolution List"
-msgstr "远程DNS解析列表"
+msgid "Remote Query DNS"
+msgstr "远程查询DNS"
 
-msgid "DNS resolution method"
-msgstr "DNS解析方式"
+msgid "DNS Query Method"
+msgstr "DNS查询方式"
 
 msgid "Bootstrap DNS servers"
 msgstr "Bootstrap DNS服务器"
@@ -139,14 +135,11 @@ msgstr "谷歌"
 msgid "Do not use the same DNS server as the global server"
 msgstr "不要使用与全局服务器相同的DNS"
 
-msgid "Local DNS Resolution List"
-msgstr "本地DNS解析列表"
+msgid "Local Query DNS"
+msgstr "本地查询DNS"
 
 msgid "Use SmartDNS query"
 msgstr "使用SmartDNS查询"
-
-msgid "If DoT/DoH resolution is not normal,use TCP mode or select ISP DNS"
-msgstr "如果DoT/DoH解析不正常则使用TCP模式或选择ISP的DNS"
 
 
 msgid "Use MOSDNS query(Not Support Oversea Mode)"
@@ -747,11 +740,8 @@ msgstr "国内IPv4列表"
 msgid "China IPv6 List"
 msgstr "国内IPv6列表"
 
-msgid "Select to use remote DNS resolution to prevent DNS pollution"
-msgstr "选择表示使用远程DNS解析，防DNS污染"
-
 msgid "Preventing DNS pollution"
-msgstr "防止DNS污染"
+msgstr "防止DNS污染(测试功能)"
 
 msgid "China Domains Update URL"
 msgstr "国内域名列表"
