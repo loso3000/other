@@ -32,10 +32,12 @@ o:value("", translate("Disable"))
 for _,key in pairs(key_table) do o:value(key,server_table[key]) end
 
 o = s:taboption("Main",ListValue,"udp_relay_server",translate("UDP Server"))
+o:value("", translate("Disable"))
 o:value("same",translate("Same as Global Server"))
 for _,key in pairs(key_table) do o:value(key,server_table[key]) end
 
 o = s:taboption("Main",ListValue,"nf_server",translate("Netflix Server"))
+o:value("", translate("Disable"))
 o:value("",translate("Same as Global Server"))
 for _,key in pairs(key_table) do o:value(key,server_table[key]) end
 o:depends("run_mode","gfw")
@@ -93,7 +95,7 @@ end
 o = s:taboption("DNS",ListValue,"dns_mode",translate("DNS Query Method"))
 o:value(1, translate("Use SmartDNS query"))
 if is_bin("mosdns") then
--- o:value(2, translate("Use MOSDNS query(Not Support Oversea Mode)"))
+o:value(2, translate("Use MOSDNS query(Not Support Oversea Mode)"))
 end
 
 o = s:taboption("DNS",Flag,"proxy_ipv6_mode",translate("IPV6 parsing"), translate("Use DNS to return IPv6 records"))
@@ -125,7 +127,7 @@ o:value("baidu_tcp",""..translate("BaiDu").."DNS Tcp")
 o:value("114dns_tcp","114DNS DNS Tcp")
 o.default="alidns_doh"
 
-o = s:taboption("DNS", DynamicList, "bootstrap_dns", translate("Bootstrap DNS servers"), translate("Bootstrap DNS server is used to resolve IP addresses in the upstream DoH/DoT resolution list"))
+o = s:taboption("DNS", ListValue, "bootstrap_dns", translate("Bootstrap DNS servers"), translate("Bootstrap DNS server is used to resolve IP addresses in the upstream DoH/DoT resolution list"))
 o:value("119.29.29.29", ""..translate("Tencent").." DNS (119.29.29.29)")
 o:value("119.28.28.28", ""..translate("Tencent").." DNS (119.28.28.28)")
 o:value("223.5.5.5", ""..translate("Ali").."(223.5.5.5)")

@@ -1,6 +1,5 @@
 
 config global
-	option udp_relay_server 'same'
 	list nf_dns 'google_doh'
 	option threads '0'
 	option run_mode 'router'
@@ -15,13 +14,13 @@ config global
 	list dns_remote 'google_doh'
 	list dns_local 'alidns_doh'
 	list dns_local 'dnspod_doh'
-	list bootstrap_dns '119.28.28.28'
-	list bootstrap_dns '114.114.114.114'
+	option bootstrap_dns '114.114.114.114'
 	option enable_switch '1'
 	option switch_time '300'
 	option switch_timeout '5'
 	option switch_try_count '3'
 	option monitor_enable '1'
+
 
 config socks5_proxy
 

@@ -6,59 +6,62 @@ plugins:
   - tag: lazy_cache
     type: cache
     args:
-      size: 20000
-      lazy_cache_ttl: 86400
+      size: cache_size
+      lazy_cache_ttl: cache_survival_time
 
   - tag: geosite_cn
     type: domain_set
     args:
       files:
-          - "/var/etc/bypass/domains_cn.txt"
-
+        - "/var/etc/bypass/domains_cn.txt"
 
   - tag: geoip_cn
     type: ip_set
     args:
       files:
-          - "/var/etc/bypass/china.txt"
+        - "/var/etc/bypass/china.txt"
 
   - tag: geosite_no_cn
     type: domain_set
     args:
       files:
-          - "/var/etc/bypass/gfw.list"
+        - "/var/etc/bypass/gfw.list"
+
+  - tag: forward_xinfeng_udp
+    type: forward
+    args:
+      concurrent: 2
+      upstreams:
+        - addr: "114.114.114.114"
+        - addr: "114.114.115.115"
 
   - tag: forward_local
     type: forward
     args:
+      concurrent: 2
       upstreams:
-          - addr: local_dns
-	  
+        - addr: local_dns
+
   - tag: forward_remote
     type: forward
     args:
-        upstreams:
-          - addr: remote_dns
+      concurrent: 2
+      upstreams:
+        - addr: remote_dns
 
-  - tag: local_sequence
-    type: sequence
-    args:
-      - exec: $forward_local
-
-  - tag: remote_sequence_IPv6
+  - tag: forward_remote_upstream_ipv6
     type: sequence
     args:
       - exec: $forward_remote
 
-
-  - tag: remote_sequence
+  - tag: forward_remote_upstream
     type: sequence
     args:
       - exec: prefer_ipv4
       - exec: $forward_remote
       - matches: 
-        - qtype 28 65
-        exec: reject 0
+         - qtype 28 65
+         exec: reject 0
 
   - tag: has_resp_sequence
     type: sequence
@@ -66,43 +69,38 @@ plugins:
       - matches: has_resp
         exec: accept
 
-  - tag: query_is_local_ip
+  - tag: query_is_non_local_ip
     type: sequence
     args:
-      - exec: $local_sequence
+      - exec: $forward_local
       - matches: "!resp_ip $geoip_cn"
         exec: drop_resp
 
-
-  - tag: query_is_remote
-    type: sequence
-    args:
-      - exec: $IPV6MODE
-
-  - tag: fallback
-    type: fallback
-    args:
-      primary: POLLUTION
-      secondary: query_is_remote
-      threshold: 500
-      always_standby: true
 
   - tag: query_is_local_domain
     type: sequence
     args:
       - matches: qname $geosite_cn
-        exec: $local_sequence
+        exec: $forward_local
 
   - tag: query_is_no_local_domain
     type: sequence
     args:
       - matches: qname $geosite_no_cn
-        exec: $remote_sequence
+        exec: $forward_remote_upstream
+
+  - tag: fallback
+    type: fallback
+    args:
+      primary: UNDEFINED
+      secondary: forward_remote_upstream
+      threshold: 500
+      always_standby: true
 
   - tag: main_sequence
     type: sequence
     args:
-      - exec: $lazy_cache
+        exec: $lazy_cache
       - exec: $query_is_local_domain
       - exec: jump has_resp_sequence
       - exec: $query_is_no_local_domain
