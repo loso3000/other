@@ -398,7 +398,7 @@ h0c3ZnOmNvbW1lbnQAIEdlbmVyYXRvcjogQWRvYmUgSWxsdXN0cmF0b3IgMTcuMS4wLCBTVkcgRXhwb3
           <div class="img-con"> <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkBAMAAACCzIhnAAAAA3NCSVQICAjb4U/gAAAAGFBMVEVDqgCr2Y1quzj////N6LyHyWBZtCPo9N8VoQKaAAAACHRSTlP///8A/////znllVgAAAAJcEhZcwAAX7QAAF+0AVnq3KgAAAAfdEVYdFNvZnR3YXJlAE1hY3JvbWVkaWEgRmlyZXdvcmtzIDi1aNJ4AAAAFnRFWHRDcmVhdGlvbiBUaW1lADA5LzA3LzIxU6PIHgAABKxJREFUWIXlmE1z4jgQhmVj4Arx7Obq4JnK1abt6OpBSfbqhEnlyhRbxZWNF+bvb7e+ZUw+bqkdVQUUqR+p+1VLlmEwWO7XAMfn4T422FpuELmJxfuQjj5aRgiLbMNryB3awgtTCH3CoT9XD1kxGjQzCE1TTp5fQ1bSqGYGYUIO8HweWTGW49fMIVP8t2EsPYeUaljOHBKrSQPtPIRn1sQiND4NEQ0j99iVaL8ssgOSnPnhOITcolD4xkfG2LPH70k3gMjBhfbLIrbl71NEtsd6TA/BSmXYHkIOyyhnIUIyZ6YvQJQ7OxOKQ8Z2FNFDWmMoVfAQivsoa0mIaENhDB1CK1Nb2EMa29j0kdwOmPtItbF+t30ksfGNfWTZ7/UQb5zUQ5QkbGvWwEcm1m8puEY8u/oEIU2UZHKlNaL9oomPp8g6MNDIzI3XnCJbK5nyjBDOnNezU2TnPB8bxPgfm3QKkcjpKJOGkGquyiXWv+u6cM1fvOYOzp2Wr5bfHjksPlTWwOwqvbOMgdVvW4VFsJu3jcKyZsu3jf7fSNTdsfH8gl3NWxbj3wT3Rctod1yQycN8nmF7xh5m7Cv/kxA6ItsEt3eKGz/BZwVtTr6h1JBbXtB3hH2iGFMHIvQQ2Ce4vQU2j6BQR8/MR6CNcFuLgk6LGSJTmHd1gmdGh0iOB0EM//4FRYDsI6yLIudfoEBkVLG0TGRON+hciUgzgWJxDY+ZRNCfmwiHFMW6ZN2SEGh/XiCyIERwTghD/xJ92oiCdTV63yLCNw/KMT6jA/yJELgFQmJUwUPSEpE9Oga8ZSp8niUg5hWZzqFV4fvImpClDL+S64IiHxNIb0toIniEmRLZR/IqAlGKIkbTRi4lSoPIL0QSFGFPyAsLZkHkGbqCHv5LmTBRVyWQwxKaEcZSxPAPnbm9WK4AJWFXUCLyo2Y5T2BLCD0Naww/5SGCiqGgxeUN0oisORshguuOprR+iGzxUechgBplAgpRK2QLjyk6htkFjeC3HUdkKtNNI+UlrX62hiLl37pargs6kwAmHjQY4QgQwfV2CEmOyBQK8psSZqzSMsJMXMnBH/Gzq32Eo6pZBEWi0xLzipYyhhbucAUjuKBc4z5CrRnmHdZLtSsX2Xt3ZLzYfO7j4sPIR4/xScfMLei9JcJkrxdPHyjfxGd+vH5ipNYC/sD6H7ouXPMDNj+5ZomYa+CZK1zi7oXyfVA6pu3OXxTNoJGNpdEtw9fR3F0ltxYxLam73npIGlyZNWLuMe6NwEc68+akL/3BBX43dIGPg36L1FYb2PSRyOkj/KXM7MQnLyNTq3EUrP7Rut30kdx/2fKQyopT9xFhZIwhQHSAuYUt4l5fdj2kNH7rsCxiXzXpqRcgqtm9RFpkZ1Q0kzikNF4cQ2StfbWTePvlXsdfBghdipY6zBNEZs3WBGOQSEc/hgEEDp6FRXI9RjqIUOAUTPBDhFChfIVhhH68SLVAGiF/loFbveOi3EgpG4dcy8nDH5fCE+YgxystQnrxzSSF8wgyqQpKIbQblnFInJxjh2slgELIodUbP0MB/AI5jUSkTl3fYvi0rDJCosG+cwdsjchLOtz3HyMvi8t6gIuEAAAAAElFTkSuQmCC" ></div>
         </div>
         <div class="pure-u-3-5">
-          <h4 id="smartdns_status">SmartDNS<br />
+          <h4 id="dns_status">DNS<br />
             <span class="red">
             <%:Not Running%>
             </span></h4>
@@ -538,7 +538,7 @@ CCnQAWWLcQEXnIKxLHkt4VHXusQ9IVB4AHvHeFwCOA3GjdQkTkAc872e7SnoqNvKV6EnEAeEi4ufJrAt
           if (data) {
 		  		var tcp_status = document.getElementById('tcp_status');
 				var udp_status = document.getElementById('udp_status');
-				var smartdns_status = document.getElementById('smartdns_status');
+				var dns_status = document.getElementById('dns_status');
 				var chinadns_status = document.getElementById('chinadns_status');
 		  	       if (data.tcp) {
 						tcp_status.innerHTML = 'TCP<br /><span class="green"><%:Running%></span>';
@@ -551,10 +551,10 @@ CCnQAWWLcQEXnIKxLHkt4VHXusQ9IVB4AHvHeFwCOA3GjdQkTkAc872e7SnoqNvKV6EnEAeEi4ufJrAt
 						} else {
 							udp_status.innerHTML = 'UDP<br /><span class="red"><%:Not Running%></span>'
 						}
-					if (data.smartdns) {
-							smartdns_status.innerHTML = 'DNS<br /><span class="green"><%:Running%></span>'
+					if (data.dns) {
+							dns_status.innerHTML = 'DNS<br /><span class="green"><%:Running%></span>'
 						} else {
-							smartdns_status.innerHTML = 'DNS<br /><span class="red"><%:Not Running%></span>'
+							dns_status.innerHTML = 'DNS<br /><span class="red"><%:Not Running%></span>'
 						}
 					if (data.chinadns) {
 							chinadns_status.innerHTML = 'ChinaDNS<br /><span class="green"><%:Running%></span>'

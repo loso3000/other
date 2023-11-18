@@ -46,6 +46,7 @@ plugins:
   - tag: remote_sequence_IPv6
     type: sequence
     args:
+      - exec: prefer_ipv4
       - exec: $forward_remote
   - tag: remote_sequence
     type: sequence
@@ -109,10 +110,10 @@ plugins:
     type: udp_server
     args:
       entry: main_sequence
-      listen: "0.0.0.0:DNS_PORT"
+      listen: ":DNS_PORT"
 
   - tag: tcp_server
     type: tcp_server
     args:
       entry: main_sequence
-      listen: "0.0.0.0:DNS_PORT"
+      listen: ":DNS_PORT"

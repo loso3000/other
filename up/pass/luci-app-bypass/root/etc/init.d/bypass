@@ -20,7 +20,6 @@ LOG=/tmp/log/$NAME.log
 MDNS=/tmp/etc/mosdns
 MDNS_D=/usr/share/bypass/gen_mosdns_default.yaml
 MDNS_T=$MDNS/mosdns-bypass.yaml
-MDNS_TL=$MDNS/mosdns-bypassl.yaml
 MDNS_TN=$MDNS/mosdns-bypassn.yaml
 
 APP=/usr/share/bypass/app
@@ -249,17 +248,29 @@ gen_config_file(){
 start_dns()
 {
         if [[ "x$dns_mode" = "x1" ]] ;then
-	      service_start $(which smartdns) -c $DNS_T >$log_file 2>&1 
-	      if [[ $run_mode = router ]];then
-	          service_start $(which chinadns-ng) -l 5337 -c '127.0.0.1#5336' -t '127.0.0.1#5335' -4 china_v4  -p 3 -6 china_v6 -f -n $([ $gfw_mode = 1 ] && echo -g $VAR/gfw.list) 
-		  log "ChinaDNS : Start ChinaDNS-NG success!"
-	       fi
+	      service_start $(which smartdns) -c $DNS_T 2>/dev/null
+	      case $run_mode in
+			gfw)  
+			   #service_start $(which chinadns-ng) -l 5337 -c '127.0.0.1#5336' -t '127.0.0.1#5335' -4 china_v4  -p 3 -6 china_v6 -f -n -m $VAR/gfw.list -M $([ $gfw_mode = 1 ] && echo -g $VAR/gfw.list) 
+			   #log "ChinaDNS : Start ChinaDNS-NG success!"
+			;;
+			router)  
+			   service_start $(which chinadns-ng) -l 5337 -c '127.0.0.1#5336' -t '127.0.0.1#5335' -4 china_v4  -p 3 -6 china_v6 -f -n $([ $gfw_mode = 1 ] && echo -g $VAR/gfw.list) 
+			   log "ChinaDNS : Start ChinaDNS-NG success!"	
+			;;
+		esac
 	 else
-	      service_start $(which mosdns) start -c $MDNS_T 
-	       if [[ $run_mode = router ]];then
-	           service_start $(which chinadns-ng) -l 5337 -c "${bootstrap_dns}#53" -t '127.0.0.1#5335' -4 china_v4  -p 3 -6 china_v6 -f -n $([ $gfw_mode = 1 ] && echo -g $VAR/gfw.list) 
-		   log "ChinaDNS : Start ChinaDNS-NG success!"
-	       fi
+	      service_start $(which mosdns) start -c $MDNS_T 2>/dev/null
+		case $run_mode in
+			gfw)  
+			   #service_start $(which chinadns-ng) -l 5337 -c "${bootstrap_dns}#53" -t '127.0.0.1#5335' -4 china_v4  -p 3 -6 china_v6 -f -n -m $VAR/gfw.list -M $([ $gfw_mode = 1 ] && echo -g $VAR/gfw.list) 
+			   #log "ChinaDNS : Start ChinaDNS-NG success!"
+			;;
+			router)  
+			   service_start $(which chinadns-ng) -l 5337 -c "${bootstrap_dns}#53" -t '127.0.0.1#5335' -4 china_v4  -p 3 -6 china_v6 -f -n $([ $gfw_mode = 1 ] && echo -g $VAR/gfw.list) 
+		           log "ChinaDNS : Start ChinaDNS-NG success!"
+			;;
+		esac
 	 fi
 	if [[ "$(uci -q get dhcp.@dnsmasq[0].cachesize)" == "0" && $adguardhome == 0 ]]; then
 		uci -q set dhcp.@dnsmasq[0].cachesize='1500'
@@ -785,8 +796,6 @@ gen_smartdns(){
 			*) ipset del ss_spec_wan_ac $i 2>/dev/null || ipset add ss_spec_wan_ac $i nomatch 2>/dev/null;;
 		esac
 	done
-	[ "$dns" = "162.159.36.1 162.159.46.1 1.1.1.1 1.0.0.1 2606:4700:4700::1111 2606:4700:4700::1001" ] && dns="1.1.1.1 1.0.0.1 2606:4700:4700::1111 2606:4700:4700::1001"
-
 	 remote_=`echo $remote | grep -o '_.*' `
 	 case $remote_ in
 		_doh) 
@@ -996,7 +1005,6 @@ if [ "$2" == "dns" ];then
 	dns=$(echo $1 | awk -F/ '{print $3}')
 	[ "$dns" ] ||  dns=${1%:*}
 	[ "$dns" ] || return
-	echo $dns $run_mode
 	case $run_mode in
 	gfw|oversea) ipset add blacklist ${dns%:*} 2>/dev/null;;
 	*) ipset del ss_spec_wan_ac ${dns%:*} 2>/dev/null || ipset add ss_spec_wan_ac ${dns%:*} nomatch 2>/dev/null;;
@@ -1012,6 +1020,8 @@ fi
 
 gen_mosdns(){
    TMPDIR=$(mktemp -d) || exit 1
+   
+   mkdir -p /tmp/run /tmp/dnsmasq.d $DNS_DIR $MDNS 
    mosdns_flag=1
    killall -q -9 smartdns
    killall -q -9 mosdns
@@ -1026,11 +1036,10 @@ gen_mosdns(){
 		server=127.0.0.1#$port
 	EOF
 
-   dns_pollution=$(uci_get_by_type global dns_pollution 0)
-   mkdir -p /tmp/run /tmp/dnsmasq.d $DNS_DIR $MDNS 
 
    # Remote DNS
    dns_remote=`mget_dns "$(uci_get_by_type global dns_remote cloudflare_doh)" `
+   # for i in  $dns_remote ;do add_dns_ipset $i dns done;done 
    remote_dns=$(for i in  $dns_remote; do
                                 add_dns_ipset $i dns
 				log "MOSDNS : start in $i Remote DNS Resolution!"
@@ -1055,17 +1064,24 @@ gen_mosdns(){
     echo "${local_dns}" > $TMPDIR/local_dns.txt
     echo "${remote_dns}" > $TMPDIR/remote_dns.txt
     sed -i -e '/- addr: local_dns/{r '$TMPDIR/local_dns.txt -e';d};/- addr: remote_dns/{r '$TMPDIR/remote_dns.txt -e';d}' $MDNS_T
-    # Convert HTTP/3 prefix format
-    # sed -i 's/h3:\/\//https:\/\//g' $MDNS_T
     # DNS pollution
-    [ x$dns_pollution = 'x1' ]  &&  sed -i "s/POLLUTION/query_is_remote/g" $MDNS_T ||   sed -i "s/POLLUTION/query_is_local_ip/g"  $MDNS_T
+    dns_pollution=$(uci_get_by_type global dns_pollution 0)
+    [ x$dns_pollution = 'x1' ]  &&  sed -i "s/POLLUTION/query_is_remote/g" $MDNS_T || sed -i "s/POLLUTION/query_is_local_ip/g"  $MDNS_T
     [ "x$ipv6mode" == "x1" ] && sed -i "s/IPV6MODE/remote_sequence_IPv6/g" $MDNS_T || sed -i "s/IPV6MODE/remote_sequence/g" $MDNS_T
     log "MOSDNS : start in $bootstrap_dns Bootstrap DNS Resolution!"
-
-
 	if [ $run_mode = oversea ];then
-	  echo '' 2>/dev/null
+		awk '!/^$/&&!/^#/{printf("server=/%s/'"127.0.0.1#5335"'\n",$0)}' $T_FILE/oversea.list >$DNS_DIR/oversea.conf
 	else
+		[ $run_mode != gfw ] && echo -e "server=/msftconnecttest.com/127.0.0.1#5335\nserver=/msftncsi.com/127.0.0.1#5335" >> $DNS_FILE
+		if [ $run_mode != all ];then
+			cp -f $T_FILE/black.list $O
+			awk '!/^$/&&!/^#/{printf("server=/%s/'"127.0.0.1#5335"'\n",$0)}' $O >$DNS_DIR/black.conf
+			if [ $run_mode = gfw ];then
+				cp -f $VAR/gfw.list $O
+				awk '!/^$/&&!/^#/{printf("server=/%s/'"127.0.0.1#5335"'\n",$0)}' $O >>$DNS_DIR/black.conf
+			fi
+		fi
+
 		if [ -s $DNS_DIR/black.conf ];then
 			echo "$(sort -u $DNS_DIR/black.conf)" >$DNS_DIR/black.conf
 		else
@@ -1091,13 +1107,15 @@ gen_mosdns(){
 			awk '!/^$/&&!/^#/{printf("server=/%s/'"127.0.0.1#5335"'\n",$0)}' $O >>$DNS_DIR/white.conf
 		fi
 		if [ -s $T_FILE/domains_cn.txt ];then
-			cp -f $T_FILE/domains_cn.txt $VAR/domains_cn.txt
-			sed -i "s/\r//g" $VAR/domains_cn.txt
-			awk '!/^$/&&!/^#/{printf("server=/%s/'"127.0.0.1#5335"'\n",$0)}' $VAR/domains_cn.txt >>$DNS_DIR/white.conf
+			cp -f $T_FILE/domains_cn.txt $O
+			sed -i "s/\r//g" $O
+			awk '!/^$/&&!/^#/{printf("server=/%s/'"127.0.0.1#5335"'\n",$0)}' $O >>$DNS_DIR/white.conf
 		fi
 	fi
-	rm -rf $TMPDIR
-	[ $run_mode = router ] && chinadns_flag=1
+	[ $(find $DNS_DIR -name \* -exec cat {} \; 2>/dev/null | wc -l) = 0 ] && rm -rf $DNS_DIR
+	echo "conf-dir=${DNS_DIR}" >$DNS_FILE
+	rm -rf $TMPDIR $O
+	[[ $run_mode = router ]] && chinadns_flag=1
 	start_dns
 	/etc/init.d/dnsmasq restart >/dev/null 2>&1
 	$BIN_DIR/by-preload $run_mode

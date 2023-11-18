@@ -142,8 +142,8 @@ msgid "Use SmartDNS query"
 msgstr "使用SmartDNS查询"
 
 
-msgid "Use MOSDNS query(Not Support Oversea Mode)"
-msgstr "使用MOSDNS查询(不支持海外用户回国模式)"
+msgid "Use MOSDNS query"
+msgstr "使用MOSDNS查询"
 
 
 msgid "Ali"

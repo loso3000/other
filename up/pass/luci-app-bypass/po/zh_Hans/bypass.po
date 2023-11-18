@@ -149,8 +149,8 @@ msgid "If DoT/DoH resolution is not normal,use TCP mode or select ISP DNS"
 msgstr "如果DoT/DoH解析不正常则使用TCP模式或选择ISP的DNS"
 
 
-msgid "Use MOSDNS query(Not Support Oversea Mode)"
-msgstr "使用MOSDNS查询(不支持海外用户回国模式)"
+msgid "Use MOSDNS query"
+msgstr "使用MOSDNS查询"
 
 
 msgid "Ali"

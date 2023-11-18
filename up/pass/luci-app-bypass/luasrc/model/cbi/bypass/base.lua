@@ -76,7 +76,6 @@ o = s:taboption("Main",Flag,"gfw_mode",translate("Load GFW List"),
 translate("If the domestic DNS does not hijack foreign domain name to domestic IP, No need to be enabled"))
 o:depends("run_mode","router")
 
-
 o = s:taboption("Main",ListValue,"dports",translate("Proxy Ports"))
 o:value("1",translate("All Ports"))
 o:value("2",translate("Only Common Ports"))
@@ -95,7 +94,7 @@ end
 o = s:taboption("DNS",ListValue,"dns_mode",translate("DNS Query Method"))
 o:value(1, translate("Use SmartDNS query"))
 if is_bin("mosdns") then
-o:value(2, translate("Use MOSDNS query(Not Support Oversea Mode)"))
+o:value(2, translate("Use MOSDNS query"))
 end
 
 o = s:taboption("DNS",Flag,"proxy_ipv6_mode",translate("IPV6 parsing"), translate("Use DNS to return IPv6 records"))
@@ -127,7 +126,7 @@ o:value("baidu_tcp",""..translate("BaiDu").."DNS Tcp")
 o:value("114dns_tcp","114DNS DNS Tcp")
 o.default="alidns_doh"
 
-o = s:taboption("DNS", ListValue, "bootstrap_dns", translate("Bootstrap DNS servers"), translate("Bootstrap DNS server is used to resolve IP addresses in the upstream DoH/DoT resolution list"))
+o = s:taboption("DNS", Value, "bootstrap_dns", translate("Bootstrap DNS servers"), translate("Bootstrap DNS server is used to resolve IP addresses in the upstream DoH/DoT resolution list"))
 o:value("119.29.29.29", ""..translate("Tencent").." DNS (119.29.29.29)")
 o:value("119.28.28.28", ""..translate("Tencent").." DNS (119.28.28.28)")
 o:value("223.5.5.5", ""..translate("Ali").."(223.5.5.5)")
