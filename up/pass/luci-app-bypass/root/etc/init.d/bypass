@@ -246,6 +246,27 @@ gen_config_file(){
 }
 
 
+start_dns()
+{
+        if [[ "x$dns_mode" = "x1" ]] ;then
+	      service_start $(which smartdns) -c $DNS_T >$log_file 2>&1 
+	      if [[ $run_mode = router ]];then
+	          service_start $(which chinadns-ng) -l 5337 -c '127.0.0.1#5336' -t '127.0.0.1#5335' -4 china_v4  -p 3 -6 china_v6 -f -n $([ $gfw_mode = 1 ] && echo -g $VAR/gfw.list) 
+		  log "ChinaDNS : Start ChinaDNS-NG success!"
+	       fi
+	 else
+	      service_start $(which mosdns) start -c $MDNS_T 
+	       if [[ $run_mode = router ]];then
+	           service_start $(which chinadns-ng) -l 5337 -c "${bootstrap_dns}#53" -t '127.0.0.1#5335' -4 china_v4  -p 3 -6 china_v6 -f -n $([ $gfw_mode = 1 ] && echo -g $VAR/gfw.list) 
+		   log "ChinaDNS : Start ChinaDNS-NG success!"
+	       fi
+	 fi
+	if [[ "$(uci -q get dhcp.@dnsmasq[0].cachesize)" == "0" && $adguardhome == 0 ]]; then
+		uci -q set dhcp.@dnsmasq[0].cachesize='1500'
+		uci commit dhcp
+	fi
+}
+
 
 check_net(){
 	if ! curl -so /dev/null -m 3 www.baidu.com;then
@@ -919,7 +940,14 @@ gen_smartdns(){
 			awk '!/^$/&&!/^#/{printf("server=/%s/'"127.0.0.1#5336"'\n",$0)}' $O >>$DNS_DIR/white.conf
 			awk '!/^$/&&!/^#/{printf("ipset /%s/'"ss_spec_wan_ac"'\n",$0)}' $O >>$CON_T
 		fi
-
+		if [ -s $T_FILE/domains_cn.txt ];then
+			cp -f $T_FILE/domains_cn.txt $VAR/domains_cn.txt
+			sed -i "s/\r//g" $O
+			awk '!/^$/&&!/^#/{printf("server=/%s/'"127.0.0.1#5336"'\n",$0)}' $O >>$DNS_DIR/white.conf
+			# awk '!/^$/&&!/^#/{printf("ipset /%s/'"ss_spec_wan_ac"'\n",$0)}' $O >>$CON_T
+			echo "domain-set -name domains-cn-rule-list -file $VAR/domains_cn.txt" >>$DNS_T_TMP
+			echo "domain-rules /domain-set:domains-cn-rule-list/  -nameserver f -dualstack-ip-selection no -address #6 -ipset ss_spec_wan_ac" >>$DNS_T_TMP
+		fi
 	fi
 	#中国IP段白名单
 	# ip-set -name china_v4 -type list -file $VAR/china.txt
@@ -946,27 +974,12 @@ gen_smartdns(){
 	rm -f $O
 	[ $(find $DNS_DIR -name \* -exec cat {} \; 2>/dev/null | wc -l) = 0 ] && rm -rf $DNS_DIR
 	echo "conf-dir=${DNS_DIR}" >$DNS_FILE
+	[ $run_mode = router ] && chinadns_flag=1
 	mv -f $DNS_T_TMP $DNS_T
-	$(which smartdns) -c $DNS_T >$log_file 2>&1
-	if [ $run_mode = router ];then
- 
-		if [ -s $T_FILE/domains_cn.txt ];then
-			cp -f $T_FILE/domains_cn.txt $VAR/domains_cn.txt
-			sed -i "s/\r//g" $VAR/domains_cn.txt
-			awk '!/^$/&&!/^#/{printf("server=/%s/'"127.0.0.1#5336"'\n",$0)}' $VAR/domains_cn.txt >>$DNS_DIR/white.conf
-			echo "domain-set -name domains-cn-rule-list -file $VAR/domains_cn.txt" >>$DNS_T_TMP
-			echo "domain-rules /domain-set:domains-cn-rule-list/  -nameserver f -dualstack-ip-selection no -address #6 -ipset ss_spec_wan_ac" >>$DNS_T_TMP
-		fi
-	        chinadns_flag=1
-		service_start $(which chinadns-ng) -l 5337 -c '127.0.0.1#5336' -t '127.0.0.1#5335' -4 china_v4  -p 3 -6 china_v6 -f -r -n $([ $gfw_mode = 1 ] && echo -g $VAR/gfw.list)
-		log "ChinaDNS : Start ChinaDNS-NG success!"
-	fi
-	if [[ "$(uci -q get dhcp.@dnsmasq[0].cachesize)" == "0" && $adguardhome == 0 ]]; then
-		uci -q set dhcp.@dnsmasq[0].cachesize='1500'
-		uci commit dhcp
-	fi
+	start_dns
+
 	/etc/init.d/dnsmasq restart >/dev/null 2>&1
-	service_start $BIN_DIR/by-preload $run_mode
+	$BIN_DIR/by-preload $run_mode
 }
 
 mget_dns(){ #$1 name  $2 dns
@@ -983,6 +996,7 @@ if [ "$2" == "dns" ];then
 	dns=$(echo $1 | awk -F/ '{print $3}')
 	[ "$dns" ] ||  dns=${1%:*}
 	[ "$dns" ] || return
+	echo $dns $run_mode
 	case $run_mode in
 	gfw|oversea) ipset add blacklist ${dns%:*} 2>/dev/null;;
 	*) ipset del ss_spec_wan_ac ${dns%:*} 2>/dev/null || ipset add ss_spec_wan_ac ${dns%:*} nomatch 2>/dev/null;;
@@ -1020,20 +1034,20 @@ gen_mosdns(){
    remote_dns=$(for i in  $dns_remote; do
                                 add_dns_ipset $i dns
 				log "MOSDNS : start in $i Remote DNS Resolution!"
-				echo "            - addr: $i"
-				echo "              bootstrap: ${bootstrap_dns}"
-				echo "              enable_pipeline: true"
-				echo "              max_conns: 2"
+				echo "        - addr: $i"
+				echo "          bootstrap: ${bootstrap_dns}"
+				echo "          enable_pipeline: true"
+				echo "          max_conns: 2"
 			done)
 
    #local DNS IPSET
    dns_local=`mget_dns "$(uci_get_by_type global dns_local alidns_dot)" `
    local_dns=$(for i in $dns_local; do
 				log "MOSDNS : start in $i Local DNS Resolution!"
-				echo "            - addr: $i"
-				echo "              bootstrap: ${bootstrap_dns}"
-				echo "              enable_pipeline: true"
-				echo "              max_conns: 2"
+				echo "        - addr: $i"
+				echo "          bootstrap: ${bootstrap_dns}"
+				echo "          enable_pipeline: true"
+				echo "          max_conns: 2"
 			done)
 
     sed "s,DNS_PORT,5335,g" $MDNS_D > $MDNS_T
@@ -1041,27 +1055,52 @@ gen_mosdns(){
     echo "${local_dns}" > $TMPDIR/local_dns.txt
     echo "${remote_dns}" > $TMPDIR/remote_dns.txt
     sed -i -e '/- addr: local_dns/{r '$TMPDIR/local_dns.txt -e';d};/- addr: remote_dns/{r '$TMPDIR/remote_dns.txt -e';d}' $MDNS_T
-
+    # Convert HTTP/3 prefix format
+    # sed -i 's/h3:\/\//https:\/\//g' $MDNS_T
     # DNS pollution
     [ x$dns_pollution = 'x1' ]  &&  sed -i "s/POLLUTION/query_is_remote/g" $MDNS_T ||   sed -i "s/POLLUTION/query_is_local_ip/g"  $MDNS_T
     [ "x$ipv6mode" == "x1" ] && sed -i "s/IPV6MODE/remote_sequence_IPv6/g" $MDNS_T || sed -i "s/IPV6MODE/remote_sequence/g" $MDNS_T
     log "MOSDNS : start in $bootstrap_dns Bootstrap DNS Resolution!"
 
 
-        rm -rf $TMPDIR
-	$(which mosdns) start -c $MDNS_T  >$log_file 2>&1
-	if [ $run_mode = router ];then
-	        chinadns_flag=1
-		service_start $(which chinadns-ng) -l 5337 -c '127.0.0.1#5335' -t '127.0.0.1#5335' -4 china_v4  -p 3 -6 china_v6 -f -n $([ $gfw_mode = 1 ] && echo -g $VAR/gfw.list)
-		#service_start $(which chinadns-ng) -l 5337 -c "${bootstrap_dns}#53" -t '127.0.0.1#5335' -4 china_v4  -p 3 -6 china_v6 -f -n $([ $gfw_mode = 1 ] && echo -g $VAR/gfw.list)
-		log "ChinaDNS : Start ChinaDNS-NG success!"
+	if [ $run_mode = oversea ];then
+	  echo '' 2>/dev/null
+	else
+		if [ -s $DNS_DIR/black.conf ];then
+			echo "$(sort -u $DNS_DIR/black.conf)" >$DNS_DIR/black.conf
+		else
+			rm -f $DNS_DIR/black.conf
+		fi
+		if [ -n "$NF" ];then
+			cp -f $T_FILE/netflix.list $O
+			D=$(cat $O)
+			for i in $D;do
+				sed -i -e "/\/$i\//d" -e "/\.$i\//d" $DNS_DIR/black.conf 2>/dev/null
+			done
+			if [ $run_mode = gfw ];then
+				awk '!/^$/&&!/^#/{printf("server=/%s/'"127.0.0.1#5335"'\n",$0)}' $O >>$DNS_DIR/black.conf
+			fi
+		fi
+		if [ -s $T_FILE/white.list ];then
+			cp -f $T_FILE/white.list $O
+			sed -i "s/\r//g" $O
+			D=$(cat $O)
+			for i in $D;do
+				sed -i -e "/\/$i\//d" -e "/\.$i\//d" $DNS_DIR/black.conf 2>/dev/null
+			done
+			awk '!/^$/&&!/^#/{printf("server=/%s/'"127.0.0.1#5335"'\n",$0)}' $O >>$DNS_DIR/white.conf
+		fi
+		if [ -s $T_FILE/domains_cn.txt ];then
+			cp -f $T_FILE/domains_cn.txt $VAR/domains_cn.txt
+			sed -i "s/\r//g" $VAR/domains_cn.txt
+			awk '!/^$/&&!/^#/{printf("server=/%s/'"127.0.0.1#5335"'\n",$0)}' $VAR/domains_cn.txt >>$DNS_DIR/white.conf
+		fi
 	fi
-	if [[ "$(uci -q get dhcp.@dnsmasq[0].cachesize)" == "0" && $adguardhome == 0 ]]; then
-		uci -q set dhcp.@dnsmasq[0].cachesize='1500'
-		uci commit dhcp
-	fi
+	rm -rf $TMPDIR
+	[ $run_mode = router ] && chinadns_flag=1
+	start_dns
 	/etc/init.d/dnsmasq restart >/dev/null 2>&1
-	service_start $BIN_DIR/by-preload $run_mode
+	$BIN_DIR/by-preload $run_mode
 }
 
 

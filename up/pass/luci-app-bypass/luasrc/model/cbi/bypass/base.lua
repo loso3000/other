@@ -140,4 +140,5 @@ o:value("8.8.4.4", ""..translate("Google").." DNS(8.8.4.4)")
 o:value("1.1.1.1", translate("CloudFlare DNS(1.1.1.1)"))
 o.default = "114.114.114.114"
 
+
 return m

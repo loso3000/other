@@ -2,7 +2,6 @@ log:
   level: info
 
 plugins:
-
   - tag: lazy_cache
     type: cache
     args:
@@ -27,19 +26,18 @@ plugins:
     args:
       files:
           - "/var/etc/bypass/gfw.list"
-
   - tag: forward_local
     type: forward
     args:
+      concurrent: 2
       upstreams:
-          - addr: local_dns
-	  
+        - addr: local_dns
   - tag: forward_remote
     type: forward
     args:
-        upstreams:
-          - addr: remote_dns
-
+      concurrent: 2
+      upstreams:
+        - addr: remote_dns
   - tag: local_sequence
     type: sequence
     args:
@@ -49,8 +47,6 @@ plugins:
     type: sequence
     args:
       - exec: $forward_remote
-
-
   - tag: remote_sequence
     type: sequence
     args:
@@ -113,10 +109,10 @@ plugins:
     type: udp_server
     args:
       entry: main_sequence
-      listen: ":DNS_PORT"
+      listen: "0.0.0.0:DNS_PORT"
 
   - tag: tcp_server
     type: tcp_server
     args:
       entry: main_sequence
-      listen: ":DNS_PORT"
+      listen: "0.0.0.0:DNS_PORT"
