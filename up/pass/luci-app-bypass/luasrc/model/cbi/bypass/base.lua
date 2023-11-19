@@ -126,7 +126,7 @@ o:value("baidu_tcp",""..translate("BaiDu").."DNS Tcp")
 o:value("114dns_tcp","114DNS DNS Tcp")
 o.default="alidns_doh"
 
-o = s:taboption("DNS", Value, "bootstrap_dns", translate("Bootstrap DNS servers"), translate("Bootstrap DNS server is used to resolve IP addresses in the upstream DoH/DoT resolution list"))
+o = s:taboption("DNS",Value, "bootstrap_dns", translate("Bootstrap DNS servers"), translate("Bootstrap DNS server is used to resolve IP addresses in the upstream DoH/DoT resolution list"))
 o:value("119.29.29.29", ""..translate("Tencent").." DNS (119.29.29.29)")
 o:value("119.28.28.28", ""..translate("Tencent").." DNS (119.28.28.28)")
 o:value("223.5.5.5", ""..translate("Ali").."(223.5.5.5)")
