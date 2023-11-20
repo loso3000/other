@@ -7,17 +7,14 @@ IPT_N="$ipt -t nat"
 IPT="iptables -t nat"
 FWI=$(uci -q get firewall.bypass.path) || FWI=/tmp/etc/bypass.include
 LFILE=/tmp/by_local.ipset
-A=0
-B=0
-C=0
 MODE=0
 
 flush_iptables(){
 	local ipt="iptables -t $1"
 	local DAT=$(iptables-save -t $1)
-	eval $(echo "$DAT" | grep "$TAG" | sed -e 's/^-A/$ipt -D/' -e 's/$/;/')
-	for chain in $(echo "$DAT" | awk '/^:SS_SPEC/{print$1}');do
-		$ipt -F ${chain:1} 2>/dev/null && $ipt -X ${chain:1}
+	eval $(echo "$DAT" | grep $TAG | sed -e 's/^-A/$ipt -D/' -e 's/$/;/')
+	for X in $(echo "$DAT" | awk '/^:SS_SPEC/{print$1}');do
+		$ipt -F ${X:1} 2>/dev/null && $ipt -X ${X:1}
 	done
 }
 
@@ -29,6 +26,8 @@ flush_dns(){
 flush_r(){
 	flush_iptables nat
 	flush_iptables mangle
+	flush_dns udp
+	flush_dns tcp
 	while ip rule del fwmark 1 lookup 100 2>/dev/null;do :;done
 	ip route del local 0.0.0.0/0 dev lo table 100 2>/dev/null
 	ipset -X ss_spec_wan_ac 2>/dev/null
@@ -55,12 +54,12 @@ ipset_r(){
 		for ip in $LAN_FP_IP;do ipset -! add fplan $ip;done
 		for ip in $WAN_FW_IP;do ipset -! add blacklist $ip;done
 	fi
-	if [ -n "$LAN_GM_IP" -a $B = 0 ];then
+	if [ -n "$LAN_GM_IP" -a ! "$B" ];then
 		C=1
 		ipset -N gmlan hash:net 2>/dev/null
 		for ip in $LAN_GM_IP;do ipset -! add gmlan $ip;done
 	fi
-	[ $A = 1 -o $C = 1 ] && /usr/share/bypass/chinaipset
+	[ "$A" -o "$C" ] && /usr/share/bypass/chinaipset
 	[ $MODE = router ] && /usr/share/bypass/chinaipset v6
 	cat > $LFILE  <<EOF
 0.0.0.0/8
@@ -92,6 +91,7 @@ EOF
 		[ "$(uci -q get bypass.@global[0].nf_proxy)" = 1 ] && $IPT -A SS_SPEC_WAN_AC -d $NF_SERVER -j SS_SPEC_WAN_FW || ipset -! add ss_spec_wan_ac $NF_SERVER
 		$IPT -A SS_SPEC_WAN_AC -p tcp -m set --match-set netflix dst -j REDIRECT --to-ports $NF_PORT
 	fi
+	$IPT -A SS_SPEC_WAN_AC -m set --match-set ss_spec_wan_ac dst -j RETURN
 	ipset list fplan >/dev/null 2>&1 && $IPT -A SS_SPEC_WAN_AC -m set --match-set fplan src -j SS_SPEC_WAN_FW
 	ipset list blacklist >/dev/null 2>&1 && $IPT -A SS_SPEC_WAN_AC -m set --match-set blacklist dst -j SS_SPEC_WAN_FW
 	ipset list gmlan >/dev/null 2>&1 && $IPT -A SS_SPEC_WAN_AC -m set --match-set gmlan src -m set ! --match-set china_v4 dst -j SS_SPEC_WAN_FW
@@ -102,7 +102,7 @@ EOF
 		all)$IPT -A SS_SPEC_WAN_AC -j SS_SPEC_WAN_FW;;
 	esac
 
-	if [ -n "$LAN_AC_IP" ];then
+	if [ "$LAN_AC_IP" ];then
 		ipset -! -R <<-EOF || return 1
 		create ss_spec_lan_ac hash:net
 		$(for ip in ${LAN_AC_IP:1};do echo "add ss_spec_lan_ac $ip";done)
@@ -123,7 +123,14 @@ tp_rule(){
 	ip route add local 0.0.0.0/0 dev lo table 100
 	ipt="iptables -t mangle"
 	$ipt -N SS_SPEC_TPROXY
-	$ipt -A SS_SPEC_TPROXY -p udp -m set ! --match-set china_v4 dst -m udp --dport 443 -j DROP
+	if ipset list china_v4 >/dev/null 2>&1;then
+		[ $MODE = oversea ] && a= || a=!
+		$ipt -A SS_SPEC__TPROXY -p udp -m set $a --match-set china_v4 dst --dport 80 -j DROP
+		$ipt -A SS_SPEC__TPROXY -p udp -m set $a --match-set china_v4 dst --dport 443 -j DROP
+	elif ipset list blacklist >/dev/null 2>&1;then
+		$ipt -A SS_SPEC__TPROXY -p udp -m set --match-set blacklist dst --dport 80 -j DROP
+		$ipt -A SS_SPEC__TPROXY -p udp -m set --match-set blacklist dst --dport 443 -j DROP
+	fi
 	$ipt -A SS_SPEC_TPROXY -p udp --dport 53 -j RETURN
 	$ipt -A SS_SPEC_TPROXY -p udp -d $SERVER -j RETURN
 	$ipt -A SS_SPEC_TPROXY -p udp -m set --match-set ss_spec_wan_ac dst -j RETURN
@@ -149,16 +156,15 @@ tp_rule(){
 
 gen_include(){
 	extract_rules() {
-		echo "*$2"
-		$1-save -t $2 | grep SS_SPEC_ |\
-			sed -e "s/^-A \(OUTPUT\|PREROUTING\)/-I \1 1/"
+		echo "*$1"
+		iptables-save -t $1 | grep SS_SPEC | sed "s/^-A \(OUTPUT\|PREROUTING\)/-I \1 1/"
 		echo 'COMMIT'
 	}
 	cat <<-EOF >> $FWI
 	iptables-save -c | grep -v "SS_SPEC" | iptables-restore -c
 	iptables-restore -n <<-EOT
-	$(extract_rules iptables nat)
-	$(extract_rules iptables mangle)
+	$(extract_rules nat)
+	$(extract_rules mangle)
 	EOT
 EOF
 }
@@ -184,5 +190,5 @@ while getopts ":s:l:S:L:N:P:a:b:w:p:G:D:rczf" arg;do
 	esac
 done
 
-[ -z "$server" -o -z "$local_port" ] && exit 1
+[ "$server" -a "$local_port" ] || exit 1
 flush_r;ipset_r && tp_rule && gen_include || exit 1

@@ -109,9 +109,7 @@ end
 
 -- trim
 local function trim(text)
-	if not text or text == "" then
-		return ""
-	end
+	if not text or text=="" then return "" end
 	return (sgsub(text, "^%s*(.-)%s*$", "%1"))
 end
 -- md5
@@ -123,9 +121,7 @@ end
 -- base64
 local function base64Decode(text)
 	local raw = text
-	if not text then
-		return ''
-	end
+	if not text then return '' end
 	text = text:gsub("%z", "")
 	text = text:gsub("_", "/")
 	text = text:gsub("-", "+")
@@ -484,7 +480,7 @@ local execute = function()
 		for k,url in ipairs(subscribe_url) do
 			i=i+1
 			local raw=curl(url)
-			if raw and #raw > 0 then
+			if #raw > 0 then
 				if i ~= 1 then
 				     log('--------------------------------------------------')
 				end
@@ -606,7 +602,6 @@ local execute = function()
 			end
 		end
 		ucic:commit(name)
-		-- 如果原有服务器节点已经不见了就尝试换为第一个节点
 		log('--------------------------------------------------')
 		log('新增节点数量: ' .. add, '删除节点数量: ' .. del)
 		local globalServer = ucic:get_first(name, 'global', 'global_server', '')
@@ -622,6 +617,10 @@ local execute = function()
 					log('维持当前主服务器节点。')
 				end
 			else
+				ucic:delete(name,ucic:get_first(name,'global'),'global_server')
+				ucic:delete(name,ucic:get_first(name,'global'),'udp_relay_server')
+				ucic:delete(name,ucic:get_first(name,'global'),'nf_server')
+				ucic:commit(name)
 				log('没有服务器节点了，停止服务')
 				luci.sys.call("/etc/init.d/" .. name .. " stop > /dev/null 2>&1 &")
 			end
@@ -643,7 +642,7 @@ if subscribe_url and #subscribe_url > 0 then
 		log(debug.traceback())
 		log('发生错误, 正在恢复服务')
 		if ucic:get_first(name,uciType) then
-			SYS.call("/etc/init.d/" .. name .. " restart > /dev/null 2>&1 &") -- 不加&的话日志会出现的更早
+			SYS.call("/etc/init.d/bypass stop > /dev/null 2>&1 & ;/etc/init.d/bypass start > /dev/null 2>&1 &") -- 不加&的话日志会出现的更早
 		else
 			SYS.call("/etc/init.d/" .. name .. " stop > /dev/null 2>&1 &") -- 不加&的话日志会出现的更早
 		end

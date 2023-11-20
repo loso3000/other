@@ -44,14 +44,21 @@ o:depends("run_mode","router")
 o:depends("run_mode","all")
 
 o = s:taboption("Main",DynamicList,"nf_dns",translate("Netflix Query DNS"))
-o:value("cloudflare_doh","Cloudflare DNS DoH")
-o:value("google_doh",""..translate("Google").." DNS DoH")
-o:value("quad9_doh","Quad9 DNS DoH")
-o:value("cloudflare_tcp","Cloudflare DNS Tcp")
-o:value("google_tcp",""..translate("Google").." DNS Tcp")
-o:value("quad9_tcp","Quad9 DNS Tcp")
-o:value("opendns_tcp","OpenDNS DNS Tcp")
-o.default="cloudflare_doh"
+o:value("cloudflare_doh","Cloudflare DNS DoH(1.1.1.1)")
+o:value("cloudflare2_doh","Cloudflare DNS DoH(162.159.36.1)")
+o:value("google_doh",""..translate("Google").." DNS DoH(8.8.4.4)")
+o:value("google2_doh",""..translate("Google").." DNS DoH(8.8.8.8)")
+o:value("quad9_doh","Quad9 DNS DoH(9.9.9.9)")
+o:value("quad92_doh","Quad9 DNS DoH(149.112.112.112)")
+o:value("cloudflare_tcp","Cloudflare DNS Tcp(1.1.1.1)")
+o:value("cloudflare2_tcp","Cloudflare DNS Tcp(1.0.0.1)")
+o:value("google_tcp",""..translate("Google").." DNS Tcp(8.8.4.4)")
+o:value("google2_tcp",""..translate("Google").." DNS Tcp(8.8.8.8)")
+o:value("quad9_tcp","Quad9 DNS Tcp(9.9.9.9)")
+o:value("quad92_tcp","Quad9 DNS Tcp(149.112.112.112)")
+o:value("opendns_tcp","OpenDNS DNS Tcp(208.67.222.222)")
+o:value("opendns2_tcp","OpenDNS DNS Tcp(208.67.220.220)")
+o.default="cloudflare2_doh"
 for _,key in pairs(key_table) do o:depends("nf_server",key) end
 
 o = s:taboption("Main",ListValue,"threads",translate("Multi Threads Option"))
@@ -75,9 +82,9 @@ o = s:taboption("Main",Flag,"gfw_mode",translate("Load GFW List"),
 translate("If the domestic DNS does not hijack foreign domain name to domestic IP, No need to be enabled"))
 o:depends("run_mode","router")
 
-
-o = s:taboption("Main",ListValue,"dports",translate("Proxy Ports"))
-o:value("1",translate("All Ports"))
+o = s:taboption("Main",Value,"dports",translate("Proxy Ports"),
+translate("Custom format is 22,53,80,143,443,465,587,853,993,995,9418"))
+o:value("",translate("All Ports"))
 o:value("2",translate("Only Common Ports"))
 
 s:tab("DNS", translate("DNS"))
@@ -104,29 +111,40 @@ o = s:taboption("DNS",Flag,"dns_pollution",translate("Preventing DNS pollution")
 o.default=0
 
 o = s:taboption("DNS",DynamicList,"dns_remote",translate("Remote Query DNS"))
-o:value("cloudflare_doh","Cloudflare DNS DoH")
-o:value("google_doh",""..translate("Google").." DNS DoH")
-o:value("quad9_doh","Quad9 DNS DoH")
-o:value("cloudflare_tcp","Cloudflare DNS Tcp")
-o:value("google_tcp",""..translate("Google").." DNS Tcp")
-o:value("quad9_tcp","Quad9 DNS Tcp")
-o:value("opendns_tcp","OpenDNS DNS Tcp")
-
+o:value("cloudflare_doh","Cloudflare DNS DoH(1.1.1.1)")
+o:value("cloudflare2_doh","Cloudflare DNS DoH(162.159.36.1)")
+o:value("google_doh",""..translate("Google").." DNS DoH(8.8.4.4)")
+o:value("google2_doh",""..translate("Google").." DNS DoH(8.8.8.8)")
+o:value("quad9_doh","Quad9 DNS DoH(9.9.9.9)")
+o:value("quad92_doh","Quad9 DNS DoH(149.112.112.112)")
+o:value("cloudflare_tcp","Cloudflare DNS Tcp(1.1.1.1)")
+o:value("cloudflare2_tcp","Cloudflare DNS Tcp(1.0.0.1)")
+o:value("google_tcp",""..translate("Google").." DNS Tcp(8.8.4.4)")
+o:value("google2_tcp",""..translate("Google").." DNS Tcp(8.8.8.8)")
+o:value("quad9_tcp","Quad9 DNS Tcp(9.9.9.9)")
+o:value("quad92_tcp","Quad9 DNS Tcp(149.112.112.112)")
+o:value("opendns_tcp","OpenDNS DNS Tcp(208.67.222.222)")
+o:value("opendns2_tcp","OpenDNS DNS Tcp(208.67.220.220)")
 o.default="cloudflare_doh"
 
 o = s:taboption("DNS",DynamicList,"dns_local",translate("Local Query DNS"))
 o:value("isp",translate("ISP DNS"))
-o:value("alidns_doh",""..translate("Ali").." DNS DoH")
-o:value("dnspod_doh",""..translate("Tencent").." DNS DoH")
-o:value("360DNS_doh","360DNS DNS DoH")
-o:value("alidns_tcp",""..translate("Ali").." DNS Tcp")
-o:value("dnspod_tcp",""..translate("Tencent").." DNS Tcp")
-o:value("360dns_tcp","360DNS DNS Tcp")
-o:value("baidu_tcp",""..translate("BaiDu").."DNS Tcp")
-o:value("114dns_tcp","114DNS DNS Tcp")
+o:value("alidns_doh",""..translate("Ali").." DNS DoH(223.5.5.5)")
+o:value("alidns2_doh",""..translate("Ali").." DNS DoH(223.6.6.6)")
+o:value("dnspod_doh",""..translate("Tencent").." DNS DoH(175.24.219.66)")
+o:value("dnspod2_doh",""..translate("Tencent").." DNS DoH(162.14.21.178)")
+o:value("360DNS_doh","360 DNS DoH(101.226.4.6)")
+o:value("alidns_tcp",""..translate("Ali").." DNS Tcp(223.5.5.5)")
+o:value("alidns2_tcp",""..translate("Ali").." DNS Tcp(223.6.6.6)")
+o:value("dnspod_tcp",""..translate("Tencent").." DNS Tcp(175.24.219.66)")
+o:value("360dns_tcp","360 DNS Tcp(101.226.4.6)")
+o:value("360dns2_tcp","360DNS DNS Tcp(123.6.48.18)")
+o:value("baidu_tcp",""..translate("BaiDu").."DNS Tcp(180.76.76.76)")
+o:value("114dns_tcp","114DNS DNS Tcp(114.114.114.114)")
+o:value("114dns2_tcp","114DNS DNS Tcp(114.114.115.115)")
 o.default="alidns_doh"
 
-o = s:taboption("DNS", Value, "bootstrap_dns", translate("Bootstrap DNS servers"), translate("Bootstrap DNS server is used to resolve IP addresses in the upstream DoH/DoT resolution list"))
+o = s:taboption("DNS",Value, "bootstrap_dns", translate("Bootstrap DNS servers"), translate("Bootstrap DNS server is used to resolve IP addresses in the upstream DoH/DoT resolution list"))
 o:value("119.29.29.29", ""..translate("Tencent").." DNS (119.29.29.29)")
 o:value("119.28.28.28", ""..translate("Tencent").." DNS (119.28.28.28)")
 o:value("223.5.5.5", ""..translate("Ali").."(223.5.5.5)")
@@ -138,5 +156,6 @@ o:value("8.8.8.8",""..translate("Google").." DNS(8.8.8.8)")
 o:value("8.8.4.4", ""..translate("Google").." DNS(8.8.4.4)")
 o:value("1.1.1.1", translate("CloudFlare DNS(1.1.1.1)"))
 o.default = "114.114.114.114"
+
 
 return m

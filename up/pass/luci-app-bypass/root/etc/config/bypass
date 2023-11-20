@@ -1,11 +1,9 @@
 
 config global
-	option udp_relay_server 'same'
 	list nf_dns 'google_doh'
 	option threads '0'
 	option run_mode 'router'
 	option gfw_mode '1'
-	option dports '2'
 	option adguardhome '0'
 	option dns_mode '1'
 	option ad_list '0'
@@ -21,6 +19,7 @@ config global
 	option switch_timeout '5'
 	option switch_try_count '3'
 	option monitor_enable '1'
+
 
 config socks5_proxy
 

@@ -16,10 +16,12 @@ log(){
 	echo "$(date +'%Y-%m-%d %H:%M:%S') By-Switch : $*" >> /tmp/log/$NAME.log
 }
 
+
 get_ip(){
+	i=0
 	if ! echo $ip | grep -E "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$">/dev/null;then
 		r=1
-		while ! nslookup $ip>/dev/null 2>&1;do
+		while ! nslookup $ip >/dev/null 2>&1;do
 			[ $r -ge 10 ] && return 1 || let r++
 			sleep 1
 		done
@@ -30,6 +32,7 @@ get_ip(){
 }
 
 f_bin(){
+	w=
 	case $1 in
 		ss)w=$(which ss-local);;
 		ssr)w=$(which ssr-local);;
@@ -38,7 +41,7 @@ f_bin(){
 		trojan)w=$(which trojan-plus);;
 		naiveproxy)w=$(which naive);;
 	esac
-	echo ${w:=0}
+	echo $w
 }
 
 gen_port(){
@@ -65,8 +68,8 @@ gen_config_file(){
 "fast_open":$fast
 }
 EOF
-			plugin=$(uci_get_by_name $1 plugin 0)
-			if [ $plugin != 0 -a -x "$(which $plugin)" ];then
+			plugin=$(uci_get_by_name $1 plugin)
+			if which $plugin >/dev/null 2>&1;then
 				sed -i "s@$ip\",@$ip\",\n\"plugin\":\"$plugin\",\n\"plugin_opts\":\"$(uci_get_by_name $1 plugin_opts)\",@" $J
 			fi;;
 		ssr)
@@ -107,25 +110,26 @@ curl_check(){
 	type=$(uci_get_by_name $1 type)
 	if [ $type = tun ];then
 		curl --interface $(uci_get_by_name $1 iface br-lan) --resolve dns.google:443:8.8.8.8 -so /dev/null --connect-timeout 20 https://dns.google;return $?
+		[ $i = 0 ] || log "Server : $($UCI$1.alias || uci_get_by_name $1 server) cURL check error, Try to switch another server."
+		return $i
 	elif [ $type != socks5 ];then
 		cmd=$(f_bin $type)
-		if [ ! -x $cmd ];then
+		if [ ! $cmd ];then
 			[ $type = ss -o $type = ssr ] && type=$type-local
 			log "Can't find $(echo $type) program, Skip this Node($($UCI$1.alias || uci_get_by_name $1 server))."
 			return 1
 		fi
 	fi
 	gen_port
-	J=/var/etc/$NAME/by-socks5-check-$type.json
+	J=/var/etc/$NAME-check.json
 	gen_config_file $1
 	IP=127.0.0.1
 	param=
 	case $type in
 		ss|ssr)
-			$cmd -c $J  >/dev/null 2>&1 &
-			;;
+			$cmd -c $J >/dev/null 2>&1 &;;
 		v2ray)
-			$S/gen_config $1 tcp 0 $lport $ip > $J
+			$S/genxrayconfig $1 tcp 0 $lport $ip > $J
 			sed -i 's/\\//g' $J
 			$cmd run -config $J  >/dev/null 2>&1 &
 			;;
@@ -154,7 +158,7 @@ curl_check(){
 		[ $r -ge 10 ] && return 1 || let r++
 		sleep 1
 	done
-	curl -x socks5://$IP:$lport $param --resolve dns.google:443:8.8.8.8 -so /dev/null --connect-timeout 20 https://dns.google;i=$?
+	curl -x socks5://$IP:$lport $param --resolve www.google.com:443:216.239.38.120 -so /dev/null --connect-timeout 20 https://www.google.com;i=$?
 	kill -9 $(ps -w | grep $J | grep -v grep | awk '{print$1}') 2>/dev/null
 	rm -f $J
 	[ $i = 0 ] || log "Server : $($UCI$1.alias || uci_get_by_name $1 server) cURL check error, Try to switch another server."

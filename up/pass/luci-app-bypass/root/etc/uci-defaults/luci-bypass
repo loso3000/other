@@ -14,6 +14,7 @@ EOF
 
 chmod +x /etc/init.d/bypass /usr/share/bypass/* >/dev/null 2>&1
 rm -rf /tmp/luci-*
-/etc/init.d/bypass restart
+/etc/init.d/bypass stop
+/etc/init.d/bypass start
 
 exit 0

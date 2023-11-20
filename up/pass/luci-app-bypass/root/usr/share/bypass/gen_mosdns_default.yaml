@@ -1,164 +1,122 @@
 log:
   level: info
+
 plugins:
-    - tag: lazy_cache
-      type: cache
-      args:
-        size: 20000
-        lazy_cache_ttl: 86400
-	
-# Num1: CN domain
-  - tag: domain_cn
-      type: domain_set
-      args:
-        files:
-        - "/var/etc/bypass/domains_cn.txt"
-        - "/etc/bypass/white.list"
-	
-# Num2: no CN domain
-  - tag: domain_not_cn
+  - tag: lazy_cache
+    type: cache
+    args:
+      size: 20000
+      lazy_cache_ttl: 86400
+
+  - tag: geosite_cn
     type: domain_set
     args:
       files:
-        - "/var/etc/bypass/gfw.list"
-	- "/etc/ssrplus/black.list"
-	
-# Num3: CN IPv4
-  - tag: china_v4
-      type: ip_set
-      args:
-        files:
-        - "/var/etc/bypass/china.txt"
-	
-# Num4: CN IPv4
-  - tag: china_v6
+          - "/var/etc/bypass/domains_cn.txt"
+          - "/etc/bypass/white.list"
+
+
+  - tag: geoip_cn
     type: ip_set
     args:
       files:
-        - "/var/etc/bypass/china_v6.txt"
-# Num5
-  - tag: domain_apple
-      type: domain_set
-      args:
-        files:
-        - "/var/etc/bypass/domain_apple.txt"
-# Num6
-  - tag: adlist
+          - "/var/etc/bypass/china.txt"
+          - "/var/etc/bypass/china_v6.txt"
+
+  - tag: geosite_no_cn
     type: domain_set
     args:
       files:
-        AD_LIST
-	
-# Num7
-    - tag: dns_local
-      type: forward
-      args:
-        concurrent: 2
-        upstreams:
+          - "/var/etc/bypass/gfw.list"
+          - "/etc/bypass/black.list"
+  - tag: forward_local
+    type: forward
+    args:
+      concurrent: 2
+      upstreams:
         - addr: local_dns
-# Num8	
-    - tag: dns_remote
-      type: forward
-      args:
-        concurrent: 2
-        upstreams:
+  - tag: forward_remote
+    type: forward
+    args:
+      concurrent: 2
+      upstreams:
         - addr: remote_dns
+  - tag: local_sequence
+    type: sequence
+    args:
+      - exec: $forward_local
 
-# Num9
-    - tag: local_sequence
-      type: sequence
-      args:
-        - exec: $dns_local
+  - tag: remote_sequence_IPv6
+    type: sequence
+    args:
+      - exec: prefer_ipv4
+      - exec: $forward_remote
+  - tag: remote_sequence
+    type: sequence
+    args:
+      - exec: prefer_ipv4
+      - exec: $forward_remote
+      - matches: 
+        - qtype 28 65
+        exec: reject 0
 
-# Num10
-    - tag: remote_sequence_with_IPv6
-      type: sequence
-      args:
-        - exec: $dns_remote
+  - tag: has_resp_sequence
+    type: sequence
+    args:
+      - matches: has_resp
+        exec: accept
 
-# Num11
-    - tag: remote_sequence_disable_IPv6
-      type: sequence
-      args:
-        - exec: prefer_ipv4
-        - exec: $dns_remote
-        - matches: 
-          - qtype 28 65
-          exec: reject 0
+  - tag: query_is_local_ip
+    type: sequence
+    args:
+      - exec: $local_sequence
+      - matches: "!resp_ip $geoip_cn"
+        exec: drop_resp
 
-# Num12
-    - tag: query_is_local_domain
-      type: sequence
-      args:
-        - matches: qname $domain_cn
-          exec: $local_sequence
-    
-# Num13
-    - tag: query_is_proxy_domain
-      type: sequence
-      args:
-        - matches: qname $domain_not_cn
-        - exec: ipset blacklist,inet,24
 
-    # fallback 用本地服务器 sequence
-    # 返回非国内 ip 则 drop_resp
-    # Num14
-    - tag: query_is_local_ip
-      type: sequence
-      args:
-        - exec: $local_sequence
-        - matches: "!resp_ip $china_v4"
-          exec: drop_resp
+  - tag: query_is_remote
+    type: sequence
+    args:
+      - exec: $IPV6MODE
 
-    # Num15
-    # fallback 用远程服务器 sequence
-    - tag: query_is_remote_ip
-      type: sequence
-      args:
-        - exec: $remote_sequence_disable_IPv6
-        - exec: ipset blacklist,inet,24
+  - tag: fallback
+    type: fallback
+    args:
+      primary: POLLUTION
+      secondary: query_is_remote
+      threshold: 500
+      always_standby: true
 
-    # fallback 用远程服务器 sequence
-    # query_is_local_ip to query_is_remote_ip
-    # Num16
-    - tag: fallback
-      type: fallback
-      args:
-        # DNS Leak solution
-        primary: query_is_local_ip
-        secondary: query_is_remote_ip
-        threshold: 600
-        always_standby: true
+  - tag: query_is_local_domain
+    type: sequence
+    args:
+      - matches: qname $geosite_cn
+        exec: $local_sequence
 
-    # 有响应终止返回
-    # Num17
-    - tag: has_resp_sequence
-      type: sequence
-      args:
-        - matches: has_resp
-          exec: accept
+  - tag: query_is_no_local_domain
+    type: sequence
+    args:
+      - matches: qname $geosite_no_cn
+        exec: $remote_sequence
 
-    # Num18
-    - tag: main_sequence
-      type: sequence
-      args:
-        - exec: $lazy_cache
-        - exec: $query_is_local_domain
-        - exec: jump has_resp_sequence
-        - exec: $query_is_proxy_domain
-        - exec: jump has_resp_sequence
-        - exec: $fallback
+  - tag: main_sequence
+    type: sequence
+    args:
+      - exec: $lazy_cache
+      - exec: $query_is_local_domain
+      - exec: jump has_resp_sequence
+      - exec: $query_is_no_local_domain
+      - exec: jump has_resp_sequence
+      - exec: $fallback
 
-    # Num19
-    - tag: udp_server
-      type: udp_server
-      args:
-        entry: main_sequence
-      listen: ":listen_port"
+  - tag: udp_server
+    type: udp_server
+    args:
+      entry: main_sequence
+      listen: ":DNS_PORT"
 
-    # Num20
-    - tag: tcp_server
-      type: tcp_server
-      args:
-        entry: main_sequence
-      listen: ":listen_port"
+  - tag: tcp_server
+    type: tcp_server
+    args:
+      entry: main_sequence
+      listen: ":DNS_PORT"

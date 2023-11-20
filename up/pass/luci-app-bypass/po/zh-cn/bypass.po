@@ -37,7 +37,6 @@ msgstr "Netflix服务器"
 msgid "Netflix Query DNS"
 msgstr "Netflix查询DNS"
 
-
 msgid "Multi Threads Option"
 msgstr "多线程并发转发"
 
@@ -113,6 +112,9 @@ msgstr "所有端口（默认）"
 msgid "Only Common Ports"
 msgstr "仅常用端口（不走P2P流量到代理）"
 
+msgid "Custom format is 22,53,80,143,443,465,587,853,993,995,9418"
+msgstr "自定义端口格式为 22,53,80,143,443,465,587,853,993,995,9418"
+
 msgid "Remote Query DNS"
 msgstr "远程查询DNS"
 
@@ -124,7 +126,6 @@ msgstr "Bootstrap DNS服务器"
 
 msgid "Bootstrap DNS server is used to resolve IP addresses in the upstream DoH/DoT resolution list"
 msgstr "Bootstrap DNS服务器用于解析上游DoH/DoT解析列表中的IP地址"
-
 
 msgid "Main"
 msgstr "主要"
@@ -141,10 +142,8 @@ msgstr "本地查询DNS"
 msgid "Use SmartDNS query"
 msgstr "使用SmartDNS查询"
 
-
 msgid "Use MOSDNS query"
 msgstr "使用MOSDNS查询"
-
 
 msgid "Ali"
 msgstr "阿里"
@@ -183,8 +182,7 @@ msgid "IPV6 parsing"
 msgstr "IPV6解析"
 
 msgid "Use DNS to return IPv6 records"
-msgstr "使用DNS返回IPv6记录"
-
+msgstr "使DNS返回IPv6记录"
 
 msgid "Severs Nodes"
 msgstr "节点列表"
@@ -290,7 +288,6 @@ msgstr "使用"
 
 msgid "Auto Switch"
 msgstr "故障转移"
-
 
 msgid "Edit Server"
 msgstr "编辑服务器配置"

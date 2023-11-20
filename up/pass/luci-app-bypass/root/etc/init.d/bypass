@@ -12,8 +12,6 @@ LOC=/tmp/lock/$NAME.lock
 SDNS=/tmp/etc/smartdns
 DNS_T=$SDNS/smartdns.conf
 DNS_T_TMP="${DNS_T}.tmp"
-
-
 CON_T=$SDNS/rules.conf
 CON_AD=$T_FILE/ad_smartdns.txt
 PID=/tmp/run/smartdns.pid
@@ -22,6 +20,8 @@ LOG=/tmp/log/$NAME.log
 MDNS=/tmp/etc/mosdns
 MDNS_D=/usr/share/bypass/gen_mosdns_default.yaml
 MDNS_T=$MDNS/mosdns-bypass.yaml
+
+APP=/usr/share/bypass/app
 
 ipt=$(command -v iptables-legacy || command -v iptables)
 ip6t=$(command -v ip6tables-legacy || command -v ip6tables)
@@ -45,7 +45,7 @@ switch_server=$1
 server_count=0
 PS="/bin/busybox ps"
 STATUS=Y
-tmp_tcp_local_port="306"   #tcp socks temporary port
+
 uci_get_by_name() {
 	local ret=$(uci get $NAME.$1.$2 2>/dev/null)
 	echo ${ret:=$3}
@@ -88,6 +88,7 @@ clean_log() {
 	}
 }
 f_bin(){
+	ret=
 	case $1 in
 	ss) ret=$(which ss-redir);;
 	ss-local) ret=$(which ss-local);;
@@ -101,7 +102,7 @@ f_bin(){
 	naiveproxy) ret=$(which naive);;
 	socks5|tun) ret=$(which redsocks2);;
 	esac
-	echo ${ret:=0}
+	echo $ret
 }
 
 v2txray() {
@@ -188,8 +189,8 @@ gen_config_file(){
 			"fast_open":$fast
 			}
 		EOF
-		plugin=$(uci_get_by_name $1 plugin 0)
-		if [ $plugin != 0 -a -x "$(which $plugin)" ];then
+		plugin=$(uci_get_by_name $1 plugin)
+		if which $plugin >/dev/null 2>&1;then
 			sed -i "s@$hostip\",@$hostip\",\n\"plugin\":\"$plugin\",\n\"plugin_opts\":\"$(uci_get_by_name $1 plugin_opts)\",@" $config_file
 		fi
 		;;
@@ -217,14 +218,14 @@ gen_config_file(){
 			{
 			"listen":"$PROTO://0.0.0.0:$lport",
 			"proxy":"https://$(uci_get_by_name $1 username):$pass@$(uci_get_by_name $1 server):$sport",
-			"concurrency":"$threads"
+			"concurrency":"${3:-1}"
 			}
 		EOF
 		;;
 	v2ray)
 		[ $rtype = udp ] && smode=udp || smode=tcp
 		[ $rtype = socks ] && lport=0
-		lua $BIN_DIR/gen_config $1 $smode $lport $ssport $serv_ip >$config_file
+		$BIN_DIR/genxrayconfig $1 $smode $lport $ssport $serv_ip >$config_file
 		sed -i 's/\\//g' $config_file
 		;;
  
@@ -243,13 +244,34 @@ gen_config_file(){
 	esac
 }
 
-start_dns(){
 
-        [ "x$dns_mode" = "x1" ] && $(which smartdns) -c $DNS_T || $(which mosdns) -c $MDNS_T 
-	if [ $run_mode = router ];then
-		service_start $(which chinadns-ng) -l 5337 -c '127.0.0.1#5336' -t '127.0.0.1#5335' -4 china_v4  -p 3 -6 china_v6 -f -n $([ $gfw_mode = 1 ] && echo -g $VAR/gfw.list)
-		log "ChinaDNS : Start ChinaDNS-NG success!"
-	fi
+start_dns()
+{
+        if [[ "x$dns_mode" = "x1" ]] ;then
+	      service_start $(which smartdns) -c $DNS_T 2>/dev/null
+	      case $run_mode in
+			gfw)  
+			   #service_start $(which chinadns-ng) -l 5337 -c '127.0.0.1#5336' -t '127.0.0.1#5335' -4 china_v4  -p 3 -6 china_v6 -f -n -m $VAR/gfw.list -M $([ $gfw_mode = 1 ] && echo -g $VAR/gfw.list) 
+			   #log "ChinaDNS : Start ChinaDNS-NG success!"
+			;;
+			router)  
+			   service_start $(which chinadns-ng) -l 5337 -c '127.0.0.1#5336' -t '127.0.0.1#5335' -4 china_v4  -p 3 -6 china_v6 -f -n $([ $gfw_mode = 1 ] && echo -g $VAR/gfw.list) 
+			   log "ChinaDNS : Start ChinaDNS-NG success!"	
+			;;
+		esac
+	 else
+	      service_start $(which mosdns) start -c $MDNS_T 2>/dev/null
+		case $run_mode in
+			gfw)  
+			   #service_start $(which chinadns-ng) -l 5337 -c "${bootstrap_dns}#53" -t '127.0.0.1#5335' -4 china_v4  -p 3 -6 china_v6 -f -n -m $VAR/gfw.list -M $([ $gfw_mode = 1 ] && echo -g $VAR/gfw.list) 
+			   #log "ChinaDNS : Start ChinaDNS-NG success!"
+			;;
+			router)  
+			   service_start $(which chinadns-ng) -l 5337 -c "127.0.0.1#5335" -t '127.0.0.1#5335' -4 china_v4  -p 3 -6 china_v6 -f -n $([ $gfw_mode = 1 ] && echo -g $VAR/gfw.list) 
+		           log "ChinaDNS : Start ChinaDNS-NG success!"
+			;;
+		esac
+	 fi
 	if [[ "$(uci -q get dhcp.@dnsmasq[0].cachesize)" == "0" && $adguardhome == 0 ]]; then
 		uci -q set dhcp.@dnsmasq[0].cachesize='1500'
 		uci commit dhcp
@@ -257,13 +279,12 @@ start_dns(){
 }
 
 
-
 check_net(){
 	if ! curl -so /dev/null -m 3 www.baidu.com;then
 		log "Rules     :Wait for network to connect..."
 		/etc/init.d/dnsmasq restart
 		$BIN_DIR/checknetwork check
-		exit 0
+		exit 1
 	fi
 }
 
@@ -283,7 +304,7 @@ rules(){
 	if [ ! $server ];then
 		get_soip 1;return 1
 	fi
-	if ps -w | grep by-retcp | grep -v grep >/dev/null;then
+	if ps -w | grep by-retcp | grep -qv grep;then
 		log "Rules     :Bypass has Started.";return 1
 	fi
 	cat $LOG 2>/dev/null | sed -n '$p' | grep -q 'Check network status.\|Download IP/GFW files.' || gen_log
@@ -302,10 +323,11 @@ rules(){
 	}
 	log "Rules      : Check IP/GFW files success!"
 	kcp_enable=$(uci_get_by_name $GLOBAL_SERVER kcp_enable 0)
+	[ $kcp_enable = 1 ] && kcp_server=$server
 	UDP_RELAY_SERVER=$(uci_get_by_type global udp_relay_server)
 	[ "$UDP_RELAY_SERVER" = same ] && UDP_RELAY_SERVER=$GLOBAL_SERVER
 	[ $(uci_get_by_name $UDP_RELAY_SERVER server) ] || UDP_RELAY_SERVER=
-	if [ "$(uci_get_by_name $UDP_RELAY_SERVER kcp_enable 0)" = 1 ];then
+	if [ "$(uci_get_by_name $UDP_RELAY_SERVER kcp_enable)" = 1 ];then
 		log "UDP Node: Can't use KCPTUN to start as UDP Relay Server!"
 		UDP_RELAY_SERVER=
 	fi
@@ -320,7 +342,7 @@ rules(){
 		UDP=1
 		udp_server=$server
 		udp_local_port=$local_port
-	elif [ -n "$UDP_RELAY_SERVER" ];then
+	elif [ $UDP_RELAY_SERVER ];then
 		udp_server=$(host_ip $UDP_RELAY_SERVER)
 		udp_local_port=$(uci_get_by_name $UDP_RELAY_SERVER local_port 1234)
 		UDP=1
@@ -359,7 +381,10 @@ rules(){
 
 	dports=$(uci_get_by_type global dports 1)
 	if [ $dports = 2 ];then
-		proxyport="-m multiport --dports 22,53,587,465,995,993,143,80,443,853,9418"
+		proxyport="-m multiport --dports 22,53,80,143,443,465,587,853,993,995,9418"
+	elif [ $dports != 1 ];then
+		dports=$(echo $dports | sed 's/，/,/g')
+		proxyport="-m multiport --dports $dports"
 	fi
 
 	r=1
@@ -382,24 +407,24 @@ start_retcp(){
 		server_port=$(uci_get_by_name $GLOBAL_SERVER server_port)
 		password=$(uci_get_by_name $GLOBAL_SERVER kcp_password)
 		kcp_param=$(uci_get_by_name $GLOBAL_SERVER kcp_param)
-		[ -n "$password" ] && password="--key "${password}
+		[ "$password" ] && password="--key "${password}
 		service_start $cmd -r $kcp_server:$kcp_port -l :$server_port $password $kcp_param
 	fi
 	threads=$(uci_get_by_type global threads 0)
 	[ $threads = 0 ] && threads=$(cat /proc/cpuinfo | grep 'processor' | wc -l)
 	cmd=$(f_bin $ttype)
 	[ ! $cmd ] && log "Main Node: Can't find $(echo $ttype | tr a-z A-Z) program, start failed!"  && return 1
+
 	redir_tcp=1
 	case $ttype in
 	ss|ssr)
 		gen_config_file $GLOBAL_SERVER $rtype
 		redir_tcp=$threads
 		for i in $(seq 1 $threads);do
-			$cmd -c $config_file >$log_file 2>&1 &
+			$cmd -c $config_file >/dev/null 2>&1 &
 		done
 		[ $ttype = ss ] && name=Shadowsocks || name=ShadowsocksR
-		log "Main Node: $name $threads Threads Started!"
-		;;
+		log "Main Node: $name $threads Threads Started!";;
 	v2ray)
 		if [ $SO_SERVER = $GLOBAL_SERVER ];then
 			port=$(uci_get_by_type socks5_proxy local_port 1080)
@@ -408,7 +433,7 @@ start_retcp(){
 			port=0
 		fi
 		gen_config_file $GLOBAL_SERVER $rtype $port $server
-		$cmd run -c $config_file >$log_file 2>&1 &
+		$cmd run -c $config_file >/dev/null 2>&1 &
 		log "Main Node: $($cmd -version | head -1 | awk '{print$1,$2}') Started!"
 		if [ "$socks5_start" = 1 ];then
 			log "Socks5 Node: $($cmd -version | head -1 | awk '{print$1,$2}') $ttype Started!"
@@ -422,18 +447,18 @@ start_retcp(){
 			port=0
 		fi
 		gen_config_file $GLOBAL_SERVER $rtype $port $server
-		$cmd -c $config_file >$log_file 2>&1 &
+
+		$cmd -c $config_file >/dev/null 2>&1 &
 
 		log "Main Node: $($cmd -version | head -1 | awk '{print$1,$2}') Started!"
 		if [ "$socks5_start" = 1 ];then
 			log "Socks5 Node: $($cmd -version | head -1 | awk '{print$1,$2}') $ttype Started!"
-		fi
-		;;
+		fi;;
 	trojan)
 		gen_config_file $GLOBAL_SERVER $rtype "" $server
 		redir_tcp=$threads
 		for i in $(seq 1 $threads);do
-			$cmd --config $config_file >$log_file 2>&1 &
+			$cmd --config $config_file >/dev/null 2>&1 &
 		done
 		name=Trojan-Plus
 		ver="$($cmd --version 2>&1 | head -1 | awk '{print$3}')"
@@ -441,7 +466,7 @@ start_retcp(){
 		;;
 	naiveproxy)
 		gen_config_file $GLOBAL_SERVER $rtype
-		$cmd --config $config_file >$log_file 2>&1 &
+		$cmd --config $config_file >/dev/null 2>&1 &
 		log "Main Node: $($cmd --version | head -1) Threads Started!"
 		;;
 	socks5)
@@ -449,7 +474,7 @@ start_retcp(){
 		$BIN_DIR/genred2config $VAR/redsocks-by-retcp.json socks5 tcp $local_port $server $(uci_get_by_name $GLOBAL_SERVER server_port) \
 		$(uci_get_by_name $GLOBAL_SERVER auth_enable 0) $(uci_get_by_name $GLOBAL_SERVER username) $(uci_get_by_name $GLOBAL_SERVER password)
 		for i in $(seq 1 $threads);do
-			$cmd -c $VAR/redsocks-by-retcp.json >$log_file 2>&1
+			$cmd -c $VAR/redsocks-by-retcp.json >/dev/null 2>&1
 		done
 		log "Main Node: Socks5 $threads Threads Started!"
 		;;
@@ -457,7 +482,7 @@ start_retcp(){
 		redir_tcp=$threads
 		$BIN_DIR/genred2config $VAR/redsocks-by-retcp.json vpn $(uci_get_by_name $GLOBAL_SERVER iface br-lan) $local_port
 		for i in $(seq 1 $threads);do
-			$cmd -c $VAR/redsocks-by-retcp.json >$log_file 2>&1
+			$cmd -c $VAR/redsocks-by-retcp.json >/dev/null 2>&1
 		done
 		log "Main Node: Network Tunnel $threads Threads Started!"
 		;;
@@ -468,26 +493,26 @@ start_retcp(){
 start_reudp(){
 	rtype=udp
 	cmd=$(f_bin $utype)
-	if [ ! -x $cmd ];then
-		log "UDP Node: Can't find $(echo $utype | tr a-z A-Z) program, start failed!"
-		return 1
-	fi
+	[ ! $cmd ] && log "UDP Node: Can't find $(echo $utype | tr a-z A-Z) program, start failed!" && return 1
+
 	redir_udp=1
 	case $utype in
 	ss|ssr)
 		gen_config_file $UDP_RELAY_SERVER $rtype
-		$cmd -c $config_file -U >$log_file 2>&1 &
+		$cmd -c $config_file -U >/dev/null 2>&1 &
 		[ $utype = ss ] && name=Shadowsocks || name=ShadowsocksR
 		log "UDP Node: $name  $utype Started!"
 		;;
 	v2ray)
+	
+		$BIN_DIR/genxrayconfig $UDP_RELAY_SERVER $rtype $local_port $port $server >$config_file
 		gen_config_file $UDP_RELAY_SERVER $rtype 0 $udp_server
-		$cmd  run -c $config_file >$log_file 2>&1 &
+		$cmd  run -c $config_file >/dev/null 2>&1 &
 		log "UDP Node: $($cmd -version | head -1 | awk '{print$1,$2}') $utype Started!"
 		;;
 	trojan)
 		gen_config_file $UDP_RELAY_SERVER $rtype "" $udp_server
-		$cmd --config $config_file >$log_file 2>&1 &
+		$cmd --config $config_file >/dev/null 2>&1 &
 		name=Trojan-Plus
 		ver="$($cmd --version 2>&1 | head -1 | awk '{print$3}')"
 		log "UDP Node: $name (Ver $ver) $utype Started!"
@@ -501,13 +526,13 @@ start_reudp(){
 	hysteria)
 	
 		gen_config_file $UDP_RELAY_SERVER $rtype 0 $udp_server
-		$cmd -c $config_file >$log_file 2>&1 &
+		$cmd -c $config_file >/dev/null 2>&1
 		log "UDP Node: $($cmd -version | head -1 | awk '{print$1,$2}') $utype Started!"
 		;;
 	socks5)
 		$BIN_DIR/genred2config $VAR/redsocks-by-reudp.json socks5 udp $udp_local_port $udp_server \
 		$(uci_get_by_name $UDP_RELAY_SERVER server_port) $(uci_get_by_name $UDP_RELAY_SERVER auth_enable 0) $(uci_get_by_name $UDP_RELAY_SERVER username) $(uci_get_by_name $UDP_RELAY_SERVER password)
-		$cmd --config $VAR/redsocks-by-reudp.json >$log_file 2>&1
+		$cmd --config $VAR/redsocks-by-reudp.json >/dev/null 2>&1
 		log "UDP Node: Socks5 Started!"
 		;;
 	tun)
@@ -521,31 +546,28 @@ start_reudp(){
 start_renf(){
 	rtype=nf
 	cmd=$(f_bin $ntype)
-	if [ ! -x $cmd ];then
-		log "NF Shunt : Can't find $(echo $ntype | tr a-z A-Z) program, start failed!"
-		return 1
-	fi
+	[ ! $cmd ] && log "NF Shunt : Can't find $(echo $ntype | tr a-z A-Z) program, start failed!" && return 1
 	redir_nf=1
 	case $ntype in
 	ss|ssr)
 		gen_config_file $NF_SERVER $rtype
-		$cmd -c $config_file >$log_file 2>&1 &
+		$cmd -c $config_file >/dev/null 2>&1 &
 		[ $ntype = ss ] && name=Shadowsocks || name=ShadowsocksR
 		log "NF  Shunt : $name $ntype Started!"
 		;;
 	v2ray)
 		gen_config_file $NF_SERVER $rtype 0 $nf_ip
-		$cmd run -c $config_file >$log_file 2>&1 &
+		$cmd run -c $config_file >/dev/null 2>&1 &
 		log "NF  Shunt : $($cmd -version | head -1 | awk '{print$1,$2}') $ntype Started!"
 		;;
 	hysteria)
 		gen_config_file $NF_SERVER $rtype 0 $nf_ip
-		$cmd -c $config_file >$log_file 2>&1 &
+		$cmd -c $config_file >/dev/null 2>&1 &
 		log "NF  Shunt : $($cmd -version | head -1 | awk '{print$1,$2}') $ntype Started!"
 		;;
 	trojan)
 		gen_config_file $NF_SERVER $rtype "" $nf_ip
-		$cmd --config $config_file >$log_file 2>&1 &
+		$cmd --config $config_file >/dev/null 2>&1 &
 		[ $ntype = trojan ] && {
 			name=Trojan-Plus
 			ver="$($cmd --version 2>&1 | head -1 | awk '{print$3}')"
@@ -554,18 +576,18 @@ start_renf(){
 		;;
 	naiveproxy)
 		gen_config_file $NF_SERVER $rtype
-		$cmd --config $config_file >$log_file 2>&1 &
+		$cmd --config $config_file >/dev/null 2>&1 &
 		log "NF  Shunt : $($cmd --version | head -1) $ntype Started!"
 		;;
 	socks5)
 		$BIN_DIR/genred2config $VAR/redsocks-by-nf.json socks5 tcp $nf_local_port $nf_ip $(uci_get_by_name $NF_SERVER server_port) \
 		$(uci_get_by_name $NF_SERVER auth_enable 0) $(uci_get_by_name $NF_SERVER username) $(uci_get_by_name $NF_SERVER password)
-		$cmd -c $VAR/redsocks-by-nf.json >>$log_file 2>&1
+		$cmd -c $VAR/redsocks-by-nf.json >/dev/null 2>&1
 		log "NF  Shunt : $ntype Started!"
 		;;
 	tun)
 		$BIN_DIR/genred2config $VAR/redsocks-by-nf.json vpn $(uci_get_by_name $NF_SERVER iface "br-lan") $nf_local_port
-		$cmd -c $VAR/redsocks-by-nf.json >$log_file 2>&1
+		$cmd -c $VAR/redsocks-by-nf.json >/dev/null 2>&1
 		log "NF  Shunt : Network Tunnel REDIRECT $ntype Started!"
 		;;
 	esac
@@ -586,23 +608,23 @@ start_local(){
 	case $type in
 	ss|ssr)
 		gen_config_file $SO_SERVER $rtype
-		$cmd -c $config_file -u >$log_file 2>&1 &
+		$cmd -c $config_file -u >/dev/null 2>&1 &
 		[ $type = ss ] && name=Shadowsocks || name=ShadowsocksR
 		log "Socks5 Node: $name $type Started!"
 		;;
 	v2ray)
 		gen_config_file $SO_SERVER $rtype $socks5_port $socks5_ip
-		$cmd run -c $config_file >$log_file 2>&1 &
+		$cmd run -c $config_file >/dev/null 2>&1 &
 		log "Socks5 Node: $($cmd -version | head -1 | awk '{print$1,$2}') $type Started!"
 		;;
 	hysteria)
 		gen_config_file $SO_SERVER $rtype $socks5_port $socks5_ip
-		$cmd -c $config_file >$log_file 2>&1 &
+		$cmd -c $config_file >/dev/null 2>&1 &
 		log "Socks5 Node: $($cmd -version | head -1 | awk '{print$1,$2}') $type Started!"
 		;;
 	trojan)
 		gen_config_file $SO_SERVER $rtype "" $socks5_ip
-		$cmd --config $config_file >$log_file 2>&1 &
+		$cmd --config $config_file >/dev/null 2>&1 &
 		[ $type = trojan ] && {
 			name=Trojan-Plus
 			ver="$($cmd --version 2>&1 | head -1 | awk '{print$3}')"
@@ -611,7 +633,7 @@ start_local(){
 		;;
 	naiveproxy)
 		gen_config_file $SO_SERVER $rtype
-		$cmd --config $config_file >$log_file 2>&1 &
+		$cmd --config $config_file >/dev/null 2>&1 &
 		log "Socks5 Node: $($cmd --version | head -1) $type Started!"
 		;;
 	esac
@@ -625,19 +647,25 @@ smartdns_append()
 	echo "$*" >> $DNS_T_TMP
 }
 
-
 get_dns(){  #$1:name/dnslnk  $2:dns/dnsip
     case $1 in
-		cloudflare_doh)dnslnk="https://162.159.36.1/dns-query,https://162.159.46.1/dns-query";dnsip="162.159.36.1 162.159.46.1 1.1.1.1 1.0.0.1";;
-		google_doh)dnslnk="https://8.8.4.4/dns-query,https://8.8.8.8/dns-query";dnsip="8.8.4.4 8.8.8.8";;
-		quad9_doh)dnslnk="https://9.9.9.9/dns-query,https://149.112.112.112/dns-query";dnsip="9.9.9.9 149.112.112.112";;
-		opendns_doh)dnslnk="https://146.112.41.2/dns-query";dnsip="208.67.222.222 208.67.220.220";;
-		quad101tw_doh)dnslnk="https://101.101.101.101/dns-query";dnsip="101.101.101.101 101.102.103.104";;
-		tiardns_doh)dnslnk="https://172.67.173.59/dns-query,https://174.138.29.175/dns-query";dnsip="174.138.21.128 172.67.173.59 174.138.29.175" ;;
-		tiardnsjp_doh)dnslnk="https://104.21.30.162/dns-query,https://172.104.93.80/dns-query";dnsip="104.21.30.162 172.104.93.80";;
-		blahdnsgermany_doh)dnslnk="https://78.46.244.143/dns-query,https://doh-de.blahdns.com/dns-query";dnsip="78.46.244.143 159.69.198.101";;
-		ahadnsny_doh)dnslnk="https://185.213.26.187/dns-query,https://doh.ny.ahadns.net/dns-query";dnsip="185.213.26.187";;
-		cloudflare_dot)dnslnk="1.0.0.1:853,1.1.1.1:853,1dot1dot1dot1.cloudflare-dns.com:853";dnsip="1.1.1.1 1.0.0.1";;
+		cloudflare_doh)dnslnk="https://1.1.1.1/dns-query";dnsip="1.1.1.1";;
+		cloudflare2_doh)dnslnk="https://162.159.36.1/dns-query";dnsip="162.159.36.1";;
+		google_doh)dnslnk="https://8.8.4.4/dns-query";dnsip="8.8.4.4";;
+		google2_doh)dnslnk="https://8.8.8.8/dns-query";dnsip="8.8.8.8";;
+		quad9_doh)dnslnk="https://9.9.9.9/dns-query";dnsip="9.9.9.9";;
+		quad92_doh)dnslnk="https://149.112.112.112/dns-query";dnsip="149.112.112.112";;
+		opendns_doh)dnslnk="https://146.112.41.2/dns-query";dnsip="208.67.222.222";;
+		quad101tw_doh)dnslnk="https://101.101.101.101/dns-query";dnsip="101.101.101.101";;
+		tiardns_doh)dnslnk="https://172.67.173.59/dns-query";dnsip="172.67.173.59" ;;
+		tiardns2_doh)dnslnk="https://174.138.29.175/dns-query";dnsip="174.138.29.175" ;;
+		tiardnsjp_doh)dnslnk="https://104.21.30.162/dns-query";dnsip="104.21.30.162";;
+		tiardnsjp2_doh)dnslnk="https://172.104.93.80/dns-query";dnsip="172.104.93.80";;
+		blahdnsgermany_doh)dnslnk="https://78.46.244.143/dns-query";dnsip="78.46.244.143";;
+		blahdnsgermany2_doh)dnslnk="https://doh-de.blahdns.com/dns-query";dnsip="159.69.198.101";;
+		ahadnsny_doh)dnslnk="https://185.213.26.187/dns-query";dnsip="185.213.26.187";;
+		cloudflare_dot)dnslnk="tls://1.1.1.1:853";dnsip="1.1.1.1";;
+		cloudflare2_dot)dnslnk="tls://1.0.0.1:853";dnsip="1.0.0.1";;
 		google_dot)dnslnk="8.8.4.4:853,8.8.8.8:853,dns.google:853";dnsip="8.8.4.4 8.8.8.8";;
 		quad9_dot)dnslnk="9.9.9.9:853,149.112.112.112:853,dns.quad9.net:853";dnsip="9.9.9.9 149.112.112.112";;
 		quad101tw_dot)dnslnk="101.101.101.101:853,dns.twnic.tw:853";dnsip="101.101.101.101 101.102.103.104";;
@@ -645,20 +673,31 @@ get_dns(){  #$1:name/dnslnk  $2:dns/dnsip
 		tiardnsjp_dot)dnslnk="172.104.93.80:853,jp.tiar.app:853";dnsip="172.104.93.80 104.21.30.162";;
 		blahdnsgermany_dot)dnslnk="78.46.244.143:853,dot-de.blahdns.com:853";dnsip="78.46.244.143 159.69.198.101";;
 		ahadnsny_dot)dnslnk="185.213.26.187:853,dot.ny.ahadns.net:853";dnsip="185.213.26.187";;
-		cloudflare_tcp)dnslnk="1.1.1.1,1.0.0.1";dnsip="1.1.1.1 1.0.0.1";;
-		google_tcp)dnslnk="8.8.8.8,8.8.4.4";dnsip="8.8.8.8 8.8.4.4";;
-		quad9_tcp)dnslnk="9.9.9.9,149.112.112.112";dnsip="9.9.9.9 149.112.112.112";;
-		opendns_tcp)dnslnk="208.67.222.222,208.67.220.220";dnsip="208.67.222.222 208.67.220.220";;
-		alidns_doh)dnslnk="https://223.5.5.5/dns-query,https://223.6.6.6/dns-query";dnsip="223.5.5.5 223.6.6.6";;
-		dnspod_doh)dnslnk="https://175.24.219.66/dns-query,https://162.14.21.178/dns-query";dnsip="119.29.29.29 175.24.219.66 119.28.28.28 162.14.21.178";;
-		360dns_doh)dnslnk="https://101.198.191.4/dns-query,https://doh.360.cn/dns-query";dnsip="101.226.4.6 101.198.191.4";;	
+		cloudflare_tcp)dnslnk="1.1.1.1";dnsip="1.1.1.1";;
+		cloudflare2_tcp)dnslnk="1.0.0.1";dnsip="1.0.0.1";;
+		google_tcp)dnslnk="8.8.4.4";dnsip="8.8.4.4";;
+		google2_tcp)dnslnk="8.8.8.8";dnsip="8.8.8.8";;
+		quad9_tcp)dnslnk="9.9.9.9";dnsip="9.9.9.9";;
+		quad92_tcp)dnslnk="149.112.112.112";dnsip="149.112.112.112";;
+		opendns_tcp)dnslnk="208.67.222.222";dnsip="208.67.222.222";;
+		opendns2_tcp)dnslnk="208.67.220.220";dnsip="208.67.220.220";;
+		alidns_doh)dnslnk="https://223.5.5.5/dns-query";dnsip="223.5.5.5";;
+		alidns2_doh)dnslnk="https://223.6.6.6/dns-query";dnsip="223.6.6.6";;
+		dnspod_doh)dnslnk="https://175.24.219.66/dns-query";dnsip="175.24.219.66";;
+		dnspod2_doh)dnslnk="https://162.14.21.178/dns-query";dnsip="162.14.21.178";;
+		360dns_doh)dnslnk="https://101.198.191.4/dns-query";dnsip="101.226.4.6";;
+		360dns2_doh)dnslnk="https://doh.360.cn/dns-query";dnsip="101.198.191.4";;	
 		alidns_dot)dnslnk="223.5.5.5:853,223.6.6.6:853,dns.alidns.com:853";dnsip="223.5.5.5 223.6.6.6";;
 		dnspod_dot)dnslnk="1.12.12.12:853,dot.pub:853";dnsip="119.29.29.29 1.12.12.12";;
 		360dns_dot)dnslnk="23.6.48.18:853,180.163.249.75:853,dot.360.cn:853";dnsip="101.226.4.6 123.6.48.18";;
-		alidns_tcp)dnslnk="223.5.5.5 223.6.6.6,2400:3200::1 2400:3200:baba::1";dnsip="223.5.5.5 223.6.6.6";;
-		dnspod_tcp)dnslnk="119.29.29.29,119.28.28.28";dnsip="119.29.29.29 119.28.28.28";;
-		360dns_tcp)dnslnk="101.226.4.6,123.6.48.18";dnsip="101.226.4.6 123.6.48.18";;
-		114dns_tcp)dnslnk="114.114.114.114,114.114.115.115";dnsip="114.114.114.114,114.114.115.115";;
+		alidns_tcp)dnslnk="223.5.5.5";dnsip="223.5.5.5";;
+		dnspod_tcp)dnslnk="119.29.29.29";dnsip="119.29.29.29";;
+		360dns_tcp)dnslnk="101.226.4.6";dnsip="101.226.4.6";;
+		alidns2_tcp)dnslnk="223.6.6.6";dnsip="223.6.6.6";;
+		dnspod2_tcp)dnslnk="119.28.28.28";dnsip="119.28.28.28";;
+		360dns2_tcp)dnslnk="123.6.48.18";dnsip="123.6.48.18";;
+		114dns_tcp)dnslnk="114.114.114.114";dnsip="114.114.114.114";;
+		114dns2_tcp)dnslnk="114.114.115.115";dnsip="114.114.115.115";;
 		baidu_tcp)dnslnk="180.76.76.76";dnsip="180.76.76.76";;
 		isp)
 			#isp_dns=$(ifstatus wan | jsonfilter -e '@["dns-server"]' | sed 's/\[//g; s/\]//g' | sed 's/"//g' | sed 's/ //g' | sed 's/,/ /g')
@@ -676,7 +715,6 @@ get_dns(){  #$1:name/dnslnk  $2:dns/dnsip
 			fi
 			dnslnk=$dnsip;;
 		esac
-		dnsip=$(echo $dnsip | sed -e 's/，/,/g' -e 's/。/./g' -e 's/：/:/g' -e 's/,/\n/g')
 		if [ "$2" == "dns" ];then 
 			   echo $dnsip
 		else
@@ -685,10 +723,10 @@ get_dns(){  #$1:name/dnslnk  $2:dns/dnsip
 }
 
 gen_smartdns(){ 
-
 	smartdns_flag=1
 	killall -q -9 smartdns
 	killall -q -9 mosdns
+	
 	mkdir -p /tmp/run /tmp/dnsmasq.d $SDNS $DNS_DIR
 	cat >$DNS_T_TMP <<-EOF
 		speed-check-mode tcp:443,tcp:80,ping
@@ -762,19 +800,16 @@ gen_smartdns(){
 			*) ipset del ss_spec_wan_ac $i 2>/dev/null || ipset add ss_spec_wan_ac $i nomatch 2>/dev/null;;
 		esac
 	done
-
 	 remote_=`echo $remote | grep -o '_.*' `
 	 case $remote_ in
 		_doh) 
 		        echo  $dnsname | sed 's/,/\n/g' | sed -e 's/^/server-https /g' -e 's/$/ -group a  -exclude-default-group/g' >> $DNS_T_TMP
 			for i in $dns;do echo "server-tcp $i -group b -exclude-default-group" >>$DNS_T_TMP;done
 		        dnsname_dom=$(echo $dnsname | sed 's/,/\n/g' | awk '-F[/:]' '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$" | grep -Ev "\[[0-9]")
-			# dnsname_dom=$(echo $dnsname | sed 's/,/\n/g' | awk -F[/:] '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$")
 			if [ "$dnsname_dom" ];then
 			   #for i in $dns;do smartdns_append "server-tcp $i -group b -exclude-default-group";done
 			   for i in $dnsname;do smartdns_append "server $i -group b -exclude-default-group";done
-			   for dom in $dnsname_dom;do
-			   
+			   for dom in $dnsname_dom;do 
 				case $run_mode in
 					router|all)smartdns_append "nameserver /$dom/b";;
 					*)smartdns_append "domain-rules /$dom/ -nameserver b -ipset blacklist";;
@@ -787,7 +822,6 @@ gen_smartdns(){
 			echo $dnsname | sed 's/,/\n/g' | sed -e 's/^/server-tls /g' -e 's/$/ -group a  -exclude-default-group/g' >> $DNS_T_TMP
 			for i in $dns;do echo "server-tcp $i -group b -exclude-default-group" >>$DNS_T_TMP;done
 		        dnsname_dom=$(echo $dnsname | sed 's/,/\n/g' | awk '-F[/:]' '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$" | grep -Ev "\[[0-9]")
-			# dnsname_dom=$(echo $dnsname | sed 's/,/\n/g' | awk -F[/:] '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$")
 			if [ "$dnsname_dom" ];then
 			   #for i in $dns;do smartdns_append "server-tcp $i -group b -exclude-default-group";done
 			   for i in $dnsname;do smartdns_append "server $i -group b -exclude-default-group";done
@@ -805,7 +839,7 @@ gen_smartdns(){
 		;;
 	esac
 	# for i in $dns;do smartdns_append "server $i -group b";done
-	log "SmartDNS : start in $remote Remote DNS Resolution!"
+	log "SmartDNS : start in $dnsname Remote DNS Resolution!"
     done
     echo -e "nameserver /dnsleaktest.com/a\nnameserver /whrq.net/a\nnameserver /speedtest.net/a\nnameserver /ooklaserver.net/a\nnameserver /in-addr.arpa/a\nnameserver /browserleaks.com/a\nnameserver /expressvpn.com/a\nnameserver /ipleak.net/a\nnameserver /whoer.net/a " >> $DNS_T_TMP
     dns_pollution=$(uci_get_by_type global dns_pollution 0)
@@ -817,7 +851,6 @@ gen_smartdns(){
 	 case $local_ in
 		_doh) 
 			 echo $dnsname | sed 's/,/\n/g' | sed -e 's/^/server-https /g' -e 's/$/ -group e  -exclude-default-group/g'  >> $DNS_T_TMP
-
 			 for i in $dns;do smartdns_append "server-tcp $i -group f -exclude-default-group -whitelist-ip";done
 			 dnsname_dom=$(echo $dnsname | sed 's/,/\n/g' | awk '-F[/:]' '{print$4}' | grep -Ev "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$" | grep -Ev "\[[0-9]")
 			 if [ "$dnsname_dom" ];then
@@ -842,7 +875,7 @@ gen_smartdns(){
 			for i in $dns;do smartdns_append "server $i -group e ";done;;
 	 esac
 	for i in $dns;do ipset add ss_spec_wan_ac $i 2>/dev/null;done
-	log "SmartDNS : start in $local Local DNS Resolution!"
+	log "SmartDNS : start in $dnsname Local DNS Resolution!"
     done
 
     smartdns_append "nameserver /in-addr.arpa/e"
@@ -875,7 +908,7 @@ gen_smartdns(){
 		*)
 			for i in $dns;do smartdns_append "server $i -group h -exclude-default-group";done;;
 	    esac
-	    log "SmartDNS : start in $dns_nf netflix DNS Resolution!"
+	    log "SmartDNS : start in $dnsname netflix DNS Resolution!"
 	done
     fi
         
@@ -885,9 +918,7 @@ gen_smartdns(){
 	log "SmartDNS : start in $bootstrap_dns Bootstrap DNS Resolution!"
 	}
 
-	if [ $run_mode = oversea ];then
-	    echo $run_mode
-	else
+	if [ $run_mode != oversea ];then
 
 		if [ -s $DNS_DIR/black.conf ];then
 			echo "$(sort -u $DNS_DIR/black.conf)" >$DNS_DIR/black.conf
@@ -937,6 +968,7 @@ gen_smartdns(){
 	#域名禁止连接名单
 	# echo "domain-set -name domain-block-list -file /etc/smartdns/domain-block.list" >>$DNS_T_TMP
 	# echo "domain-rules /domain-set:domain-block-list/ --address #" >>$DNS_T_TMP
+	
 	[ -s $CON_T ] && echo "conf-file $CON_T" >>$DNS_T_TMP
 	# no AD 
 	ad_list=$(uci -q get bypass.@global[0].ad_list)
@@ -957,14 +989,143 @@ gen_smartdns(){
 	[ $run_mode = router ] && chinadns_flag=1
 	mv -f $DNS_T_TMP $DNS_T
 	start_dns
+
 	/etc/init.d/dnsmasq restart >/dev/null 2>&1
-	service_start $BIN_DIR/by-preload $run_mode
+	$BIN_DIR/by-preload $run_mode
 }
 
+mget_dns(){ #$1 name  $2 dns
+	if [ "$2" == "dns" ];then 
+		for i in $1;do echo $(get_dns $i $2);done
+	else
+		for i in $1;do echo $(get_dns $i);done
+	fi
+
+}
+
+add_dns_ipset() { #$1 ip  $2dns
+if [ "$2" == "dns" ];then 
+	dns=$(echo $1 | awk -F/ '{print $3}')
+	[ "$dns" ] ||  dns=${1%:*}
+	[ "$dns" ] || return
+	case $run_mode in
+	gfw|oversea) ipset add blacklist ${dns%:*} 2>/dev/null;;
+	*) ipset del ss_spec_wan_ac ${dns%:*} 2>/dev/null || ipset add ss_spec_wan_ac ${dns%:*} nomatch 2>/dev/null;;
+        esac
+else
+	case $run_mode in
+	router|all)smartdns_append "nameserver /$1/$2";;
+	*)smartdns_append "domain-rules /$1/ -nameserver $2 -ipset blacklist";;
+	esac
+fi
+}
+
+
 gen_mosdns(){
+   TMPDIR=$(mktemp -d) || exit 1
+   
+   mkdir -p /tmp/run /tmp/dnsmasq.d $DNS_DIR $MDNS 
+   mosdns_flag=1
+   killall -q -9 smartdns
+   killall -q -9 mosdns
+	case $run_mode in
+		all)port=5335;;
+		gfw|oversea)port=5335;;
+		*)port=5337;;
+	esac
+	cat >$DNS_FILE <<-EOF
+		no-resolv
+		no-poll
+		server=127.0.0.1#$port
+	EOF
 
-echo  mosdns
+   # Remote DNS
+   dns_remote=`mget_dns "$(uci_get_by_type global dns_remote cloudflare_doh)" `
+   remote_dns=$(for i in  $dns_remote; do
+                                add_dns_ipset $i dns
+				log "MosDNS : start in $i Remote DNS Resolution!"
+				echo "        - addr: $i"
+				echo "          bootstrap: ${bootstrap_dns}"
+				echo "          enable_pipeline: true"
+				echo "          max_conns: 2"
+			done)
 
+   #local DNS IPSET
+   dns_local=`mget_dns "$(uci_get_by_type global dns_local alidns_dot)" `
+   local_dns=$(for i in $dns_local; do
+				echo "        - addr: $i"
+				echo "          bootstrap: ${bootstrap_dns}"
+				echo "          enable_pipeline: true"
+				echo "          max_conns: 2"
+			done)
+
+    sed "s,DNS_PORT,5335,g" $MDNS_D > $MDNS_T
+    # DNS
+    echo "${local_dns}" > $TMPDIR/local_dns.txt
+    echo "${remote_dns}" > $TMPDIR/remote_dns.txt
+    sed -i -e '/- addr: local_dns/{r '$TMPDIR/local_dns.txt -e';d};/- addr: remote_dns/{r '$TMPDIR/remote_dns.txt -e';d}' $MDNS_T
+
+    # DNS pollution
+    dns_pollution=$(uci_get_by_type global dns_pollution 0)
+    if [ x$dns_pollution = 'x1' ] ;then 
+          sed -i "s/POLLUTION/query_is_remote/g" $MDNS_T
+	  for i in  $dns_remote; do log "MosDNS : start in $i Local DNS Resolution!" ;done
+    else
+	  sed -i "s/POLLUTION/query_is_local_ip/g"  $MDNS_T
+	  for i in  $dns_local; do log "MosDNS : start in $i Local DNS Resolution!" ;done
+    fi
+    [ "x$ipv6mode" == "x1" ] && sed -i "s/IPV6MODE/remote_sequence_IPv6/g" $MDNS_T || sed -i "s/IPV6MODE/remote_sequence/g" $MDNS_T
+	if [ $run_mode = oversea ];then
+		awk '!/^$/&&!/^#/{printf("server=/%s/'"127.0.0.1#5335"'\n",$0)}' $T_FILE/oversea.list >$DNS_DIR/oversea.conf
+	else
+		[ $run_mode != gfw ] && echo -e "server=/msftconnecttest.com/127.0.0.1#5335\nserver=/msftncsi.com/127.0.0.1#5335" >> $DNS_FILE
+		if [ $run_mode != all ];then
+			cp -f $T_FILE/black.list $O
+			awk '!/^$/&&!/^#/{printf("server=/%s/'"127.0.0.1#5335"'\n",$0)}' $O >$DNS_DIR/black.conf
+			if [ $run_mode = gfw ];then
+				cp -f $VAR/gfw.list $O
+				awk '!/^$/&&!/^#/{printf("server=/%s/'"127.0.0.1#5335"'\n",$0)}' $O >>$DNS_DIR/black.conf
+			fi
+		fi
+
+		if [ -s $DNS_DIR/black.conf ];then
+			echo "$(sort -u $DNS_DIR/black.conf)" >$DNS_DIR/black.conf
+		else
+			rm -f $DNS_DIR/black.conf
+		fi
+		if [ -n "$NF" ];then
+			cp -f $T_FILE/netflix.list $O
+			D=$(cat $O)
+			for i in $D;do
+				sed -i -e "/\/$i\//d" -e "/\.$i\//d" $DNS_DIR/black.conf 2>/dev/null
+			done
+			if [ $run_mode = gfw ];then
+				awk '!/^$/&&!/^#/{printf("server=/%s/'"127.0.0.1#5335"'\n",$0)}' $O >>$DNS_DIR/black.conf
+			fi
+		fi
+		if [ -s $T_FILE/white.list ];then
+			cp -f $T_FILE/white.list $O
+			sed -i "s/\r//g" $O
+			D=$(cat $O)
+			for i in $D;do
+				sed -i -e "/\/$i\//d" -e "/\.$i\//d" $DNS_DIR/black.conf 2>/dev/null
+			done
+			awk '!/^$/&&!/^#/{printf("server=/%s/'"127.0.0.1#5335"'\n",$0)}' $O >>$DNS_DIR/white.conf
+		fi
+		if [ -s $T_FILE/domains_cn.txt ];then
+			cp -f $T_FILE/domains_cn.txt $O
+			sed -i "s/\r//g" $O
+			awk '!/^$/&&!/^#/{printf("server=/%s/'"127.0.0.1#5335"'\n",$0)}' $O >>$DNS_DIR/white.conf
+		fi
+	fi
+	log "MosDNS : start in $bootstrap_dns Bootstrap DNS Resolution!"
+	[ $(find $DNS_DIR -name \* -exec cat {} \; 2>/dev/null | wc -l) = 0 ] && rm -rf $DNS_DIR
+	echo "conf-dir=${DNS_DIR}" >$DNS_FILE
+	rm -rf $TMPDIR $O
+	[ $run_mode = router ] && chinadns_flag=1
+	start_dns
+	/etc/init.d/dnsmasq restart >/dev/null 2>&1
+	$BIN_DIR/by-preload $run_mode
 }
 
 
@@ -1000,7 +1161,7 @@ gen_service_file(){
 			}
 		EOF
 		plugin=$(uci_get_by_name $1 plugin 0)
-		if [ $plugin != 0 -a -x "$(which $plugin)" ];then
+		if which $plugin >/dev/null 2>&1;then
 			sed -i "s@0.0.0.0\",@0.0.0.0\",\n\"plugin\":\"$plugin\",\n\"plugin_opts\":\"$(uci_get_by_name $1 plugin_opts)\",@" $3
 		fi
 	else
@@ -1027,7 +1188,7 @@ run_server(){
 	[ $server_count = 1 ] && iptables-save -t filter | grep BY-SERVER-RULE >/dev/null || iptables -N BY-SERVER-RULE && iptables -t filter -I INPUT -j BY-SERVER-RULE
 	type=$(uci_get_by_name $1 type ssr)
 	[ $type = ss -o $type = ssr ] && cmd=$(f_bin $type-server) || cmd=$(which microsocks)
-	[ ! -x $cmd ] && log "SSR server: Can't find $cmd program, start failed!" && return 1
+	[ ! $cmd ] && log "By server: Can't find $cmd program, start failed!" && return 1
 	port=$(uci_get_by_name $1 server_port)
 	pass=$(uci_get_by_name $1 password)
 	name=by-server_$server_count
@@ -1042,7 +1203,7 @@ run_server(){
 	*)
 		if [ $(uci_get_by_name $1 auth_enable 0) = 1 ];then
 			username=$(uci_get_by_name $1 username)
-			if [ -n "$username" ];then
+			if [ "$username" ];then
 				param="$([ $(uci_get_by_name $1 auth_once 0) = 1 ] && echo -1) -u $username -P $pass"
 			else
 				log "By server: Socks5 User and pass must be used together!"
@@ -1055,7 +1216,6 @@ run_server(){
 	esac
 	iptables -t filter -A BY-SERVER-RULE -p tcp --dport $port -j ACCEPT
 	iptables -t filter -A BY-SERVER-RULE -p udp --dport $port -j ACCEPT
-	return 0
 }
 
 gen_serv_include(){
@@ -1066,7 +1226,7 @@ gen_serv_include(){
 		echo 'COMMIT'
 	}
 	cat <<-EOF >>$FWI
-		iptables-save -c | grep -v "SSR-SERVER" | iptables-restore -c
+		iptables-save -c | grep -v "BY-SERVER-RULE" | iptables-restore -c
 		iptables-restore -n <<-EOT
 		$(extract_rules)
 		EOT
@@ -1146,18 +1306,14 @@ stop(){
 	kill -9 $(ps -w | grep gfw.b64 | grep -v grep | awk '{print$1}') 2>/dev/null
 	kill -9 $(ps -w | grep $BIN_DIR/checknetwork | grep -v grep | awk '{print$1}') 2>/dev/null
 	kill -9 $(ps -w | grep $BIN_DIR/update | grep -v grep | awk '{print$1}') 2>/dev/null
-	$BIN_DIR/by-rules -f
-	srulecount=$(iptables -nL | grep BY-SERVER-RULE | wc -l)
-	if [ $srulecount -gt 0 ];then
-		iptables -F BY-SERVER-RULE
-		iptables -t filter -D INPUT -j BY-SERVER-RULE
-		iptables -X BY-SERVER-RULE 2>/dev/null
-	fi
-	[ -z "$switch_server" ] && kill -9 $(ps -w | grep by-switch | grep -v grep | awk '{print$1}') 2>/dev/null
+
+	[ $switch_server ] || kill -9 $(ps -w | grep by-switch | grep -v grep | awk '{print$1}') 2>/dev/null
 	kill -9 $(ps -w | grep by-monitor | grep -v grep | awk '{print$1}') 2>/dev/null
 	kill -9 $(ps -w | grep by-preload | grep -v grep | awk '{print$1}') 2>/dev/null
 	kill -9 $(ps -w | grep $VAR | grep -v grep | awk '{print$1}') 2>/dev/null
-	killall -q -9 smartdns chinadns-ng kcptun-client microsocks mosdns
+	killall -q -9 smartdns chinadns-ng kcptun-client xray-plugin microsocks mosdns
+	$BIN_DIR/by-rules -f
+	[ $(iptables -nL | grep BY-SERVER-RULE | wc -l) = 0 ] || (iptables -F BY-SERVER-RULE && iptables -X BY-SERVER-RULE;while iptables -D INPUT -j BY-SERVER-RULE 2>/dev/null;do :;done)
 	rm -rf $DNS_DIR $VAR $DNS_FILE $CON_T /tmp/lock/$NAME-update.lock $MDNS
 	[ -z "$GLOBAL_SERVER" ] && grep -q $NAME $CRON_FILE && sed -i '/$NAME/d' $CRON_FILE && /etc/init.d/cron restart
 	if [ $STATUS = Y -o -z "$GLOBAL_SERVER" ];then
