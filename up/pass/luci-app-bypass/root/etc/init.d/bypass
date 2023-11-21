@@ -225,9 +225,9 @@ gen_config_file(){
 	v2ray)
 		[ $rtype = udp ] && smode=udp || smode=tcp
 		[ $rtype = socks ] && lport=0
+
 		$BIN_DIR/genxrayconfig $1 $smode $lport $ssport $serv_ip >$config_file
-		sed -i 's/\\//g' $config_file
-		;;
+		sed -i 's/\\//g' $config_file ;;
  
 	hysteria)
 		lua $BIN_DIR/gen_config $1 $smode $lport $ssport >$config_file
@@ -504,12 +504,10 @@ start_reudp(){
 		log "UDP Node: $name  $utype Started!"
 		;;
 	v2ray)
-	
 		$BIN_DIR/genxrayconfig $UDP_RELAY_SERVER $rtype $local_port $port $server >$config_file
-		gen_config_file $UDP_RELAY_SERVER $rtype 0 $udp_server
+		#gen_config_file $UDP_RELAY_SERVER $rtype 0 $udp_server
 		$cmd  run -c $config_file >/dev/null 2>&1 &
-		log "UDP Node: $($cmd -version | head -1 | awk '{print$1,$2}') $utype Started!"
-		;;
+		log "UDP Node: $($cmd -version | head -1 | awk '{print$1,$2}') $utype Started!"	;;
 	trojan)
 		gen_config_file $UDP_RELAY_SERVER $rtype "" $udp_server
 		$cmd --config $config_file >/dev/null 2>&1 &

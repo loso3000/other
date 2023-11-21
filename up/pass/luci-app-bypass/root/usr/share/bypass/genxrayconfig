@@ -1,115 +1,231 @@
 #!/usr/bin/lua
-local ucursor=require "luci.model.uci".cursor()
-local json=require "luci.jsonc"
-local server_section=arg[1]
-local proto=arg[2]
-local local_port=arg[3] or "0"
-local socks_port=arg[4] or "0"
-local ip_addr=arg[5]
-local server=ucursor:get_all("bypass",server_section)
-local tls_host=server.tls_host or server.http_host or server.ws_host or server.h2_host or server.server
-if server.tls=='1' then server.security="none" end
-local Xray={
-log={
-loglevel="warning"
-},
-inbound=(local_port~="0") and {
-	port=tonumber(local_port),
-	protocol="dokodemo-door",
-	settings={
-		network=proto,
-		followRedirect=true
-	},
-	sniffing={
-		enabled=true,
-		destOverride={"http","tls"}
-	}
-} or nil,
-inboundDetour=(proto=="tcp" and socks_port~="0") and {
-	{
-	protocol="socks",
-	port=socks_port,
-		settings={
-			auth="noauth",
-			udp=true
-		}
-	}
-} or nil,
-outbound={
-	protocol=server.type,
-	settings={
-		vnext={
+
+local ucursor = require "luci.model.uci".cursor()
+local json = require "luci.jsonc"
+
+local server_section = arg[1]
+local proto = arg[2]
+local local_port = arg[3] or "0"
+local socks_port = arg[4] or "0"
+local ip_addr = arg[5]
+
+local server = ucursor:get_all("bypass", server_section)
+local outbound_settings = nil
+
+local tls_host = (server.tls_host) and server.tls_host or server.server
+
+function vmess_vless()
+	outbound_settings = {
+		vnext = {
 			{
-				address=ip_addr,
-				port=tonumber(server.server_port),
-				users={
+				address = ip_addr,
+				port = tonumber(server.server_port),
+				users = {
 					{
-						id=server.uuid,
-						alterId=(server.type=="vmess") and tonumber(server.alter_id or 0) or nil,
-						security=(server.type=="vmess") and server.security or nil,
-						encryption=(server.type=="vless") and server.vless_encryption or nil,
-						flow=(server.xtls=='1') and (server.vless_flow and server.vless_flow or "xtls-rprx-splice") or nil
+						id = server.vmess_id,
+						security = (server.v2ray_protocol == "vmess" or not server.v2ray_protocol) and server.security or nil,
+						encryption = (server.v2ray_protocol == "vless") and server.vless_encryption or nil,
+						flow = ((server.tls == '1') or (server.reality == '1')) and server.tls_flow or nil
 					}
 				}
 			}
 		}
+	}
+end
+function trojan_shadowsocks()
+	outbound_settings = {
+		servers = {
+			{
+				address = ip_addr,
+				port = tonumber(server.server_port),
+				password = server.password,
+				method = ((server.v2ray_protocol == "shadowsocks") and server.encrypt_method_ss) or nil,
+				uot = (server.v2ray_protocol == "shadowsocks") and (server.uot == '1') or nil,
+				ivCheck = (server.v2ray_protocol == "shadowsocks") and (server.ivCheck == '1') or nil,
+			}
+		}
+	}
+
+end
+function socks_http()
+	outbound_settings = {
+		version = server.socks_ver or nil,
+		servers = {
+			{
+				address = ip_addr,
+				port = tonumber(server.server_port),
+				users = (server.auth_enable == "1") and {
+					{
+						user = server.username,
+						pass = server.password
+					}
+				} or nil
+			}
+		}
+	}
+end
+function wireguard()
+	outbound_settings = {
+		secretKey = server.private_key,
+		address = ip_addr,
+		peers = {
+			{
+				publicKey = server.peer_pubkey,
+				preSharedKey = server.preshared_key,
+				endpoint = server.server .. ":" .. server.server_port
+			}
+		},
+		mtu = tonumber(server.mtu)
+	}
+end
+local outbound = {}
+function outbound:new(o)
+	o = o or {}
+	setmetatable(o, self)
+	self.__index = self
+	return o
+end
+function outbound:handleIndex(index)
+	local switch = {
+		vmess = function()
+			vmess_vless()
+		end,
+		vless = function()
+			vmess_vless()
+		end,
+		trojan = function()
+			trojan_shadowsocks()
+		end,
+		shadowsocks = function()
+			trojan_shadowsocks()
+		end,
+		socks = function()
+			socks_http()
+		end,
+		http = function()
+			socks_http()
+		end,
+		wireguard = function()
+			wireguard()
+		end
+	}
+	if switch[index] then
+		switch[index]()
+	end
+end
+local settings = outbound:new()
+settings:handleIndex(server.v2ray_protocol)
+local Xray = {
+	log = {
+		-- error = "/var/ssrplus.log",
+		loglevel = "warning"
 	},
-	streamSettings={
-		network=server.transport,
-		security=(server.xtls=='1') and "xtls" or (server.tls=='1') and "tls" or "none",
-		tlsSettings=(server.tls=='1') and {
-			allowInsecure=(server.insecure=="1") and true or nil,
-			serverName=tls_host
-		} or nil,
-		xtlsSettings=(server.xtls=='1') and {
-			allowInsecure=(server.insecure=="1") and true or nil,
-			serverName=tls_host
-		} or nil,
-		tcpSettings=(server.transport=="tcp" and server.tcp_guise=="http") and {
-			header={
-				type=server.tcp_guise,
-				request={
-					path={server.http_path} or {"/"},
-					headers={Host=server.http_host or server.server}
+	-- 传入连接
+	inbound = (local_port ~= "0") and {
+		-- listening
+		port = tonumber(local_port),
+		protocol = "dokodemo-door",
+		settings = {network = proto, followRedirect = true},
+		sniffing = {enabled = true, destOverride = {"http", "tls"}}
+	} or nil,
+	-- 开启 socks 代理
+	inboundDetour = (proto:find("tcp") and socks_port ~= "0") and {
+		{
+			-- socks
+			protocol = "socks",
+			port = tonumber(socks_port),
+			settings = {auth = "noauth", udp = true}
+		}
+	} or nil,
+	-- 传出连接
+	outbound = {
+		protocol = server.v2ray_protocol,
+		settings = outbound_settings,
+		-- 底层传输配置
+		streamSettings = {
+			network = server.transport or "tcp",
+			security = (server.tls == '1') and "tls" or (server.reality == '1') and "reality" or nil,
+			tlsSettings = (server.tls == '1') and {
+				-- tls
+				alpn = server.tls_alpn,
+				fingerprint = server.fingerprint,
+				allowInsecure = (server.insecure == "1"),
+				serverName = tls_host,
+				certificates = server.certificate and {
+					usage = "verify",
+					certificateFile = server.certpath
+				} or nil
+			} or nil,
+			realitySettings = (server.reality == '1') and {
+				show = false,
+				publicKey = server.reality_publickey,
+				shortId = server.reality_shortid,
+				spiderX = server.reality_spiderx,
+				fingerprint = server.fingerprint,
+				serverName = tls_host
+			} or nil,
+			tcpSettings = (server.transport == "tcp" and server.tcp_guise == "http") and {
+				-- tcp
+				header = {
+					type = server.tcp_guise,
+					request = {
+						-- request
+						path = {server.http_path} or {"/"},
+						headers = {Host = {server.http_host} or {}}
+					}
+				}
+			} or nil,
+			kcpSettings = (server.transport == "kcp") and {
+				mtu = tonumber(server.mtu),
+				tti = tonumber(server.tti),
+				uplinkCapacity = tonumber(server.uplink_capacity),
+				downlinkCapacity = tonumber(server.downlink_capacity),
+				congestion = (server.congestion == "1") and true or false,
+				readBufferSize = tonumber(server.read_buffer_size),
+				writeBufferSize = tonumber(server.write_buffer_size),
+				header = {type = server.kcp_guise},
+				seed = server.seed or nil
+			} or nil,
+			wsSettings = (server.transport == "ws") and (server.ws_path or server.ws_host or tls_host) and {
+				-- ws
+				headers = (server.ws_host or tls_host) and {
+					-- headers
+					Host = server.ws_host or tls_host
 				} or nil,
-			}
-		} or nil,
-		kcpSettings=(server.transport=="kcp") and {
-			mtu=tonumber(server.mtu),
-			tti=tonumber(server.tti),
-			uplinkCapacity=tonumber(server.uplink_capacity),
-			downlinkCapacity=tonumber(server.downlink_capacity),
-			congestion=(server.congestion=="1") and true or false,
-			readBufferSize=tonumber(server.read_buffer_size),
-			writeBufferSize=tonumber(server.write_buffer_size),
-			header={
-				type=server.kcp_guise
-			},
-			seed=server.seed or nil
-		} or nil,
-		wsSettings=(server.transport=="ws") and {
-			path=server.ws_path,
-			headers={Host=server.ws_host or server.server}
-		} or nil,
-		httpSettings=(server.transport=="h2") and {
-			path=server.h2_path,
-			host={server.h2_host or server.server}
-		} or nil,
-		quicSettings=(server.transport=="quic") and {
-			security=server.quic_security,
-			key=server.quic_key,
-			header={
-				type=server.quic_guise
-			}
-		} or nil,
-		grpcSettings=(server.transport=="grpc") and {
-			serviceName=server.grpc_serviceName
+				path = server.ws_path,
+				maxEarlyData = tonumber(server.ws_ed) or nil,
+				earlyDataHeaderName = server.ws_ed_header or nil
+			} or nil,
+			httpSettings = (server.transport == "h2") and {
+				-- h2
+				path = server.h2_path or "",
+				host = {server.h2_host} or nil,
+				read_idle_timeout = tonumber(server.read_idle_timeout) or nil,
+				health_check_timeout = tonumber(server.health_check_timeout) or nil
+			} or nil,
+			quicSettings = (server.transport == "quic") and {
+				-- quic
+				security = server.quic_security,
+				key = server.quic_key,
+				header = {type = server.quic_guise}
+			} or nil,
+			grpcSettings = (server.transport == "grpc") and {
+				-- grpc
+				serviceName = server.serviceName or "",
+				multiMode = (server.grpc_mode == "multi") and true or false,
+				idle_timeout = tonumber(server.idle_timeout) or nil,
+				health_check_timeout = tonumber(server.health_check_timeout) or nil,
+				permit_without_stream = (server.permit_without_stream == "1") and true or nil,
+				initial_windows_size = tonumber(server.initial_windows_size) or nil
+			} or nil
+		},
+		mux = (server.mux == "1" and server.transport ~= "grpc") and {
+			-- mux
+			enabled = true,
+			concurrency = tonumber(server.concurrency)
 		} or nil
-	},
-	mux=(server.mux=="1" and server.xtls~="1") and {
-		enabled=true,
-		concurrency=tonumber(server.concurrency)
 	} or nil
-} or nil
 }
-print(json.stringify(Xray,1))
+
+print(json.stringify(Xray, 1))
+
