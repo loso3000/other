@@ -1,6 +1,14 @@
 #!/bin/sh
 if [ "$ACTION" = ifup -a "$INTERFACE" != wan_6 ];then
 	if uci -q get bypass.@global[0].global_server >/dev/null;then
+		if ipset list by_all >/dev/null 2>&1;then
+			ipset -F by_all
+			net=$(uci -qP /tmp/state get  network.wan.device) || net=$(uci -qP /tmp/state get network.wan.ifname)
+			[ $net ] || net=127.0.0.1
+			for i in $(ip -4 add show | grep -v $net | grep inet | grep -v 127.0.0.1 | awk '{print$2}');do
+				ipset -! add by_all $i
+			done
+		fi
 		/etc/init.d/bypass stop && /etc/init.d/bypass start
 	fi
 fi

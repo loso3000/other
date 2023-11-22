@@ -15,7 +15,7 @@ redir_tcp=$1
 kcp=$2
 redir_udp=$3
 redir_nf=$4
-smartdns=$5
+dns=$5
 chinadns=$6
 socks5=$7
 server_count=$8
@@ -28,6 +28,10 @@ kcp_param=$(uci_get_by_name $GLOBAL_SERVER kcp_param)
 gfw_mode=$(uci_get_by_type global gfw_mode 0)
 dns_mode=$(uci_get_by_type global dns_mode 1)
 LOG=/tmp/log/$NAME.log
+SDNS=/tmp/etc/smartdns
+DNS_T=$SDNS/smartdns-by.conf
+MDNS=/tmp/etc/mosdns
+MDNS_T=$MDNS/mosdns-by.yaml
 [ "$password" != "" ] && password="--key "${password}
 
 log() {
@@ -63,11 +67,14 @@ while :;do
 		re
 	fi
 
-#smartdns
-	if [ $smartdns = 1 ] && [ $(ps -w | grep smartdns | grep -v grep | wc -l) = 0 ];then
+#dns
+	if [ "$dns" -eq 1 ] && [ $(ps -w | grep smartdns | grep -v grep | wc -l) = 0 ];then
 			log "SmartDNS Error. Restart!"
 			killall -q -9 smartdns >/dev/null 2>&1
-			$(which smartdns) -c /tmp/etc/smartdns/smartdns.conf
+			service_start $(which smartdns) -c $DNS_T 2>/dev/null
+	elif [ "$dns" -eq 2 ]; then
+			kill -9 $(busybox ps -w | grep mosdns | grep -v grep | grep $MDNS_T | awk '{print $1}') >/dev/null 2>&1
+			service_start $(which mosdns) start -c $MDNS_T 2>/dev/null
 	fi
 #chinadns-ng
 	if [ $chinadns = 1 ] && [ $(ps -w | grep chinadns-ng | grep -v grep | wc -l) = 0 ];then

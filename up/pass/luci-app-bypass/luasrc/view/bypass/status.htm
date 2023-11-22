@@ -551,8 +551,10 @@ CCnQAWWLcQEXnIKxLHkt4VHXusQ9IVB4AHvHeFwCOA3GjdQkTkAc872e7SnoqNvKV6EnEAeEi4ufJrAt
 						} else {
 							udp_status.innerHTML = 'UDP<br /><span class="red"><%:Not Running%></span>'
 						}
-					if (data.dns) {
-							dns_status.innerHTML = 'DNS<br /><span class="green"><%:Running%></span>'
+					if (data.sdns) {
+							dns_status.innerHTML = 'SmartDNS<br /><span class="green"><%:Running%></span>'
+						} else if (data.mdns)  {
+							dns_status.innerHTML = 'MosDNS<br /><span class="green"><%:Running%></span>'
 						} else {
 							dns_status.innerHTML = 'DNS<br /><span class="red"><%:Not Running%></span>'
 						}

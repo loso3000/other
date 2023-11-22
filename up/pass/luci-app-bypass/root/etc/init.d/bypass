@@ -10,7 +10,7 @@ CRON_FILE=/etc/crontabs/root
 LOCK=/tmp/lock/bypassboot.lock
 LOC=/tmp/lock/$NAME.lock
 SDNS=/tmp/etc/smartdns
-DNS_T=$SDNS/smartdns.conf
+DNS_T=$SDNS/smartdns_by.conf
 DNS_T_TMP="${DNS_T}.tmp"
 CON_T=$SDNS/rules.conf
 CON_AD=$T_FILE/ad_smartdns.txt
@@ -19,7 +19,7 @@ LOG=/tmp/log/$NAME.log
 
 MDNS=/tmp/etc/mosdns
 MDNS_D=/usr/share/bypass/gen_mosdns_default.yaml
-MDNS_T=$MDNS/mosdns-bypass.yaml
+MDNS_T=$MDNS/mosdns_by.yaml
 
 APP=/usr/share/bypass/app
 
@@ -37,7 +37,7 @@ redir_tcp=0
 kcp_enable=0
 redir_udp=0
 redir_nf=0
-smartdns_flag=0
+dns_flag=0
 chinadns_flag=0
 local_enable=0
 switch_enable=0
@@ -249,6 +249,7 @@ start_dns()
 {
         if [[ "x$dns_mode" = "x1" ]] ;then
 	      service_start $(which smartdns) -c $DNS_T 2>/dev/null
+	      dns_flag=1
 	      case $run_mode in
 			gfw)  
 			   #service_start $(which chinadns-ng) -l 5337 -c '127.0.0.1#5336' -t '127.0.0.1#5335' -4 china_v4  -p 3 -6 china_v6 -f -n -m $VAR/gfw.list -M $([ $gfw_mode = 1 ] && echo -g $VAR/gfw.list) 
@@ -261,6 +262,7 @@ start_dns()
 		esac
 	 else
 	      service_start $(which mosdns) start -c $MDNS_T 2>/dev/null
+	      dns_flag=2
 		case $run_mode in
 			gfw)  
 			   #service_start $(which chinadns-ng) -l 5337 -c "${bootstrap_dns}#53" -t '127.0.0.1#5335' -4 china_v4  -p 3 -6 china_v6 -f -n -m $VAR/gfw.list -M $([ $gfw_mode = 1 ] && echo -g $VAR/gfw.list) 
@@ -705,7 +707,7 @@ get_dns(){  #$1:name/dnslnk  $2:dns/dnsip
 			dnslnk=$dnsip;;
 		*)
 			dnsip=$(echo $1 | sed -e 's/，/,/g' -e 's/。/./g' -e 's/：/:/g' -e 's/,/\n/g')
-			[ -z "$dnsip" ] && dnsip=$(echo $1 | awk '-F[/:]' '{print$4}')
+			[ -z "$dnsip" ] && dnsip=$(echo $1 |  awk -F/ '{print $3}')
 			# dnsip=$(echo $dnsip | grep -E -o "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+")
 			dnsip=$(echo $dnsip | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+" | grep -v 0.0.0.0 | grep -v 127.0.0.1)
 			if [ -z "$dnsip" ];then
@@ -721,7 +723,6 @@ get_dns(){  #$1:name/dnslnk  $2:dns/dnsip
 }
 
 gen_smartdns(){ 
-	smartdns_flag=1
 	killall -q -9 smartdns
 	killall -q -9 mosdns
 	
@@ -958,14 +959,6 @@ gen_smartdns(){
 			echo "domain-rules /domain-set:domains-cn-rule-list/  -nameserver f -dualstack-ip-selection no -address #6 -ipset ss_spec_wan_ac" >>$DNS_T_TMP
 		fi
 	fi
-	#中国IP段白名单
-	# ip-set -name china_v4 -type list -file $VAR/china.txt
-	# ip-set -name china_v6 -type list -file $VAR/china_v6.txt
-	# echo "ip-rules ip-set:china_v4 -whitelist-ip" >>$DNS_T_TMP
-	# echo "ip-rules ip-set:china_v6 -whitelist-ip" >>$DNS_T_TMP
-	#域名禁止连接名单
-	# echo "domain-set -name domain-block-list -file /etc/smartdns/domain-block.list" >>$DNS_T_TMP
-	# echo "domain-rules /domain-set:domain-block-list/ --address #" >>$DNS_T_TMP
 	
 	[ -s $CON_T ] && echo "conf-file $CON_T" >>$DNS_T_TMP
 	# no AD 
@@ -1023,7 +1016,7 @@ gen_mosdns(){
    TMPDIR=$(mktemp -d) || exit 1
    
    mkdir -p /tmp/run /tmp/dnsmasq.d $DNS_DIR $MDNS 
-   mosdns_flag=1
+
    killall -q -9 smartdns
    killall -q -9 mosdns
 	case $run_mode in
@@ -1241,8 +1234,8 @@ start_server(){
 
 start_monitor(){
 	if [ $(uci_get_by_type global monitor_enable 0) = 1 ];then
-		let total=redir_tcp+kcp_enable+redir_udp+redir_nf+smartdns_flag+chinadns_flag+local_enable+server_count+switch_enable
-		[ $total -gt 0 ] && service_start $BIN_DIR/by-monitor $redir_tcp $kcp_enable $redir_udp $redir_nf $smartdns_flag $chinadns_flag $local_enable $server_count
+		let total=redir_tcp+kcp_enable+redir_udp+redir_nf+dns_flag+chinadns_flag+local_enable+server_count+switch_enable
+		[ $total -gt 0 ] && service_start $BIN_DIR/by-monitor $redir_tcp $kcp_enable $redir_udp $redir_nf $dns_flag $chinadns_flag $local_enable $server_count
 	fi
 }
 

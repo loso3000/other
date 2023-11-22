@@ -41,7 +41,8 @@ function act_status()
 	local e = {}
 	e.tcp = CALL('busybox ps -w | grep by-retcp | grep -v grep  >/dev/null ') == 0
 	e.udp = CALL('busybox ps -w | grep by-reudp | grep -v grep  >/dev/null ') == 0
-	e.dns = CALL("ps -w | grep smartdns | grep -v grep   >/dev/null || ps -w | grep 'mosdns-bypass'  | grep -v grep   >/dev/null")==0
+	e.sdns = CALL("ps -w | grep 'smartdns_by' | grep -v grep >/dev/null ")==0
+	e.mdns = CALL(" ps -w | grep 'mosdns_by'  | grep -v grep   >/dev/null ")==0
 	e.chinadns=CALL("ps -w | grep 'chinadns-ng -l 5337' | grep -v grep >/dev/null")==0
 	http.prepare_content("application/json")
 	http.write_json(e)

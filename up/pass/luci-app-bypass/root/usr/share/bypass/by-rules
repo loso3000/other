@@ -38,7 +38,7 @@ flush_r(){
 	ipset -X netflix 2>/dev/null
 	ipset -X china_v4 2>/dev/null
 	ipset -X china_v6 2>/dev/null
-	ipset -X bypass_all 2>/dev/null
+	ipset -X by_all 2>/dev/null
 	echo '#!/bin/sh' > $FWI
 }
 
@@ -144,14 +144,14 @@ tp_rule(){
 		all)$ipt -A SS_SPEC_TPROXY -p udp $PROXY_PORTS -j TPROXY --on-port $LOCAL_PORT --tproxy-mark 0x1/0x1;;
 	esac
 
-	ipset -N bypass_all hash:net 2>/dev/null
+	ipset -N by_all hash:net 2>/dev/null
 	net=$(uci -qP /tmp/state get  network.wan.device) || net=$(uci -qP /tmp/state get network.wan.ifname)
 	[ $net ] || net=127.0.0.1
 	for i in $(ip -4 add show | grep -v $net | grep inet | grep -v 127.0.0.1 | awk '{print$2}');do
-		ipset -! add bypass_all $i
+		ipset -! add by_all $i
 	done
 
-	$ipt -I PREROUTING 1 -p udp $MATCH_SET -m set --match-set bypass_all src -m comment --comment "$TAG" -j SS_SPEC_TPROXY
+	$ipt -I PREROUTING 1 -p udp $MATCH_SET -m set --match-set by_all src -m comment --comment "$TAG" -j SS_SPEC_TPROXY
 }
 
 gen_include(){
