@@ -16,10 +16,13 @@ CON_T=$SDNS/rules.conf
 CON_AD=$T_FILE/ad_smartdns.txt
 PID=/tmp/run/smartdns.pid
 LOG=/tmp/log/$NAME.log
-
+chain_config_file=		   #generate shadowtls chain proxy config file
 MDNS=/tmp/etc/mosdns
 MDNS_D=/usr/share/bypass/gen_mosdns_default.yaml
 MDNS_T=$MDNS/mosdns_by.yaml
+MDNS_DN=/usr/share/bypass/gen_mosdns_defaultnf.yaml
+MDNS_TN=$MDNS/mosdns_bynf.yaml
+
 
 APP=/usr/share/bypass/app
 
@@ -229,18 +232,41 @@ gen_config_file(){
 		$BIN_DIR/genxrayconfig $1 $smode $lport $ssport $serv_ip >$config_file
 		sed -i 's/\\//g' $config_file ;;
  
-	hysteria)
-		lua $BIN_DIR/gen_config $1 $smode $lport $ssport >$config_file
-		;;
-
 	trojan)
 		case $rtype in
 		tcp|udp|nf) smode=nat;;
 		socks) smode=client;;
 		esac
-		lua $BIN_DIR/gen_config $1 $smode $lport "" $serv_ip >$config_file
+		lua $BIN_DIR/gen_config $1 $smode $lport >$config_file
 		sed -i 's/\\//g' $config_file
 		;;
+	naiveproxy)
+		case $rtype in
+		tcp)
+			lua $BIN_DIR/gen_config  $1 redir $lport >$config_file
+			;;
+		nf)
+			lua $BIN_DIR/gen_config  $1 redir $lport >$config_file
+			;;
+		socks)
+			lua $BIN_DIR/gen_config  $1 socks $lport >$config_file
+			;;
+		esac
+		sed -i 's/\\//g' $config_file
+		;;
+	hysteria)
+		lua $BIN_DIR/gen_config $1 $smode $lport $ssport >$config_file
+		;;
+	tuic)
+		case $rtype in
+		tcp|udp|nf)
+			lua $BIN_DIR/gen_config  $1 $smode $lport >$config_file
+			;;
+		socks)
+			lua $BIN_DIR/gen_config  $1 $smode $lport >$config_file
+			;;
+		esac
+		sed -i 's/\\//g' $config_file ;;
 	esac
 }
 
@@ -261,9 +287,10 @@ start_dns()
 			;;
 		esac
 	 else
-	      service_start $(which mosdns) start -c $MDNS_T 2>/dev/null
-	      dns_flag=2
-		case $run_mode in
+	      if [ $run_mode != oversea ];then
+	           service_start $(which mosdns) start -c $MDNS_T 2>/dev/null
+	           dns_flag=2
+		   case $run_mode in
 			gfw)  
 			   #service_start $(which chinadns-ng) -l 5337 -c "${bootstrap_dns}#53" -t '127.0.0.1#5335' -4 china_v4  -p 3 -6 china_v6 -f -n -m $VAR/gfw.list -M $([ $gfw_mode = 1 ] && echo -g $VAR/gfw.list) 
 			   #log "ChinaDNS : Start ChinaDNS-NG success!"
@@ -272,8 +299,13 @@ start_dns()
 			   service_start $(which chinadns-ng) -l 5337 -c "127.0.0.1#5335" -t '127.0.0.1#5335' -4 china_v4  -p 3 -6 china_v6 -f -n $([ $gfw_mode = 1 ] && echo -g $VAR/gfw.list) 
 		           log "ChinaDNS : Start ChinaDNS-NG success!"
 			;;
-		esac
+		   esac
+		   if [ "$NF" ] ;then
+		         service_start $(which mosdns) start -c $MDNS_TN 2>/dev/null
+		   fi
+		fi
 	 fi
+
 	if [[ "$(uci -q get dhcp.@dnsmasq[0].cachesize)" == "0" && $adguardhome == 0 ]]; then
 		uci -q set dhcp.@dnsmasq[0].cachesize='1500'
 		uci commit dhcp
@@ -507,7 +539,6 @@ start_reudp(){
 		;;
 	v2ray)
 		$BIN_DIR/genxrayconfig $UDP_RELAY_SERVER $rtype $local_port $port $server >$config_file
-		#gen_config_file $UDP_RELAY_SERVER $rtype 0 $udp_server
 		$cmd  run -c $config_file >/dev/null 2>&1 &
 		log "UDP Node: $($cmd -version | head -1 | awk '{print$1,$2}') $utype Started!"	;;
 	trojan)
@@ -666,39 +697,42 @@ get_dns(){  #$1:name/dnslnk  $2:dns/dnsip
 		ahadnsny_doh)dnslnk="https://185.213.26.187/dns-query";dnsip="185.213.26.187";;
 		cloudflare_dot)dnslnk="tls://1.1.1.1:853";dnsip="1.1.1.1";;
 		cloudflare2_dot)dnslnk="tls://1.0.0.1:853";dnsip="1.0.0.1";;
-		google_dot)dnslnk="8.8.4.4:853,8.8.8.8:853,dns.google:853";dnsip="8.8.4.4 8.8.8.8";;
-		quad9_dot)dnslnk="9.9.9.9:853,149.112.112.112:853,dns.quad9.net:853";dnsip="9.9.9.9 149.112.112.112";;
-		quad101tw_dot)dnslnk="101.101.101.101:853,dns.twnic.tw:853";dnsip="101.101.101.101 101.102.103.104";;
-		tiardns_dot)dnslnk="174.138.29.175:853,dot.tiar.app:853";dnsip="174.138.29.175 174.138.21.128" ;;
-		tiardnsjp_dot)dnslnk="172.104.93.80:853,jp.tiar.app:853";dnsip="172.104.93.80 104.21.30.162";;
-		blahdnsgermany_dot)dnslnk="78.46.244.143:853,dot-de.blahdns.com:853";dnsip="78.46.244.143 159.69.198.101";;
-		ahadnsny_dot)dnslnk="185.213.26.187:853,dot.ny.ahadns.net:853";dnsip="185.213.26.187";;
-		cloudflare_tcp)dnslnk="1.1.1.1";dnsip="1.1.1.1";;
-		cloudflare2_tcp)dnslnk="1.0.0.1";dnsip="1.0.0.1";;
-		google_tcp)dnslnk="8.8.4.4";dnsip="8.8.4.4";;
-		google2_tcp)dnslnk="8.8.8.8";dnsip="8.8.8.8";;
-		quad9_tcp)dnslnk="9.9.9.9";dnsip="9.9.9.9";;
-		quad92_tcp)dnslnk="149.112.112.112";dnsip="149.112.112.112";;
-		opendns_tcp)dnslnk="208.67.222.222";dnsip="208.67.222.222";;
-		opendns2_tcp)dnslnk="208.67.220.220";dnsip="208.67.220.220";;
+		google_dot)dnslnk="tls://dns.google:853";dnsip="8.8.4.4";;
+		google2_dot)dnslnk="tls://8.8.8.8:853";dnsip="8.8.8.8";;
+		quad9_dot)dnslnk="tls://dns.quad9.net:853";dnsip="9.9.9.9";;
+		quad92_dot)dnslnk="tls://149.112.112.112:853";dnsip="149.112.112.112";;
+		quad101tw_dot)dnslnk="tls://dns.twnic.tw:853";dnsip="101.101.101.101";;
+		quad101tw2_dot)dnslnk="tls://101.102.103.104:853";dnsip="101.102.103.104";;
+		tiardns_dot)dnslnk="tls://174.138.29.175:853,tls://dot.tiar.app:853";dnsip="174.138.29.175 174.138.21.128" ;;
+		tiardnsjp_dot)dnslnk="tls://172.104.93.80:853,tls://jp.tiar.app:853";dnsip="172.104.93.80 104.21.30.162";;
+		blahdnsgermany_dot)dnslnk="tls://78.46.244.143:853,tls://dot-de.blahdns.com:853";dnsip="78.46.244.143 159.69.198.101";;
+		ahadnsny_dot)dnslnk="tls://185.213.26.187:853,tls://dot.ny.ahadns.net:853";dnsip="185.213.26.187";;
+		cloudflare_tcp)dnslnk="tcp://1.1.1.1";dnsip="1.1.1.1";;
+		cloudflare2_tcp)dnslnk="tcp://1.0.0.1";dnsip="1.0.0.1";;
+		google_tcp)dnslnk="tcp://8.8.4.4";dnsip="8.8.4.4";;
+		google2_tcp)dnslnk="tcp://8.8.8.8";dnsip="8.8.8.8";;
+		quad9_tcp)dnslnk="tcp://9.9.9.9";dnsip="9.9.9.9";;
+		quad92_tcp)dnslnk="tcp://149.112.112.112";dnsip="149.112.112.112";;
+		opendns_tcp)dnslnk="tcp://208.67.222.222";dnsip="208.67.222.222";;
+		opendns2_tcp)dnslnk="tcp://208.67.220.220";dnsip="208.67.220.220";;
 		alidns_doh)dnslnk="https://223.5.5.5/dns-query";dnsip="223.5.5.5";;
 		alidns2_doh)dnslnk="https://223.6.6.6/dns-query";dnsip="223.6.6.6";;
 		dnspod_doh)dnslnk="https://175.24.219.66/dns-query";dnsip="175.24.219.66";;
 		dnspod2_doh)dnslnk="https://162.14.21.178/dns-query";dnsip="162.14.21.178";;
 		360dns_doh)dnslnk="https://101.198.191.4/dns-query";dnsip="101.226.4.6";;
 		360dns2_doh)dnslnk="https://doh.360.cn/dns-query";dnsip="101.198.191.4";;	
-		alidns_dot)dnslnk="223.5.5.5:853,223.6.6.6:853,dns.alidns.com:853";dnsip="223.5.5.5 223.6.6.6";;
-		dnspod_dot)dnslnk="1.12.12.12:853,dot.pub:853";dnsip="119.29.29.29 1.12.12.12";;
-		360dns_dot)dnslnk="23.6.48.18:853,180.163.249.75:853,dot.360.cn:853";dnsip="101.226.4.6 123.6.48.18";;
-		alidns_tcp)dnslnk="223.5.5.5";dnsip="223.5.5.5";;
-		dnspod_tcp)dnslnk="119.29.29.29";dnsip="119.29.29.29";;
-		360dns_tcp)dnslnk="101.226.4.6";dnsip="101.226.4.6";;
-		alidns2_tcp)dnslnk="223.6.6.6";dnsip="223.6.6.6";;
-		dnspod2_tcp)dnslnk="119.28.28.28";dnsip="119.28.28.28";;
-		360dns2_tcp)dnslnk="123.6.48.18";dnsip="123.6.48.18";;
-		114dns_tcp)dnslnk="114.114.114.114";dnsip="114.114.114.114";;
-		114dns2_tcp)dnslnk="114.114.115.115";dnsip="114.114.115.115";;
-		baidu_tcp)dnslnk="180.76.76.76";dnsip="180.76.76.76";;
+		alidns_dot)dnslnk="tls://223.5.5.5:853,tls://223.6.6.6:853,tls://dns.alidns.com:853";dnsip="223.5.5.5 223.6.6.6";;
+		dnspod_dot)dnslnk="tls://1.12.12.12:853,tls://dot.pub:853";dnsip="119.29.29.29 1.12.12.12";;
+		360dns_dot)dnslnk="tls://23.6.48.18:853,tls://180.163.249.75:853,tls://dot.360.cn:853";dnsip="101.226.4.6 123.6.48.18";;
+		alidns_tcp)dnslnk="tcp://223.5.5.5";dnsip="223.5.5.5";;
+		dnspod_tcp)dnslnk="tcp://119.29.29.29";dnsip="119.29.29.29";;
+		360dns_tcp)dnslnk="tcp://101.226.4.6";dnsip="101.226.4.6";;
+		alidns2_tcp)dnslnk="tcp://223.6.6.6";dnsip="223.6.6.6";;
+		dnspod2_tcp)dnslnk="tcp://119.28.28.28";dnsip="119.28.28.28";;
+		360dns2_tcp)dnslnk="tcp://123.6.48.18";dnsip="123.6.48.18";;
+		114dns_tcp)dnslnk="tcp://114.114.114.114";dnsip="114.114.114.114";;
+		114dns2_tcp)dnslnk="tcp://114.114.115.115";dnsip="114.114.115.115";;
+		baidu_tcp)dnslnk="tcp://180.76.76.76";dnsip="180.76.76.76";;
 		isp)
 			#isp_dns=$(ifstatus wan | jsonfilter -e '@["dns-server"]' | sed 's/\[//g; s/\]//g' | sed 's/"//g' | sed 's/ //g' | sed 's/,/ /g')
 			isp_dns=$REF
@@ -706,14 +740,12 @@ get_dns(){  #$1:name/dnslnk  $2:dns/dnsip
 			dnsip=$(echo $isp_dns | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+" | grep -v 0.0.0.0 | grep -v 127.0.0.1)
 			dnslnk=$dnsip;;
 		*)
-			dnsip=$(echo $1 | sed -e 's/，/,/g' -e 's/。/./g' -e 's/：/:/g' -e 's/,/\n/g')
-			[ -z "$dnsip" ] && dnsip=$(echo $1 |  awk -F/ '{print $3}')
-			# dnsip=$(echo $dnsip | grep -E -o "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+")
+			dnslnk=$(echo $1 | sed -e 's/，/,/g' -e 's/。/./g' -e 's/：/:/g' -e 's/,/\n/g')
+			dnsip=$(echo $dnslnk |  awk -F/ '{print $3}')
 			dnsip=$(echo $dnsip | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+" | grep -v 0.0.0.0 | grep -v 127.0.0.1)
 			if [ -z "$dnsip" ];then
 				dnsip="223.5.5.5,223.6.6.6,2400:3200::1,2400:3200:baba::1"
 			fi
-			dnslnk=$dnsip;;
 		esac
 		if [ "$2" == "dns" ];then 
 			   echo $dnsip
@@ -770,7 +802,9 @@ gen_smartdns(){
 		server=127.0.0.1#$port
 	EOF
 	if [ $run_mode = oversea ];then
+		for i in  $dns_remote; do ipset add oversea ${i%:*} 2>/dev/null ;done
 		awk '!/^$/&&!/^#/{printf("server=/%s/'"127.0.0.1#5335"'\n",$0)}' $T_FILE/oversea.list >$DNS_DIR/oversea.conf
+		awk '!/^$/&&!/^#/{printf("ipset=/%s/'"oversea"'\n",$0)}' $T_FILE/oversea.list >>$DNS_DIR/oversea.conf
 	else
 		[ $run_mode != gfw ] && echo -e "server=/msftconnecttest.com/127.0.0.1#5336\nserver=/msftncsi.com/127.0.0.1#5336" >> $DNS_FILE
 
@@ -1065,9 +1099,30 @@ gen_mosdns(){
 	  sed -i "s/POLLUTION/query_is_local_ip/g"  $MDNS_T
 	  for i in  $dns_local; do log "MosDNS : start in $i Local DNS Resolution!" ;done
     fi
+
     [ "x$ipv6mode" == "x1" ] && sed -i "s/IPV6MODE/remote_sequence_IPv6/g" $MDNS_T || sed -i "s/IPV6MODE/remote_sequence/g" $MDNS_T
+    
+    if [ "$NF" ];then
+	tmp_port=$nf_local_port
+	dns_nf=$(uci_get_by_type global nf_dns google_dot)
+	nf_dns=$(for i in  $dns_nf; do
+				log "MosDNS : start in $i NF DNS Resolution!"
+				echo "        - addr: $i"
+				echo "          socks5: \"127.0.0.1:$tmp_port\""
+				echo "          enable_pipeline: true"
+			done)
+
+	sed "s,DNS_PORT,$tmp_port,g" $MDNS_DN > $MDNS_TN
+	echo "${nf_dns}" > $TMPDIR/nf_dns.txt
+	sed -i -e '/- addr: remote_dns/{r '$TMPDIR/nf_dns.txt -e';d}' $MDNS_TN
+	[ "x$ipv6mode" == "x1" ] && sed -i "s/IPV6MODE/remote_sequence_IPv6/g" $MDNS_TN || sed -i "s/IPV6MODE/remote_sequence/g" $MDNS_TN
+	
+    fi
+    
 	if [ $run_mode = oversea ];then
+		for i in  $dns_remote; do ipset add oversea ${i%:*} 2>/dev/null ;done
 		awk '!/^$/&&!/^#/{printf("server=/%s/'"127.0.0.1#5335"'\n",$0)}' $T_FILE/oversea.list >$DNS_DIR/oversea.conf
+		awk '!/^$/&&!/^#/{printf("ipset=/%s/'"oversea"'\n",$0)}' $T_FILE/oversea.list >>$DNS_DIR/oversea.conf
 	else
 		[ $run_mode != gfw ] && echo -e "server=/msftconnecttest.com/127.0.0.1#5335\nserver=/msftncsi.com/127.0.0.1#5335" >> $DNS_FILE
 		if [ $run_mode != all ];then

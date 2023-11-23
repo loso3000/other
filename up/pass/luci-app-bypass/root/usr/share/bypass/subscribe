@@ -27,6 +27,7 @@ local switch = ucic:get_first(name, 'server_subscribe', 'switch', '0')
 local subscribe_url = ucic:get_first(name, 'server_subscribe', 'subscribe_url', {})
 local filter_words = ucic:get_first(name, 'server_subscribe', 'filter_words', '时间/剩余')
 local save_words = ucic:get_first(name, 'server_subscribe', 'save_words', '')
+local insecure = ucic:get_first(name, 'server_subscribe', 'insecure', 1)
 local v2_ss = SYS.exec('type -t -p ss-redir sslocal') ~= "" and "ss" or "v2ray"
 
 local v2_tj = SYS.exec('type -t -p trojan') ~= "" and "trojan" or "v2ray"
@@ -330,7 +331,7 @@ local function processData(szType, content)
 		result.v2ray_protocol = "trojan"
 		result.server = host[1]
 		-- 按照官方的建议 默认验证ssl证书
-		result.insecure = "0"
+		result.insecure = insecure
 		result.tls = "1"
 		if host[2]:find("?") then
 			local query = split(host[2], "?")

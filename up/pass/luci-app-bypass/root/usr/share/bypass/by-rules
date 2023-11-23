@@ -38,6 +38,7 @@ flush_r(){
 	ipset -X netflix 2>/dev/null
 	ipset -X china_v4 2>/dev/null
 	ipset -X china_v6 2>/dev/null
+	ipset -X oversea 2>/dev/null
 	ipset -X by_all 2>/dev/null
 	echo '#!/bin/sh' > $FWI
 }
@@ -98,7 +99,12 @@ EOF
 
 	case $MODE in
 		router)$IPT -A SS_SPEC_WAN_AC -m set ! --match-set china_v4 dst -j SS_SPEC_WAN_FW;;
-		oversea)$IPT -A SS_SPEC_WAN_AC -m set --match-set china_v4 dst -j SS_SPEC_WAN_FW;;
+		oversea)
+		      ipset -N oversea hash:net 2>/dev/null
+		      $IPT -I SS_SPEC_WAN_AC -m set --match-set oversea dst -j SS_SPEC_WAN_FW
+		      $IPT -A SS_SPEC_WAN_AC -m set --match-set gmlan src -j SS_SPEC_WAN_FW
+		      $IPT -A SS_SPEC_WAN_AC -m set --match-set china_v4 dst -j SS_SPEC_WAN_FW
+		      ;;
 		all)$IPT -A SS_SPEC_WAN_AC -j SS_SPEC_WAN_FW;;
 	esac
 
@@ -140,7 +146,11 @@ tp_rule(){
 
 	case $MODE in
 		router)$ipt -A SS_SPEC_TPROXY -p udp $PROXY_PORTS -m set ! --match-set china_v4 dst -j TPROXY --on-port $LOCAL_PORT --tproxy-mark 0x1/0x1;;
-		oversea)$ipt -A SS_SPEC_TPROXY -p udp $PROXY_PORTS -m set --match-set china_v4 dst -j TPROXY --on-port $LOCAL_PORT --tproxy-mark 0x1/0x1;;
+		oversea)
+		$ipt -A SS_SPEC_TPROXY -p udp $PROXY_PORTS -m set --match-set oversea src -m dst -j TPROXY --on-port "$LOCAL_PORT" --tproxy-mark 0x01/0x01
+		$ipt -A SS_SPEC_TPROXY -p udp -m set --match-set gmlan src -m set -j TPROXY --on-port "$LOCAL_PORT" --tproxy-mark 0x01/0x01
+		$ipt -A SS_SPEC_TPROXY -p udp $PROXY_PORTS -m set --match-set china_v4 dst -j TPROXY --on-port $LOCAL_PORT --tproxy-mark 0x01/0x01
+		;;
 		all)$ipt -A SS_SPEC_TPROXY -p udp $PROXY_PORTS -j TPROXY --on-port $LOCAL_PORT --tproxy-mark 0x1/0x1;;
 	esac
 

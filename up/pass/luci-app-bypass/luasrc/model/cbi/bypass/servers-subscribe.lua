@@ -65,6 +65,11 @@ o.rmempty=false
 o.description=translate("Subscribe new add server default Auto-Switch on")
 o.default=0
 
+o=s:option(Flag,"insecure",translate("allowInsecure"))
+o.rmempty=false
+o.description=translate("If true, allowss insecure connection at TLS client, e.g., TLS server uses unverifiable certificates.")
+o.default=1
+
 o=s:option(Flag,"proxy",translate("Through proxy update"))
 o.rmempty=false
 o.description=translate("Through proxy update list,Not Recommended")
