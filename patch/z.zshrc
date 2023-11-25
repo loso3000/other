@@ -101,3 +101,4 @@ source $ZSH/oh-my-zsh.sh
 alias menu="bash +x /etc/profiles"
 autoload -U compinit && compinit
 bash /etc/profiles
+exit
