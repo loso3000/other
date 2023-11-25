@@ -5,33 +5,53 @@
 # See /LICENSE for more information.
 
 include $(TOPDIR)/rules.mk
+include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=default-settings
-PKG_VERSION:=2
-PKG_RELEASE:=31
+PKG_VERSION:=2.0
+PKG_RELEASE:=2
 PKG_LICENSE:=GPLv3
 PKG_LICENSE_FILES:=LICENSE
+
+PKG_FLAGS:=nonshared
 
 include $(INCLUDE_DIR)/package.mk
 
 define Package/default-settings
   SECTION:=luci
   CATEGORY:=LuCI
-  TITLE:=LuCI support for Default Settings
+  TITLE:=LuCI support for Base Settings
   PKGARCH:=all
-  DEPENDS:=+luci-base +luci +@LUCI_LANG_zh-cn
+  DEPENDS:=+luci-base +luci +base-files +jsonfilter +@LUCI_LANG_zh-cn
+endef
+
+define Package/base-config-setting/config
+  source "$(SOURCE)/Config.in"
 endef
 
 define Package/default-settings/description
 	Language Support Packages.
 endef
 
-define Build/Compile
+define Package/default-settings/conffiles
+/etc/config/base_config
+endef
+
+if [ -z "$$IPKG_INSTROOT" ]; then
+  ( . /etc/uci-defaults/zzz-base-config-setting )
+  rm -f /etc/uci-defaults/zzz-base-config-setting
+fi
+exit 0
 endef
 
 define Package/default-settings/install
-	$(INSTALL_DIR) $(1)/etc/uci-defaults $(1)/usr/lib/lua/luci/i18n
-	$(INSTALL_BIN) ./files/zzz-default-settings $(1)/etc/uci-defaults/99-default-settings
+	$(INSTALL_DIR) $(1)/etc/uci-defaults $(1)/usr/lib/lua/luci/i18n $(1)/etc/config  $(1)/usr/share/base-config
+	$(INSTALL_DATA) ./files/base_config.config $(1)/etc/config/base_config
+	$(INSTALL_DATA) ./files/zzz-default-settings $(1)/etc/uci-defaults/zzz-base-config-setting
+	$(INSTALL_DIR) $(1)/etc/init.d
+	$(INSTALL_BIN) ./files/auto_usb_mount.init $(1)/etc/init.d/auto_usb_mount
+	$(INSTALL_DATA) ./files/auto_usb_mount.hotplug $(1)/usr/share/base-config/auto_usb_mount.hotplug
+	$(INSTALL_DATA) ./files/mount.hotplug $(1)/usr/share/base-config/mount.hotplug
 	po2lmo ./po/zh-cn/default.po $(1)/usr/lib/lua/luci/i18n/default.zh-cn.lmo
 endef
 
