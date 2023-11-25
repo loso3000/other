@@ -130,11 +130,16 @@ function k_change_ip() {
     if [[ -n "${keyip}" ]] && [[ ${keyip} == 'q'  ||  ${keyip} == 'Q'  ]]; then
     keyipy="Q"
   fi
- [ ! -s /etc/config/network ] && echo "The network is not ready, please wait " && sleep 30
- [ ! -s /etc/config/network ] && echo "The network is not ready, please wait... " && sleep 60
+
   case $keyipy in
   Y)
     export keyipn="${keyip}"
+    echo "修改中，请稍等...( please wait... )" && sleep 5
+    for i in `seq 1 600`; do
+		mount | grep overlayfs | grep 'workdir=/overlay/work' >/dev/null  2>&1
+		test $? -eq 0 && break
+		sleep 2
+    done
     uci set network.lan.ipaddr="${keyip}"
     uci commit network
     ER "您的IP已经改为(Your IP has been changed to)：${keyip}！"
@@ -409,7 +414,7 @@ function mainmenu() {
   EG " menu->调用菜单(Call Menu)  exit->退出zsh(Exit zsh) "
   EY " 1. 修改后台IPv4地址(Modify IPv4 address)"
   EY " 2. 清除密码并重启(Clear password and Reboot)"
-  EY " 3. 修复向导默认主题(Restore wizard default theme)"
+  EY " 3. 修复向导/默认主题(Restore wizard default theme)"
   EY " 4. 重启系统(Reboot)"
   EY " 5. 关闭系统(Shutdown)"
   EY " 6. 恢复出厂设置(Restore factory settings)"
@@ -498,6 +503,6 @@ function mainmenu() {
     done
 }
 goexit() {
-  exit 1
+  exit && exit
 }
 mainmenu
