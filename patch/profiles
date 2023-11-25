@@ -503,6 +503,6 @@ function mainmenu() {
     done
 }
 goexit() {
-  exit && exit
+  exit
 }
 mainmenu
