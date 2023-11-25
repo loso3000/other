@@ -334,8 +334,10 @@ if [ ` cat /etc/config/luci | grep immortalwrt` ] ;then
     echo "DISTRIB_DESCRIPTION='EzOpWrt "${new_DISTRIB_REVISION}"'" >> /etc/openwrt_release
 }
 
-    sed -i 's/immortalwrt/openwrt/g'  /etc/config/luci
+    sed -i 's/immortalwrt/openwrt/g' /etc/config/luci
+    # opkg mirror
     sed -i 's,downloads.immortalwrt.org,mirrors.vsean.net/openwrt,g' /etc/opkg/distfeeds.conf
+    # sed -i 's,downloads.immortalwrt.org,mirrors.vsean.net/openwrt,g' /etc/opkg/distfeeds.conf
 else
 sed -i '/DISTRIB_DESCRIPTION/d' /etc/openwrt_release
 echo "DISTRIB_DESCRIPTION='OpenWrt '" >> /etc/openwrt_release
@@ -344,7 +346,7 @@ echo "DISTRIB_DESCRIPTION='OpenWrt '" >> /etc/openwrt_release
     echo "DISTRIB_REVISION=' "${new_DISTRIB_REVISION}"'" >> /etc/openwrt_release
 }
 
-# opkg mirror
+# sed -i 's,downloads.openwrt.org,mirror.sjtu.edu.cn/openwrt,g' /etc/opkg/distfeeds.conf
 sed -i 's#downloads.openwrt.org#mirrors.cloud.tencent.com/lede#g' /etc/opkg/distfeeds.conf
 sed -i "s/# //g" /etc/opkg/distfeeds.conf
 sed -i '/openwrt_luci/ { s/snapshots/releases\/18.06.9/g; }'  /etc/opkg/distfeeds.conf
@@ -360,21 +362,19 @@ uci -q set base_config.@base[0].base$ver=$ver
 # set dockerd.globals if exist
 test $version -lt 6 && {
 	uci -q get dockerd.globals 2>/dev/null && {
-		uci -q set dockerd.globals.data_root='/data/docker/'
+		uci -q set dockerd.globals.data_root='/opt/docker/'
 		uci -q set dockerd.globals.auto_start='0'
 		uci commit dockerd
 	}
 	version=6
 uci -q set base_config.@base[0].base$ver=$ver
 }
+uci -q set base_config.@base[0].ver=$ver
+uci commit base_config
 ntpd -n -q -p 1.lede.pool.ntp.org
 sed -i '/log-facility/d' /etc/dnsmasq.conf
 echo "log-facility=/dev/null" >> /etc/dnsmasq.conf
-
 echo 'hsts=0' > /root/.wgetrc
 rm -rf /tmp/luci-*
-
-uci -q set base_config.@base[0].ver=$ver
-uci commit base_config
 
 exit 0
