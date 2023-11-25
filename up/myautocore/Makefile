@@ -18,13 +18,13 @@ define Package/myautocore-arm
   MAINTAINER:=CN_SZTL
   DEPENDS:=@(arm||aarch64) \
     +TARGET_bcm27xx:bcm27xx-userland \
-    +TARGET_bcm53xx:nvram +ethtool
+    +TARGET_bcm53xx:nvram +ethtool +lscpu
   VARIANT:=arm
 endef
 define Package/myautocore-x86
   TITLE:=x86/x64 auto core loadbalance script.
   MAINTAINER:=Lean
-  DEPENDS:=@TARGET_x86 +lm-sensors +ethtool
+  DEPENDS:=@TARGET_x86 +lm-sensors +ethtool +lscpu
   VARIANT:=x86
 endef
 
