@@ -79,8 +79,8 @@ test $ver -lt 2 && {
 frmware=`cat /etc/ezopenwrt_version | awk -F '-' '{printf $2}'`
 
 	[ "$(uci get dropbear.@dropbear[0] 2>/dev/null)" = "dropbear" ] && {
-		uci set dropbear.@dropbear[0].PasswordAuth='off'
-		uci set dropbear.@dropbear[0].RootPasswordAuth='off'
+		uci set dropbear.@dropbear[0].PasswordAuth='on'
+		uci set dropbear.@dropbear[0].RootPasswordAuth='on'
 		uci set dropbear.@dropbear[0].Port='22'
 		uci delete dropbear.@dropbear[0].Interface
 		uci commit dropbear
