@@ -1083,8 +1083,20 @@ gen_mosdns(){
 				echo "          enable_pipeline: true"
 				echo "          max_conns: 2"
 			done)
-
-    sed "s,DNS_PORT,5335,g" $MDNS_D > $MDNS_T
+    ad_list=$(uci -q get bypass.@global[0].ad_list)
+    if [ "x$ad_list" = "x1" ] ;then
+	   cp -f $VAR/ad_list.txt $O
+	   if [ -f "$O" ]; then
+			for line in $(cat $T_FILE/black.list); do sed -i "/$line/d" $O; done
+			for line in $(cat $T_FILE/white.list); do sed -i "/$line/d" $O; done
+			for line in $(cat $T_FILE/domain-block.list); do sed -i "/$line/d" $O; done
+	   fi
+	   cat  $O | sed '/^$/d' | sed '/#/d' | sed "/.*/s/.*/address=\/&\//" >$DNS_DIR/ad_list.txt
+	   adurl=$VAR/ad_list.txt
+    else
+	  touch /var/disable-adlist.txt ; adurl="/var/disable-ads.txt"
+    fi
+    sed "s,adfile,$adurl,g;s,DNS_PORT,5335,g" $MDNS_D > $MDNS_T
     # DNS
     echo "${local_dns}" > $TMPDIR/local_dns.txt
     echo "${remote_dns}" > $TMPDIR/remote_dns.txt
@@ -1168,16 +1180,7 @@ gen_mosdns(){
 	log "MosDNS : start in $bootstrap_dns Bootstrap DNS Resolution!"
 	[ $(find $DNS_DIR -name \* -exec cat {} \; 2>/dev/null | wc -l) = 0 ] && rm -rf $DNS_DIR
 	echo "conf-dir=${DNS_DIR}" >$DNS_FILE
-	ad_list=$(uci -q get bypass.@global[0].ad_list)
-	[[ $ad_list = 1  && -s $T_FILE/ad_list.txt ]] && {
-	   cp -f $T_FILE/ad_list.txt $O
-	   if [ -f "$O" ]; then
-			for line in $(cat $T_FILE/black.list); do sed -i "/$line/d" $O; done
-			for line in $(cat $T_FILE/white.list); do sed -i "/$line/d" $O; done
-			for line in $(cat $T_FILE/domain-block.list); do sed -i "/$line/d" $O; done
-	   fi
-	   cat  $O | sed '/^$/d' | sed '/#/d' | sed "/.*/s/.*/address=\/&\//" >$DNS_DIR/ad_list.txt
-	}
+
 	rm -rf $TMPDIR $O
 	[ $run_mode = router ] && chinadns_flag=1
 	start_dns

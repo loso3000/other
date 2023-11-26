@@ -29,6 +29,13 @@ plugins:
       files:
           - "/var/etc/bypass/gfw.list"
           - "/etc/bypass/black.list"
+
+  - tag: adlist
+    type: domain_set
+    args:
+      files:
+          - "adfile"
+
   - tag: forward_local
     type: forward
     args:
@@ -98,11 +105,18 @@ plugins:
     args:
       - matches: qname $geosite_no_cn
         exec: $remote_sequence
-
+  - tag: query_is_reject_domain
+    type: sequence
+    args:
+      - matches: qname $adlist
+        exec: reject 3
   - tag: main_sequence
     type: sequence
     args:
       - exec: $lazy_cache
+      - exec: jump has_resp_sequence
+      - exec: $query_is_reject_domain
+      - exec: jump has_resp_sequence
       - exec: $query_is_local_domain
       - exec: jump has_resp_sequence
       - exec: $query_is_no_local_domain
