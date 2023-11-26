@@ -1,7 +1,7 @@
 
 touch /etc/config/base_config
-uci get base_config.@base[0] >/dev/null 2>&1 || uci add base_config base >/dev/null 2>&1
-ver=$(uci get base_config.@base[0].ver 2>/dev/null)
+uci -q get base_config.@base[0] >/dev/null 2>&1 || uci add base_config base >/dev/null 2>&1
+ver=$(uci -q get base_config.@base[0].ver 2>/dev/null)
 test -n "$ver" || ver=0
 setup_ssid()
 {
@@ -15,17 +15,17 @@ setup_ssid()
     # local s="wlan$1"
     #local mac=`ifconfig ${s} | grep "HWaddr" | awk '{print $5}'`
     #local wifimac=`echo ${mac}|awk -F ":" '{print $4""$5""$6 }'|tr A-Z a-z|cut -c4-`
-    uci set wireless.${r}.disabled=0
-    uci set wireless.${r}.country=CN
-    if [ `uci get wireless.${r}.channel` -lt 14 ]; then
-        uci set wireless.${r}.channel=11
-        uci set wireless.default_${r}.ssid="${SSID}"-2.4G
+    uci -q set wireless.${r}.disabled=0
+    uci -q set wireless.${r}.country=CN
+    if [ `uci -q get wireless.${r}.channel` -lt 14 ]; then
+        uci -q set wireless.${r}.channel=11
+        uci -q set wireless.default_${r}.ssid="${SSID}"-2.4G
     else
-        uci set wireless.${r}.channel=149
-        uci set wireless.default_${r}.ssid="${SSID}"-5G
+        uci -q set wireless.${r}.channel=149
+        uci -q set wireless.default_${r}.ssid="${SSID}"-5G
     fi
-    uci set wireless.default_${r}.encryption='psk2'
-    uci set wireless.default_${r}.key="${SSID_PASSWD}"
+    uci -q set wireless.default_${r}.encryption='psk2'
+    uci -q set wireless.default_${r}.key="${SSID_PASSWD}"
     uci commit wireless
 }
 setup_network()
@@ -73,29 +73,20 @@ test $ver -lt 1 && {
     echo "lcp-echo-failure 10" >>  /etc/ppp/options 
     echo "lcp-echo-interval 200" >>  /etc/ppp/options
     ver=1
-    uci set base_config.@base[0].base$ver=$ver
+    uci -q set base_config.@base[0].base$ver=$ver
 }
 test $ver -lt 2 && {
 frmware=`cat /etc/ezopenwrt_version | awk -F '-' '{printf $2}'`
 
-	[ "$(uci get dropbear.@dropbear[0] 2>/dev/null)" = "dropbear" ] && {
-		uci set dropbear.@dropbear[0].PasswordAuth='on'
-		uci set dropbear.@dropbear[0].RootPasswordAuth='on'
-		uci set dropbear.@dropbear[0].Port='22'
-		uci delete dropbear.@dropbear[0].Interface
+	[ "$(uci -q get dropbear.@dropbear[0] 2>/dev/null)" = "dropbear" ] && {
+		uci -q set dropbear.@dropbear[0].PasswordAuth='on'
+		uci -q set dropbear.@dropbear[0].RootPasswordAuth='on'
+		uci -q set dropbear.@dropbear[0].Port='22'
+		uci -q set dropbear.@dropbear[0].Interface='lan'
 		uci commit dropbear
 		touch /etc/dropbear/authorized_keys && chmod 600 /etc/dropbear/authorized_keys
 	}
-	test -f /etc/config/uhttpd || test -d /etc/nginx/conf.d || test -f /etc/nginx/nginx.conf || {
-		uci set dropbear.@dropbear[0].PasswordAuth='on'
-		uci set dropbear.@dropbear[0].RootPasswordAuth='on'
-		uci commit dropbear
-	}
-	test -d /www/luci-static || {
-		uci set dropbear.@dropbear[0].PasswordAuth='on'
-		uci set dropbear.@dropbear[0].RootPasswordAuth='on'
-		uci commit dropbear
-	}
+
 uci -q batch <<-EOF
 set luci.main.lang='zh_cn'
 set luci.main.mediaurlbase='/luci-static/kucat'
@@ -120,8 +111,8 @@ set upnpd.config.enabled='0'
 set upnpd.config.igdv1='1'
 set mwan3.wan.enabled='0'
 EOF
-	[ "$(uci get firewall.@zone[0].name 2>/dev/null)" = "lan" ] && {
-		[ "$(uci get firewall.@zone[0].mtu_fix 2>/dev/null)" = "1" ] || uci set firewall.@zone[0].mtu_fix='1'
+	[ "$(uci -q get firewall.@zone[0].name 2>/dev/null)" = "lan" ] && {
+		[ "$(uci -q get firewall.@zone[0].mtu_fix 2>/dev/null)" = "1" ] || uci -q set firewall.@zone[0].mtu_fix='1'
 	}
 if [ $frmware = plus ] ;then
 uci -q batch <<-EOF
@@ -201,7 +192,7 @@ if ! uci -q get system.@imm_init[0].anon_mount > "/dev/null"; then
 	uci -q commit fstab
 	uci -q set system.@imm_init[0].anon_mount="1"
 fi
-uci set firewall.@defaults[0].fullcone='1'
+uci -q set firewall.@defaults[0].fullcone='1'
 [ $(grep -c shortcut_fe /etc/config/firewall) -eq '0' ] && uci -q  set firewall.@defaults[0].flow_offloading='1'
 uci -q  set firewall.@defaults[0].input='ACCEPT'
 uci -q get system.@imm_init[0] > "/dev/null" || uci -q add system imm_init > "/dev/null"
@@ -270,12 +261,12 @@ else
 fi
 
 	uci -q get dhcp.@dnsmasq[0] || uci add dhcp dnsmasq
-	uci set dhcp.@dnsmasq[0].cachesize="$cachesize"
-	uci set dhcp.@dnsmasq[0].dnsforwardmax="$dnsforwardmax"
-	uci set dhcp.@dnsmasq[0].localservice='0'
-	uci set dhcp.@dnsmasq[0].localise_queries='1'
-	uci set dhcp.@dnsmasq[0].rebind_protection='0'
-	uci set dhcp.@dnsmasq[0].rebind_localhost='1'
+	uci -q set dhcp.@dnsmasq[0].cachesize="$cachesize"
+	uci -q set dhcp.@dnsmasq[0].dnsforwardmax="$dnsforwardmax"
+	uci -q set dhcp.@dnsmasq[0].localservice='0'
+	uci -q set dhcp.@dnsmasq[0].localise_queries='1'
+	uci -q set dhcp.@dnsmasq[0].rebind_protection='0'
+	uci -q set dhcp.@dnsmasq[0].rebind_localhost='1'
 	uci commit dhcp
 	ver=3
 uci -q set base_config.@base[0].base$ver=$ver
@@ -309,7 +300,7 @@ test -f /etc/usb-mode.json && {
 }
 
 test $ver -lt 4 && {
-	uci set ucitrack.@fstab[0].exec='/sbin/block mount'
+	uci -q set ucitrack.@fstab[0].exec='/sbin/block mount'
 	uci commit ucitrack
 	ver=4
 uci -q set base_config.@base[0].base$ver=$ver

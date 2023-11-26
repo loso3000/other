@@ -12,8 +12,6 @@ PKG_RELEASE:=2
 PKG_LICENSE:=GPLv3
 PKG_LICENSE_FILES:=LICENSE
 
-PKG_FLAGS:=nonshared
-
 include $(INCLUDE_DIR)/package.mk
 
 define Package/default-settings
@@ -21,7 +19,7 @@ define Package/default-settings
   CATEGORY:=LuCI
   TITLE:=LuCI support for Base Settings
   PKGARCH:=all
-  DEPENDS:=+luci-base +luci +base-files +jsonfilter +@LUCI_LANG_zh-cn
+  DEPENDS:=+luci-base +luci +jsonfilter +@LUCI_LANG_zh-cn
 endef
 
 define Package/default-settings/description
@@ -48,6 +46,7 @@ define Package/default-settings/install
 	$(INSTALL_DATA) ./files/auto_usb_mount.hotplug $(1)/usr/share/base-config/auto_usb_mount.hotplug
 	$(INSTALL_DATA) ./files/mount.hotplug $(1)/usr/share/base-config/mount.hotplug
 	po2lmo ./po/zh-cn/default.po $(1)/usr/lib/lua/luci/i18n/default.zh-cn.lmo
+	po2lmo ./po/zh-cn/more.po $(1)/usr/lib/lua/luci/i18n/more.zh-cn.lmo
 endef
 
 $(eval $(call BuildPackage,default-settings))
