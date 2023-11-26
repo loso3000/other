@@ -3,6 +3,7 @@ touch /etc/config/base_config
 uci -q get base_config.@base[0] >/dev/null 2>&1 || uci add base_config base >/dev/null 2>&1
 ver=$(uci -q get base_config.@base[0].ver 2>/dev/null)
 test -n "$ver" || ver=0
+debug=1
 setup_ssid()
 {
     local r="$1"
@@ -73,6 +74,7 @@ test $ver -lt 1 && {
     echo "lcp-echo-failure 10" >>  /etc/ppp/options 
     echo "lcp-echo-interval 200" >>  /etc/ppp/options
     ver=1
+    [ x$debug = x1 ] && echo $ver
     uci -q set base_config.@base[0].base$ver=$ver
 }
 test $ver -lt 2 && {
@@ -269,6 +271,7 @@ fi
 	uci -q set dhcp.@dnsmasq[0].rebind_localhost='1'
 	uci commit dhcp
 	ver=3
+	    [ x$debug = x1 ] && echo $ver
 uci -q set base_config.@base[0].base$ver=$ver
 }
 
@@ -303,6 +306,7 @@ test $ver -lt 4 && {
 	uci -q set ucitrack.@fstab[0].exec='/sbin/block mount'
 	uci commit ucitrack
 	ver=4
+	    [ x$debug = x1 ] && echo $ver
 uci -q set base_config.@base[0].base$ver=$ver
 }
 
@@ -319,17 +323,7 @@ new_DISTRIB_REVISION=`cat  /etc/ezopenwrt_version`
 
 if [ ` cat /etc/config/luci | grep immortalwrt` ] ;then 
 
-[ -f /etc/ezopenwrt_version ]  && { 
-    sed -i '/DISTRIB_DESCRIPTION/d' /etc/openwrt_release
-    new_DISTRIB_REVISION=`cat  /etc/ezopenwrt_version`
-    echo "DISTRIB_DESCRIPTION='EzOpWrt "${new_DISTRIB_REVISION}"'" >> /etc/openwrt_release
-}
 
-    sed -i 's/immortalwrt/openwrt/g' /etc/config/luci
-    # opkg mirror
-    sed -i 's,downloads.immortalwrt.org,mirrors.vsean.net/openwrt,g' /etc/opkg/distfeeds.conf
-    # sed -i 's,downloads.immortalwrt.org,mirrors.vsean.net/openwrt,g' /etc/opkg/distfeeds.conf
-else
 sed -i '/DISTRIB_DESCRIPTION/d' /etc/openwrt_release
 echo "DISTRIB_DESCRIPTION='OpenWrt '" >> /etc/openwrt_release
 [ -f /etc/ezopenwrt_version ]  && { 
@@ -341,6 +335,17 @@ echo "DISTRIB_DESCRIPTION='OpenWrt '" >> /etc/openwrt_release
 sed -i 's#downloads.openwrt.org#mirrors.cloud.tencent.com/lede#g' /etc/opkg/distfeeds.conf
 sed -i "s/# //g" /etc/opkg/distfeeds.conf
 sed -i '/openwrt_luci/ { s/snapshots/releases\/18.06.9/g; }'  /etc/opkg/distfeeds.conf
+else
+[ -f /etc/ezopenwrt_version ]  && { 
+    sed -i '/DISTRIB_DESCRIPTION/d' /etc/openwrt_release
+    new_DISTRIB_REVISION=`cat  /etc/ezopenwrt_version`
+    echo "DISTRIB_DESCRIPTION='EzOpWrt "${new_DISTRIB_REVISION}"'" >> /etc/openwrt_release
+}
+
+    sed -i 's/immortalwrt/openwrt/g' /etc/config/luci
+    # opkg mirror
+    sed -i 's,downloads.immortalwrt.org,mirrors.vsean.net/openwrt,g' /etc/opkg/distfeeds.conf
+    # sed -i 's,downloads.immortalwrt.org,mirrors.vsean.net/openwrt,g' /etc/opkg/distfeeds.conf
 
 fi
 test $ver -lt 5 && {
@@ -348,6 +353,7 @@ test $ver -lt 5 && {
 	test -e /etc/nginx/conf.d/_lan.conf && \
 	/usr/bin/nginx-util 'add_ssl' '_lan'
 	ver=5
+	    [ x$debug = x1 ] && echo $ver
 uci -q set base_config.@base[0].base$ver=$ver
 }
 # set dockerd.globals if exist
@@ -358,6 +364,7 @@ test $version -lt 6 && {
 		uci commit dockerd
 	}
 	version=6
+	    [ x$debug = x1 ] && echo $ver
 uci -q set base_config.@base[0].base$ver=$ver
 }
 uci -q set base_config.@base[0].ver=$ver
