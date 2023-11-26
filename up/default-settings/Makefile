@@ -1,31 +1,27 @@
 #
-# Copyright (C) 2021 ImmortalWrt
-# <https://immortalwrt.org>
+# Copyright (C) 2016-2017 GitHub 
 #
-# This is free software, licensed under the GNU General Public License v2.
+# This is free software, licensed under the GNU General Public License v3.
 # See /LICENSE for more information.
-#
 
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=default-settings
-PKG_VERSION:=2.0
-PKG_RELEASE:=2
+PKG_VERSION:=2
+PKG_RELEASE:=25
 PKG_LICENSE:=GPLv3
+PKG_LICENSE_FILES:=LICENSE
 
 include $(INCLUDE_DIR)/package.mk
 
 define Package/default-settings
   SECTION:=luci
   CATEGORY:=LuCI
-  TITLE:=LuCI support for Base Settings
+  TITLE:=LuCI support for Default Settings
   PKGARCH:=all
   DEPENDS:=+luci-base +luci +jsonfilter +@LUCI_LANG_zh-cn
 endef
 
-define Package/default-settings/description
-	Language Support Packages.
-endef
 
 define Package/default-settings/conffiles
 /etc/config/base_config
@@ -36,6 +32,9 @@ if [ -z "$$IPKG_INSTROOT" ]; then
   rm -f /etc/uci-defaults/zzz-base-config-setting
 fi
 exit 0
+endef
+
+define Build/Compile
 endef
 
 define Package/default-settings/install
