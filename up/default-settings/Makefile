@@ -41,7 +41,7 @@ endef
 define Package/default-settings/install
 	$(INSTALL_DIR) $(1)/etc/uci-defaults $(1)/usr/lib/lua/luci/i18n $(1)/etc/config
 	$(INSTALL_DATA) ./files/base_config.config $(1)/etc/config/base_config
-	$(INSTALL_DATA) ./files/zzz-default-settings $(1)/etc/uci-defaults/zzz-base-config-setting
+	$(INSTALL_BIN) ./files/zzz-default-settings $(1)/etc/uci-defaults/zzz-base-config-setting
 	po2lmo ./po/zh-cn/default.po $(1)/usr/lib/lua/luci/i18n/default.zh-cn.lmo
 endef
 

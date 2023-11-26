@@ -1,4 +1,4 @@
-
+#!/bin/sh
 touch /etc/config/base_config
 uci -q get base_config.@base[0] >/dev/null 2>&1 || uci add base_config base >/dev/null 2>&1
 ver=$(uci -q get base_config.@base[0].ver 2>/dev/null)
