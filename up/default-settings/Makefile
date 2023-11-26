@@ -5,7 +5,6 @@
 # See /LICENSE for more information.
 
 include $(TOPDIR)/rules.mk
-include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=default-settings
 PKG_VERSION:=2.0
@@ -23,10 +22,6 @@ define Package/default-settings
   TITLE:=LuCI support for Base Settings
   PKGARCH:=all
   DEPENDS:=+luci-base +luci +base-files +jsonfilter +@LUCI_LANG_zh-cn
-endef
-
-define Package/base-config-setting/config
-  source "$(SOURCE)/Config.in"
 endef
 
 define Package/default-settings/description
