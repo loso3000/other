@@ -6,11 +6,11 @@ log(){
 	 echo "$(date +'%Y-%m-%d %H:%M:%S') By Check Network  :$*" >> /tmp/log/$NAME.log
 }
 
-B=1
+B=0
 while ! curl -so /dev/null -m 3 www.baidu.com;do
-   [ $B -ge 20 ]&& /etc/init.d/$NAME stop&& /etc/init.d/$NAME start
+   [ $B -ge 5 ]&& log "服务重启中...";/etc/init.d/$NAME stop;/etc/init.d/$NAME start
+   log "请检查网络,服务重启倒计时：$((5-B))"
    let B++
-   log "请检查网络..."
    sleep 2
 done
 if [ -z "$(uci -q get $NAME.@global[0].global_server)" ];then
