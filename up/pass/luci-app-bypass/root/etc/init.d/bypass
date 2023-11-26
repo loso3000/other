@@ -1020,7 +1020,7 @@ gen_smartdns(){
 }
 
 mget_dns(){ #$1 name  $2 dns
-	if [ "$2" == "dns" ];then 
+	if [ "$2" == "dns" ];then
 		for i in $1;do echo $(get_dns $i $2);done
 	else
 		for i in $1;do echo $(get_dns $i);done
@@ -1029,7 +1029,7 @@ mget_dns(){ #$1 name  $2 dns
 }
 
 add_dns_ipset() { #$1 ip  $2dns
-if [ "$2" == "dns" ];then 
+if [ "$2" == "dns" ];then
 	dns=$(echo $1 | awk -F/ '{print $3}')
 	[ "$dns" ] ||  dns=${1%:*}
 	[ "$dns" ] || return
@@ -1104,15 +1104,16 @@ gen_mosdns(){
     
     if [ "$NF" ];then
 	tmp_port=$nf_local_port
-	dns_nf=$(uci_get_by_type global nf_dns google_dot)
+	dns_nf=`mget_dns $(uci_get_by_type global nf_dns google_dot) `
 	nf_dns=$(for i in  $dns_nf; do
 				log "MosDNS : start in $i NF DNS Resolution!"
+				ipset add netflix ${i%:*} 2>/dev/null
 				echo "        - addr: $i"
 				echo "          socks5: \"127.0.0.1:$tmp_port\""
 				echo "          enable_pipeline: true"
 			done)
 
-	sed "s,DNS_PORT,$tmp_port,g" $MDNS_DN > $MDNS_TN
+	sed "s,DNS_PORT,5335,g" $MDNS_DN > $MDNS_TN
 	echo "${nf_dns}" > $TMPDIR/nf_dns.txt
 	sed -i -e '/- addr: remote_dns/{r '$TMPDIR/nf_dns.txt -e';d}' $MDNS_TN
 	[ "x$ipv6mode" == "x1" ] && sed -i "s/IPV6MODE/remote_sequence_IPv6/g" $MDNS_TN || sed -i "s/IPV6MODE/remote_sequence/g" $MDNS_TN
@@ -1167,6 +1168,16 @@ gen_mosdns(){
 	log "MosDNS : start in $bootstrap_dns Bootstrap DNS Resolution!"
 	[ $(find $DNS_DIR -name \* -exec cat {} \; 2>/dev/null | wc -l) = 0 ] && rm -rf $DNS_DIR
 	echo "conf-dir=${DNS_DIR}" >$DNS_FILE
+	ad_list=$(uci -q get bypass.@global[0].ad_list)
+	[[ $ad_list = 1  && -s $T_FILE/ad_list.txt ]] && {
+	   cp -f $T_FILE/ad_list.txt $O
+	   if [ -f "$O" ]; then
+			for line in $(cat $T_FILE/black.list); do sed -i "/$line/d" $O; done
+			for line in $(cat $T_FILE/white.list); do sed -i "/$line/d" $O; done
+			for line in $(cat $T_FILE/domain-block.list); do sed -i "/$line/d" $O; done
+	   fi
+	   cat  $O | sed '/^$/d' | sed '/#/d' | sed "/.*/s/.*/address=\/&\//" >$DNS_DIR/ad_list.txt
+	}
 	rm -rf $TMPDIR $O
 	[ $run_mode = router ] && chinadns_flag=1
 	start_dns
