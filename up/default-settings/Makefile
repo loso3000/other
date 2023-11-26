@@ -27,7 +27,7 @@ define Package/default-settings/conffiles
 /etc/config/base_config
 endef
 
-define Package/base-config-setting/postinst
+define Package/default-settings/postinst
 #!/bin/sh
 if [ -z "$$IPKG_INSTROOT" ]; then
   ( . /etc/uci-defaults/zzz-base-config-setting )
