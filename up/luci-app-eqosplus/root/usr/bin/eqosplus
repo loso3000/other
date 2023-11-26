@@ -17,11 +17,10 @@ else
      dev=`uci -q get $NAME.@$NAME[0].ifname `
 fi
 # [ x$(uci get eqosplus.@eqosplus[0].forced) = 'x1' ] && forced="default $id" || forced='default 999'
-bin_iptables=$(which iptables)   
-bin_ip6tables=$(which ip6tables)
-bin_tc=$(which tc)
-bin_ebtables=$(which ebtables)
-bin_ip=$(which ip)
+bin_iptables=$(command -v iptables-legacy || command -v iptables)
+bin_ip6tables=$(command -v ip6tables-legacy || command -v ip6tables)
+bin_tc=$(command tc)
+bin_ip=$(command ip)
 # Uncomment this to debug commands
 # DEBUG=1
 ## End
@@ -38,10 +37,6 @@ dbg_ip6tables() {
 dbg_tc() {
 	[ "${DEBUG:-0}" -eq 0 ] || echo "D: tc $@"
 	$bin_tc "$@" 
-}
-dbg_ebtables() {
-	[ "${DEBUG:-0}" -eq 0 ] || echo "D: ebtables $@"
-	$bin_ebtables "$@" 
 }
 dbg_ip() {
 	[ "${DEBUG:-0}" -eq 0 ] || echo "D: ip $@"
@@ -60,12 +55,16 @@ iptables="dbg_iptables"
 ip6tables="dbg_ip6tables"
 tc="dbg_tc"
 ip="dbg_ip"
-ebt="dbg_ebtables"
 ipt=$iptables
 ipt6=$ip6tables
 ipt(){
 	$iptables $@
 	$ip6tables $@
+}
+
+iptn(){
+	$iptables "-t nat $@"
+	$ip6tables "-t nat $@"
 }
 
 iptm(){
