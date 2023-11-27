@@ -7,7 +7,7 @@ if grep -Eq "x86" "/etc/openwrt_release" ; then
 else
 	ARCH=${DISTRIB_ARCH}	
 fi
-local IP_Address=`ip -4 a | egrep "br-lan" | grep "inet" | awk '{print $2}'`
+local IP_Address=`ip -4 a | grep "br-lan" | grep "inet" | awk '{print $2}'`
 local CPU_Model=$(awk -F ':[ ]' '/model name/{printf ($2);exit}' /proc/cpuinfo)
 local Mem_sum=$(free | grep Mem | awk '{a=$2/1024} {printf("%dMB\n",a)}')
 local Overlay_Available="$(df -h | grep ":/overlay" | awk '{print $4}' | awk 'NR==1')"
@@ -366,7 +366,7 @@ clear
 [ -n "$FAILSAFE" ] && cat /etc/banner.failsafe
 Sysinfo
 
-fgrep -sq '/ overlay ro,' /proc/mounts && {
+grep -Fsq '/ overlay ro,' /proc/mounts && {
 	echo -e "${Red}Your JFFS2-partition seems full and overlayfs is mounted read-only."
 	echo -e "Please try to remove files from /overlay/upper/... and reboot!${}"
 }
@@ -411,7 +411,7 @@ fi
 
 function mainmenu() {
   EB "     Sirdpboy快捷命令菜单(Shortcut Command Menu)   "
-  EG " menu->调用菜单(Call Menu)  exit->退出zsh(Exit zsh) "
+  EG "  menu->调用菜单(Call Menu) 进阶设置中可禁用/显示此快捷菜单 "
   EY " 1. 修改后台IPv4地址(Modify IPv4 address)"
   EY " 2. 清除密码并重启(Clear password and Reboot)"
   EY " 3. 修复向导/默认主题(Restore wizard default theme)"

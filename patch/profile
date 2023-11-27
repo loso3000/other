@@ -7,7 +7,7 @@ if grep -Eq "x86" "/etc/openwrt_release" ; then
 else
 	ARCH=${DISTRIB_ARCH}	
 fi
-local IP_Address=`ip -4 a | egrep "br-lan" | grep "inet" | awk '{print $2}'`
+local IP_Address=`ip -4 a | grep "br-lan" | grep "inet" | awk '{print $2}'`
 local CPU_Model=$(awk -F ':[ ]' '/model name/{printf ($2);exit}' /proc/cpuinfo)
 local Mem_sum=$(free | grep Mem | awk '{a=$2/1024} {printf("%dMB\n",a)}')
 local Overlay_Available="$(df -h | grep ":/overlay" | awk '{print $4}' | awk 'NR==1')"
@@ -109,6 +109,6 @@ in order to prevent unauthorized SSH logins.
 ------------------------------------------------
 EOF
 fi
-EG " menu->调用菜单(Call Menu) 进阶设置可取消SSH登陆菜单 "
+EG " menu->调用菜单(Call Menu) 进阶设置可禁用/显示SSH登陆菜单 "
 EW ""
 /usr/bin/zsh
