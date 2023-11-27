@@ -3,7 +3,11 @@ touch /etc/config/base_config
 uci -q get base_config.@base[0] >/dev/null 2>&1 || uci add base_config base >/dev/null 2>&1
 ver=$(uci -q get base_config.@base[0].ver 2>/dev/null)
 test -n "$ver" || ver=0
-debug=1
+#argon
+sed -i 's,media .. \"\/b,resource .. \"\/b,g' /usr/lib/lua/luci/view/themes/argon/sysauth.htm
+uci -q set luci.main.lang='auto'
+uci -q set luci.main.mediaurlbase='/luci-static/kucat'
+debug=0
 setup_ssid()
 {
     local r="$1"
@@ -60,7 +64,7 @@ test -n "$MACADDR" || MACADDR=$(head -c6 /dev/random | hexdump -e '/1 "%02X:"' |
 
 test $ver -lt 1 && {
     SSID_PASSWD=88888888
-
+    ver=1
     if [ `find /sys/class/net/ -name wlan* | wc -l` -gt 0 ]; then
       for i in radio0 radio1 radio2 radio3 wifi0 wifi1 wifi2 wifi3; do
             setup_ssid ${i}
@@ -73,13 +77,12 @@ test $ver -lt 1 && {
     sed -i '/lcp-echo/d' /etc/ppp/options
     echo "lcp-echo-failure 10" >>  /etc/ppp/options 
     echo "lcp-echo-interval 200" >>  /etc/ppp/options
-    ver=1
-    [ x$debug = x1 ] && echo $ver
-    uci -q set base_config.@base[0].base$ver=$ver
+	[ x$debug = x1 ] && uci -q set base_config.@base[0].base$ver=$?;echo $ver
 }
 test $ver -lt 2 && {
 frmware=`cat /etc/ezopenwrt_version | awk -F '-' '{printf $2}'`
 
+    ver=2
 	[ "$(uci -q get dropbear.@dropbear[0] 2>/dev/null)" = "dropbear" ] && {
 		uci -q set dropbear.@dropbear[0].PasswordAuth='on'
 		uci -q set dropbear.@dropbear[0].RootPasswordAuth='on'
@@ -90,8 +93,6 @@ frmware=`cat /etc/ezopenwrt_version | awk -F '-' '{printf $2}'`
 	}
 
 uci -q batch <<-EOF
-set luci.main.lang='zh_cn'
-set luci.main.mediaurlbase='/luci-static/kucat'
 set system.@system[0].timezone=CST-8
 set system.@system[0].zonename=Asia/Shanghai
 set system.@system[0].ttylogin='1'
@@ -100,7 +101,6 @@ add_list system.ntp.server='time1.cloud.tencent.com'
 add_list system.ntp.server='ntp1.aliyun.com'
 add_list system.ntp.server='ntp.ntsc.ac.cn'
 add_list system.ntp.server='cn.ntp.org.cn'
-set dhcp.@dnsmasq[0].cachesize='10000'
 set dhcp.@dnsmasq[0].min_ttl='3600'
 set dhcp.@dnsmasq[0].filter_aaaa='0'
 set dhcp.@dnsmasq[0].localservice='0'
@@ -187,7 +187,6 @@ set turboacc.config.sw_flow='0'
 EOF
 sed -i 's/\"nas\"/\"services\"/g' /usr/lib/lua/luci/controller/samba4.lua
 fi
-uci -q  set dropbear.@dropbear[0].Interface='lan'
 uci commit dropbear
 uci commit vsftpd
 uci commit luci
@@ -209,12 +208,12 @@ rm -f /usr/lib/lua/luci/view/admin_status/index/ddns.htm
 rm -f /usr/lib/lua/luci/view/admin_status/index/minidlna.htm
 rm -f /usr/lib/lua/luci/view/admin_status/index/mwan.htm
 rm -f /usr/lib/lua/luci/view/admin_status/index/upnp.htm
-ver=2
-uci -q  set base_config.@base[0].base$ver=$ver
+	[ x$debug = x1 ] && uci -q set base_config.@base[0].base$ver=$?;echo $ver
 }
 
 test $ver -lt 3 && {
 # kB
+ver=3
 memtotal=$(grep MemTotal /proc/meminfo | awk '{print $2}')
 cachesize=2048
 dnsforwardmax=2048
@@ -259,9 +258,7 @@ fi
 	uci -q set dhcp.@dnsmasq[0].rebind_protection='0'
 	uci -q set dhcp.@dnsmasq[0].rebind_localhost='1'
 	uci commit dhcp
-	ver=3
-	    [ x$debug = x1 ] && echo $ver
-uci -q set base_config.@base[0].base$ver=$ver
+	[ x$debug = x1 ] && uci -q set base_config.@base[0].base$ver=$?;echo $ver
 }
 
 # fix usb auto umount bug
@@ -292,11 +289,10 @@ test -f /etc/usb-mode.json && {
 }
 
 test $ver -lt 4 && {
+	ver=4
 	uci -q set ucitrack.@fstab[0].exec='/sbin/block mount'
 	uci commit ucitrack
-	ver=4
-	    [ x$debug = x1 ] && echo $ver
-uci -q set base_config.@base[0].base$ver=$ver
+	[ x$debug = x1 ] && uci -q set base_config.@base[0].base$ver=$? ; echo $ver
 }
 
 
@@ -338,23 +334,21 @@ else
 
 fi
 test $ver -lt 5 && {
+	ver=5
 	rm -f /etc/nginx/conf.d/_lan.crt  /etc/nginx/conf.d/_lan.key
 	test -e /etc/nginx/conf.d/_lan.conf && \
 	/usr/bin/nginx-util 'add_ssl' '_lan'
-	ver=5
-	    [ x$debug = x1 ] && echo $ver
-uci -q set base_config.@base[0].base$ver=$ver
+	[ x$debug = x1 ] && uci -q set base_config.@base[0].base$ver=$? ; echo $ver
 }
 # set dockerd.globals if exist
 test $ver -lt 6 && {
+	ver=6
 	uci -q get dockerd.globals 2>/dev/null && {
 		uci -q set dockerd.globals.data_root='/opt/docker/'
 		uci -q set dockerd.globals.auto_start='0'
 		uci commit dockerd
 	}
-	ver=6
-	 [ x$debug = x1 ] && echo $ver
-uci -q set base_config.@base[0].base$ver=$ver
+	[ x$debug = x1 ] && uci -q set base_config.@base[0].base$ver=$? ; echo $ver
 }
 uci -q set base_config.@base[0].ver=$ver
 uci commit base_config
