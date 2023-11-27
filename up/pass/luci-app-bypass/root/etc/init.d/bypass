@@ -1094,7 +1094,7 @@ gen_mosdns(){
 	   cat  $O | sed '/^$/d' | sed '/#/d' | sed "/.*/s/.*/address=\/&\//" >$DNS_DIR/ad_list.txt
 	   adurl=$VAR/ad_list.txt
     else
-	  touch /var/disable-adlist.txt ; adurl="/var/disable-ads.txt"
+	  touch /tmp/disable-adlist.txt ; adurl="/tmp/disable-adlist.txt"
     fi
     sed "s,adfile,$adurl,g;s,DNS_PORT,5335,g" $MDNS_D > $MDNS_T
     # DNS
