@@ -113,10 +113,8 @@ set upnpd.config.enabled='0'
 set upnpd.config.igdv1='1'
 set mwan3.wan.enabled='0'
 EOF
-	[ "$(uci -q get firewall.@zone[0].name 2>/dev/null)" = "lan" ] && {
-		[ "$(uci -q get firewall.@zone[0].mtu_fix 2>/dev/null)" = "1" ] || uci -q set firewall.@zone[0].mtu_fix='1'
-	}
-if [ $frmware = plus ] ;then
+
+if [ $frmware = Plus ] ;then
 uci -q batch <<-EOF
 set dhcp.lan.ndp=''
 set dhcp.lan.ra='hybrid'
@@ -149,7 +147,8 @@ sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/p910nd.lua
 sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/usb_printer.lua
 sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/xunlei.lua
 sed -i 's/services/nas/g'  /usr/lib/lua/luci/view/minidlna_status.htm
-elif  [ $frmware = bypass ] ;then
+
+elif  [ $frmware = Bypass ] ;then
 uci -q batch <<-EOF
 set dhcp.lan.ra=''
 set dhcp.lan.ndp=''
@@ -167,7 +166,9 @@ set network.wan.ipv6='0'
 set turboacc.config.sw_flow='0'
 EOF
 sed -i 's/\"nas\"/\"services\"/g' /usr/lib/lua/luci/controller/samba4.lua
+
 else
+
 uci -q batch <<-EOF
 set dhcp.lan.ra='hybrid'
 set dhcp.lan.dhcpv6='hybrid'
@@ -185,19 +186,6 @@ set turboacc.config.sw_flow='0'
 EOF
 sed -i 's/\"nas\"/\"services\"/g' /usr/lib/lua/luci/controller/samba4.lua
 fi
-if ! uci -q get system.@imm_init[0].lang > "/dev/null"; then
-	uci -q set luci.main.lang="auto"
-	uci -q set system.@imm_init[0].lang="1"
-fi
-if ! uci -q get system.@imm_init[0].anon_mount > "/dev/null"; then
-	uci -q set fstab.@global[0].anon_mount="1"
-	uci -q commit fstab
-	uci -q set system.@imm_init[0].anon_mount="1"
-fi
-uci -q set firewall.@defaults[0].fullcone='1'
-[ $(grep -c shortcut_fe /etc/config/firewall) -eq '0' ] && uci -q  set firewall.@defaults[0].flow_offloading='1'
-uci -q  set firewall.@defaults[0].input='ACCEPT'
-uci -q get system.@imm_init[0] > "/dev/null" || uci -q add system imm_init > "/dev/null"
 uci -q  set dropbear.@dropbear[0].Interface='lan'
 uci commit dropbear
 uci commit vsftpd
@@ -220,10 +208,10 @@ rm -f /usr/lib/lua/luci/view/admin_status/index/ddns.htm
 rm -f /usr/lib/lua/luci/view/admin_status/index/minidlna.htm
 rm -f /usr/lib/lua/luci/view/admin_status/index/mwan.htm
 rm -f /usr/lib/lua/luci/view/admin_status/index/upnp.htm
-rm -f /usr/lib/lua/luci/view/admin_status/index/ddns.htm
 ver=2
 uci -q  set base_config.@base[0].base$ver=$ver
 }
+
 test $ver -lt 3 && {
 # kB
 memtotal=$(grep MemTotal /proc/meminfo | awk '{print $2}')
@@ -310,7 +298,6 @@ test $ver -lt 4 && {
 uci -q set base_config.@base[0].base$ver=$ver
 }
 
-
 echo 'iptables -I zone_lan_forward -t filter -m conntrack --ctstate DNAT -j ACCEPT' >> /etc/firewall.user
 sed -i '/coremark/d' /etc/crontabs/root
 
@@ -357,14 +344,14 @@ test $ver -lt 5 && {
 uci -q set base_config.@base[0].base$ver=$ver
 }
 # set dockerd.globals if exist
-test $version -lt 6 && {
+test $ver -lt 6 && {
 	uci -q get dockerd.globals 2>/dev/null && {
 		uci -q set dockerd.globals.data_root='/opt/docker/'
 		uci -q set dockerd.globals.auto_start='0'
 		uci commit dockerd
 	}
-	version=6
-	    [ x$debug = x1 ] && echo $ver
+	ver=6
+	 [ x$debug = x1 ] && echo $ver
 uci -q set base_config.@base[0].base$ver=$ver
 }
 uci -q set base_config.@base[0].ver=$ver
