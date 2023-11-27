@@ -132,8 +132,8 @@ ethinfo() {
 	e=$(echo "$d" | grep "Link detected" | awk -F: '{printf $2}' | sed 's/^[ \t]*//g')
 	[ $e = yes ] && l=1 || l=0
 	f=$(echo "$d" |grep Speed | awk '{print $2/1000 " Gb/s"}' | sed 's/^[ \t]*//g' | tr -d "Unknown!")
-	[ $i == "eth0" -a -z "$f"  ]  && f="10Gb/s"  
 	[ -z "$f" -o "$f" = "0 Gb/s" ] && f="- Gb/s"
+	[ $i == "eth0" -a "$f" = "- Gb/s"  ]  && f="10Gb/s"  
 	g=$(echo "$d" | grep "Duplex" | awk -F: '{printf $2}' | sed 's/^[ \t]*//g')
 	[ "$g" == "Full" ] && x=1 || x=0
 	echo -n "$h \"$face[$i]\", \"status\": $l, \"duplex\": $x, \"speed\": \"$f\", \"mac\": \"$m\"},"
