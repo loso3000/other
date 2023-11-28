@@ -1,6 +1,4 @@
 #!/bin/sh
-. /lib/functions.sh
-
 [ "$ACTION" = ifup ] || exit 0
 if uci -q get bypass.@global[0].global_server >/dev/null;then
 	/etc/init.d/bypass stop

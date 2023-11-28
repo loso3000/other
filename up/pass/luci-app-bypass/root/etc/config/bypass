@@ -9,16 +9,18 @@ config global
 	option ad_list '0'
 	option proxy_ipv6_mode '0'
 	option dns_pollution '0'
-	list dns_remote 'cloudflare_doh'
 	list dns_remote 'google_doh'
+	list dns_remote 'cloudflare2_tcp'
+	list dns_remote 'quad9_tcp'
 	list dns_local 'alidns_doh'
-	list dns_local 'dnspod_doh'
+	list dns_local 'baidu_tcp'
 	option bootstrap_dns '114.114.114.114'
 	option enable_switch '1'
 	option switch_time '300'
 	option switch_timeout '5'
 	option switch_try_count '3'
 	option monitor_enable '1'
+	option dports '2'
 
 
 config socks5_proxy

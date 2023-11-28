@@ -682,8 +682,10 @@ get_dns(){  #$1:name/dnslnk  $2:dns/dnsip
     case $1 in
 		cloudflare_doh)dnslnk="https://1.1.1.1/dns-query";dnsip="1.1.1.1";;
 		cloudflare2_doh)dnslnk="https://162.159.36.1/dns-query";dnsip="162.159.36.1";;
+		cloudflare3_doh)dnslnk="https://dns.cloudflare.com/dns-query";dnsip="1.1.1.1";;
 		google_doh)dnslnk="https://8.8.4.4/dns-query";dnsip="8.8.4.4";;
 		google2_doh)dnslnk="https://8.8.8.8/dns-query";dnsip="8.8.8.8";;
+		google3_doh)dnslnk="https://dns.google/dns-query";dnsip="8.8.8.8";;
 		quad9_doh)dnslnk="https://9.9.9.9/dns-query";dnsip="9.9.9.9";;
 		quad92_doh)dnslnk="https://149.112.112.112/dns-query";dnsip="149.112.112.112";;
 		opendns_doh)dnslnk="https://146.112.41.2/dns-query";dnsip="208.67.222.222";;
@@ -717,9 +719,10 @@ get_dns(){  #$1:name/dnslnk  $2:dns/dnsip
 		opendns2_tcp)dnslnk="tcp://208.67.220.220";dnsip="208.67.220.220";;
 		alidns_doh)dnslnk="https://223.5.5.5/dns-query";dnsip="223.5.5.5";;
 		alidns2_doh)dnslnk="https://223.6.6.6/dns-query";dnsip="223.6.6.6";;
-		dnspod_doh)dnslnk="https://175.24.219.66/dns-query";dnsip="175.24.219.66";;
-		dnspod2_doh)dnslnk="https://162.14.21.178/dns-query";dnsip="162.14.21.178";;
-		360dns_doh)dnslnk="https://101.198.191.4/dns-query";dnsip="101.226.4.6";;
+		alidns3_doh)dnslnk="https://dns.alidns.com/dns-query";dnsip="223.6.6.6";;
+		dnspod_doh)dnslnk="https://162.14.21.178/dns-query";dnsip="162.14.21.178";;
+		dnspod2_doh)dnslnk="https://doh.pub/dns-query";dnsip="175.24.219.66";;
+		360dns_doh)dnslnk="https://101.226.4.6/dns-query";dnsip="101.226.4.6";;
 		360dns2_doh)dnslnk="https://doh.360.cn/dns-query";dnsip="101.198.191.4";;	
 		alidns_dot)dnslnk="tls://223.5.5.5:853,tls://223.6.6.6:853,tls://dns.alidns.com:853";dnsip="223.5.5.5 223.6.6.6";;
 		dnspod_dot)dnslnk="tls://1.12.12.12:853,tls://dot.pub:853";dnsip="119.29.29.29 1.12.12.12";;
