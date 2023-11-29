@@ -5,8 +5,13 @@ ver=$(uci -q get base_config.@base[0].ver 2>/dev/null)
 test -n "$ver" || ver=0
 #argon
 sed -i 's,media .. \"\/b,resource .. \"\/b,g' /usr/lib/lua/luci/view/themes/argon/sysauth.htm
-uci -q set luci.main.lang='zh-cn'
+uci -q set luci.main.lang='zh_cn'
 uci -q set luci.main.mediaurlbase='/luci-static/kucat'
+
+[[ -f /usr/lib/lua/luci/controller/dockerman.lua ]] || {
+/etc/init.d/dockerd disbled
+/etc/init.d/dockerd stop
+}
 debug=0
 setup_ssid()
 {
@@ -338,16 +343,6 @@ test $ver -lt 5 && {
 	rm -f /etc/nginx/conf.d/_lan.crt  /etc/nginx/conf.d/_lan.key
 	test -e /etc/nginx/conf.d/_lan.conf && \
 	/usr/bin/nginx-util 'add_ssl' '_lan'
-	[ x$debug = x1 ] && uci -q set base_config.@base[0].base$ver=$? ; echo $ver
-}
-# set dockerd.globals if exist
-test $ver -lt 6 && {
-	ver=6
-	uci -q get dockerd.globals 2>/dev/null && {
-		uci -q set dockerd.globals.data_root='/opt/docker/'
-		uci -q set dockerd.globals.auto_start='0'
-		uci commit dockerd
-	}
 	[ x$debug = x1 ] && uci -q set base_config.@base[0].base$ver=$? ; echo $ver
 }
 uci -q set base_config.@base[0].ver=$ver
