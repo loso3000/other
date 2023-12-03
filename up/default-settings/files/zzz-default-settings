@@ -9,7 +9,7 @@ uci -q set luci.main.lang='zh_cn'
 uci -q set luci.main.mediaurlbase='/luci-static/kucat'
 
 [[ -f /usr/lib/lua/luci/controller/dockerman.lua ]] || {
-/etc/init.d/dockerd disbled
+/etc/init.d/dockerd disable
 /etc/init.d/dockerd stop
 }
 debug=0
