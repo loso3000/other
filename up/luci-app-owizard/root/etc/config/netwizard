@@ -2,7 +2,6 @@
 config netwizard 'default'
 	option lan_netmask '255.255.255.0'
 	option ipv6 '0'
-	option lan_dhcp '0'
 	option redirectdns '0'
 	option synflood '1'
 
