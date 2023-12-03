@@ -168,7 +168,7 @@ set network.wan.mtu=1420
 set network.wan.metric='41'
 set network.wan.delegate='0'
 set network.wan.ipv6='0'
--q delete network.wan6
+delete network.wan6
 set turboacc.config.sw_flow='0'
 EOF
 sed -i 's/\"nas\"/\"services\"/g' /usr/lib/lua/luci/controller/samba4.lua
