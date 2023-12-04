@@ -9,38 +9,45 @@ NAME=eqosplus
 IDLIST="/var/$NAME.idlist"
 LOCK="/var/lock/$NAME.lock"
 TMPID="/var/$NAME.tmpid"
+
 if [ x$(uci get $NAME.@$NAME[0].ifname) = 'x1' ] ;then
-     dev=`ifconfig | grep "Point-to-Point" | cut -d " " -f1`
-     # [ ! ${dev} ] && dev=` uci -q get network.wan.ifname ` || dev=` uci -q get network.wan.device ` 
+     # dev=`ifconfig | grep "Point-to-Point" | cut -d " " -f1`
+     ifname=$(uci -q get network.lan.ifname ) 
+     [ "x$ifname" = "x" ] && ifname="device" || ifname="ifname" 
+     [ ! ${dev} ] && dev=` uci -q get network.wan.$ifname ` 
      [ ! ${dev} ] && dev=br-lan
+     dev=br-lan
+     #ALL_DEVICES=$(echo $(ifconfig | grep 'Point-to-Point' | cut -d ' ' -f1) $(uci -q get network.wan.$ifname) $(ports_for_device $(uci -q get network.wan.device)) | tr ' ' '\n' | sort -u)
+
 else
      dev=`uci -q get $NAME.@$NAME[0].ifname `
 fi
 # [ x$(uci get eqosplus.@eqosplus[0].forced) = 'x1' ] && forced="default $id" || forced='default 999'
-bin_iptables=$(command -v iptables-legacy || command -v iptables)
-bin_ip6tables=$(command -v ip6tables-legacy || command -v ip6tables)
-bin_tc=$(command tc)
-bin_ip=$(command ip)
+bin_iptables=$(which iptables)   
+bin_ip6tables=$(which ip6tables)
+bin_tc=$(which tc)
+bin_ip=$(which ip)
 # Uncomment this to debug commands
-# DEBUG=1
+DEBUG=0
 ## End
 # Debug functions - echo + run
 dbg_iptables() {
-	[ "${DEBUG:-0}" -eq 0 ] || echo "D: iptables $@"
-	$bin_iptables "$@" 
+	[ "${DEBUG:-0}" -eq 0 ] || echo "DEBUG: iptables $*"
+	$bin_iptables "$*" 
 }
 dbg_ip6tables() {
-	[ "${DEBUG:-0}" -eq 0 ] || echo "D: ip6tables $@"
-	$bin_ip6tables "$@" 
+	[ "${DEBUG:-0}" -eq 0 ] || echo "DEBUG: ip6tables $*"
+	$bin_ip6tables "$*" 
 }
 
 dbg_tc() {
-	[ "${DEBUG:-0}" -eq 0 ] || echo "D: tc $@"
-	$bin_tc "$@" 
+	[ "${DEBUG:-0}" -eq 0 ] || echo "DEBUG: tc $*"
+	$bin_tc $*
 }
+
 dbg_ip() {
-	[ "${DEBUG:-0}" -eq 0 ] || echo "D: ip $@"
-	$bin_ip "$@" 
+	[ "${DEBUG:-0}" -eq 0 ] || echo "DEBUG: ip $*"
+	$bin_ip $*
 }
 is_macaddr() {
     ret=1
@@ -58,23 +65,17 @@ ip="dbg_ip"
 ipt=$iptables
 ipt6=$ip6tables
 ipt(){
-	$iptables $@
-	$ip6tables $@
-}
-
-iptn(){
-	$iptables "-t nat $@"
-	$ip6tables "-t nat $@"
+	$iptables $*
+	$ip6tables $*
 }
 
 iptm(){
-	$iptables "-t mangle $@"
-	$ip6tables "-t mangle $@"
+	$iptables "-t mangle $*"
+	$ip6tables "-t mangle $*"
 }
 
 stop_qos() {
  
-
 	 for face in $( tc qdisc show | grep htb | awk '{print $5}');do
 		    $tc qdisc del dev $face root
 	 done
@@ -132,6 +133,7 @@ filter_mac() {
   $TCF match u32 0x${M1}${M2} 0xFFFFFFFF at -12 match u16 0x${M0} 0xFFFF at -14 flowid $2
 }
 add_mac() {
+
 	id=`expr $1 + 11 `
 	M0=$(echo $mac | cut -d : -f 1)$(echo $mac | cut -d : -f 2)
 	M1=$(echo $mac | cut -d : -f 3)$(echo $mac | cut -d : -f 4)
