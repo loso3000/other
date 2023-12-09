@@ -60,7 +60,6 @@ while :;do
 			log "Redir UDP Error. Restart!"
 		re
 	fi
-	fi
 #redir netflix
 	if [ $redir_nf = 1 ] && [ $(ps -w | grep by-nf | grep -v grep | wc -l) = 0 ];then
 			log "Redir Netflix Error. Restart!"

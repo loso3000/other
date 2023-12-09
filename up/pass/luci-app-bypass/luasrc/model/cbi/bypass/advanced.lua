@@ -47,6 +47,9 @@ o.default=1
 o=s:option(Flag,"enable_switch",translate("Enable Auto Switch"))
 o.default=1
 
+o=s:option(Value,"start_delay",translate("Start Run Delay(second)"))
+o.datatype="uinteger"
+o.default=600
 o=s:option(Value,"switch_time",translate("Switch check cycly(second)"))
 o.datatype="uinteger"
 o.default=300
