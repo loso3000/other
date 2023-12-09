@@ -200,7 +200,7 @@ msgid "Auto Update"
 msgstr "自动更新"
 
 msgid "Start Run Delay(second)"
-msgstr "启动运行延迟（秒）"
+msgstr "开机时延时启动（秒）"
 
 msgid "Auto Update Server subscription,GFW list and CHN route"
 msgstr "自动更新服务器订阅、GFW列表和 CHN路由表"
