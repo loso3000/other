@@ -21,7 +21,7 @@ config global
 	option switch_try_count '3'
 	option monitor_enable '1'
 	option dports '2'
-	option start_delay '600'
+	option start_delay '60'
 
 
 config socks5_proxy
