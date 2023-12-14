@@ -316,8 +316,9 @@ if [ ` cat /etc/config/luci | grep immortalwrt` ] ;then
 
 sed -i '/DISTRIB_DESCRIPTION/d' /etc/openwrt_release
 echo "DISTRIB_DESCRIPTION='OpenWrt '" >> /etc/openwrt_release
+sed -i '/DISTRIB_REVISION/d' /etc/openwrt_release
+echo '' >/etc/openwrt_version
 [ -f /etc/ezopenwrt_version ]  && { 
-    sed -i '/DISTRIB_REVISION/d' /etc/openwrt_release
     echo "DISTRIB_REVISION=' "${new_DISTRIB_REVISION}"'" >> /etc/openwrt_release
 }
 
