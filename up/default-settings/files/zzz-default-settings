@@ -328,6 +328,7 @@ sed -i '/openwrt_luci/ { s/snapshots/releases\/18.06.9/g; }'  /etc/opkg/distfeed
 else
 [ -f /etc/ezopenwrt_version ]  && { 
     sed -i '/DISTRIB_DESCRIPTION/d' /etc/openwrt_release
+    sed -i '/DISTRIB_REVISION/d' /etc/openwrt_release
     new_DISTRIB_REVISION=`cat  /etc/ezopenwrt_version`
     echo "DISTRIB_DESCRIPTION='EzOpWrt "${new_DISTRIB_REVISION}"'" >> /etc/openwrt_release
 }
