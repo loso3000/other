@@ -1,0 +1,22 @@
+#!/bin/sh
+uci batch <<EOF
+	delete ucitrack.@bypass[-1]
+	add ucitrack bypass
+	set ucitrack.@bypass[-1].init=bypass
+	commit ucitrack
+	delete firewall.bypass
+	set firewall.bypass=include
+	set firewall.bypass.type=script
+	set firewall.bypass.path=/var/etc/bypass.include
+	set firewall.bypass.reload=1
+	commit firewall
+	set uhttpd.main.max_requests=50
+	commit uhttpd
+EOF
+
+chmod +x /etc/init.d/bypass /usr/share/bypass/* >/dev/null 2>&1
+[ ! -s "/etc/config/bypass" ] && cp -f /usr/share/bypass/bypass_config /etc/config/bypass
+rm -f /tmp/luci-indexcache
+rm -rf /tmp/luci-modulecache/
+killall -HUP rpcd 2>/dev/null
+exit 0
