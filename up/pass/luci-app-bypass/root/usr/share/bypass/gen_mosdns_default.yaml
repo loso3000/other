@@ -29,7 +29,6 @@ plugins:
       files:
           - "/var/etc/bypass/gfw.list"
           - "/etc/bypass/black.list"
-
   - tag: adlist
     type: domain_set
     args:
