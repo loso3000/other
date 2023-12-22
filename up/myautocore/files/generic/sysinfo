@@ -126,14 +126,15 @@ ethinfo() {
     for i in $(ip address | awk -F ': ' '/eth[0-9]+/ {print $2}' | awk -F '@' {'print $1'} | awk '{ if ( length($0) <=7 ) print $0}' | xargs)
     do
 	h=$(echo '{"face":' )
-	d=$(ethtool $i)
+	d=`ethtool $i`
 	face=$(uci show network | grep "$i" | head -n1 |awk -F '.'  '{print $2}' | awk -F '_'  '{print $1}')
+	[ $face == '@device[0]' ] && face=$(uci get network.$face.name | awk -F '-' '{print $2}')
 	m=$(ifconfig | grep "$i" | head -n1 | awk -F 'HWaddr ' '{print $2}')
 	e=$(echo "$d" | grep "Link detected" | awk -F: '{printf $2}' | sed 's/^[ \t]*//g')
 	[ $e = yes ] && l=1 || l=0
 	f=$(echo "$d" |grep Speed | awk '{print $2/1000 " Gb/s"}' | sed 's/^[ \t]*//g' | tr -d "Unknown!")
 	[ -z "$f" -o "$f" = "0 Gb/s" ] && f="- Gb/s"
-	[ $i == "eth0" -a "$f" = "- Gb/s"  ]  && f="10Gb/s"  
+	[ $i == "eth0" -a "$f" = "- Gb/s"  ]  && f="10 Gb/s"  
 	g=$(echo "$d" | grep "Duplex" | awk -F: '{printf $2}' | sed 's/^[ \t]*//g')
 	[ "$g" == "Full" ] && x=1 || x=0
 	echo -n "$h \"$face[$i]\", \"status\": $l, \"duplex\": $x, \"speed\": \"$f\", \"mac\": \"$m\"},"
