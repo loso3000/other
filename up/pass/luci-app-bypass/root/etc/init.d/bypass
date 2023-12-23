@@ -1054,7 +1054,6 @@ mget_dns(){ #$1 name  $2 dns
 	else
 		for i in $1;do echo $(get_dns $i);done
 	fi
-
 }
 
 add_dns_ipset() { #$1 ip  $2dns
@@ -1073,8 +1072,6 @@ else
 	esac
 fi
 }
-
-
 gen_mosdns(){
    TMPDIR=$(mktemp -d) || exit 1
    

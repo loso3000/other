@@ -15,7 +15,6 @@ plugins:
           - "/var/etc/bypass/domains_cn.txt"
           - "/etc/bypass/white.list"
 
-
   - tag: geoip_cn
     type: ip_set
     args:
@@ -29,6 +28,7 @@ plugins:
       files:
           - "/var/etc/bypass/gfw.list"
           - "/etc/bypass/black.list"
+
   - tag: adlist
     type: domain_set
     args:
