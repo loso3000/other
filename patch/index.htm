@@ -10,6 +10,7 @@
 	local util = require "luci.util"
 	local stat = require "luci.tools.status"
 	local ver = require "luci.version"
+	local SYS = require "luci.sys"
 	local uci = require("luci.model.uci").cursor()
 	local has_ipv6 = fs.access("/usr/sbin/ip6tables")
 	local has_dhcp = fs.access("/etc/config/dhcp")
@@ -26,7 +27,7 @@
 		shared = 0
 	}
 	
-	local mem_cached = luci.sys.exec("sed -e '/^Cached: /!d; s#Cached: *##; s# kB##g' /proc/meminfo")
+	local mem_cached = SYS.exec("sed -e '/^Cached: /!d; s#Cached: *##; s# kB##g' /proc/meminfo")
 
 	local swapinfo = sysinfo.swap or {
 		total = 0,
@@ -59,17 +60,17 @@ end
 
 		local conn_count = tonumber(fs.readfile("/proc/sys/net/netfilter/nf_conntrack_count") or "")
 
-		local conn_max = tonumber(luci.sys.exec("sysctl -n -e net.nf_conntrack_max net.ipv4.netfilter.ip_conntrack_max"):match("%d+")) or 4096
- 		local eth_info = luci.sys.exec("sysinfo ethinfo")
+		local conn_max = tonumber(SYS.exec("sysctl -n -e net.nf_conntrack_max net.ipv4.netfilter.ip_conntrack_max"):match("%d+")) or 4096
+ 		local eth_info = SYS.exec("sysinfo ethinfo")
 
-		local cpu_speed = luci.sys.exec("sysinfo cpuspeed")
-		local user_info = tonumber(luci.sys.exec("cat /proc/net/arp | grep '0x2' | wc -l")) or 0
-		local cpu_wd =luci.sys.exec("sysinfo tempinfo")
-		local upnp_info = luci.sys.exec("sysinfo upnpinfo")
-		local cpu_usage = (luci.sys.exec("expr 100 - $(top -n 1 | grep 'CPU:' | awk -F '%' '{print$4}' | awk -F ' ' '{print$2}')") or "6") .. "%"
+		local cpu_speed = SYS.exec("sysinfo cpuspeed")
+		local user_info = SYS.exec("sysinfo user")
+		local cpu_wd =SYS.exec("sysinfo tempinfo")
+		local upnp_info = SYS.exec("sysinfo upnpinfo")
+		local cpu_usage = (SYS.exec("expr 100 - $(top -n 1 | grep 'CPU:' | awk -F '%' '{print$4}' | awk -F ' ' '{print$2}')") or "6") .. "%"
 
 
-		local up_time = luci.sys.exec("sysinfo cntime")
+		local up_time = SYS.exec("sysinfo cntime")
 		local rv = {
 			cpuusage   = cpu_usage,
 			cpuwd    = cpu_wd,
@@ -119,7 +120,7 @@ end
 		end
 
 		if has_dsl then
-			local dsl_stat = luci.sys.exec("/etc/init.d/dsl_control lucistat")
+			local dsl_stat = SYS.exec("/etc/init.d/dsl_control lucistat")
 			local dsl_func = loadstring(dsl_stat)
 			if dsl_func then
 				rv.dsl = dsl_func()
@@ -132,7 +133,7 @@ end
 		return
 	elseif luci.http.formvalue("hosts") == "1" then
 		luci.http.prepare_content("application/json")
-		luci.http.write_json(luci.sys.net.host_hints())
+		luci.http.write_json(SYS.net.host_hints())
 
 		return
 	end
@@ -202,7 +203,7 @@ end
 	}
 
 	var npoll = 1;
-	var hosts = <%=luci.http.write_json(luci.sys.net.host_hints())%>;
+	var hosts = <%=luci.http.write_json(SYS.net.host_hints())%>;
 
 	function updateHosts() {
 		XHR.get('<%=REQUEST_URI%>', { hosts: 1 }, function(x, data) {
@@ -443,7 +444,7 @@ end
 									     dname = aname.substring(0,index1) ;
 									else
 									     dname = aname.substring(0);
-									if ( dname == "rpi" ||dname == "r" || dname == "raspberrypi" ||dname == "openwrt" )
+									if ( dname == "rpi" ||dname == "r" || dname == "raspberrypi" ||dname == "openwrt" ||dname == "ImmortalWrt")
 										return String.format('<img src="<%=resource%>/icons/devices/router.png" />');
 									if ( dname == "ap" ||dname == "miwifi" || dname == "linksys" || dname == "tp" || dname == "dlink" || dname == "mercury" || dname == "ruijie" || dname == "tenda")
 										return String.format('<img src="<%=resource%>/icons/devices/router.png" />');
@@ -880,21 +881,21 @@ end
 	<legend><%:System%></legend>
 
 	<table width="100%" cellspacing="10">
-		<tr><td width="33%"><%:Hostname%></td><td><%=luci.sys.hostname() or "?"%></td></tr>
+		<tr><td width="33%"><%:Hostname%></td><td><%=SYS.hostname() or "?"%></td></tr>
 		<tr><td width="33%"><%:Model%></td><td><%=pcdata(boardinfo.model or "?")%></td></tr>
 		<% if has_boot then %> 
 		<tr><td width="33%"><%:Target Platform%></td><td><%=pcdata(boardinfo.release.target or "?")%> - UEFI </td></tr>
         <% else %> 
 		<tr><td width="33%"><%:Target Platform%></td><td><%=pcdata(boardinfo.release.target or "?")%> - BIOS </td></tr>
 		<% end %>
-		<tr><td width="33%"><%:CPU Info%></td><td><%=luci.sys.exec("sysinfo cpuinfo") or "?"%>  <%=luci.sys.exec("cat /etc/bench.log | awk -F '.' '{print $1}'") or " "%></td></tr>
+		<tr><td width="33%"><%:CPU Info%></td><td><%=SYS.exec("sysinfo cpuinfo") or "?"%>  <%=SYS.exec("cat /etc/bench.log | awk -F '.' '{print $1}'") or " "%></td></tr>
 		<tr><td width="33%"><%:CPU主频%></td><td id="cpuspeed">-</td></tr>
-		<% if luci.sys.exec("sysinfo tempinfo") > "0"  then %> 
+		<% if SYS.exec("sysinfo tempinfo") > "0"  then %> 
 		<tr><td width="33%"><%:CPU Temperature%></td><td id="cpuwd">-</td></tr>
 		<% end %>
 		<tr><td width="33%"><%:CPU负载%></td><td id="cpuusage">-</td></tr>
 
-        <tr><td width="33%"><%:RAM Size%></td><td ><%=luci.sys.exec("sysinfo memory")%></td></tr>
+        <tr><td width="33%"><%:RAM Size%></td><td ><%=SYS.exec("sysinfo memory")%></td></tr>
 
 		<tr><td width="33%"><%:Firmware Version%></td><td>
 			<%=pcdata(ver.distname)%> <%=pcdata(ver.distversion)%>
@@ -903,7 +904,6 @@ end
 		<tr><td width="33%"><%:Local Time%></td><td id="localtime">-</td></tr>
 		<tr><td width="33%"><%:Uptime%></td><td id="uptime">-</td></tr>
 		<tr><td width="33%"><%:Load Average%></td><td id="loadavg">-</td></tr>
-
 </table>
 </fieldset>
 
@@ -958,7 +958,7 @@ end
 </fieldset>
 
 <fieldset class="cbi-section">
-	<legend><%:Online Users%></legend>
+	<legend><%:Online User%></legend>
 	<table class="cbi-section-table" id="online_status_table">
 		<tr class="cbi-section-table-titles">
 
@@ -972,7 +972,7 @@ end
 			<td colspan="5"><em><br /><%:Collecting data...%></em></td>
 		</tr>
 	</table>
-	<table width="100%" cellspacing="10" id="online">
+	<table width="100%" cellspacing="10">
 		<tr><td width="33%"><%:Online Users%></td><td id="userinfo">0</td></tr>
 	</table>
 </fieldset>
@@ -1057,16 +1057,5 @@ end
 </fieldset>
 <% end %>
 
-<%-
-	local incdir = util.libpath() .. "/view/admin_status/index/"
-	if fs.access(incdir) then
-		local inc
-		for inc in fs.dir(incdir) do
-			if inc:match("%.htm$") then
-				include("admin_status/index/" .. inc:gsub("%.htm$", ""))
-			end
-		end
-	end
--%>
 
 <%+footer%>
