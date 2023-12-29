@@ -1,0 +1,5 @@
+#!/bin/sh
+if [ "$ACTION" = "ifup" -o  "$ACTION" = "ifupupdate"  ] ;then
+  ip a | grep pppoe-  
+/etc/init.d/udpxy restart
+fi

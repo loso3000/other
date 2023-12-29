@@ -1,0 +1,6 @@
+#!/bin/sh
+if [[ "$ACTION" == "ifup" || "$ACTION" == "ifupupdate" ]]; then
+ if ip a | grep -q pppoe-; then
+   /etc/init.d/msd_lite restart
+ fi
+fi
