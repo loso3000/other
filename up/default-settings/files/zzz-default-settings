@@ -66,9 +66,12 @@ test -n "$MACADDR" || MACADDR=$(cat /sys/class/net/eth0/address | tr a-f A-F)
 test -n "$MACADDR" || MACADDR=$(cat /sys/class/net/eth1/address | tr a-f A-F)
 test -n "$MACADDR" || MACADDR=$(head -c6 /dev/urandom | hexdump -e '/1 "%02X:"' | head -c17)
 test -n "$MACADDR" || MACADDR=$(head -c6 /dev/random | hexdump -e '/1 "%02X:"' | head -c17)
+SSID_PASSWD=88888888
+sed -i '/option disabled/d' /etc/config/wireless  >/dev/null 2>&1
+sed -i '/set wireless.radio${devidx}.disabled/d' /lib/wifi/mac80211.sh   >/dev/null 2>&1
+wifi up
 
 test $ver -lt 1 && {
-    SSID_PASSWD=88888888
     ver=1
     if [ `find /sys/class/net/ -name wlan* | wc -l` -gt 0 ]; then
       for i in radio0 radio1 radio2 radio3 wifi0 wifi1 wifi2 wifi3; do
@@ -77,7 +80,6 @@ test $ver -lt 1 && {
     fi
     sed -i '/option disabled/d' /etc/config/wireless  >/dev/null 2>&1
     sed -i '/set wireless.radio${devidx}.disabled/d' /lib/wifi/mac80211.sh   >/dev/null 2>&1
-    wifi up
     setup_network
     sed -i '/lcp-echo/d' /etc/ppp/options
     echo "lcp-echo-failure 10" >>  /etc/ppp/options 
@@ -85,8 +87,7 @@ test $ver -lt 1 && {
 	[ x$debug = x1 ] && uci -q set base_config.@base[0].base$ver=$?;echo $ver
 }
 test $ver -lt 2 && {
-frmware=`cat /etc/ezopenwrt_version | awk -F '-' '{printf $2}'`
-
+   frmware=`cat /etc/ezopenwrt_version | awk -F '-' '{printf $2}'`
     ver=2
 	[ "$(uci -q get dropbear.@dropbear[0] 2>/dev/null)" = "dropbear" ] && {
 		uci -q set dropbear.@dropbear[0].PasswordAuth='on'
