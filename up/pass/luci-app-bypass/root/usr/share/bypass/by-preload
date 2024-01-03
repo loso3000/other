@@ -6,8 +6,7 @@ if [ "$(uci -q get bypass.@global[0].nf_server)" ];then
 		[ $B -ge 20 ] && break || let B++
 		sleep 2
 	done
-	ipset -! -N netflix hash:net 2>/dev/null
-	for i in $A;do ipset add -! netflix $i 2>/dev/null;done
+	for i in $A;do ipset add netflix $i 2>/dev/null;done
 fi
 
 if [ "$1" = gfw ];then
