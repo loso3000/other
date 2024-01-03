@@ -94,8 +94,14 @@ msgstr "TLS 主机名"
 msgid "allowInsecure"
 msgstr "允许不安全连接"
 
-msgid "Concurrency"
-msgstr "最大并发连接数"
+msgid "concurrency"
+msgstr "TCP 最大并发连接数"
+
+msgid "xudpConcurrency"
+msgstr "UDP 最大并发连接数"
+
+msgid "xudpProxyUDP443"
+msgstr "对被代理的 UDP/443 流量处理方式"
 
 msgid "If true, allowss insecure connection at TLS client, e.g., TLS server uses unverifiable certificates."
 msgstr "是否允许不安全连接。当选择时，将不会检查远端主机所提供的 TLS 证书的有效性。"
@@ -404,15 +410,6 @@ msgstr "【国内IP段】数据库"
 
 msgid "Netflix IP Data"
 msgstr "【Netflix IP段】数据库"
-
-msgid "Loyalsoldier's GeoData"
-msgstr "【GeoData】数据库 (Loyalsoldier)"
-
-msgid "Loyalsoldier's GeoData: Mainland Domain Data"
-msgstr "【GeoData 中的大陆域名】数据库 (Loyalsoldier)"
-
-msgid "Loyalsoldier's GeoData: Non-Mainland Domain Data"
-msgstr "【GeoData 中的非大陆域名】数据库 (Loyalsoldier)"
 
 msgid "Advertising Data"
 msgstr "【广告屏蔽】数据库"

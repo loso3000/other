@@ -122,7 +122,7 @@ local Xray = {
 		port = tonumber(local_port),
 		protocol = "dokodemo-door",
 		settings = {network = proto, followRedirect = true},
-		sniffing = {enabled = true, destOverride = {"http", "tls"}}
+		sniffing = {enabled = true, destOverride = {"http", "tls", "quic"}}
 	} or nil,
 	-- 开启 socks 代理
 	inboundDetour = (proto:find("tcp") and socks_port ~= "0") and {
@@ -153,7 +153,6 @@ local Xray = {
 				} or nil
 			} or nil,
 			realitySettings = (server.reality == '1') and {
-				show = false,
 				publicKey = server.reality_publickey,
 				shortId = server.reality_shortid,
 				spiderX = server.reality_spiderx,
@@ -172,6 +171,7 @@ local Xray = {
 				}
 			} or nil,
 			kcpSettings = (server.transport == "kcp") and {
+				-- kcp
 				mtu = tonumber(server.mtu),
 				tti = tonumber(server.tti),
 				uplinkCapacity = tonumber(server.uplink_capacity),
@@ -213,12 +213,19 @@ local Xray = {
 				health_check_timeout = tonumber(server.health_check_timeout) or nil,
 				permit_without_stream = (server.permit_without_stream == "1") and true or nil,
 				initial_windows_size = tonumber(server.initial_windows_size) or nil
+			} or nil,
+			sockopt = (server.mptcp == "1") and {
+				tcpcongestion = "bbr",
+				tcpMptcp = true,
+				tcpNoDelay = true
 			} or nil
 		},
-		mux = (server.mux == "1" and server.transport ~= "grpc") and {
+		mux = (server.mux == "1") and {
 			-- mux
 			enabled = true,
-			concurrency = tonumber(server.concurrency)
+			concurrency = tonumber(server.concurrency),
+			xudpConcurrency = tonumber(server.xudpConcurrency),
+			xudpProxyUDP443 = server.xudpProxyUDP443
 		} or nil
 	} or nil
 }
@@ -275,7 +282,7 @@ local ss = {
 	reuse_port = true
 }
 local hysteria = {
-	server = server.server_port and (server.server .. ":" .. server.server_port) or (server.server .. ":" .. server.port_range),
+	server = (server.port_range and (server.server .. ":" .. server.port_range)) or (server.server_port and (server.server .. ":" .. server.server_port)),
 	bandwidth = {
 	up = tonumber(server.uplink_capacity) and tonumber(server.uplink_capacity) .. " mbps" or nil,
 	down = tonumber(server.downlink_capacity) and tonumber(server.downlink_capacity) .. " mbps" or nil 
@@ -287,7 +294,7 @@ local hysteria = {
 	transport = {
 		type = server.transport_protocol,
 		udp = { 
-			hopInterval = tonumber(server.hopinterval) and tonumber(server.hopinterval) .. "s" or nil
+			hopInterval = tonumber(server.hopinterval) and tonumber(server.hopinterval) .. "s" or "30s"
 		}
 	},
 --[[			
@@ -317,6 +324,7 @@ local hysteria = {
 	auth = server.hy2_auth,
 	tls = (server.tls_host) and {
 		sni = server.tls_host,
+		alpn = server.tls_alpn or nil,
 	insecure = (server.insecure == "1") and true or false,
 		pinSHA256 = (server.insecure == "1") and server.pinsha256 or nil
 	} or {
