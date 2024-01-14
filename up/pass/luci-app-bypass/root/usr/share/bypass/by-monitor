@@ -40,6 +40,7 @@ log() {
 
 re(){
 	/etc/init.d/$NAME restart
+	exit 0
 }
 
 while :;do
@@ -56,9 +57,13 @@ while :;do
 			$(which kcptun-client) -r $server:$kcp_port -l :$server_port $password $kcp_param >/dev/null 2>&1 &
 	fi
 #redir udp
-	if [ $redir_udp = 1 ] && [ $(ps -w | grep by-reudp | grep -v grep | wc -l) = 0 ];then
+	if [ $redir_udp = 1 ];then
+		t=`ps -w | grep by-reudp | grep -v grep | wc -l`
+		if [ $t = 0 ];then
 			log "Redir UDP Error. Restart!"
-		re
+			/etc/init.d/bypass restart >/dev/null 2>&1
+			exit 0
+		fi
 	fi
 #redir netflix
 	if [ $redir_nf = 1 ] && [ $(ps -w | grep by-nf | grep -v grep | wc -l) = 0 ];then
