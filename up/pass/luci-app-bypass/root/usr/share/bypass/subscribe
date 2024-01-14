@@ -103,14 +103,18 @@ local function urlEncode(szText)
 	return str
 end
 
-local function get_urldecode(h) return schar(tonumber(h, 16)) end
+local function get_urldecode(h)
+	return schar(tonumber(h, 16))
+end
 local function UrlDecode(szText)
 	return (szText and szText:gsub("+", " "):gsub("%%(%x%x)", get_urldecode)) or nil
 end
 
 -- trim
 local function trim(text)
-	if not text or text=="" then return "" end
+	if not text or text == "" then
+		return ""
+	end
 	return (sgsub(text, "^%s*(.-)%s*$", "%1"))
 end
 -- md5
@@ -122,7 +126,9 @@ end
 -- base64
 local function base64Decode(text)
 	local raw = text
-	if not text then return '' end
+	if not text then
+		return ''
+	end
 	text = text:gsub("%z", "")
 	text = text:gsub("_", "/")
 	text = text:gsub("-", "+")
@@ -176,6 +182,7 @@ local function processData(szType, content)
 		result.server = info.add
 		result.server_port = info.port
 		result.transport = info.net
+		result.alter_id = info.aid
 		result.vmess_id = info.id
 		result.alias = info.ps
 		-- result.mux = 1
@@ -206,17 +213,17 @@ local function processData(szType, content)
 			result.write_buffer_size = 2
 		end
 
-		if info.net == 'quic' then
-			result.quic_guise = info.type
-			result.quic_key = info.key
-			result.quic_security = info.securty
-		end
 		if info.net == 'grpc' then
 			if info.path then
 				result.serviceName = info.path
 			elseif info.serviceName then
 				result.serviceName = info.serviceName
 			end
+		end
+		if info.net == 'quic' then
+			result.quic_guise = info.type
+			result.quic_key = info.key
+			result.quic_security = info.securty
 		end
 		if info.security then
 			result.security = info.security
