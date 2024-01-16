@@ -108,7 +108,7 @@ stop()
 {
     del_cru
     echo 'start(){'  >>$TT
-    echo 'a=1'  >>$TT
+    echo "Service autotimesetrun started!"  >>$TT
     echo '}'  >>$TT
     /etc/init.d/cron reload
 }
