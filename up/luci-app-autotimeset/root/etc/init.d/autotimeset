@@ -17,6 +17,7 @@ ssum=$(grep -c stime /etc/config/autotimeset)
 	uci -q get autotimeset.@global[0].customscript >> /etc/autotimeset/timesetcustomscript 
 }
 echo 'start(){'  >>$TT
+echo "Service autotimesetrun started!" >>$TT
 for i in $(seq 0 $((ssum-1)))
 do
 	enable=$(uci -q get autotimeset.@stime[$i].enable )
