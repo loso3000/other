@@ -335,7 +335,7 @@ rules(){
 	if [ ! $server ];then
 		get_soip 1;return 1
 	fi
-	if $PS | grep by-retcp | grep -qv grep;then
+	if busybox ps -w | grep by-retcp | grep -qv grep;then
 		log "Rules     :Bypass has Started.";return 1
 	fi
 	cat $LOG 2>/dev/null | sed -n '$p' | grep -q 'Check network status.\|Download IP/GFW files.' || gen_log
@@ -902,7 +902,7 @@ gen_smartdns(){
 		;;
 	esac
 	# for i in $dns;do smartdns_append "server $i -group b";done
-	log "SmartDNS : start in $dnsname Remote DNS Resolution!"
+	log "SmartDNS : $dnsname Remote DNS Resolution!"
     done
     echo -e "nameserver /dnsleaktest.com/a\nnameserver /whrq.net/a\nnameserver /speedtest.net/a\nnameserver /ooklaserver.net/a\nnameserver /in-addr.arpa/a\nnameserver /browserleaks.com/a\nnameserver /expressvpn.com/a\nnameserver /ipleak.net/a\nnameserver /whoer.net/a " >> $DNS_T_TMP
     dns_pollution=$(uci_get_by_type global dns_pollution 0)
@@ -938,7 +938,7 @@ gen_smartdns(){
 			for i in $dns;do smartdns_append "server $i -group e ";done;;
 	 esac
 	for i in $dns;do ipset add ss_spec_wan_ac $i 2>/dev/null;done
-	log "SmartDNS : start in $dnsname Local DNS Resolution!"
+	log "SmartDNS : $dnsname Local DNS Resolution!"
     done
 
     smartdns_append "nameserver /in-addr.arpa/e"
@@ -971,14 +971,14 @@ gen_smartdns(){
 		*)
 			for i in $dns;do smartdns_append "server $i -group h -exclude-default-group";done;;
 	    esac
-	    log "SmartDNS : start in $dnsname netflix DNS Resolution!"
+	    log "SmartDNS : $dnsname netflix DNS Resolution!"
 	done
     fi
         
 	
 	[ "$bootstrap_dns" ] && {
 	for i in $bootstrap_dns;do smartdns_append "server $i -bootstrap-dns";done 
-	log "SmartDNS : start in $bootstrap_dns Bootstrap DNS Resolution!"
+	log "SmartDNS : $bootstrap_dns Bootstrap DNS Resolution!"
 	}
 
 	if [ $run_mode != oversea ];then
@@ -1089,7 +1089,7 @@ gen_mosdns(){
    dns_remote=`mget_dns "$(uci_get_by_type global dns_remote cloudflare_doh)" `
    remote_dns=$(for i in  $dns_remote; do
                                 add_dns_ipset $i dns
-				log "MosDNS : start in $i Remote DNS Resolution!"
+				log "MosDNS : $i Remote DNS Resolution!"
 				echo "        - addr: $i"
 				echo "          bootstrap: ${bootstrap_dns}"
 				echo "          enable_pipeline: true"
@@ -1126,17 +1126,17 @@ gen_mosdns(){
     dns_pollution=$(uci_get_by_type global dns_pollution 0)
     if [ x$dns_pollution = 'x1' ] ;then 
           sed -i "s/POLLUTION/query_is_remote/g" $MDNS_T
-	  for i in  $dns_remote; do log "MosDNS : start in $i Local DNS Resolution!" ;done
+	  for i in  $dns_remote; do log "MosDNS : $i Local DNS Resolution!" ;done
     else
 	  sed -i "s/POLLUTION/query_is_local_ip/g"  $MDNS_T
-	  for i in  $dns_local; do log "MosDNS : start in $i Local DNS Resolution!" ;done
+	  for i in  $dns_local; do log "MosDNS : $i Local DNS Resolution!" ;done
     fi
     [ "x$ipv6mode" == "x1" ] && sed -i "s/IPV6MODE/remote_sequence_IPv6/g" $MDNS_T || sed -i "s/IPV6MODE/remote_sequence/g" $MDNS_T
     if [ "$NF" ];then
 	tmp_port=$nf_local_port
 	dns_nf=`mget_dns $(uci_get_by_type global nf_dns google_dot) `
 	nf_dns=$(for i in  $dns_nf; do
-				log "MosDNS : start in $i NF DNS Resolution!"
+				log "MosDNS : $i NF DNS Resolution!"
 				ipset add netflix ${i%:*} 2>/dev/null
 				echo "        - addr: $i"
 				echo "          socks5: \"127.0.0.1:$tmp_port\""
@@ -1192,7 +1192,7 @@ gen_mosdns(){
 			awk '!/^$/&&!/^#/{printf("server=/%s/'"127.0.0.1#5335"'\n",$0)}' $O >>$DNS_DIR/white.conf
 		fi
 	fi
-	log "MosDNS : start in $bootstrap_dns Bootstrap DNS Resolution!"
+	log "MosDNS : $bootstrap_dns Bootstrap DNS Resolution!"
 	[ $(find $DNS_DIR -name \* -exec cat {} \; 2>/dev/null | wc -l) = 0 ] && rm -rf $DNS_DIR
 	echo "conf-dir=${DNS_DIR}" >$DNS_FILE
 	rm -rf $TMPDIR $O
@@ -1377,14 +1377,14 @@ start(){
 }
 
 stop(){
-	kill -9 $($PS | grep by-rules | grep -v grep | awk '{print$1}') 2>/dev/null
-	kill -9 $($PS | grep gfw.b64 | grep -v grep | awk '{print$1}') 2>/dev/null
-	kill -9 $($PS | grep $BIN_DIR/checknetwork | grep -v grep | awk '{print$1}') 2>/dev/null
-	kill -9 $($PS | grep $BIN_DIR/update | grep -v grep | awk '{print$1}') 2>/dev/null
-	[ $switch_server ] || kill -9 $($PS | grep by-switch | grep -v grep | awk '{print$1}') 2>/dev/null
-	kill -9 $($PS | grep by-monitor | grep -v grep | awk '{print$1}') 2>/dev/null
-	kill -9 $($PS | grep by-preload | grep -v grep | awk '{print$1}') 2>/dev/null
-	kill -9 $($PS | grep $VAR | grep -v grep | awk '{print$1}') 2>/dev/null
+	kill -9 $(busybox ps -w | grep by-rules | grep -v grep | awk '{print$1}') 2>/dev/null
+	kill -9 $(busybox ps -w | grep gfw.b64 | grep -v grep | awk '{print$1}') 2>/dev/null
+	kill -9 $(busybox ps -w | grep $BIN_DIR/checknetwork | grep -v grep | awk '{print$1}') 2>/dev/null
+	kill -9 $(busybox ps -w | grep $BIN_DIR/update | grep -v grep | awk '{print$1}') 2>/dev/null
+	[ $switch_server ] || kill -9 $(busybox ps -w | grep by-switch | grep -v grep | awk '{print$1}') 2>/dev/null
+	kill -9 $(busybox ps -w | grep by-monitor | grep -v grep | awk '{print$1}') 2>/dev/null
+	kill -9 $(busybox ps -w | grep by-preload | grep -v grep | awk '{print$1}') 2>/dev/null
+	kill -9 $(busybox ps -w | grep $VAR | grep -v grep | awk '{print$1}') 2>/dev/null
 	killall -q -9 smartdns chinadns-ng kcptun-client xray-plugin microsocks mosdns hysteria trojan trojan-plus trojan-go  xray
 	$BIN_DIR/by-rules -f
 	[ $(iptables -nL | grep BY-SERVER-RULE | wc -l) = 0 ] || (iptables -F BY-SERVER-RULE && iptables -X BY-SERVER-RULE;while iptables -D INPUT -j BY-SERVER-RULE 2>/dev/null;do :;done)
@@ -1423,7 +1423,7 @@ stop(){
 		mv -f $DNS_T_TMP $DNS_T
 		$(which smartdns) -c $DNS_T
 		r=1
-		while ! $PS | grep smartdns | grep -v grep >/dev/null;do
+		while ! busybox ps -w | grep smartdns | grep -v grep >/dev/null;do
 			[ $r -ge 10 ] && return 1 || let r++
 			sleep 1
 		done
