@@ -1,5 +1,5 @@
 #!/bin/sh
-[ "$1" = --F ] && A=Y || A=N
+[ "$1" = --First ] && A=Y || A=N
 LOCKU=/tmp/lock/bypass-update.lock
 [ -f $LOCKU ] && exit 1
 touch $LOCKU

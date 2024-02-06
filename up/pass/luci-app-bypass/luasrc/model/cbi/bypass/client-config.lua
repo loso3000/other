@@ -159,7 +159,7 @@ if is_finded("naive") then
 	o:value("naiveproxy", translate("NaiveProxy"))
 end
 if is_finded("hysteria") then
-	o:value("hysteria", translate("Hysteria"))
+	o:value("hysteria2", translate("Hysteria2"))
 end
 if is_finded("tuic-client") then
 	o:value("tuic", translate("TUIC"))
@@ -205,6 +205,7 @@ o:depends("type", "v2ray")
 o:depends("type", "trojan")
 o:depends("type", "naiveproxy")
 o:depends("type", "hysteria")
+o:depends("type", "hysteria2")
 o:depends("type", "tuic")
 o:depends("type", "socks5")
 
@@ -217,6 +218,7 @@ o:depends("type", "v2ray")
 o:depends("type", "trojan")
 o:depends("type", "naiveproxy")
 o:depends("type", "hysteria")
+o:depends("type", "hysteria2")
 o:depends("type", "tuic")
 o:depends("type", "socks5")
 
@@ -312,96 +314,111 @@ o:depends("type", "ssr")
 o = s:option(Value, "obfs_param", translate("Obfs param (optional)"))
 o:depends("type", "ssr")
 
--- [[ Hysteria2 ]]--
-o = s:option(Value, "hy2_auth", translate("Users Authentication"))
-o:depends("type", "hysteria")
-o.rmempty = false
+-- [[ Hysteria ]]--
 
+	o = s:option(ListValue, "hy_auth_type", translate("Auth Type"))
+	o:value("disable", translate("Disable"))
+	o:value("string", translate("STRING"))
+	o:value("base64", translate("BASE64"))
+	o:depends("type", "hysteria")
+
+	o = s:option(Value, "hy_auth_password", translate("Auth Password"))
+	o.password = true
+	o:depends({ type = "hysteria", hy_auth_type = "string"})
+	o:depends({ type = "hysteria", hy_auth_type = "base64"})
+
+	o = s:option(Value, "hy_obfs_password", translate("Obfs Password"))
+	o:depends("type", "hysteria")
+
+	o = s:option(Value, "hy_recv_window_conn", translate("QUIC stream receive window"))
+	o:depends({ type = "hysteria" })
+
+	o = s:option(Value, "hy_recv_window", translate("QUIC connection receive window"))
+	o:depends({ type = "hysteria" })
+
+	o = s:option(Flag, "hy_disable_mtu_discovery", translate("Disable MTU detection"))
+	o:depends({ type = "hysteria" })
+
+	o = s:option(Value, "hy_alpn", translate("QUIC TLS ALPN"))
+	o:depends({ type = "hysteria" })
+
+
+-- [[ Hysteria2 ]]--
+o = s:option(ListValue, "hy2_obfs_type", translate("Obfs Type"))
+o:value("", translate("Disable"))
+o:value("salamander")
+o:depends("type", "hysteria2")
+
+o = s:option(Value, "hy2_obfs_password", translate("Obfs Password"))
+o:depends("type", "hysteria2")
+o.rmempty = true
+
+o = s:option(Value, "hy2_auth_password", translate("Auth Password"))
+o:depends("type", "hysteria2")
+o.rmempty = true
 o = s:option(ListValue, "transport_protocol", translate("Protocol"))
 o:depends("type", "hysteria")
+o:depends("type", "hysteria2")
 o:value("udp", translate("udp"))
 o.default = "udp"
 o.rmempty = true
 
-o = s:option(Flag, "port_hopping", translate("Enable Port Hopping"))
-o:depends("type", "hysteria")
-o.rmempty = true
-o.default = "0"
 
 o = s:option(Value, "hopinterval", translate("Port Hopping Interval(Unit:Second)"))
-o:depends({type = "hysteria", port_hopping = true})
+o:depends({type = "hysteria2"})
 o.datatype = "uinteger"
 o.rmempty = true
 o.default = "30"
 
-o = s:option(Value, "port_range", translate("Port Range"))
-o:depends({type = "hysteria", port_hopping = true})
-o.rmempty = true
-
 o = s:option(Flag, "lazy_mode", translate("Enable Lazy Mode"))
-o:depends("type", "hysteria")
+o:depends("type", "hysteria2")
 o.rmempty = true
 o.default = "0"
-
-o = s:option(Flag, "flag_obfs", translate("Enable Obfuscation"))
-o:depends("type", "hysteria")
-o.rmempty = true
-o.default = "0"
-
-o = s:option(Value, "obfs_type", translate("Obfuscation Type"))
-o:depends({type = "hysteria", flag_obfs = "1"})
-o.rmempty = true
-o.default = "salamander"
-
-o = s:option(Value, "salamander", translate("Obfuscation Password"))
-o:depends({type = "hysteria", flag_obfs = "1"})
-o.rmempty = true
-o.default = "cry_me_a_r1ver"
 
 o = s:option(Flag, "flag_quicparam", translate("Hysterir QUIC parameters"))
-o:depends("type", "hysteria")
+o:depends("type", "hysteria2")
 o.rmempty = true
 o.default = "0"
 
 --[[Hysteria2 QUIC parameters setting]]
 o = s:option(Value, "initstreamreceivewindow", translate("QUIC initStreamReceiveWindow"))
-o:depends({type = "hysteria", flag_quicparam = "1"})
+o:depends({type = "hysteria2", flag_quicparam = "1"})
 o.datatype = "uinteger"
 o.rmempty = true
 o.default = "8388608"
 
 o = s:option(Value, "maxstreamseceivewindow", translate("QUIC maxStreamReceiveWindow"))
-o:depends({type = "hysteria", flag_quicparam = "1"})
+o:depends({type = "hysteria2", flag_quicparam = "1"})
 o.datatype = "uinteger"
 o.rmempty = true
 o.default = "8388608"
 
 o = s:option(Value, "initconnreceivewindow", translate("QUIC initConnReceiveWindow"))
-o:depends({type = "hysteria", flag_quicparam = "1"})
+o:depends({type = "hysteria2", flag_quicparam = "1"})
 o.datatype = "uinteger"
 o.rmempty = true
 o.default = "20971520"
 
 o = s:option(Value, "maxconnreceivewindow", translate("QUIC maxConnReceiveWindow"))
-o:depends({type = "hysteria", flag_quicparam = "1"})
+o:depends({type = "hysteria2", flag_quicparam = "1"})
 o.datatype = "uinteger"
 o.rmempty = true
 o.default = "20971520"
 
 o = s:option(Value, "maxidletimeout", translate("QUIC maxIdleTimeout(Unit:second)"))
-o:depends({type = "hysteria", flag_quicparam = "1"})
+o:depends({type = "hysteria2", flag_quicparam = "1"})
 o.rmempty = true
 o.datatype = "uinteger"
 o.default = "30"
 
 o = s:option(Value, "keepaliveperiod", translate("The keep-alive period.(Unit:second)"))
-o:depends({type = "hysteria", flag_quicparam = "1"})
+o:depends({type = "hysteria2", flag_quicparam = "1"})
 o.rmempty = true
 o.datatype = "uinteger"
 o.default = "10"
 
 o = s:option(Flag, "disablepathmtudiscovery", translate("Disable Path MTU discovery"))
-o:depends({type = "hysteria", flag_quicparam = "1"})
+o:depends({type = "hysteria2", flag_quicparam = "1"})
 o.rmempty = true
 o.default = false
 
@@ -712,14 +729,14 @@ o = s:option(Value, "uplink_capacity", translate("Uplink Capacity(Default:Mbps)"
 o.datatype = "uinteger"
 o:depends("transport", "kcp")
 o:depends("type", "hysteria")
-o.default = 5
+o:depends("type", "hysteria2")
 o.rmempty = true
 
 o = s:option(Value, "downlink_capacity", translate("Downlink Capacity(Default:Mbps)"))
 o.datatype = "uinteger"
 o:depends("transport", "kcp")
 o:depends("type", "hysteria")
-o.default = 20
+o:depends("type", "hysteria2")
 o.rmempty = true
 
 o = s:option(Value, "read_buffer_size", translate("Read Buffer Size"))
@@ -773,7 +790,6 @@ o:depends({type = "v2ray", v2ray_protocol = "shadowsocks", reality = false})
 o:depends({type = "v2ray", v2ray_protocol = "socks", socks_ver = "5", reality = false})
 o:depends({type = "v2ray", v2ray_protocol = "http", reality = false})
 o:depends("type", "trojan")
-o:depends("type", "hysteria")
 
 -- [[ TLS部分 ]] --
 o = s:option(Flag, "tls_sessionTicket", translate("Session Ticket"))
@@ -829,6 +845,8 @@ o = s:option(Value, "tls_host", translate("TLS Host"))
 o.datatype = "hostname"
 o:depends("tls", true)
 o:depends("reality", true)
+o:depends("type", "hysteria")
+o:depends("type", "hysteria2")
 o.rmempty = true
 
 o = s:option(DynamicList, "tls_alpn", translate("TLS ALPN"))
@@ -842,11 +860,13 @@ o = s:option(Flag, "insecure", translate("allowInsecure"))
 o.rmempty = false
 o:depends("tls", true)
 o:depends("type", "hysteria")
+o:depends("type", "hysteria2")
 o.description = translate("If true, allowss insecure connection at TLS client, e.g., TLS server uses unverifiable certificates.")
 
 -- [[ Hysteria2 TLS pinSHA256 ]] --
 o = s:option(Value, "pinsha256", translate("Certificate fingerprint"))
 o:depends({type = "hysteria", insecure = true })
+o:depends({type = "hysteria2", insecure = true })
 o.rmempty = true
 
 -- [[ Mux ]]--
@@ -1038,7 +1058,7 @@ cert_dir = "/etc/ssl/private/"
 local path
 
 luci.http.setfilehandler(function(meta, chunk, eof)
-	if not fd then
+		if not fd then
 		if (not meta) or (not meta.name) or (not meta.file) then
 			return
 		end

@@ -352,8 +352,11 @@ msgstr "验证类型"
 msgid "Authentication payload"
 msgstr "验证载荷"
 
-msgid "Users Authentication"
-msgstr "用户验证"
+msgid "Auth Password"
+msgstr "Auth密码"
+
+msgid "Obfs Password"
+msgstr "Obfs密码"
 
 msgid "NOTE: If the server uses the userpass authentication, the format must be username:password."
 msgstr "注意： 如果服务器使用 userpass 验证，格式必须是 username:password。"

@@ -107,7 +107,7 @@ f_bin(){
 	ssr-local) ret=$(which ssr-local);;
 	ssr-server) ret=$(which ssr-server);;
 	v2ray) ret=$(which xray) || ret=$(which v2ray);;
-	hysteria) ret=$(which hysteria);;
+	hysteria|hysteria2) ret=$(which hysteria);;
 	trojan) ret=$(which trojan-plus);;
 	naiveproxy) ret=$(which naive);;
 	socks5|tun) ret=$(which redsocks2);;
@@ -186,6 +186,8 @@ host_ip() {
 }
 
 gen_config_file(){
+
+        # gen_config_file $GLOBAL_SERVER $rtype $port $server
 	type=$(uci_get_by_name $1 type)
 	rtype=$2
 	ssport=$3
@@ -258,11 +260,14 @@ gen_config_file(){
 		[ $rtype = udp ] && smode=udp || smode=tcp
 		[ $rtype = socks ] && lport=0
 
-		$BIN_DIR/genxrayconfig $1 $smode $lport $ssport $serv_ip >$config_file
+		$BIN_DIR/gen_xray $1 $smode $lport $ssport $serv_ip >$config_file
+		
 		sed -i 's/\\//g' $config_file ;;
  
-	hysteria)
-		lua $BIN_DIR/gen_config $1 $smode $lport $ssport >$config_file
+	hysteria|hysteria2)
+		[ $rtype = udp ] && smode=udp || smode=tcp
+		[ $rtype = socks ] && lport=0
+		$BIN_DIR/gen_hysteria2 $1 $smode $lport $ssport >$config_file
 		;;
 
 	trojan)
@@ -270,33 +275,33 @@ gen_config_file(){
 		tcp|udp|nf) smode=nat;;
 		socks) smode=client;;
 		esac
-		lua $BIN_DIR/gen_config $1 $smode $lport >$config_file
+		$BIN_DIR/gen_trojan $1 $smode $lport $serv_ip >$config_file
 		sed -i 's/\\//g' $config_file
 		;;
 	naiveproxy)
 		case $rtype in
 		tcp)
-			lua $BIN_DIR/gen_config  $1 redir $lport >$config_file
+			$BIN_DIR/gen_config  $1 redir $lport >$config_file
 			;;
 		nf)
-			lua $BIN_DIR/gen_config  $1 redir $lport >$config_file
+			$BIN_DIR/gen_config  $1 redir $lport >$config_file
 			;;
 		socks)
-			lua $BIN_DIR/gen_config  $1 socks $lport >$config_file
+			$BIN_DIR/gen_config  $1 socks $lport >$config_file
 			;;
 		esac
 		sed -i 's/\\//g' $config_file
 		;;
-	hysteria)
-		lua $BIN_DIR/gen_config $1 $smode $lport $ssport >$config_file
+	hysteria|hysteria2)
+		$BIN_DIR/gen_config $1 $smode $lport $ssport >$config_file
 		;;
 	tuic)
 		case $rtype in
 		tcp|udp|nf)
-			lua $BIN_DIR/gen_config  $1 $smode $lport >$config_file
+			$BIN_DIR/gen_config  $1 $smode $lport >$config_file
 			;;
 		socks)
-			lua $BIN_DIR/gen_config  $1 $smode $lport >$config_file
+			$BIN_DIR/gen_config  $1 $smode $lport >$config_file
 			;;
 		esac
 		sed -i 's/\\//g' $config_file ;;
@@ -308,7 +313,7 @@ gen_config_file(){
 check_net(){
 	if ! curl -so /dev/null -m 3 www.baidu.com;then
 		log "Rules     :Wait for network to connect..."
-		/etc/init.d/dnsmasq restart
+		# /etc/init.d/dnsmasq restart
 		$BIN_DIR/checknetwork check
 		exit 1
 	fi
@@ -330,7 +335,7 @@ rules(){
 	if [ ! $server ];then
 		get_soip 1;return 1
 	fi
-	if ps -w | grep by-retcp | grep -qv grep;then
+	if $PS | grep by-retcp | grep -qv grep;then
 		log "Rules     :Bypass has Started.";return 1
 	fi
 	cat $LOG 2>/dev/null | sed -n '$p' | grep -q 'Check network status.\|Download IP/GFW files.' || gen_log
@@ -341,7 +346,7 @@ rules(){
 	[ ! -s $VAR/china.txt ] || [ ! -s $VAR/china_v6.txt ] || [ ! -s $VAR/gfw.list ] && {
 		if [ ! -s $T_FILE/china.txt ] || [ ! -s $T_FILE/china_v6.txt ] || [ ! -s $T_FILE/gfw.list ] ;then
 			log "Rules      : Download IP/GFW files."
-			$BIN_DIR/update --f ;exit 0;
+			$BIN_DIR/update --First ;exit;
 		else
 			cp -f $T_FILE/*.txt $VAR
 			cp -f $T_FILE/gfw.list $VAR
@@ -373,7 +378,6 @@ rules(){
 		udp_local_port=$(uci_get_by_name $UDP_RELAY_SERVER local_port 1234)
 		UDP=1
 	fi
-
 	ttype=$(uci_get_by_name $GLOBAL_SERVER type)
 	utype=$(uci_get_by_name $UDP_RELAY_SERVER type)
 	if [ "$UDP" = 1 ];then
@@ -446,9 +450,7 @@ start_retcp(){
 	ss|ssr)
 		gen_config_file $GLOBAL_SERVER $rtype
 		redir_tcp=$threads
-		for i in $(seq 1 $threads);do
-			$cmd -c $config_file >/dev/null 2>&1 &
-		done
+		$cmd -c $config_file >/dev/null 2>&1 &
 		[ $ttype = ss ] && name=Shadowsocks || name=ShadowsocksR
 		log "Main Node: $name $threads Threads Started!";;
 	v2ray)
@@ -465,7 +467,7 @@ start_retcp(){
 			log "Socks5 Node: $($cmd -version | head -1 | awk '{print$1,$2}') $ttype Started!"
 		fi
 		;;
-	hysteria)
+	hysteria|hysteria2)
 		if [ $SO_SERVER = $GLOBAL_SERVER ];then
 			port=$(uci_get_by_type socks5_proxy local_port 1080)
 			socks5_start=1
@@ -475,17 +477,14 @@ start_retcp(){
 		gen_config_file $GLOBAL_SERVER $rtype $port $server
 
 		$cmd -c $config_file >/dev/null 2>&1 &
-
-		log "Main Node: $($cmd -version | head -1 | awk '{print$1,$2}') Started!"
+		log "Main Node: $($cmd version  | awk '{print "Hysteria: " $2}' | head -9 | tail +9) $ttype Started!"
 		if [ "$socks5_start" = 1 ];then
-			log "Socks5 Node: $($cmd -version | head -1 | awk '{print$1,$2}') $ttype Started!"
+			log "Socks5 Node: $($cmd version  | awk '{print "Hysteria: " $2}' | head -9 | tail +9) $ttype Started!"
 		fi;;
 	trojan)
 		gen_config_file $GLOBAL_SERVER $rtype "" $server
 		redir_tcp=$threads
-		for i in $(seq 1 $threads);do
-			$cmd --config $config_file >/dev/null 2>&1 &
-		done
+		$cmd -c $config_file >/dev/null 2>&1 &
 		name=Trojan-Plus
 		ver="$($cmd --version 2>&1 | head -1 | awk '{print$3}')"
 		log "Main Node: $name (Ver $ver) $threads Threads Started!"
@@ -499,17 +498,13 @@ start_retcp(){
 		redir_tcp=$threads
 		$BIN_DIR/genred2config $VAR/redsocks-by-retcp.json socks5 tcp $local_port $server $(uci_get_by_name $GLOBAL_SERVER server_port) \
 		$(uci_get_by_name $GLOBAL_SERVER auth_enable 0) $(uci_get_by_name $GLOBAL_SERVER username) $(uci_get_by_name $GLOBAL_SERVER password)
-		for i in $(seq 1 $threads);do
-			$cmd -c $VAR/redsocks-by-retcp.json >/dev/null 2>&1
-		done
+		$cmd -c $VAR/redsocks-by-retcp.json >/dev/null 2>&1
 		log "Main Node: Socks5 $threads Threads Started!"
 		;;
 	tun)
 		redir_tcp=$threads
 		$BIN_DIR/genred2config $VAR/redsocks-by-retcp.json vpn $(uci_get_by_name $GLOBAL_SERVER iface br-lan) $local_port
-		for i in $(seq 1 $threads);do
-			$cmd -c $VAR/redsocks-by-retcp.json >/dev/null 2>&1
-		done
+		$cmd -c $VAR/redsocks-by-retcp.json >/dev/null 2>&1
 		log "Main Node: Network Tunnel $threads Threads Started!"
 		;;
 	esac
@@ -530,12 +525,12 @@ start_reudp(){
 		log "UDP Node: $name  $utype Started!"
 		;;
 	v2ray)
-		$BIN_DIR/genxrayconfig $UDP_RELAY_SERVER $rtype $local_port $port $server >$config_file
+		gen_config_file $UDP_RELAY_SERVER $rtype $local_port $server
 		$cmd  run -c $config_file >/dev/null 2>&1 &
 		log "UDP Node: $($cmd -version | head -1 | awk '{print$1,$2}') $utype Started!"	;;
 	trojan)
 		gen_config_file $UDP_RELAY_SERVER $rtype "" $udp_server
-		$cmd --config $config_file >/dev/null 2>&1 &
+		$cmd -c $config_file >/dev/null 2>&1 &
 		name=Trojan-Plus
 		ver="$($cmd --version 2>&1 | head -1 | awk '{print$3}')"
 		log "UDP Node: $name (Ver $ver) $utype Started!"
@@ -546,11 +541,11 @@ start_reudp(){
 		log "$($cmd --version | head -1) UDP Relay $utype not supported!"
 		;;
 
-	hysteria)
+	hysteria|hysteria2)
 	
 		gen_config_file $UDP_RELAY_SERVER $rtype 0 $udp_server
 		$cmd -c $config_file >/dev/null 2>&1
-		log "UDP Node: $($cmd -version  | awk '{print "Hhysteria2: " $2}' | head -9 | tail +9) $utype Started!"
+		log "UDP Node: $($cmd version  | awk '{print "Hysteria: " $2}' | head -9 | tail +9) $utype Started!"
 		;;
 	socks5)
 		$BIN_DIR/genred2config $VAR/redsocks-by-reudp.json socks5 udp $udp_local_port $udp_server \
@@ -583,14 +578,14 @@ start_renf(){
 		$cmd run -c $config_file >/dev/null 2>&1 &
 		log "NF  Shunt : $($cmd -version | head -1 | awk '{print$1,$2}') $ntype Started!"
 		;;
-	hysteria)
+	hysteria|hysteria2)
 		gen_config_file $NF_SERVER $rtype 0 $nf_ip
 		$cmd -c $config_file >/dev/null 2>&1 &
-		log "NF  Shunt : $($cmd -version  | awk '{print "Hhysteria2: " $2}' | head -9 | tail +9) $ntype Started!"
+		log "NF  Shunt : $($cmd version  | awk '{print "Hysteria: " $2}' | head -9 | tail +9) $ntype Started!"
 		;;
 	trojan)
 		gen_config_file $NF_SERVER $rtype "" $nf_ip
-		$cmd --config $config_file >/dev/null 2>&1 &
+		$cmd -c $config_file >/dev/null 2>&1 &
 		[ $ntype = trojan ] && {
 			name=Trojan-Plus
 			ver="$($cmd --version 2>&1 | head -1 | awk '{print$3}')"
@@ -640,14 +635,14 @@ start_local(){
 		$cmd run -c $config_file >/dev/null 2>&1 &
 		log "Socks5 Node: $($cmd -version | head -1 | awk '{print$1,$2}') $type Started!"
 		;;
-	hysteria)
+	hysteria|hysteria2)
 		gen_config_file $SO_SERVER $rtype $socks5_port $socks5_ip
 		$cmd -c $config_file >/dev/null 2>&1 &
-		log "Socks5 Node: $($cmd -version | awk '{print "Hhysteria2: " $2}' | head -9 | tail +9) $type Started!"
+		log "Socks5 Node: $($cmd version | awk '{print "Hysteria: " $2}' | head -9 | tail +9) $type Started!"
 		;;
 	trojan)
 		gen_config_file $SO_SERVER $rtype "" $socks5_ip
-		$cmd --config $config_file >/dev/null 2>&1 &
+		$cmd -c $config_file >/dev/null 2>&1 &
 		[ $type = trojan ] && {
 			name=Trojan-Plus
 			ver="$($cmd --version 2>&1 | head -1 | awk '{print$3}')"
@@ -1382,16 +1377,15 @@ start(){
 }
 
 stop(){
-	kill -9 $(ps -w | grep by-rules | grep -v grep | awk '{print$1}') 2>/dev/null
-	kill -9 $(ps -w | grep gfw.b64 | grep -v grep | awk '{print$1}') 2>/dev/null
-	kill -9 $(ps -w | grep $BIN_DIR/checknetwork | grep -v grep | awk '{print$1}') 2>/dev/null
-	kill -9 $(ps -w | grep $BIN_DIR/update | grep -v grep | awk '{print$1}') 2>/dev/null
-
-	[ $switch_server ] || kill -9 $(ps -w | grep by-switch | grep -v grep | awk '{print$1}') 2>/dev/null
-	kill -9 $(ps -w | grep by-monitor | grep -v grep | awk '{print$1}') 2>/dev/null
-	kill -9 $(ps -w | grep by-preload | grep -v grep | awk '{print$1}') 2>/dev/null
-	kill -9 $(ps -w | grep $VAR | grep -v grep | awk '{print$1}') 2>/dev/null
-	killall -q -9 smartdns chinadns-ng kcptun-client xray-plugin microsocks mosdns
+	kill -9 $($PS | grep by-rules | grep -v grep | awk '{print$1}') 2>/dev/null
+	kill -9 $($PS | grep gfw.b64 | grep -v grep | awk '{print$1}') 2>/dev/null
+	kill -9 $($PS | grep $BIN_DIR/checknetwork | grep -v grep | awk '{print$1}') 2>/dev/null
+	kill -9 $($PS | grep $BIN_DIR/update | grep -v grep | awk '{print$1}') 2>/dev/null
+	[ $switch_server ] || kill -9 $($PS | grep by-switch | grep -v grep | awk '{print$1}') 2>/dev/null
+	kill -9 $($PS | grep by-monitor | grep -v grep | awk '{print$1}') 2>/dev/null
+	kill -9 $($PS | grep by-preload | grep -v grep | awk '{print$1}') 2>/dev/null
+	kill -9 $($PS | grep $VAR | grep -v grep | awk '{print$1}') 2>/dev/null
+	killall -q -9 smartdns chinadns-ng kcptun-client xray-plugin microsocks mosdns hysteria trojan trojan-plus trojan-go  xray
 	$BIN_DIR/by-rules -f
 	[ $(iptables -nL | grep BY-SERVER-RULE | wc -l) = 0 ] || (iptables -F BY-SERVER-RULE && iptables -X BY-SERVER-RULE;while iptables -D INPUT -j BY-SERVER-RULE 2>/dev/null;do :;done)
 	rm -rf $DNS_DIR $VAR $DNS_FILE $CON_T /tmp/lock/$NAME-update.lock $MDNS
@@ -1402,9 +1396,7 @@ stop(){
 		fi
 		rm -rf $SDNS $PID $LOC
 		/etc/init.d/dnsmasq restart >/dev/null 2>&1
-		if [ $STATUS = Y -a -z "$GLOBAL_SERVER" ];then
-			rm -rf $LOG
-		fi
+
 	elif [ -s $DNS_T ];then
 		cat > $DNS_T_TMP <<-EOF
 			speed-check-mode none
@@ -1431,7 +1423,7 @@ stop(){
 		mv -f $DNS_T_TMP $DNS_T
 		$(which smartdns) -c $DNS_T
 		r=1
-		while ! ps -w | grep smartdns | grep -v grep >/dev/null;do
+		while ! $PS | grep smartdns | grep -v grep >/dev/null;do
 			[ $r -ge 10 ] && return 1 || let r++
 			sleep 1
 		done

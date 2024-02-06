@@ -46,19 +46,19 @@ re(){
 while :;do
 	sleep 30
 #redir tcp
-	if [ $redir_tcp -gt 0 ] && [ $(ps -w | grep by-retcp | grep -v grep | wc -l) -lt $redir_tcp ];then
+	if [ $redir_tcp -gt 0 ] && [ $(busybox ps -w | grep by-retcp | grep -v grep | wc -l) -lt $redir_tcp ];then
 			log "Redir TCP Error. Restart!"
 		re
 	fi
 #kcptun
-	if [ $kcp = 1 ] && [ $(ps -w | grep kcptun-client | grep -v grep | wc -l) = 0 ];then
+	if [ $kcp = 1 ] && [ $(busybox ps -w | grep kcptun-client | grep -v grep | wc -l) = 0 ];then
 			log "SSR KCPTUN Error. Restart!"
 			killall -q -9 kcptun-client
 			$(which kcptun-client) -r $server:$kcp_port -l :$server_port $password $kcp_param >/dev/null 2>&1 &
 	fi
 #redir udp
 	if [ $redir_udp = 1 ];then
-		t=`ps -w | grep by-reudp | grep -v grep | wc -l`
+		t=`busybox ps -w | grep by-reudp | grep -v grep | wc -l`
 		if [ $t = 0 ];then
 			log "Redir UDP Error. Restart!"
 			/etc/init.d/bypass restart >/dev/null 2>&1
@@ -66,13 +66,13 @@ while :;do
 		fi
 	fi
 #redir netflix
-	if [ $redir_nf = 1 ] && [ $(ps -w | grep by-nf | grep -v grep | wc -l) = 0 ];then
+	if [ $redir_nf = 1 ] && [ $(busybox ps -w | grep by-nf | grep -v grep | wc -l) = 0 ];then
 			log "Redir Netflix Error. Restart!"
 		re
 	fi
 
 #dns
-	if [ "$dns" -eq 1 ] && [ $(ps -w | grep smartdns | grep -v grep | wc -l) = 0 ];then
+	if [ "$dns" -eq 1 ] && [ $(busybox ps -w | grep smartdns | grep -v grep | wc -l) = 0 ];then
 			log "SmartDNS Error. Restart!"
 			killall -q -9 smartdns >/dev/null 2>&1
 			service_start $(which smartdns) -c $DNS_T 2>/dev/null
@@ -81,7 +81,7 @@ while :;do
 			service_start $(which mosdns) start -c $MDNS_T 2>/dev/null
 	fi
 #chinadns-ng
-	if [ $chinadns = 1 ] && [ $(ps -w | grep chinadns-ng | grep -v grep | wc -l) = 0 ];then
+	if [ $chinadns = 1 ] && [ $(busybox ps -w | grep chinadns-ng | grep -v grep | wc -l) = 0 ];then
 			log "ChinaDNS-NG Error. Restart!"
 			$(which chinadns-ng) -l 5337 -c '127.0.0.1#5336' -t '127.0.0.1#5335' -4 china_v4  -p 3  -6 china_v6 -f -n $([ $gfw_mode = 1 ] && echo -g /tmp/etc/bypass/gfw.list) >/dev/null 2>&1 &
 		        if [ "x$dns_mode" = "x1" ] ;then
@@ -92,12 +92,12 @@ while :;do
 		        fi
 	fi
 #localsocks
-	if [ $socks5 = 1 ] && [ $(ps -w | grep by-socks | grep -v grep | wc -l) = 0 ];then
+	if [ $socks5 = 1 ] && [ $(busybox ps -w | grep by-socks | grep -v grep | wc -l) = 0 ];then
 			log "Global Socks Server Error. Restart!"
 		re
 	fi
 #server
-	if [ $server_count -gt 0 ] && [ $(ps -w | grep by-server | grep -v grep | wc -l) -lt $server_count ];then
+	if [ $server_count -gt 0 ] && [ $(busybox ps -w | grep by-server | grep -v grep | wc -l) -lt $server_count ];then
 			log "SSR Server Error. Restart!"
 		re
 	fi

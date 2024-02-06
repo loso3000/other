@@ -213,6 +213,12 @@ local function processData(szType, content)
 			result.write_buffer_size = 2
 		end
 
+		if info.net == 'quic' then
+			result.quic_guise = info.type
+			result.quic_key = info.key
+			result.quic_security = info.securty
+		end
+
 		if info.net == 'grpc' then
 			if info.path then
 				result.serviceName = info.path
@@ -220,14 +226,8 @@ local function processData(szType, content)
 				result.serviceName = info.serviceName
 			end
 		end
-		if info.net == 'quic' then
-			result.quic_guise = info.type
-			result.quic_key = info.key
-			result.quic_security = info.securty
-		end
-		if info.security then
-			result.security = info.security
-		end
+		result.transport = info.net
+		if not info.security then result.security = "auto" end
 		if info.tls == "tls" or info.tls == "1" then
 			result.tls = "1"
 			if info.sni and info.sni ~= "" then
@@ -407,6 +407,92 @@ local function processData(szType, content)
 				result.tcp_path = params.path and UrlDecode(params.path) or nil
 			end
 		end
+
+	elseif szType == 'hysteria' then
+		local alias = ""
+		if content:find("#") then
+			local idx_sp = content:find("#")
+			alias = content:sub(idx_sp + 1, -1)
+			content = content:sub(0, idx_sp - 1)
+		end
+		result.alias = UrlDecode(alias)
+		local dat = split(content, '%?')
+		local host_port = dat[1]
+		local params = {}
+		for _, v in pairs(split(dat[2], '&')) do
+			local t = split(v, '=')
+			if #t > 0 then
+				params[t[1]] = t[2]
+			end
+		end
+		-- [2001:4860:4860::8888]:443
+		-- 8.8.8.8:443
+		if host_port:find(":") then
+			local sp = split(host_port, ":")
+			result.server_port = sp[#sp]
+			result.server = sp[1]
+		else
+			result.server = host_port
+		end
+		result.hy_obfs_password = params.obfsParam
+		result.hy_auth_type = "string"
+		result.hy_auth_password = params.auth
+		result.tls_host = params.peer
+		if params.insecure and (params.insecure == "1" or params.insecure == "0") then
+			result.insecure = params.insecure
+		else
+			result.insecure = insecure and "1" or "0"
+		end
+		result.tls_alpn = params.alpn
+		result.uplink_capacity = params.upmbps
+		result.downlink_capacity = params.downmbps
+		result.type = 'hysteria'
+
+	elseif szType == 'hysteria2' or szType == 'hy2' then
+		local alias = ""
+		if content:find("#") then
+			local idx_sp = content:find("#")
+			alias = content:sub(idx_sp + 1, -1)
+			content = content:sub(0, idx_sp - 1)
+		end
+		result.alias = UrlDecode(alias)
+		local Info = content
+		if content:find("@") then
+			local contents = split(content, "@")
+			result.hy2_auth_password = UrlDecode(contents[1])
+			Info = (contents[2] or ""):gsub("/%?", "?")
+		end
+		local query = split(Info, "?")
+		local host_port = query[1]
+		local params = {}
+		for _, v in pairs(split(query[2], '&')) do
+			local t = split(v, '=')
+			params[string.lower(t[1])] = UrlDecode(t[2])
+		end
+		-- [2001:4860:4860::8888]:443
+		-- 8.8.8.8:443
+		if host_port:find(":") then
+			local sp = split(host_port, ":")
+			result.server_port = sp[#sp]
+			result.server = sp[1]
+		else
+			result.server = host_port
+		end
+		if params.insecure and (params.insecure == "1" or params.insecure == "0") then
+			result.insecure = params.insecure
+		else
+			result.insecure = insecure and "1" or "0"
+		end
+		result.pinSHA256 = params.pinSHA256
+
+		result.type = "hysteria2"
+		if params["obfs-password"] then
+			result.hy2_obfs_type = "salamander"
+			result.hy2_obfs_password = params["obfs-password"]
+		end
+	else
+		log('暂时不支持' .. szType .. "类型的节点订阅，跳过此节点。")
+		return nil
 	end
 	if not result.alias then
 		if result.server and result.server_port then
@@ -545,9 +631,9 @@ local execute = function()
 							 	log('丢弃节点:' .. result.alias .. ",找不到可使用二进制.")
 							elseif not result.server or not result.server_port or result.alias == "NULL" or check_filer(result) or result.server:match("[^0-9a-zA-Z%-%.%s]") or cache[groupHash][result.hashkey] then
 								num=num+1
-								log('丢弃过滤节点: ' .. result.type .. ' 节点, ' .. result.alias)
+								log('丢弃无效节点: ' .. result.type .. ' 节点: ' .. result.alias)
 							else
-								-- log('成功解析: ' .. result.type ..' 节点, ' .. result.alias)
+								-- log('成功解析: ' .. result.type ..' 节点: ' .. result.alias)
 								result.grouphashkey = groupHash
 								tinsert(nodeResult[index], result)
 								cache[groupHash][result.hashkey] = nodeResult[index][#nodeResult[index]]
@@ -562,7 +648,7 @@ local execute = function()
 				log('第'..i..'个链接获取内容为空，可能是订阅地址失效或是网络问题')
 			end
 		end
-	end
+end
 	-- diff
 	do
 		if next(nodeResult) == nil then
