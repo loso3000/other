@@ -1,8 +1,9 @@
+
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-ssr-plus
-PKG_VERSION:=190
-PKG_RELEASE:=2
+PKG_VERSION:=188
+PKG_RELEASE:=3
 
 PKG_CONFIG_DEPENDS:= \
 	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_NONE_V2RAY \
@@ -14,7 +15,6 @@ PKG_CONFIG_DEPENDS:= \
 	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_Tuic_Client \
 	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_Shadow_TLS \
 	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_IPT2Socks \
-	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_Kcptun \
 	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_NaiveProxy \
 	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_Redsocks2 \
 	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_Shadowsocks_NONE_Client \
@@ -42,14 +42,10 @@ LUCI_DEPENDS:= \
 	+PACKAGE_$(PKG_NAME)_INCLUDE_Xray:xray-core \
 	+PACKAGE_$(PKG_NAME)_INCLUDE_ChinaDNS_NG:chinadns-ng \
 	+PACKAGE_$(PKG_NAME)_INCLUDE_MosDNS:mosdns \
-	+PACKAGE_$(PKG_NAME)_INCLUDE_MosDNS:jq \
-	+PACKAGE_$(PKG_NAME)_INCLUDE_MosDNS:v2dat \
-	+PACKAGE_$(PKG_NAME)_INCLUDE_MosDNS:diffutils \
 	+PACKAGE_$(PKG_NAME)_INCLUDE_Hysteria:hysteria \
 	+PACKAGE_$(PKG_NAME)_INCLUDE_Tuic_Client:tuic-client \
 	+PACKAGE_$(PKG_NAME)_INCLUDE_Shadow_TLS:shadow-tls \
 	+PACKAGE_$(PKG_NAME)_INCLUDE_IPT2Socks:ipt2socks \
-	+PACKAGE_$(PKG_NAME)_INCLUDE_Kcptun:kcptun-client \
 	+PACKAGE_$(PKG_NAME)_INCLUDE_NaiveProxy:naiveproxy \
 	+PACKAGE_$(PKG_NAME)_INCLUDE_Redsocks2:redsocks2 \
 	+PACKAGE_$(PKG_NAME)_INCLUDE_Shadowsocks_Libev_Client:shadowsocks-libev-ss-local \
@@ -131,7 +127,7 @@ config PACKAGE_$(PKG_NAME)_INCLUDE_Hysteria
 	default n
 
 config PACKAGE_$(PKG_NAME)_INCLUDE_Tuic_Client
-	bool "Include Tuic-Client"
+	bool "Include tuic-client"
 	select PACKAGE_$(PKG_NAME)_INCLUDE_ChinaDNS_NG
 	select PACKAGE_$(PKG_NAME)_INCLUDE_IPT2Socks
 	depends on aarch64||arm||i386||x86_64
@@ -148,10 +144,6 @@ config PACKAGE_$(PKG_NAME)_INCLUDE_Shadow_TLS
 
 config PACKAGE_$(PKG_NAME)_INCLUDE_IPT2Socks
 	bool "Include IPT2Socks"
-	default n
-
-config PACKAGE_$(PKG_NAME)_INCLUDE_Kcptun
-	bool "Include Kcptun"
 	default n
 
 config PACKAGE_$(PKG_NAME)_INCLUDE_NaiveProxy

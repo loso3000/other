@@ -32,7 +32,7 @@ while [ "1" == "1" ]; do #死循环
 	sleep 000030s
 	#redir tcp
 	if [ "$redir_tcp_process" -gt 0 ]; then
-		icount=$(busybox ps -w | grep ssrp-retcp | grep -v grep | wc -l)
+		icount=$(busybox ps -w | grep ssr-xretcp | grep -v grep | wc -l)
 		if [ "$icount" == 0 ]; then
 			logger -t "$NAME" "ssrplus redir tcp error.restart!"
 			echolog "ssrplus redir tcp error.restart!"
@@ -42,7 +42,7 @@ while [ "1" == "1" ]; do #死循环
 	fi
 	#redir udp
 	if [ "$redir_udp_process" -gt 0 ]; then
-		icount=$(busybox ps -w | grep ssrp-reudp | grep -v grep | wc -l)
+		icount=$(busybox ps -w | grep ssr-xreudp | grep -v grep | wc -l)
 		if [ "$icount" == 0 ]; then
 			logger -t "$NAME" "ssrplus redir udp error.restart!"
 			echolog "ssrplus redir udp error.restart!"
@@ -103,6 +103,32 @@ while [ "1" == "1" ]; do #死循环
 			kill -9 $(busybox ps -w | grep "dns2socks 127.0.0.1:$tmp_dns_port" | grep -v grep | awk '{print $1}') >/dev/null 2>&1
 			ln_start_bin $(first_type microsocks) microsocks -i 127.0.0.1 -p $tmp_dns_port ssrplus-dns
 			ln_start_bin $(first_type dns2socks) dns2socks 127.0.0.1:$tmp_dns_port $dnsserver 127.0.0.1:$dns_port -q
+		fi
+	#mosdns
+	elif [ "$pdnsd_process" -eq 3 ]; then
+		icount=$(busybox ps -w | grep $TMP_BIN_PATH/mosdns | grep -v grep | wc -l)
+		if [ "$icount" -lt 1 ]; then #如果进程挂掉就重启它
+			logger -t "$NAME" "mosdns tunnel error.restart!"
+			echolog "mosdns tunnel error.restart!"
+			dnsserver=$(uci_get_by_type global tunnel_forward 8.8.4.4:53)
+			kill -9 $(busybox ps -w | grep $TMP_BIN_PATH/mosdns | grep -v grep | grep $mosdns_config_file | awk '{print $1}') >/dev/null 2>&1
+			ln_start_bin $(first_type mosdns) mosdns start -c $TMP_PATH/mosdns-config.yaml
+		fi
+	fi
+	#chinadns-ng
+	if [ "$(uci -q get "dhcp.@dnsmasq[0]._unused_ssrp_changed")" = "1" ]; then
+		icount=$(busybox ps -w | grep $TMP_BIN_PATH/chinadns-ng | grep -v grep | wc -l)
+		if [ "$icount" -lt 1 ]; then #如果进程挂掉就重启它
+			logger -t "$NAME" "chinadns-ng tunnel error.restart!"
+			echolog "chinadns-ng tunnel error.restart!"
+			chinadns=$(uci_get_by_type global chinadns_forward)
+			wandns="$(ifstatus wan | jsonfilter -e '@["dns-server"][0]' || echo "119.29.29.29")"
+			case "$chinadns" in
+			"wan") chinadns="$wandns" ;;
+			""|"wan_114") chinadns="$wandns,114.114.114.114" ;;
+			esac
+			kill -9 $(busybox ps -w | grep $TMP_BIN_PATH/chinadns-ng | grep -v grep | awk '{print $1}') >/dev/null 2>&1
+			ln_start_bin $(first_type chinadns-ng) chinadns-ng -l $china_dns_port -4 china -p 3 -c ${chinadns/:/#} -t 127.0.0.1#$dns_port -N -f -r
 		fi
 	fi
 done

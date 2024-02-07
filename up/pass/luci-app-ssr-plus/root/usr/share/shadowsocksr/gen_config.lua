@@ -1,5 +1,6 @@
 #!/usr/bin/lua
-local ucursor = require"luci.model.uci".cursor()
+
+local ucursor = require "luci.model.uci".cursor()
 local json = require "luci.jsonc"
 local server_section = arg[1]
 local proto = arg[2]
@@ -9,6 +10,7 @@ local chain = arg[5] or "0"
 local chain_local_port = string.split(chain, "/")[2] or "0"
 local server = ucursor:get_all("shadowsocksr", server_section)
 local outbound_settings = nil
+
 function vmess_vless()
 	outbound_settings = {
 		vnext = {
@@ -18,6 +20,7 @@ function vmess_vless()
 				users = {
 					{
 						id = server.vmess_id,
+						alterId = (server.v2ray_protocol == "vmess" or not server.v2ray_protocol) and tonumber(server.alter_id) or nil,
 						security = (server.v2ray_protocol == "vmess" or not server.v2ray_protocol) and server.security or nil,
 						encryption = (server.v2ray_protocol == "vless") and server.vless_encryption or nil,
 						flow = ((server.tls == '1') or (server.reality == '1')) and server.tls_flow or nil
@@ -110,18 +113,96 @@ end
 local settings = outbound:new()
 settings:handleIndex(server.v2ray_protocol)
 local Xray = {
-	log = {
-		-- error = "/var/ssrplus.log",
-		loglevel = "warning"
+	-- 日志
+	log = (server.custom_log == "1") and {
+		loglevel = server.custom_loglevel, -- 日志级别
+		dnsLog = (server.custom_dnsLog == "1") and true or false, -- DNS 查询记录
+		access = server.custom_access, -- 访问记录
+		error = server.custom_error -- 错误记录
+	} or nil,
+	-- DNS
+	dns = {
+		hosts = {
+			["dns.alidns.com"] = "223.5.5.5",
+			["doh.pub"] = "119.29.29.29"
+		},
+		servers = (server.custom_dns_enable == "1") and { -- Xray 内置 DNS
+			server.custom_dns_local, -- 本地 DNS
+			{
+				address = server.custom_dns_remote, -- 远端 DNS
+				domains = {
+					server.custom_dns_remote_domains -- 远端 DNS 域名列表
+				},
+				skipFallback = true,
+				queryStrategy = "UseIP"
+			}
+		} or nil,
+		queryStrategy = "UseIP"
+	},
+	-- 路由
+	routing = {
+		domainStrategy = "AsIs",
+		rules = {
+			{
+				type = "field",
+				inboundTag = {
+					"dns-in"
+				},
+				outboundTag = "dns-out"
+			}
+		}
 	},
 	-- 传入连接
-	inbound = (local_port ~= "0") and {
+	inbounds = {
+	(local_port ~= "0") and {
 		-- listening
 		port = tonumber(local_port),
 		protocol = "dokodemo-door",
 		settings = {network = proto, followRedirect = true},
-		sniffing = {enabled = true, destOverride = {"http", "tls"}}
+		sniffing = {
+			enabled = (server.custom_sniffing == "1") and true or false, -- 流量嗅探
+			routeOnly = (server.custom_routeOnly == "1") and true or false, -- 嗅探得到的域名仅用于 Xray 内部路由
+			destOverride = {"http", "tls", "quic"},
+			domainsExcluded = (server.custom_domainsExcluded == "1") and { -- 流量嗅探域名排除列表
+				"courier.push.apple.com",
+				"rbsxbxp-mim.vivox.com",
+				"rbsxbxp.www.vivox.com",
+				"rbsxbxp-ws.vivox.com",
+				"rbspsxp.www.vivox.com",
+				"rbspsxp-mim.vivox.com",
+				"rbspsxp-ws.vivox.com",
+				"rbswxp.www.vivox.com",
+				"rbswxp-mim.vivox.com",
+				"disp-rbspsp-5-1.vivox.com",
+				"disp-rbsxbp-5-1.vivox.com",
+				"proxy.rbsxbp.vivox.com",
+				"proxy.rbspsp.vivox.com",
+				"proxy.rbswp.vivox.com",
+				"rbswp.vivox.com",
+				"rbsxbp.vivox.com",
+				"rbspsp.vivox.com",
+				"rbspsp.www.vivox.com",
+				"rbswp.www.vivox.com",
+				"rbsxbp.www.vivox.com",
+				"rbsxbxp.vivox.com",
+				"rbspsxp.vivox.com",
+				"rbswxp.vivox.com",
+				"Mijia Cloud",
+				"dlg.io.mi.com"
+			} or nil,
+		}
 	} or nil,
+	(server.custom_dns_enable == "1") and { -- Xray 内置 DNS
+		port = 5335,
+		protocol = "dokodemo-door",
+		settings = {
+			address = server.custom_dokodemo_door_dns_address, -- 查询非 A 和 AAAA 记录DNS
+			port = 53,
+			network = "udp"
+		},
+		tag = "dns-in"
+	} or nil,
+	},
 	-- 开启 socks 代理
 	inboundDetour = (proto:find("tcp") and socks_port ~= "0") and {
 		{
@@ -132,7 +213,9 @@ local Xray = {
 		}
 	} or nil,
 	-- 传出连接
-	outbound = {
+	outbounds = {
+	{
+		tag = "proxy",
 		protocol = server.v2ray_protocol,
 		settings = outbound_settings,
 		-- 底层传输配置
@@ -148,10 +231,9 @@ local Xray = {
 				certificates = server.certificate and {
 					usage = "verify",
 					certificateFile = server.certpath
-				} or nil
+				} or nil,
 			} or nil,
 			realitySettings = (server.reality == '1') and {
-				show = false,
 				publicKey = server.reality_publickey,
 				shortId = server.reality_shortid,
 				spiderX = server.reality_spiderx,
@@ -170,6 +252,7 @@ local Xray = {
 				}
 			} or nil,
 			kcpSettings = (server.transport == "kcp") and {
+				-- kcp
 				mtu = tonumber(server.mtu),
 				tti = tonumber(server.tti),
 				uplinkCapacity = tonumber(server.uplink_capacity),
@@ -211,14 +294,47 @@ local Xray = {
 				health_check_timeout = tonumber(server.health_check_timeout) or nil,
 				permit_without_stream = (server.permit_without_stream == "1") and true or nil,
 				initial_windows_size = tonumber(server.initial_windows_size) or nil
-			} or nil
+			} or nil,
+			sockopt = {
+				tcpMptcp = (server.mptcp == "1") and true or false, -- MPTCP
+				tcpNoDelay = (server.mptcp == "1") and true or false, -- MPTCP
+				tcpcongestion = server.custom_tcpcongestion -- 连接服务器节点的 TCP 拥塞控制算法
+			}
 		},
-		mux = (server.mux == "1" and server.transport ~= "grpc") and {
-			-- mux
-			enabled = true,
-			concurrency = tonumber(server.concurrency)
-		} or nil
-	} or nil
+		mux = {
+			enabled = (server.mux == "1") and true or false, -- Mux
+			concurrency = tonumber(server.concurrency), -- TCP 最大并发连接数
+			xudpConcurrency = tonumber(server.xudpConcurrency), -- UDP 最大并发连接数
+			xudpProxyUDP443 = server.xudpProxyUDP443 -- 对被代理的 UDP/443 流量处理方式
+		}
+	},
+	{
+		protocol = "freedom",
+		settings = {
+			domainStrategy = "ForceIPv6v4"
+		},
+		streamSettings = {
+			sockopt = {
+				tcpFastOpen = true
+			}
+		},
+		tag = "direct"
+	},
+	{
+		protocol = "blackhole",
+		tag = "block"
+	},
+	(server.custom_dns_enable == "1") and { -- Xray 内置 DNS
+		protocol = "dns",
+		settings = {
+			nonIPQuery = server.custom_nonIPQuery -- 非 A 和 AAAA 记录处理方式
+		},
+		proxySettings = (server.custom_nonIPQuery == "skip") and {
+			tag = server.custom_nonIPQuery_outbound_tag -- 非 A 和 AAAA 记录查询方式
+		} or nil,
+		tag = "dns-out"
+	} or nil,
+	}
 }
 local cipher = "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES128-SHA:ECDHE-RSA-AES256-SHA:DHE-RSA-AES128-SHA:DHE-RSA-AES256-SHA:AES128-SHA:AES256-SHA:DES-CBC3-SHA"
 local cipher13 = "TLS_AES_128_GCM_SHA256:TLS_CHACHA20_POLY1305_SHA256:TLS_AES_256_GCM_SHA384"
@@ -273,7 +389,7 @@ local ss = {
 	reuse_port = true
 }
 local hysteria = {
-	server = server.server_port and (server.server .. ":" .. server.server_port) or (server.server .. ":" .. server.port_range),
+	server = (server.port_range and (server.server .. ":" .. server.port_range)) or (server.server_port and (server.server .. ":" .. server.server_port)),
 	bandwidth = {
 	up = tonumber(server.uplink_capacity) and tonumber(server.uplink_capacity) .. " mbps" or nil,
 	down = tonumber(server.downlink_capacity) and tonumber(server.downlink_capacity) .. " mbps" or nil 
@@ -285,7 +401,7 @@ local hysteria = {
 	transport = {
 		type = server.transport_protocol,
 		udp = { 
-			hopInterval = tonumber(server.hopinterval) and tonumber(server.hopinterval) .. "s" or nil
+			hopInterval = tonumber(server.hopinterval) and tonumber(server.hopinterval) .. "s" or "30s"
 		}
 	},
 --[[			
@@ -315,7 +431,8 @@ local hysteria = {
 	auth = server.hy2_auth,
 	tls = (server.tls_host) and {
 		sni = server.tls_host,
-		insecure = (server.insecure == "1") and true or false,
+		alpn = server.tls_alpn or nil,
+	insecure = (server.insecure == "1") and true or false,
 		pinSHA256 = (server.insecure == "1") and server.pinsha256 or nil
 	} or {
 		sni = server.server,
@@ -344,7 +461,7 @@ local chain_sslocal = {
 			mode = (proto:find("tcp,udp") and "tcp_and_udp") or proto .. "_only",
 			protocol = "redir",
 			tcp_redir = "redirect",
-			--tcp_redir = "tproxy",
+		--tcp_redir = "tproxy",
 			udp_redir = "tproxy"
 		},
 		socks_port ~= "0" and {
@@ -406,26 +523,26 @@ local chain_vmess = {
 local tuic = {
 		relay = {
 			server = server.server_port and server.server .. ":" .. server.server_port,
-			ip = server.tuic_ip,
-			uuid = server.tuic_uuid,
-			password = server.tuic_passwd,
-			certificates = server.certificate and { server.certpath } or nil,
-			udp_relay_mode = server.udp_relay_mode,
-			congestion_control = server.congestion_control,
-			heartbeat = server.heartbeat and server.heartbeat .. "s" or nil,
-			timeout = server.timeout and server.timeout .. "s" or nil,
-			gc_interval = server.gc_interval and server.gc_interval .. "s" or nil,
-			gc_lifetime = server.gc_lifetime and server.gc_lifetime .. "s" or nil,
-			alpn = server.tls_alpn,
-			disable_sni = (server.disable_sni == "1") and true or false,
-			zero_rtt_handshake = (server.zero_rtt_handshake == "1") and true or false,
-			send_window = tonumber(server.send_window),
-			receive_window = tonumber(server.receive_window)
-		},
+				ip = server.tuic_ip,
+				uuid = server.tuic_uuid,
+				password = server.tuic_passwd,
+				certificates = server.certificate and { server.certpath } or nil,
+				udp_relay_mode = server.udp_relay_mode,
+				congestion_control = server.congestion_control,
+				heartbeat = server.heartbeat and server.heartbeat .. "s" or nil,
+				timeout = server.timeout and server.timeout .. "s" or nil,
+				gc_interval = server.gc_interval and server.gc_interval .. "s" or nil,
+				gc_lifetime = server.gc_lifetime and server.gc_lifetime .. "s" or nil,
+				alpn = server.tls_alpn,
+				disable_sni = (server.disable_sni == "1") and true or false,
+				zero_rtt_handshake = (server.zero_rtt_handshake == "1") and true or false,
+				send_window = tonumber(server.send_window),
+				receive_window = tonumber(server.receive_window)
+        },
 		["local"] = {
 			server = tonumber(socks_port) and (server.tuic_dual_stack == "1" and "[::1]:" or "127.0.0.1:")  .. (socks_port == "0" and local_port or tonumber(socks_port)),
 			dual_stack = (server.tuic_dual_stack == "1") and true or false,
-			max_packet_size = tonumber(server.tuic_max_package_size)
+				max_packet_size = tonumber(server.tuic_max_package_size)
 		}
 }
 local config = {}
