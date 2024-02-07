@@ -94,73 +94,8 @@ msgstr "TLS 主机名"
 msgid "allowInsecure"
 msgstr "允许不安全连接"
 
-msgid "concurrency"
-msgstr "TCP 最大并发连接数"
-
-msgid "xudpConcurrency"
-msgstr "UDP 最大并发连接数"
-
-msgid "xudpProxyUDP443"
-msgstr "对被代理的 UDP/443 流量处理方式"
-
-
-msgid "custom_tcpcongestion"
-msgstr "连接服务器节点的 TCP 拥塞控制算法"
-
-msgid "comment_tcpcongestion_disable"
-msgstr "系统默认值"
-
-
-msgid "custom_sniffing"
-msgstr "流量嗅探"
-
-msgid "custom_domainsExcluded"
-msgstr "流量嗅探域名排除列表"
-
-msgid "custom_routeOnly"
-msgstr "嗅探得到的域名仅用于 Xray 路由"
-
-
-msgid "custom_dns_enable"
-msgstr "Xray DNS 功能"
-
-msgid "comment_dns_inbound_enable"
-msgstr "监听 5335 端口，国外域名规则需要上传 geosite.dat 到 /usr/share/xray，更新固件后要重新上传"
-
-msgid "custom_dns_local"
-msgstr "本地 DNS"
-
-msgid "custom_dns_remote"
-msgstr "国外域名 DNS"
-
-msgid "custom_dns_remote_domains"
-msgstr "国外域名规则"
-
-msgid "custom_nonIPQuery"
-msgstr "非 A 和 AAAA 记录处理方式"
-
-msgid "custom_nonIPQuery_outbound_tag"
-msgstr "非 A 和 AAAA 记录查询方式"
-
-msgid "custom_dokodemo_door_dns_address"
-msgstr "查询非 A 和 AAAA 记录 DNS"
-
-
-msgid "custom_log"
-msgstr "Xray 日志功能"
-
-msgid "custom_loglevel"
-msgstr "日志级别"
-
-msgid "custom_dnsLog"
-msgstr "DNS 查询记录"
-
-msgid "custom_access"
-msgstr "访问记录"
-
-msgid "custom_error"
-msgstr "错误记录"
-
+msgid "Concurrency"
+msgstr "最大并发连接数"
 
 msgid "If true, allowss insecure connection at TLS client, e.g., TLS server uses unverifiable certificates."
 msgstr "是否允许不安全连接。当选择时，将不会检查远端主机所提供的 TLS 证书的有效性。"
@@ -205,22 +140,22 @@ msgid "Obfuscation Password"
 msgstr "混淆密码"
 
 msgid "Hysterir QUIC parameters"
-msgstr "QUIC 参数"
+msgstr "QUIC参数"
 
 msgid "QUIC initStreamReceiveWindow"
-msgstr "QUIC 初始流接收窗口大小。"
+msgstr "QUIC初始流接收窗口大小。"
 
 msgid "QUIC maxStreamReceiveWindow"
-msgstr "QUIC 最大的流接收窗口大小"
+msgstr "QUIC最大的流接收窗口大小"
 
 msgid "QUIC initConnReceiveWindow"
-msgstr "QUIC 初始的连接接收窗口大小"
+msgstr "QUIC初始的连接接收窗口大小"
 
 msgid "QUIC maxConnReceiveWindow"
-msgstr "QUIC 最大的连接接收窗口大小"
+msgstr "QUIC最大的连接接收窗口大小"
 
 msgid "QUIC maxIdleTimeout(Unit:second)"
-msgstr "QUIC 最长空闲超时时间（单位：秒）"
+msgstr "QUIC最长空闲超时时间（单位：秒）"
 
 msgid "The keep-alive period.(Unit:second)"
 msgstr "心跳包发送间隔（单位：秒）"
@@ -230,13 +165,13 @@ msgid "Certificate fingerprint"
 msgstr "证书指纹"
 
 msgid "shadowTLS protocol Version"
-msgstr "ShadowTLS 协议版本"
+msgstr "ShadowTLS协议版本"
 
 msgid "TLS 1.3 Strict mode"
 msgstr "TLS 1.3 限定模式"
 
 msgid "Disable TCP No_delay"
-msgstr "禁用 TCP 无延迟"
+msgstr "禁用TCP无延迟"
 
 msgid "shadow-TLS SNI"
 msgstr "服务器名称指示"
@@ -245,20 +180,19 @@ msgid "Shadow-TLS ChainPoxy type"
 msgstr "代理链类型"
 
 msgid "Shadowsocks-rust Version"
-msgstr "shadowsocks rust 版本"
+msgstr "shadowsocks rust版本"
 
 msgid "Vmess Protocol"
-msgstr "VMESS 协议"
+msgstr "VMESS协议"
 
 msgid "Shadowsocks password"
-msgstr "shadowsocks 密码"
+msgstr "shadowsocks密码"
 
 msgid "QUIC connection receive window"
 msgstr "QUIC 连接接收窗口"
 
 msgid "QUIC stream receive window"
 msgstr "QUIC 流接收窗口"
-
 
 msgid "Lazy Start"
 msgstr "延迟启动"
@@ -480,7 +414,7 @@ msgid "Refresh Data"
 msgstr "更新数据库"
 
 msgid "Refresh..."
-msgstr "正在更新，请稍候..."
+msgstr "正在更新，请稍候.."
 
 msgid "Refresh OK!"
 msgstr "更新成功！"
@@ -606,20 +540,19 @@ msgid "Anti-pollution DNS Server"
 msgstr "访问国外域名DNS服务器"
 
 msgid "Custom DNS Server format as IP:PORT (default: 8.8.4.4:53)"
-msgstr "格式为 IP:Port（默认：8.8.4.4:53）"
+msgstr "格式为 IP:PORT (默认: 8.8.4.4:53)"
 
 msgid "Use DNS2TCP query"
 msgstr "使用 DNS2TCP 查询"
 
-
 msgid "Use DNS2SOCKS query and cache"
 msgstr "使用 DNS2SOCKS 查询并缓存"
 
-msgid "Use MOSDNS query (Not Support Oversea Mode)"
-msgstr "使用 MOSDNS 查询 (不支持海外用户回国模式)"
+msgid "Use MosDNS query (Not Support Oversea Mode)"
+msgstr "使用 MosDNS 查询 (不支持海外用户回国模式)"
 
-msgid "Disable IPv6 in MOSDNS query mode"
-msgstr "禁止 MOSDNS 返回 IPv6 记录"
+msgid "Disable IPv6 in MosDNS query mode (only for Non-CN domain)"
+msgstr "禁止 MosDNS 返回 IPv6 记录 (仅限非大陆域名)"
 
 msgid "DNS Query Mode For Shunt Mode"
 msgstr "分流模式下的 DNS 查询模式"
@@ -627,17 +560,17 @@ msgstr "分流模式下的 DNS 查询模式"
 msgid "Anti-pollution DNS Server For Shunt Mode"
 msgstr "分流模式下的访问国外域名 DNS 服务器"
 
-msgid "Use MOSDNS query"
-msgstr "使用 MOSDNS 查询"
+msgid "Use MosDNS query"
+msgstr "使用 MosDNS 查询"
 
-msgid "Custom DNS Server for mosdns"
-msgstr "MOSDNS 自定义 DNS 服务器"
+msgid "Custom DNS Server for MosDNS"
+msgstr "MosDNS 自定义 DNS 服务器"
 
 msgid "Domestic DNS Server (ChinaDNS Mode With MosDNS)"
 msgstr "国内 DNS 服务器 (MosDNS 下的 ChinaDNS 模式)"
 
-msgid "Disable IPv6 In MOSDNS Query Mode (Shunt Mode)"
-msgstr "禁止 MOSDNS 返回 IPv6 记录 (分流模式)"
+msgid "Disable IPv6 In MosDNS Query Mode (Shunt Mode)"
+msgstr "禁止 MosDNS 返回 IPv6 记录 (分流模式)"
 
 msgid "Prevent DNS leak (Only Work With ChinaDNS Mode)"
 msgstr "防止DNS泄漏 (仅适用于ChinaDNS模式)"
@@ -649,22 +582,22 @@ msgid "DNS Server IP:Port"
 msgstr "DNS服务器 IP:Port"
 
 msgid "Domestic DNS Server"
-msgstr "国内DNS服务器"
+msgstr "国内 DNS 服务器"
 
 msgid "Use DNS from WAN"
-msgstr "使用WAN下发的DNS"
+msgstr "使用 WAN 下发的 DNS"
 
 msgid "Use DNS from WAN and 114DNS"
-msgstr "使用WAN下发的DNS和114DNS"
+msgstr "使用 WAN 下发的 DNS 和 114DNS"
 
 msgid "Custom DNS Server format as IP:PORT (default: disabled)"
 msgstr "格式为 IP:PORT（默认：禁用）"
 
 msgid "Update time (every day)"
-msgstr "更新时间（每天）"
+msgstr "更新时间 (每天)"
 
 msgid "Auto Update Server subscription, GFW list and CHN route"
-msgstr "自动更新服务器订阅、GFW 列表和中国大陆 IP 段"
+msgstr "自动更新服务器订阅、GFW列表和 CHN路由表"
 
 msgid "Subscribe URL"
 msgstr "SS/SSR/V2/TROJAN订阅URL"
@@ -724,7 +657,7 @@ msgid "GFW Custom List"
 msgstr "GFW 用户自定义列表"
 
 msgid "Please refer to the following writing"
-msgstr "每行一个域名，无需写前面的 http(s)://，提交后即时生效"
+msgstr "每行一个域名，无需写前面的 HTTP(S):// ，提交后即时生效"
 
 msgid "Servers subscription and manage"
 msgstr "服务器节点订阅与管理"
@@ -745,7 +678,7 @@ msgid "Game Mode UDP Relay"
 msgstr "游戏模式UDP中继"
 
 msgid "Server failsafe auto swith and custom update settings"
-msgstr "服务器节点故障自动切换/广告屏蔽/中国大陆 IP 段数据库更新设置"
+msgstr "服务器节点故障自动切换/广告屏蔽/国内IP段数据库更新设置"
 
 msgid "Support AdGuardHome and DNSMASQ format list"
 msgstr "同时支持 AdGuard Home 和 DNSMASQ 格式的过滤列表"
@@ -945,9 +878,6 @@ msgstr "WebSocket 主机名"
 msgid "WebSocket Path"
 msgstr "WebSocket 路径"
 
-msgid "Enable early data"
-msgstr "启用前置数据"
-
 msgid "Max Early Data"
 msgstr "最大前置数据"
 
@@ -986,7 +916,6 @@ msgstr "QUIC 加密方式"
 
 msgid "QUIC Key"
 msgstr "QUIC 密钥"
-
 msgid "VideoCall (SRTP)"
 msgstr "视频通话（SRTP）"
 
@@ -1035,9 +964,6 @@ msgstr "节点公钥"
 msgid "Pre-shared key"
 msgstr "预共享密钥"
 
-msgid "Packet Encoding"
-msgstr "数据包编码"
-
 msgid "Network interface to use"
 msgstr "使用的网络接口"
 
@@ -1053,9 +979,6 @@ msgstr "重置完成"
 msgid "Reset Error"
 msgstr "重置错误"
 
-msgid "Reset pdnsd cache"
-msgstr "重置PDNSD缓存"
-
 msgid "Finger Print"
 msgstr "指纹伪造"
 
@@ -1065,13 +988,10 @@ msgstr "重新应用"
 msgid "Apply"
 msgstr "应用"
 
-msgid "Default Packet Encoding"
-msgstr "默认数据包编码"
-
 msgid "Enable Netflix Mode"
 msgstr "启用 Netflix 分流模式"
 
-msgid "TUIC user UUID"
+msgid "TUIC User UUID"
 msgstr "TUIC用户uuid"
 
 msgid "TUIC Server IP Address"
@@ -1079,12 +999,6 @@ msgstr "TUIC 服务器IP地址"
 
 msgid "TUIC User Password"
 msgstr "TUIC用户密钥"
-
-msgid "TUIC UserName For Local Socks"
-msgstr "用于本地 Socks 服务器连接的用户名"
-
-msgid "TUIC Password For Local Socks"
-msgstr "用于本地 Socks 服务器连接的密码"
 
 msgid "UDP relay mode"
 msgstr "UDP中继模式"
@@ -1122,9 +1036,6 @@ msgstr "发送窗口（无需确认即可发送的最大字节数：默认8Mb*2�
 msgid "TUIC receive window"
 msgstr "接收窗口（无需确认即可接收的最大字节数：默认8Mb）"
 
-msgid "Set if the listening socket should be dual-stack"
-msgstr "设置监听套接字为双栈"
-
 msgid "Dual-stack Listening Socket"
 msgstr "双栈Socket监听"
 
@@ -1133,9 +1044,3 @@ msgstr "socks5服务器可以从外部接收的最大数据包大小（单位：
 
 msgid "Disable ChinaDNS-NG"
 msgstr "直通模式（禁用ChinaDNS-NG）"
-
-msgid "MosDNS GeoIP List Data"
-msgstr "【MosDNS GeoIP】数据库"
-
-msgid "Dynamic Mode"
-msgstr "MosDNS动态模式"

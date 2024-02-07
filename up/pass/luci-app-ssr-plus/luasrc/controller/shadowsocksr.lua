@@ -14,7 +14,7 @@ function index()
 	page.dependent = true
 	page.acl_depends = { "luci-app-ssr-plus" }
 	entry({"admin", "services", "shadowsocksr", "client"}, cbi("shadowsocksr/client"), _("SSR Client"), 10).leaf = true
-	entry({"admin", "services", "shadowsocksr", "servers"}, arcombine(cbi("shadowsocksr/servers", {autoapply = true}), cbi("shadowsocksr/client-config")), _("Servers Nodes"), 20).leaf = true
+	entry({"admin", "services", "shadowsocksr", "servers"}, arcombine(cbi("shadowsocksr/servers", {autoapply = true}), cbi("shadowsocksr/client-config")), _("Severs Nodes"), 20).leaf = true
 	entry({"admin", "services", "shadowsocksr", "control"}, cbi("shadowsocksr/control"), _("Access Control"), 30).leaf = true
 	entry({"admin", "services", "shadowsocksr", "advanced"}, cbi("shadowsocksr/advanced"), _("Advanced Settings"), 50).leaf = true
 	entry({"admin", "services", "shadowsocksr", "server"}, arcombine(cbi("shadowsocksr/server"), cbi("shadowsocksr/server-config")), _("SSR Server"), 60).leaf = true
@@ -30,6 +30,7 @@ function index()
 	entry({"admin", "services", "shadowsocksr", "reset"}, call("act_reset"))
 	entry({"admin", "services", "shadowsocksr", "restart"}, call("act_restart"))
 	entry({"admin", "services", "shadowsocksr", "delete"}, call("act_delete"))
+	entry({"admin", "services", "shadowsocksr", "cache"}, call("act_cache"))
 	 entry({"admin","services","shadowsocksr","getlog"},call("getlog")) 
          entry({"admin","services","shadowsocksr","dellog"},call("dellog")) 
 end
@@ -45,11 +46,11 @@ function check_net()
 	local u=http.formvalue("url")
 	local p
 	if CALL("nslookup www."..u..".com >/dev/null 2>&1")==0 then
-	if u=="google" then p="/generate_204" else p="" end
-		local use_time = EXEC("curl --connect-timeout 3 -o /dev/null -I -skL -w %{time_starttransfer}  https://www."..u..".com"..p)
-		if use_time~="0" then
-     		 	r=string.format("%.1f", use_time * 1000/2)
-			if r=="0" then r="0.1" end
+		if u=="google" then p="/generate_204" else p="" end
+		r=EXEC("curl -m 5 -o /dev/null -sw %{time_starttransfer} http://www."..u..".com"..p.." | awk '{printf ($1*1000)}'")
+		if r~="0" then
+			r=EXEC("echo -n "..r.." | sed 's/\\..*//'")
+			if r=="0" then r="1" end
 		end
 	end
 	http.prepare_content("application/json")
@@ -57,14 +58,13 @@ function check_net()
 end
 
 function act_status()
-    math.randomseed(os.time())
     local e = {}
 
-    e.global = CALL('busybox ps -w | grep ssr-xretcp | grep -v grep  >/dev/null ') == 0
+    e.global = CALL('busybox ps -w | grep ssrp-retcp | grep -v grep  >/dev/null ') == 0
 
-    e.pdnsd = CALL("busybox ps -w | grep dns2tcp |  grep -v grep  >/dev/null   || busybox ps -w  |  grep 'mosdns-config' | grep -v grep  >/dev/null   || busybox ps -w  |  grep dns2socks | grep -v grep  >/dev/null "  ) == 0
+    e.pdnsd = CALL('busybox ps -w | grep dns2tcp | grep -v grep  >/dev/null || busybox ps -w | grep dns2socks | grep -v grep  >/dev/null ') == 0
 
-    e.udp = CALL('busybox ps -w | grep ssr-xreudp | grep -v grep  >/dev/null') == 0
+    e.udp = CALL('busybox ps -w | grep -ssrp-reudp | grep -v grep  >/dev/null') == 0
 
     e.server= CALL('busybox ps -w | grep ssr-server | grep -v grep  >/dev/null') == 0
     luci.http.prepare_content('application/json')
@@ -165,6 +165,12 @@ function act_delete()
 	luci.http.redirect(luci.dispatcher.build_url("admin", "services", "shadowsocksr", "servers"))
 end
 
+function act_cache()
+	local e = {}
+	e.ret = luci.sys.call("pdnsd-ctl -c /var/etc/ssrplus/pdnsd empty-cache >/dev/null")
+	luci.http.prepare_content("application/json")
+	luci.http.write_json(e)
+end
 function getlog()
 	logfile="/var/log/ssrplus.log"
 	if not fs.access(logfile) then

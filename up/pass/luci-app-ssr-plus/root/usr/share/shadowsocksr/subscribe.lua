@@ -173,7 +173,6 @@ local function processData(szType, content)
 		result.server = info.add
 		result.server_port = info.port
 		result.transport = info.net
-		result.alter_id = info.aid
 		result.vmess_id = info.id
 		result.alias = info.ps
 		-- result.mux = 1
@@ -223,11 +222,15 @@ local function processData(szType, content)
 			if info.sni and info.sni ~= "" then
 				result.tls_host = info.sni
 			elseif info.host then
-				result.tls_host = info.host
+			result.tls_host = info.host
 			end
 			result.insecure = 1
 		else
 			result.tls = "0"
+		end
+		-- https://www.v2fly.org/config/protocols/vmess.html#vmess-md5-认证信息-淘汰机制
+		if info.aid and (tonumber(info.aid) > 0) then
+			result.server = nil
 		end
 	elseif szType == "ss" then
 		local idx_sp = 0
@@ -352,10 +355,10 @@ local function processData(szType, content)
 		result.server = url.host
 		result.server_port = url.port
 		result.vmess_id = url.user
-		result.vless_encryption = params.encryption or "none"
+			result.vless_encryption = params.encryption or "none"
 		result.transport = params.type or "tcp"
 		result.tls = (params.security == "tls" or params.security == "xtls") and "1" or "0"
-		result.tls_host = params.sni
+					result.tls_host = params.sni
 		result.tls_flow = (params.security == "tls" or params.security == "reality") and params.flow or nil
 		result.fingerprint = params.fp
 		result.reality = (params.security == "reality") and "1" or "0"
@@ -380,7 +383,7 @@ local function processData(szType, content)
 			result.read_buffer_size = 2
 			result.write_buffer_size = 2
 		elseif result.transport == "quic" then
-			result.quic_guise = params.headerType or "none"
+				result.quic_guise = params.headerType or "none"
 			result.quic_security = params.quicSecurity or "none"
 			result.quic_key = params.key
 		elseif result.transport == "grpc" then
