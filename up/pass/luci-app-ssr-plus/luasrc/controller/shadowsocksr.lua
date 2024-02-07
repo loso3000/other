@@ -57,6 +57,7 @@ function check_net()
 end
 
 function act_status()
+    math.randomseed(os.time())
     local e = {}
 
     e.global = CALL('busybox ps -w | grep ssr-xretcp | grep -v grep  >/dev/null ') == 0
