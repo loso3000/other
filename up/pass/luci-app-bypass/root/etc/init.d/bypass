@@ -53,9 +53,9 @@ local_enable=0
 switch_enable=0
 switch_server=$1
 server_count=0
-PS="busybox ps -w "
+PS="busybox ps -w"
 STATUS=Y
-DEBUG=''
+DEBUG=1
 
 uci_get_by_name() {
 	local ret=$(uci get $NAME.$1.$2 2>/dev/null)
@@ -111,9 +111,32 @@ f_bin(){
 	hysteria2) ret=$(which hysteria);;
 	trojan) ret=$(which trojan-plus);;
 	naiveproxy) ret=$(which naive);;
-	socks5|tun) ret=$(which redsocks2);;
+	socks5) ret=$(which redsocks2);;
+	tun) ret=$(which redsocks2);;
 	esac
 	echo $ret
+}
+set_lock() {
+	[ ! -d "$LOCK_FILE_DIR" ] && mkdir -p $LOCK_FILE_DIR
+	exec 999>"$LOCK_FILE"
+	flock -xn 999
+}
+
+unset_lock() {
+	flock -u 999
+	rm -rf "$LOCK_FILE"
+}
+unlock() {
+	failcount=1
+	while [ "$failcount" -le 10 ]; do
+		if [ -f "$LOCK_FILE" ]; then
+			let "failcount++"
+			sleep 1s
+			[ "$failcount" -ge 10 ] && unset_lock
+		else
+			break
+		fi
+	done
 }
 
 v2txray() {
@@ -305,14 +328,11 @@ get_soip(){
 
 rules(){
 	server=$(uci_get_by_name $GLOBAL_SERVER server)
-	
-	[ $DEBUG ] && echo "[DEBUG] Start rules  server:$server"
 	if [ ! $server ];then
 		get_soip 1;return 1
 	fi
-	
 	if `busybox ps -w | grep by-retcp | grep -qv grep`;then
-		log "Rules     :Bypass has Started.";/etc/init.d/bypass stop;/etc/init.d/bypass start
+		log "Rules     :Bypass has Started.";/etc/init.d/bypass stop  >/dev/null 2>&1;/etc/init.d/bypass start  >/dev/null 2>&1
 	fi
 	cat $LOG 2>/dev/null | sed -n '$p' | grep -q 'Check network status.\|Download IP/GFW files.' || gen_log
 	check_net
@@ -322,21 +342,17 @@ rules(){
 	if [ ! -s $VAR/china.txt ] || [ ! -s $VAR/china_v6.txt ] || [ ! -s $VAR/gfw.list ] ;then
 		if [ ! -s $T_FILE/china.txt ] || [ ! -s $T_FILE/china_v6.txt ] || [ ! -s $T_FILE/gfw.list ] ;then
 			log "Rules      : Download IP/GFW files."
-			[ $DEBUG ] && echo "[DEBUG] Start rules update --First"
 			$BIN_DIR/update --First ;exit 0;
 		else
 			cp -f $T_FILE/*.txt $VAR
 			cp -f $T_FILE/gfw.list $VAR
-			[ $DEBUG ] && echo "[DEBUG] Start rules update cp"
 		fi
 	fi
 	log "Rules      : Check IP/GFW files success!"
 	#tcp
 	kcp_enable=$(uci_get_by_name $GLOBAL_SERVER kcp_enable 0)
 	server=$(host_ip $GLOBAL_SERVER)
-	
 	[ $kcp_enable = 1 ] && kcp_server=$server
-	[ $DEBUG ] && echo "[DEBUG] Start rules kcp_enable: server:$server  GLOBAL_SERVER:$GLOBAL_SERVER kcp_enable:$kcp_enable"
 	#udp
 	UDP_RELAY_SERVER=$(uci_get_by_type global udp_relay_server)
 	[ $UDP_RELAY_SERVER ] || UDP_RELAY_SERVER=
@@ -346,7 +362,6 @@ rules(){
 		UDP_RELAY_SERVER=
 	fi
 	#nf
-	[ $DEBUG ] && echo "[DEBUG] Start rules kcp_enable: UDP_RELAY_SERVER:$UDP_RELAY_SERVER kcp_enable:$(uci_get_by_name $UDP_RELAY_SERVER kcp_enable)"
 	NF_SERVER=$(uci_get_by_type global nf_server)
 	[ $NF_SERVER ] || NF_SERVER=
 	[ "$NF_SERVER" = $GLOBAL_SERVER ] && NF_SERVER=
@@ -365,15 +380,12 @@ rules(){
 		UDP=1
 	fi
 
-	[ $DEBUG ] && echo "[DEBUG] Start rules  udp_server=$udp_server  GLOBAL_SERVER:$GLOBAL_SERVER UDP_RELAY_SERVER:$UDP_RELAY_SERVER"
 	ttype=$(uci_get_by_name $GLOBAL_SERVER type)
 	utype=$(uci_get_by_name $UDP_RELAY_SERVER type)
 	if [ "$UDP" = 1 ];then
-	[ $DEBUG ] && echo "[DEBUG] Rules Start:UDP -S $udp_server -L $local_port" 
 		[ $ttype = trojan -o $utype = trojan ] && [ $udp_local_port = $local_port ] && let udp_local_port=local_port+1
 		[ $ttype = hysteria2 -o $utype = hysteria2 ] && [ $udp_local_port = $local_port ] && let udp_local_port=local_port+1
 		UDP="-S $udp_server -L $udp_local_port"
-		[ $DEBUG ] && echo "[DEBUG] Rules Start:UDP -S $udp_server -L $udp_local_port" 
 	fi
 
 	case $run_mode in
@@ -385,6 +397,7 @@ rules(){
 	[ $kcp_enable = 1 ] && kcp_server=$server
 	if [ -n "$NF_SERVER" -a $run_mode != oversea ];then
 		nf_ip=$(host_ip $NF_SERVER)
+
 		ntype=$(uci_get_by_name $NF_SERVER type)
 		nf_local_port=$(uci_get_by_name $NF_SERVER local_port 1234)
 		[ $nf_local_port = $local_port ] && let nf_local_port=local_port+1
@@ -393,8 +406,6 @@ rules(){
 	fi
 	[ "$NF" = 1 ] && NF="-N $nf_ip -P $nf_local_port"
 	get_soip
-
-	[ $DEBUG ] && echo "[DEBUG] Rules Start: run_mode:$run_mode server:$server   NF_SERVER:$NF_SERVER   nf_ip:$nf_ip" 
 	if [ -n "$lan_ac_ips" ];then
 		case $lan_ac_mode in
 			w|W|b|B)local ac_ips="$lan_ac_mode$lan_ac_ips";;
@@ -408,7 +419,7 @@ rules(){
 		dports=$(echo $dports | sed 's/，/,/g')
 		proxyport="-m multiport --dports $dports"
 	fi
-	[ $DEBUG ] && echo "[DEBUG] Rules Start:" -s "$server" -l "$local_port" -a "$ac_ips" -b "$(uci_get_by_type access_control wan_bp_ips)" -w "$(uci_get_by_type access_control wan_fw_ips)" -p "$(uci_get_by_type access_control lan_fp_ips)" -G "$(uci_get_by_type access_control lan_gm_ips)" -D "$proxyport" $mode $UDP $NF
+
 	r=1
 	while ! $BIN_DIR/by-rules -s "$server" -l "$local_port" -a "$ac_ips" -b "$(uci_get_by_type access_control wan_bp_ips)" -w "$(uci_get_by_type access_control wan_fw_ips)" \
 		-p "$(uci_get_by_type access_control lan_fp_ips)" -G "$(uci_get_by_type access_control lan_gm_ips)" -D "$proxyport" $mode $UDP $NF;do
@@ -420,7 +431,6 @@ rules(){
 
 start_retcp(){
 	rtype=tcp
-	[ $DEBUG ] && echo "[DEBUG] start_retcp:  kcp_enable:$kcp_enable" 
 	if [ $kcp_enable = 1 ];then
 		cmd=$(which kcptun-client) || cmd=0
 		[ ! $cmd ] && 	log "Main Node: Can't find KCPTUN program, start failed!" && return 1
@@ -433,20 +443,17 @@ start_retcp(){
 		[ "$password" ] && password="--key "${password}
 		service_start $cmd -r $kcp_server:$kcp_port -l :$server_port $password $kcp_param
 	fi
-
 	threads=$(uci_get_by_type global threads 0)
 	[ $threads = 0 ] && threads=$(cat /proc/cpuinfo | grep 'processor' | wc -l)
-	[ $DEBUG ] && echo "[DEBUG] start_retcp:  threads:$threads" 
 	cmd=$(f_bin $ttype)
 	[ ! $cmd ] && log "Main Node: Can't find $(echo $ttype | tr a-z A-Z) program, start failed!"  && return 1
 
-	[ $DEBUG ] && echo "[DEBUG] start_retcp:   ttype:$ttype" 
 	redir_tcp=1
 	case $ttype in
 	ss|ssr)
 		gen_config_file $GLOBAL_SERVER $rtype
 		redir_tcp=$threads
-		$cmd -c $config_file >/dev/null 2>&1 &
+			$cmd -c $config_file >/dev/null 2>&1 &
 		[ $ttype = ss ] && name=Shadowsocks || name=ShadowsocksR
 		log "Main Node: $name $threads Threads Started!";;
 	v2ray)
@@ -471,7 +478,9 @@ start_retcp(){
 			port=0
 		fi
 		gen_config_file $GLOBAL_SERVER $rtype $port $server
+
 		$cmd -c $config_file >/dev/null 2>&1 &
+
 		log "Main Node: `$cmd version  | awk '{print "Hysteria2: " $2}' | head -9 | tail +9 ` $ttype Started!"
 
 		;;
@@ -492,7 +501,9 @@ start_retcp(){
 		redir_tcp=$threads
 		$BIN_DIR/genred2config $VAR/redsocks-by-retcp.json socks5 tcp $local_port $server $(uci_get_by_name $GLOBAL_SERVER server_port) \
 		$(uci_get_by_name $GLOBAL_SERVER auth_enable 0) $(uci_get_by_name $GLOBAL_SERVER username) $(uci_get_by_name $GLOBAL_SERVER password)
+
 		$cmd -c $VAR/redsocks-by-retcp.json>/dev/null 2>&1 &
+
 		log "Main Node: Socks5 $threads Threads Started!"
 		;;
 	tun)
@@ -504,21 +515,15 @@ start_retcp(){
 		log "Main Node: Network Tunnel $threads Threads Started!"
 		;;
 	esac
-
-	[ $DEBUG ] && echo "[DEBUG] start_retcp: end" 
 	log "Main Node: Main Server $(uci_get_by_name $GLOBAL_SERVER alias)  Started!"
 }
 
 start_reudp(){
 	rtype=udp
-	
-	 [ $DEBUG ] && echo "[DEBUG] start_reudp start"
 	cmd=$(f_bin $utype)
 	[ ! $cmd ] && log "UDP Node: Can't find $(echo $utype | tr a-z A-Z) program, start failed!" && return 1
 
 	redir_udp=1
-
-	 [ $DEBUG ] && echo "[DEBUG] start_reudp utype:$utype"
 	case $utype in
 	ss|ssr)
 		gen_config_file $UDP_RELAY_SERVER $rtype
@@ -545,6 +550,7 @@ start_reudp(){
 		;;
 
 	hysteria2)
+	
 		gen_config_file $UDP_RELAY_SERVER $rtype 0 $udp_server
 		$cmd -c $config_file  >/dev/null 2>&1 &
 		log "UDP Node: `$cmd version  | awk '{print "Hysteria2: " $2}' | head -9 | tail +9 `  $utype Started!"
@@ -561,7 +567,6 @@ start_reudp(){
 		log "Network Tunnel UDP Relay $utype not supported!"
 		;;
 	esac
-	 [ $DEBUG ] && echo "[DEBUG] start_reudp  end"
 	log "UDP Node: UDP Server $(uci_get_by_name  $UDP_RELAY_SERVER alias)  Started!"
 }
 
@@ -643,6 +648,7 @@ start_local(){
 		gen_config_file $SO_SERVER $rtype $socks5_port $socks5_ip
 		$cmd -c $config_file >/dev/null 2>&1 &
 		log "Socks5 Node: `$cmd version  | awk '{print "Hysteria2: " $2}' | head -9 | tail +9 `  $type Started!"
+		
 		;;
 	trojan)
 		gen_config_file $SO_SERVER $rtype "" $socks5_ip
@@ -791,6 +797,7 @@ get_dns(){  #$1:name/dnslnk  $2:dns/dnsip
 gen_smartdns(){ 
 	killall -q -9 smartdns >/dev/null 2>&1 &
 	killall -q -9 mosdns >/dev/null 2>&1 &
+
 	mkdir -p /tmp/run /tmp/dnsmasq.d $SDNS $DNS_DIR
 	cat >$DNS_T_TMP <<-EOF
 		speed-check-mode tcp:443,tcp:80,ping
@@ -1042,8 +1049,8 @@ gen_smartdns(){
 	mv -f $DNS_T_TMP $DNS_T
 	start_dns
 
-	/etc/init.d/dnsmasq restart  >/dev/null 2>&1 &
-	$BIN_DIR/by-preload $run_mode 
+	/etc/init.d/dnsmasq restart  >/dev/null 2>&1
+	$BIN_DIR/by-preload $run_mode
 }
 
 mget_dns(){ #$1 name  $2 dns
@@ -1199,7 +1206,7 @@ gen_mosdns(){
 	rm -rf $TMPDIR $O
 	[ $run_mode = router ] && chinadns_flag=1
 	start_dns
-	/etc/init.d/dnsmasq restart  >/dev/null 2>&1 &
+	/etc/init.d/dnsmasq restart >/dev/null 2>&1
 	$BIN_DIR/by-preload $run_mode
 }
 
@@ -1260,7 +1267,7 @@ gen_service_file(){
 run_server(){
 	[ $(uci_get_by_name $1 enable 0) = 0 ] && return 1
 	let server_count=server_count+1
-	[ $server_count = 1 ] && iptables-save -t filter | grep BY-SERVER-RULE  >/dev/null 2>&1 || iptables -N BY-SERVER-RULE && iptables -t filter -I INPUT -j BY-SERVER-RULE
+	[ $server_count = 1 ] && iptables-save -t filter | grep BY-SERVER-RULE >/dev/null || iptables -N BY-SERVER-RULE && iptables -t filter -I INPUT -j BY-SERVER-RULE
 	type=$(uci_get_by_name $1 type ssr)
 	[ $type = ss -o $type = ssr ] && cmd=$(f_bin $type-server) || cmd=$(which microsocks)
 	[ ! $cmd ] && log "By server: Can't find $cmd program, start failed!" && return 1
@@ -1334,27 +1341,17 @@ start(){
 	fi
 	v2txray
 	if rules;then
-			[ $DEBUG ] && echo "[DEBUG] Start tcp"
 		if start_retcp;then
-			[ $DEBUG ] && echo "[DEBUG] Start udp  UDP_RELAY_SERVER:$UDP_RELAY_SERVER"
 			[ -n "$UDP_RELAY_SERVER" ] && start_reudp
-			[ $DEBUG ] && echo "[DEBUG] Start nf:$NF"
 			[ -n "$NF" ] && start_renf
-			[ $DEBUG ] && echo "[DEBUG] Start dns:$dns_mode"
 			[ "x$dns_mode" = "x1" ] && gen_smartdns || gen_mosdns
-			[ $DEBUG ] && echo "[DEBUG] Start switch"
 			start_switch
 			add_cron
 		fi
 	fi
-	
-	[ $DEBUG ] && echo "Start start_local"
 	[ "$SO_SERVER" -a "$socks5_start" != 1 ] && start_local
-	[ $DEBUG ] && echo "Start start_server "
 	start_server 
-	[ $DEBUG ] && echo "Start start_monitor"
 	start_monitor
-	[ $DEBUG ] && echo "Start start_AdGuardHome"
 	adbin="$(uci -q get AdGuardHome.AdGuardHome.binpath)"
 	if [[ -x /etc/init.d/AdGuardHome && -x "$adbin" ]]; then
 		if [[ $adguardhome == 1 && -n "$GLOBAL_SERVER" ]]; then
@@ -1383,8 +1380,6 @@ start(){
 	elif [ $adguardhome == 1 ]; then
 		log "Please ensure that Luci app adguardhome and ADG main program exist in the system!"
 	fi
-
-	[ $DEBUG ] && 	echo "Start end"
 	clean_log 
 	rm -f $LOCK $LOC
 }
@@ -1401,10 +1396,8 @@ stop(){
 	killall -q -9 smartdns chinadns-ng kcptun-client xray-plugin microsocks mosdns hysteria trojan trojan-plus trojan-go  xray v2ray  >/dev/null 2>&1
 	$BIN_DIR/by-rules -f
 	[ $(iptables -nL | grep BY-SERVER-RULE | wc -l) = 0 ] || (iptables -F BY-SERVER-RULE && iptables -X BY-SERVER-RULE;while iptables -D INPUT -j BY-SERVER-RULE 2>/dev/null;do :;done)
-
 	rm -rf $DNS_DIR $VAR $DNS_FILE $CON_T /tmp/lock/$NAME-update.lock $MDNS $FWI
 	[ -z "$GLOBAL_SERVER" ] && grep -q $NAME $CRON_FILE && sed -i '/$NAME/d' $CRON_FILE && /etc/init.d/cron restart
-
 	if [ $STATUS = Y -o -z "$GLOBAL_SERVER" ];then
 		if [[ -f /etc/init.d/AdGuardHome &&  -z $(uci -q get AdGuardHome.AdGuardHome.redirectold) ]]; then
 			/etc/init.d/AdGuardHome stop >/dev/null 2>&1

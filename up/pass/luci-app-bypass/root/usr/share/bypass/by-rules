@@ -7,12 +7,15 @@ IPT_N="$ipt -t nat"
 IPT="iptables -t nat"
 FWI=$(uci -q get firewall.bypass.path) || FWI=/tmp/etc/bypass.include
 LFILE=/tmp/by_local.ipset
+LOG=/tmp/log/bypass.log
 MODE=0
-
 DEBUG=''
 loger() {
 	# 1.alert 2.crit 3.err 4.warn 5.notice 6.info 7.debug
 	logger -st BYPASS[$$] -p$1 $2
+}
+log(){
+	echo "$(date +'%Y-%m-%d %H:%M:%S') $*" >> $LOG
 }
 
 flush_r(){
@@ -32,16 +35,14 @@ flush_r(){
 
 	flush_iptables nat
 	flush_iptables mangle
-	#flush_dns udp
-	#flush_dns tcp
-	ip rule del fwmark 0x01/0x01 table 100 2>/dev/null
+	flush_dns udp
+	flush_dns tcp
+	while ip rule del fwmark 1 lookup 100 2>/dev/null;do :;done
 	ip route del local 0.0.0.0/0 dev lo table 100 2>/dev/null
-
 	ipset -X ss_spec_lan_ac 2>/dev/null
 	ipset -X ss_spec_wan_ac 2>/dev/null
 	ipset -X fplan 2>/dev/null
 	ipset -X gmlan 2>/dev/null
-
 	ipset -X oversea 2>/dev/null
 	ipset -X blacklist 2>/dev/null
 	ipset -X netflix 2>/dev/null
@@ -52,7 +53,6 @@ flush_r(){
 }
 
 ipset_r(){
-[ $DEBUG ] && echo "[ DEBUG ] Start rule ipset_r"
 	${IPT_N} -N SS_SPEC_WAN_FW || return 1
 	${IPT_N} -A SS_SPEC_WAN_FW -p tcp $PROXY_PORTS -j REDIRECT --to-ports $local_port 2>/dev/null
 	[ $MODE = oversea ] && B=1
@@ -80,21 +80,16 @@ ipset_r(){
 	for ip in $WAN_BP_IP;do ipset -! add ss_spec_wan_ac $ip;done
 	${IPT_N} -N SS_SPEC_WAN_AC
 	${IPT_N} -A SS_SPEC_WAN_AC -d $server -j RETURN
-[ $DEBUG ] && echo "[ DEBUG ] Start rule  server:$server"
 	${IPT_N} -A SS_SPEC_WAN_AC -m set --match-set ss_spec_wan_ac dst -j RETURN
-
 	if ipset list netflix >/dev/null 2>&1;then
 		[ "$(uci -q get bypass.@global[0].nf_proxy)" = 1 ] && ${IPT_N} -A SS_SPEC_WAN_AC -d $NF_SERVER -j SS_SPEC_WAN_FW || ipset -! add ss_spec_wan_ac $NF_SERVER
 		${IPT_N} -A SS_SPEC_WAN_AC -p tcp -m set --match-set netflix dst -j REDIRECT --to-ports $NF_PORT
 	fi
-
-[ $DEBUG ] && echo "[ DEBUG ] Start rule  IPT:${IPT_N} "
 	${IPT_N} -A SS_SPEC_WAN_AC -m set --match-set ss_spec_wan_ac dst -j RETURN
 	ipset list fplan >/dev/null 2>&1 && ${IPT_N} -A SS_SPEC_WAN_AC -m set --match-set fplan src -j SS_SPEC_WAN_FW
 	ipset list blacklist >/dev/null 2>&1 && ${IPT_N} -A SS_SPEC_WAN_AC -m set --match-set blacklist dst -j SS_SPEC_WAN_FW
 	ipset list gmlan >/dev/null 2>&1 && ${IPT_N} -A SS_SPEC_WAN_AC -m set --match-set gmlan src -m set ! --match-set china_v4 dst -j SS_SPEC_WAN_FW
 
-[ $DEBUG ] && echo "[ DEBUG ] Start rule MODE:$MODE"
 	case $MODE in
 		router)${IPT_N} -A SS_SPEC_WAN_AC -m set ! --match-set china_v4 dst -j SS_SPEC_WAN_FW;;
 		oversea)
@@ -106,7 +101,6 @@ ipset_r(){
 		all)${IPT_N} -A SS_SPEC_WAN_AC -j SS_SPEC_WAN_FW;;
 	esac
 
-[ $DEBUG ] && echo "[ DEBUG ] Start rule LAN_AC_IP:$$LAN_AC_IP"
 	if [ "$LAN_AC_IP" ];then
 		ipset -! -R <<-EOF || return 1
 		create ss_spec_lan_ac hash:net
@@ -123,28 +117,21 @@ EOF
 }
 
 tp_rule(){
-[ $DEBUG ] && echo "[ DEBUG ] Start rule tp_rule"
 	[ -n "$SERVER" ] || return 0
 	ip rule add fwmark 1 lookup 100
 	ip route add local 0.0.0.0/0 dev lo table 100
-[ $DEBUG ] && echo "[ DEBUG ] Start rule tp_rule SERVER:$SERVER"
 	${IPT_M} -N SS_SPEC_TPROXY
-[ $DEBUG ] && echo "[ DEBUG ] Start rule tp_rule MODE:$MODE"
 	if ipset list china_v4 >/dev/null 2>&1;then
 		[ $MODE = oversea ] && a= || a=!
 		# error  
 		#${IPT_M} -A SS_SPEC__TPROXY -p udp -m set $a --match-set china_v4 dst --dport 80 -j DROP
 		#${IPT_M} -A SS_SPEC__TPROXY -p udp -m set $a --match-set china_v4 dst --dport 443 -j DROP
-[ $DEBUG ] && echo "[ DEBUG ] Start rule tp_rule china_v4"
 	elif ipset list blacklist >/dev/null 2>&1;then
 	# error  
+	        [ $MODE = oversea ] && a= || a=!
 		#${IPT_M} -A SS_SPEC__TPROXY -p udp -m set --match-set blacklist dst --dport 80 -j DROP
 		#${IPT_M} -A SS_SPEC__TPROXY -p udp -m set --match-set blacklist dst --dport 443 -j DROP
-	        [ $MODE = oversea ] && a= || a=!
-[ $DEBUG ] && echo "[ DEBUG ] Start rule tp_rule blacklist"
 	fi
-
-[ $DEBUG ] && echo "[ DEBUG ] Start rule tp_rule MODE:1"
 	${IPT_M} -A SS_SPEC_TPROXY -p udp --dport 53 -j RETURN
 	${IPT_M} -A SS_SPEC_TPROXY -p udp -d $SERVER -j RETURN
 	${IPT_M} -A SS_SPEC_TPROXY -p udp -m set --match-set ss_spec_wan_ac dst -j RETURN
@@ -152,7 +139,6 @@ tp_rule(){
 	ipset list blacklist >/dev/null 2>&1 && ${IPT_M} -A SS_SPEC_TPROXY -p udp $PROXY_PORTS -m set --match-set blacklist dst -j TPROXY --on-port $LOCAL_PORT --tproxy-mark 0x1/0x1
 	ipset list gmlan >/dev/null 2>&1 && ${IPT_M} -A SS_SPEC_TPROXY -p udp -m set --match-set gmlan src -m set ! --match-set china_v4 dst -j TPROXY --on-port $LOCAL_PORT --tproxy-mark 0x1/0x1
 
-[ $DEBUG ] && echo "[ DEBUG ] Start rule tp_rule MODE:2"
 	case $MODE in
 		router)${IPT_M} -A SS_SPEC_TPROXY -p udp $PROXY_PORTS -m set ! --match-set china_v4 dst -j TPROXY --on-port $LOCAL_PORT --tproxy-mark 0x1/0x1;;
 		oversea)
@@ -163,7 +149,6 @@ tp_rule(){
 		all)${IPT_M} -A SS_SPEC_TPROXY -p udp $PROXY_PORTS -j TPROXY --on-port $LOCAL_PORT --tproxy-mark 0x1/0x1;;
 	esac
 
-[ $DEBUG ] && echo "[ DEBUG ] Start rule tp_rule MODE:3"
 	ipset -N by_all hash:net 2>/dev/null
 	net=$(uci -qP /tmp/state get  network.wan.device) || net=$(uci -qP /tmp/state get network.wan.ifname)
 	[ $net ] || net=127.0.0.1
@@ -171,7 +156,6 @@ tp_rule(){
 		ipset -! add by_all $i
 	done
 
-[ $DEBUG ] && echo "[ DEBUG ] Start rule tp_rule END"
 	${IPT_M} -I PREROUTING 1 -p udp $MATCH_SET -m set --match-set by_all src -m comment --comment "$TAG" -j SS_SPEC_TPROXY
 }
 gen_spec_iplist() {

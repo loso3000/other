@@ -46,19 +46,20 @@ re(){
 while :;do
 	sleep 30
 #redir tcp
+
 	if [ $redir_tcp -gt 0 ] && [ $(busybox ps -w |  grep by-retcp  | grep -v grep | wc -l)  = 0 ];then
 			log "Redir TCP :$redir_tcp Error. Restart!"
 		re
 	fi
 #kcptun
-	if [ $kcp = 1 ] && [ $(busybox ps -w | grep kcptun-client | grep -v grep  | wc -l) = 0 ];then
+	if [ $kcp = 1 ] && [ $(busybox ps -w | grep kcptun-client | grep -v grep | wc -l) = 0 ];then
 			log "SSR KCPTUN:$kcp Error. Restart!"
 			killall -q -9 kcptun-client >/dev/null 2>&1
 			$(which kcptun-client) -r $server:$kcp_port -l :$server_port $password $kcp_param >/dev/null 2>&1 &
 	fi
 #redir udp
 	if [ $redir_udp = 1 ];then
-		t=`busybox ps -w | grep by-reudp | grep -v grep  | wc -l`
+		t=`busybox ps -w | grep by-reudp | grep -v grep | wc -l`
 		if [ $t = 0 ];then
 			log "Redir UDP :$redir_udp Error. Restart!"
 			/etc/init.d/bypass restart >/dev/null 2>&1
@@ -66,13 +67,13 @@ while :;do
 		fi
 	fi
 #redir netflix
-	if [ $redir_nf = 1 ] && [ $(busybox ps -w | grep by-nf | grep -v grep  | wc -l) = 0 ];then
+	if [ $redir_nf = 1 ] && [ $(busybox ps -w | grep by-nf | grep -v grep | wc -l) = 0 ];then
 			log "Redir Netflix :$redir_nf Error. Restart!"
 		re
 	fi
 
 #dns
-	if [ "$dns" -eq 1 ] && [ $(busybox ps -w | grep smartdns | grep -v grep  | wc -l) = 0 ];then
+	if [ "$dns" -eq 1 ] && [ $(busybox ps -w | grep smartdns | grep -v grep | wc -l) = 0 ];then
 			log "SmartDNS :$dns Error. Restart!"
 			kill -9 $(busybox ps -w | grep smartdns | grep -v grep | awk '{print$1}') 2>/dev/null
 			service_start $(which smartdns) -c $DNS_T 2>/dev/null

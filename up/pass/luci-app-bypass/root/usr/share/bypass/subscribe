@@ -103,14 +103,18 @@ local function urlEncode(szText)
 	return str
 end
 
-local function get_urldecode(h) return schar(tonumber(h, 16)) end
+local function get_urldecode(h)
+	return schar(tonumber(h, 16))
+end
 local function UrlDecode(szText)
 	return (szText and szText:gsub("+", " "):gsub("%%(%x%x)", get_urldecode)) or nil
 end
 
 -- trim
 local function trim(text)
-	if not text or text=="" then return "" end
+	if not text or text == "" then
+		return ""
+	end
 	return (sgsub(text, "^%s*(.-)%s*$", "%1"))
 end
 -- md5
@@ -122,7 +126,9 @@ end
 -- base64
 local function base64Decode(text)
 	local raw = text
-	if not text then return '' end
+	if not text then
+		return ''
+	end
 	text = text:gsub("%z", "")
 	text = text:gsub("_", "/")
 	text = text:gsub("-", "+")
@@ -401,7 +407,6 @@ local function processData(szType, content)
 				result.tcp_path = params.path and UrlDecode(params.path) or nil
 			end
 		end
-
 	elseif szType == 'hysteria' then
 		local alias = ""
 		if content:find("#") then
@@ -441,7 +446,6 @@ local function processData(szType, content)
 		result.uplink_capacity = params.upmbps
 		result.downlink_capacity = params.downmbps
 		result.type = 'hysteria'
-
 	elseif szType == 'hysteria2' or szType == 'hy2' then
 		local alias = ""
 		if content:find("#") then
@@ -478,7 +482,6 @@ local function processData(szType, content)
 			result.insecure = insecure and "1" or "0"
 		end
 		result.pinSHA256 = params.pinSHA256
-
 		result.type = "hysteria2"
 		if params["obfs-password"] then
 			result.hy2_obfs_type = "salamander"
@@ -625,9 +628,9 @@ local execute = function()
 							 	log('丢弃节点:' .. result.alias .. ",找不到可使用二进制.")
 							elseif not result.server or not result.server_port or result.alias == "NULL" or check_filer(result) or result.server:match("[^0-9a-zA-Z%-%.%s]") or cache[groupHash][result.hashkey] then
 								num=num+1
-								log('丢弃无效节点: ' .. result.type .. ' 节点: ' .. result.alias)
+								log('丢弃过滤节点: ' .. result.type .. ' 节点, ' .. result.alias)
 							else
-								-- log('成功解析: ' .. result.type ..' 节点: ' .. result.alias)
+								-- log('成功解析: ' .. result.type ..' 节点, ' .. result.alias)
 								result.grouphashkey = groupHash
 								tinsert(nodeResult[index], result)
 								cache[groupHash][result.hashkey] = nodeResult[index][#nodeResult[index]]
@@ -642,7 +645,7 @@ local execute = function()
 				log('第'..i..'个链接获取内容为空，可能是订阅地址失效或是网络问题')
 			end
 		end
-end
+	end
 	-- diff
 	do
 		if next(nodeResult) == nil then
@@ -700,7 +703,7 @@ end
 					-- SYS.call("touch /var/lock/bypass-uci.lock")
 					ucic:set(name, ucic:get_first(name, 'global'), 'global_server', ucic:get_first(name, uciType))
 					ucic:commit(name)
-					log('当前主服务器节点为空，自动切换到第一个节点。')
+					log('当前主服务器节点为空，自动启用到第一个节点。')
 				else
 					log('维持当前主服务器节点。')
 				end

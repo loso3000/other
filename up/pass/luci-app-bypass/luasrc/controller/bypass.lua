@@ -39,8 +39,8 @@ end
 
 function act_status()
 	local e = {}
-	e.tcp = CALL('busybox ps -w | grep by-retcp | grep -v grep  >/dev/null ') == 0
-	e.udp = CALL('busybox ps -w | grep by-reudp | grep -v grep  >/dev/null ') == 0
+	e.tcp = CALL("busybox ps -w | grep 'by-retcp' | grep -v grep  >/dev/null ") == 0
+	e.udp = CALL("busybox ps -w | grep 'by-reudp' | grep -v grep  >/dev/null ") == 0
 	e.sdns = CALL("busybox ps -w | grep 'smartdns_by' | grep -v grep >/dev/null ")==0
 	e.mdns = CALL("busybox ps -w | grep 'mosdns_by'  | grep -v grep   >/dev/null ")==0
 	e.chinadns=CALL("busybox ps -w | grep 'chinadns-ng -l 5337' | grep -v grep >/dev/null")==0
@@ -74,18 +74,18 @@ function act_ping()
 	local dp=EXEC("netstat -unl | grep 5336 >/dev/null && echo -n 5336 || echo -n 53")
 	local ip=EXEC("echo "..domain.." | grep -E ^[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}$ || nslookup "..domain.." 2>/dev/null | grep Address | awk -F' ' '{print$NF}' | grep -E ^[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}$ | sed -n 1p")
 	ip=EXEC("echo -n "..ip)
-	local iret=CALL("ipset add ss_spec_wan_ac "..ip.." 2>/dev/null")
-	e.ping = EXEC(string.format("tcping -q -c 1 -i 1 -t 2 -p %s %s 2>&1 | awk -F 'time=' '{print $2}' | awk -F ' ' '{print $1}'",port,ip))
+	local iret=luci.sys.call("ipset add ss_spec_wan_ac "..ip.." 2>/dev/null")
+	e.ping = luci.sys.exec(string.format("tcping -q -c 1 -i 1 -t 2 -p %s %s 2>&1 | awk -F 'time=' '{print $2}' | awk -F ' ' '{print $1}'",port,ip))
 
 	if (iret==0) then
-		CALL(" ipset del ss_spec_wan_ac " .. ip)
+		luci.sys.call(" ipset del ss_spec_wan_ac " .. ip)
 	end
 	luci.http.prepare_content("application/json")
 	luci.http.write_json(e)
 end
 
 function check_status()
-	sret=CALL("curl -so /dev/null -m 3 www."..luci.http.formvalue("set")..".com")
+	sret=luci.sys.call("curl -so /dev/null -m 3 www."..luci.http.formvalue("set")..".com")
 	if sret==0 then
 		retstring="0"
 	else
@@ -107,12 +107,12 @@ function check_port()
 		elseif s.server and s.server_port then
 			server_name="%s:%s"%{s.server,s.server_port}
 		end
-		EXEC(s.server..">>/a")
-		local dp=EXEC("netstat -unl | grep 5336 >/dev/null && echo -n 5336 || echo -n 53")
-		local ip=EXEC("echo "..s.server.." | grep -E \"^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$\" || \\\
+		luci.sys.exec(s.server..">>/a")
+		local dp=luci.sys.exec("netstat -unl | grep 5336 >/dev/null && echo -n 5336 || echo -n 53")
+		local ip=luci.sys.exec("echo "..s.server.." | grep -E \"^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$\" || \\\
 		nslookup "..s.server.." 127.0.0.1:"..dp.." 2>/dev/null | grep Address | awk -F' ' '{print$NF}' | grep -E \"^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$\" | sed -n 1p")
-		ip=EXEC("echo -n "..ip)
-		iret=CALL("ipset add ss_spec_wan_ac "..ip.." 2>/dev/null")
+		ip=luci.sys.exec("echo -n "..ip)
+		iret=luci.sys.call("ipset add ss_spec_wan_ac "..ip.." 2>/dev/null")
 		socket=nixio.socket("inet","stream")
 		socket:setopt("socket","rcvtimeo",3)
 		socket:setopt("socket","sndtimeo",3)
@@ -124,7 +124,7 @@ function check_port()
 			retstring=retstring.."<font color='red'>["..server_name.."] Error.</font><br/>"
 		end
 		if  iret==0 then
-			CALL("ipset del ss_spec_wan_ac "..ip)
+			luci.sys.call("ipset del ss_spec_wan_ac "..ip)
 		end
 	end)
 	luci.http.prepare_content("application/json")

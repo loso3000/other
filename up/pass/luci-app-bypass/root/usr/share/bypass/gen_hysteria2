@@ -7,6 +7,7 @@ local server_section = arg[1]
 local proto = arg[2]
 local local_port = arg[3] or "0"
 local socks_port = arg[4] or "0"
+
 local node = ucursor:get_all("bypass", server_section)
 local server_host = arg[5] or node.server
 local server_port = node.server_port
@@ -32,7 +33,6 @@ local hysteria = {
 	listen = "0.0.0.0:" .. tonumber(socks_port),
 	disable_udp = false
     } or nil,
-
   tcpRedirect = (proto:find("tcp") and local_port ~= "0") and {
 		listen = "0.0.0.0:" .. tonumber(local_port)
 	} or nil,
@@ -52,6 +52,7 @@ local hysteria2 = {
 			hopInterval = tonumber(node.hopinterval) and tonumber(node.hopinterval) .. "s"  or "30s"
 		}
 	},
+
 	obfs = (node.hy2_obfs_password) and {
 			type = "salamander",
 			salamander = {
@@ -81,9 +82,16 @@ local hysteria2 = {
 		disable_udp = false
 	} or nil,
 
+--[[
+	tcpTProxy = (proto:find("tcp") and local_port ~= "0") and {
+		listen = "0.0.0.0:" .. tonumber(local_port)
+	} or nil,
+]]
+
 	tcpRedirect = (proto:find("tcp") and local_port ~= "0") and {
 		listen = "0.0.0.0:" .. tonumber(local_port)
 	} or nil,
+
 	udpTProxy = (proto:find("udp") and local_port ~= "0") and {
 		listen = "0.0.0.0:" .. tonumber(local_port)
 	} or nil

@@ -1058,7 +1058,7 @@ cert_dir = "/etc/ssl/private/"
 local path
 
 luci.http.setfilehandler(function(meta, chunk, eof)
-		if not fd then
+	if not fd then
 		if (not meta) or (not meta.name) or (not meta.file) then
 			return
 		end
