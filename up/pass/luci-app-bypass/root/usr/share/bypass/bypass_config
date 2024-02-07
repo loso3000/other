@@ -1,0 +1,47 @@
+
+config global
+	list nf_dns 'google_doh'
+	option threads '0'
+	option run_mode 'router'
+	option gfw_mode '1'
+	option adguardhome '0'
+	option dns_mode '1'
+	option ad_list '0'
+	option proxy_ipv6_mode '0'
+	option dns_pollution '0'
+	list dns_remote 'google_doh'
+	list dns_remote 'cloudflare2_tcp'
+	list dns_remote 'quad9_tcp'
+	list dns_local 'alidns_doh'
+	list dns_local 'baidu_tcp'
+	option bootstrap_dns '114.114.114.114'
+	option enable_switch '1'
+	option switch_time '300'
+	option switch_timeout '5'
+	option switch_try_count '3'
+	option monitor_enable '1'
+	option dports '2'
+	option start_delay '60'
+
+
+config socks5_proxy
+
+config access_control
+	option lan_ac_mode 'b'
+
+config server_global
+
+config global_rules
+	option ad_url 'https://github.com/sirpdboy/iplist/releases/latest/download/ad_list.txt'
+	option gfwlist_url 'https://github.com/sirpdboy/iplist/releases/latest/download/gfwlist.txt'
+	option chnroute_url 'https://github.com/sirpdboy/iplist/releases/latest/download/all_cn.txt'
+	option chnroute6_url 'https://github.com/sirpdboy/iplist/releases/latest/download/all_cn_ipv6.txt'
+	option domains_url 'https://github.com/sirpdboy/iplist/releases/latest/download/domains_cn.txt'
+
+config server_subscribe
+	option proxy '0'
+	option auto_update_time '4'
+	option filter_words '时间/剩余/QQ群/官网/防失联地址/回国/反馈/到期/流量/更多/邮箱'
+        option switch '1'
+	option insecure '1'
+	option auto_update '0'
