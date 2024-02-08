@@ -918,6 +918,9 @@ msgstr "Github延时"
 msgid "Youtube Delay"
 msgstr "Youtube延时"
 
+msgid "Taobao Delay"
+msgstr "淘宝延时"
+
 msgid "warning! Please do not reuse the port!"
 msgstr "警告！请不要重复使用端口！"
 
