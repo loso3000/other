@@ -1,13 +1,20 @@
 #!/bin/sh
-TAG="_SS_SPEC_RULE_"
+
+RULESDIR="$(cd "$(dirname "$0")" && pwd)"
+RULESPATH=$RULESDIR/by-rules
 ipt=$(command -v iptables-legacy || command -v iptables)
 ip6t=$(command -v ip6tables-legacy || command -v ip6tables)
-IPT_M="$ipt -t mangle"
-IPT_N="$ipt -t nat"
-IPT="iptables -t nat"
+IPT_M="$ipt -t mangle -w"
+IPT_N="$ipt -t nat -w"
+IP6T_M="$ipt -t mangle -w"
+IP6T_N="$ipt -t nat -w"
+[ -z "$ip6t" -o -z "$(lsmod | grep 'ip6table_nat')" ] && IP6T_N="eval #$IP6T_N"
+[ -z "$ip6t" -o -z "$(lsmod | grep 'ip6table_mangle')" ] && IP6T_M="eval #$IP6T_M"
+
 FWI=$(uci -q get firewall.bypass.path) || FWI=/tmp/etc/bypass.include
 LFILE=/tmp/by_local.ipset
 LOG=/tmp/log/bypass.log
+TAG="_SS_SPEC_RULE_"
 MODE=0
 DEBUG=''
 loger() {
@@ -18,7 +25,7 @@ log(){
 	echo "$(date +'%Y-%m-%d %H:%M:%S') $*" >> $LOG
 }
 
-flush_r(){
+
 	flush_iptables() {
 		local ipts="$ipt -t $1"
 		local DAT=$($ipt-save -t $1)
@@ -28,11 +35,11 @@ flush_r(){
 		done
 	}
 
-	flush_dns(){
-		while iptables -t nat -D PREROUTING -p $1 --dport 53 -m comment --comment $TAG -j REDIRECT --to-ports 53 2>/dev/null;do :;done
-		[ -n /usr/sbin/ip6tables ] && while ip6tables -t nat -D PREROUTING -p $1 --dport 53 -m comment --comment $TAG -j REDIRECT --to-ports 53 2>/dev/null;do :;done
-	}
+flush_dns(){
+	while ${IP6T_N} -D PREROUTING -p $1 --dport 53 -m comment --comment $TAG -j REDIRECT --to-ports 53 2>/dev/null;do :;done
+}
 
+flush_r(){
 	flush_iptables nat
 	flush_iptables mangle
 	flush_dns udp
@@ -71,7 +78,23 @@ ipset_r(){
 	fi
 	[ "$A" -o "$C" ] && /usr/share/bypass/chinaipset
 	[ $MODE = router ] && /usr/share/bypass/chinaipset v6
-	gen_spec_iplist
+	cat > $LFILE  <<EOF
+0.0.0.0/8
+10.0.0.0/8
+100.64.0.0/10
+127.0.0.0/8
+169.254.0.0/16
+172.16.0.0/12
+192.0.0.0/24
+192.0.2.0/24
+192.88.99.0/24
+192.168.0.0/16
+198.18.0.0/15
+198.51.100.0/24
+203.0.113.0/24
+224.0.0.0/4
+240.0.0.0/4
+EOF
 	sed -i 's/^/add ss_spec_wan_ac /' $LFILE 
 	sed -i '1i\create ss_spec_wan_ac hash:net' $LFILE 
 	ipset -F ss_spec_wan_ac 2>/dev/null
@@ -113,9 +136,18 @@ EOF
 	fi
 
 	${IPT_N} -I PREROUTING 1 -p tcp $MATCH_SET -m comment --comment "$TAG" -j SS_SPEC_WAN_AC
+	if [ $y ];then
+		${IPT_N} -I PREROUTING 1 -p udp --dport 53 -m comment --comment $TAG -j REDIRECT --to-ports 53
+		${IPT_N} -I PREROUTING 2 -p tcp --dport 53 -m comment --comment $TAG -j REDIRECT --to-ports 53
+		[ -n "$ip6t" ] && ${IP6T_N} -I PREROUTING 1 -p udp --dport 53 -m comment --comment $TAG -j REDIRECT --to-ports 53
+		[ -n "$ip6t" ] && ${IP6T_N} -I PREROUTING 2 -p tcp --dport 53 -m comment --comment $TAG -j REDIRECT --to-ports 53
+	fi
 	${IPT_N} -I OUTPUT 1 -p tcp -m comment --comment "$TAG" -j SS_SPEC_WAN_AC
 }
 
+dns_hijack() {
+	$ipt_n -I SS_SPEC__TPROXY -p udp --dport 53 -j REDIRECT --to-ports 53
+}
 tp_rule(){
 	[ -n "$SERVER" ] || return 0
 	ip rule add fwmark 1 lookup 100
@@ -124,13 +156,12 @@ tp_rule(){
 	if ipset list china_v4 >/dev/null 2>&1;then
 		[ $MODE = oversea ] && a= || a=!
 		# error  
-		#${IPT_M} -A SS_SPEC__TPROXY -p udp -m set $a --match-set china_v4 dst --dport 80 -j DROP
-		#${IPT_M} -A SS_SPEC__TPROXY -p udp -m set $a --match-set china_v4 dst --dport 443 -j DROP
+		${IPT_M} -A SS_SPEC__TPROXY -p udp -m set $a --match-set china_v4 dst --dport 80 -j DROP
+		${IPT_M} -A SS_SPEC__TPROXY -p udp -m set $a --match-set china_v4 dst --dport 443 -j DROP
 	elif ipset list blacklist >/dev/null 2>&1;then
 	# error  
-	        [ $MODE = oversea ] && a= || a=!
-		#${IPT_M} -A SS_SPEC__TPROXY -p udp -m set --match-set blacklist dst --dport 80 -j DROP
-		#${IPT_M} -A SS_SPEC__TPROXY -p udp -m set --match-set blacklist dst --dport 443 -j DROP
+		${IPT_M} -A SS_SPEC__TPROXY -p udp -m set --match-set blacklist dst --dport 80 -j DROP
+		${IPT_M} -A SS_SPEC__TPROXY -p udp -m set --match-set blacklist dst --dport 443 -j DROP
 	fi
 	${IPT_M} -A SS_SPEC_TPROXY -p udp --dport 53 -j RETURN
 	${IPT_M} -A SS_SPEC_TPROXY -p udp -d $SERVER -j RETURN
@@ -157,26 +188,8 @@ tp_rule(){
 	done
 
 	${IPT_M} -I PREROUTING 1 -p udp $MATCH_SET -m set --match-set by_all src -m comment --comment "$TAG" -j SS_SPEC_TPROXY
-}
-gen_spec_iplist() {
-	cat > $LFILE  <<EOF
-0.0.0.0/8
-10.0.0.0/8
-100.64.0.0/10
-127.0.0.0/8
-169.254.0.0/16
-172.16.0.0/12
-192.0.0.0/24
-192.0.2.0/24
-192.88.99.0/24
-192.168.0.0/16
-198.18.0.0/15
-198.51.100.0/24
-203.0.113.0/24
-224.0.0.0/4
-240.0.0.0/4
-255.255.255.255
-EOF
+	
+
 }
 
 gen_include(){
@@ -192,9 +205,18 @@ gen_include(){
 	$(extract_rules mangle)
 	EOT
 EOF
+	if [ $y ];then
+		sed -i -e 's/-I PREROUTING 1 -p tcp/-I PREROUTING 2 -p tcp/' -e 's/PREROUTING 2 -p tcp -m set/PREROUTING 3 -p tcp -m set/' $FWI
+		cat <<-EOF >> $FWI
+	while ${IP6T_N} -D PREROUTING -p udp --dport 53 -m comment --comment $TAG -j REDIRECT --to-ports 53 2>/dev/null;do :;done
+	while ${IP6T_N} -D PREROUTING -p tcp --dport 53 -m comment --comment $TAG -j REDIRECT --to-ports 53 2>/dev/null;do :;done
+	[ -n "$ip6t" ] && ${IP6T_N} -I PREROUTING 1 -p udp --dport 53 -m comment --comment $TAG -j REDIRECT --to-ports 53
+	[ -n "$ip6t" ] && ${IP6T_N} -I PREROUTING 2 -p tcp --dport 53 -m comment --comment $TAG -j REDIRECT --to-ports 53
+EOF
+	fi
 }
 
-while getopts ":s:l:S:L:N:P:a:b:w:p:G:D:rczf" arg;do
+while getopts ":s:l:S:L:N:P:a:b:w:p:G:D:rczyf" arg;do
 	case $arg in
 		s)server=$OPTARG;;
 		l)local_port=$OPTARG;;
@@ -211,6 +233,7 @@ while getopts ":s:l:S:L:N:P:a:b:w:p:G:D:rczf" arg;do
 		r)MODE=router;A=1;;
 		c)MODE=oversea;A=1;;
 		z)MODE=all;;
+		y)y=1;;
 		f)flush_r;exit 0;;
 	esac
 done

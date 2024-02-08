@@ -39,11 +39,12 @@ end
 
 function act_status()
 	local e = {}
-	e.tcp = CALL("busybox ps -w | grep 'by-retcp' | grep -v grep  >/dev/null ") == 0
-	e.udp = CALL("busybox ps -w | grep 'by-reudp' | grep -v grep  >/dev/null ") == 0
-	e.sdns = CALL("busybox ps -w | grep 'smartdns_by' | grep -v grep >/dev/null ")==0
-	e.mdns = CALL("busybox ps -w | grep 'mosdns_by'  | grep -v grep   >/dev/null ")==0
-	e.chinadns=CALL("busybox ps -w | grep 'chinadns-ng -l 5337' | grep -v grep >/dev/null")==0
+	e.tcp = CALL('busybox ps -w | grep by-retcp | grep -v grep  >/dev/null ') == 0
+	e.udp = CALL('busybox ps -w | grep by-reudp | grep -v grep  >/dev/null ') == 0
+	e.nf = CALL('busybox ps -w | grep by-nf | grep -v grep  >/dev/null ') == 0
+	e.sdns = CALL("ps -w | grep 'smartdns_by' | grep -v grep >/dev/null ")==0
+	e.mdns = CALL(" ps -w | grep 'mosdns_by'  | grep -v grep   >/dev/null ")==0
+	e.chinadns=CALL("ps -w | grep 'chinadns-ng -l 5337' | grep -v grep >/dev/null")==0
 	http.prepare_content("application/json")
 	http.write_json(e)
 end
@@ -52,9 +53,10 @@ function check_net()
 	local r=0
 	local u=http.formvalue("url")
 	local p
+
 	if CALL("nslookup www."..u..".com >/dev/null 2>&1")==0 then
-	if u=="google" then p="/generate_204" else p="" end
-		local use_time = EXEC("curl --connect-timeout 3 -o /dev/null -I -skL -w %{time_starttransfer}  http://www."..u..".com"..p)
+	        if u=="google" then p="/generate_204" else p="" end
+		local use_time = EXEC("curl --connect-timeout 3 -silent -o /dev/null -I -skL -w %{time_starttransfer}  https://www."..u..".com"..p)
 		if use_time~="0" then
      		 	r=string.format("%.1f", use_time * 1000/2)
 			if r=="0" then r="0.1" end

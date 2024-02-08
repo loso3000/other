@@ -108,6 +108,10 @@ end
 o = s:taboption("DNS",Flag,"proxy_ipv6_mode",translate("IPV6 parsing"), translate("Use DNS to return IPv6 records"))
 o.default=0
 
+o = s:taboption("DNS",Flag,"dns_hijack",translate("Take over LAN DNS"),
+translate("Redirect LAN device DNS to router(Do not disable if you do not understand)"))
+o.default=1
+
 o = s:taboption("DNS",Flag,"dns_pollution",translate("Preventing DNS pollution"))
 o.default=0
 

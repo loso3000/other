@@ -106,6 +106,12 @@ msgstr "去广告更新链接"
 msgid "Enable DNS anti-AD"
 msgstr "开启DNS去广告"
 
+msgid "Take over LAN DNS"
+msgstr "接管局域网DNS"
+
+msgid "Redirect LAN device DNS to router(Do not disable if you do not understand)"
+msgstr "将LAN设备DNS重定向到路由器（如果不理解，请不要禁用）"
+
 msgid "All Ports"
 msgstr "所有端口（默认）"
 
@@ -730,6 +736,9 @@ msgstr "切换检查重试次数"
 
 msgid "Reverse"
 msgstr "逆序"
+
+msgid "Taobao Delay"
+msgstr "淘宝延时"
 
 msgid "Baidu Delay"
 msgstr "百度延时"

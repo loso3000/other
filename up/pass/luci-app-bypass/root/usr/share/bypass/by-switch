@@ -100,6 +100,7 @@ EOF
 }
 EOF
 ;;
+
 	esac
 }
 
@@ -129,12 +130,12 @@ curl_check(){
 		ss|ssr)
 			$cmd -c $J >/dev/null 2>&1 &;;
 		v2ray)
-			$S/genxrayconfig $1 tcp 0 $lport $ip > $J
+			$S/gen_xray $1 tcp 0 $lport $ip > $J
 			sed -i 's/\\//g' $J
 			$cmd run -config $J  >/dev/null 2>&1 &
 			;;
-		hysteria)
-			$S/gen_config $1 tcp 0 $lport $ip > $J
+		hysteria2)
+			$S/gen_hysteria2 $1 tcp 0 $lport $ip >$J
 			sed -i 's/\\//g' $J
 			$cmd -c $J >/dev/null 2>&1 &;;
 		trojan)

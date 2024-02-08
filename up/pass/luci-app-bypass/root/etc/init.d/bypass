@@ -420,9 +420,10 @@ rules(){
 		proxyport="-m multiport --dports $dports"
 	fi
 
+	[ $(uci_get_by_type global dns_hijack 1) = 1 ] && D=-y
 	r=1
 	while ! $BIN_DIR/by-rules -s "$server" -l "$local_port" -a "$ac_ips" -b "$(uci_get_by_type access_control wan_bp_ips)" -w "$(uci_get_by_type access_control wan_fw_ips)" \
-		-p "$(uci_get_by_type access_control lan_fp_ips)" -G "$(uci_get_by_type access_control lan_gm_ips)" -D "$proxyport" $mode $UDP $NF;do
+		-p "$(uci_get_by_type access_control lan_fp_ips)" -G "$(uci_get_by_type access_control lan_gm_ips)" -D "$proxyport" $mode $UDP $NF $D;do
 		[ $r -ge 20 ] && log "Rules      : Start iptables rules failed!" && return 1
 		let r++;sleep 1
 	done
