@@ -1,6 +1,6 @@
 #!/bin/sh
 
-if [ "$(uci -q get bypass.@global[0].nf_server)" ];then
+if [ "x$2" = x1 ];then
 		B=1
 	while ! A=$(curl -Lfsm 9 https://fastly.jsdelivr.net/gh/QiuSimons/Netflix_IP@master/getflix.txt || curl -Lfsm 9 https://raw.githubusercontent.com/QiuSimons/Netflix_IP/master/getflix.txt );do
 		[ $B -ge 20 ] && break || let B++

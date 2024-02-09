@@ -362,10 +362,12 @@ rules(){
 		UDP_RELAY_SERVER=
 	fi
 	#nf
-	NF_SERVER=$(uci_get_by_type global nf_server)
-	[ $NF_SERVER ] || NF_SERVER=
-	[ "$NF_SERVER" = $GLOBAL_SERVER ] && NF_SERVER=
+
+	if [ $run_mode != oversea ];then
+	 NF_SERVER=$(uci_get_by_type global nf_server)
+ 	   [ "$NF_SERVER" = $GLOBAL_SERVER ] && NF=1 || [ ! $(uci_get_by_name $NF_SERVER server) ] && NF_SERVER=
 	[ "$NF_SERVER" = same ] && NF_SERVER=$GLOBAL_SERVER
+	fi
 	
 	local_port=$(uci_get_by_name $GLOBAL_SERVER local_port 1234)
 	lan_ac_ips=$(uci_get_by_type access_control lan_ac_ips)
@@ -402,6 +404,7 @@ rules(){
 		nf_local_port=$(uci_get_by_name $NF_SERVER local_port 1234)
 		[ $nf_local_port = $local_port ] && let nf_local_port=local_port+1
 		[ "$utype" = trojan -o $ntype = trojan ] && [ $nf_local_port = "$udp_local_port" ] && let nf_local_port=nf_local_port+1
+		[ $ntype = hysteria2 -o $utype = hysteria2 ] && [ $udp_local_port = $nf_local_port ] && let nf_local_port=nf_local_port+1
 		NF=1
 	fi
 	[ "$NF" = 1 ] && NF="-N $nf_ip -P $nf_local_port"
@@ -1003,6 +1006,7 @@ gen_smartdns(){
 
 		if [ -n "$NF" ];then
 			cp -f $T_FILE/netflix.list $O
+
 			D=$(cat $O)
 			for i in $D;do
 				sed -i -e "/\/$i\//d" -e "/\.$i\//d" $DNS_DIR/black.conf 2>/dev/null
@@ -1043,15 +1047,16 @@ gen_smartdns(){
 	   rm -f $VAR/ad_list.txt $DNS_DIR/ad_list.txt
 	fi
 	rm -f $O
-	[ $(find $DNS_DIR -name \* -exec cat {} \; 2>/dev/null | wc -l) = 0 ] && rm -rf $DNS_DIR
-	echo "conf-dir=${DNS_DIR}" >$DNS_FILE
+	[ $(find $DNS_DIR -name \* -exec cat {} \; 2>/dev/null | wc -l) = 0 ] && rm -rf $DNS_DIR || echo conf-dir=$DNS_DIR >>$DNS_FILE
+	# echo "conf-dir=${DNS_DIR}" >$DNS_FILE
 	[ -s $CON_T ] && echo "conf-file $CON_T" >>$DNS_T_TMP
 	[ $run_mode = router ] && chinadns_flag=1
 	mv -f $DNS_T_TMP $DNS_T
 	start_dns
 
 	/etc/init.d/dnsmasq restart  >/dev/null 2>&1
-	$BIN_DIR/by-preload $run_mode
+	[ -n "$NF_SERVER" -a $run_mode != oversea ] && BYNF=1
+	$BIN_DIR/by-preload $run_mode $BYNF
 }
 
 mget_dns(){ #$1 name  $2 dns
@@ -1202,8 +1207,7 @@ gen_mosdns(){
 		fi
 	fi
 	log "MosDNS : $bootstrap_dns Bootstrap DNS Resolution!"
-	[ $(find $DNS_DIR -name \* -exec cat {} \; 2>/dev/null | wc -l) = 0 ] && rm -rf $DNS_DIR
-	echo "conf-dir=${DNS_DIR}" >$DNS_FILE
+	[ $(find $DNS_DIR -name \* -exec cat {} \; 2>/dev/null | wc -l) = 0 ] && rm -rf $DNS_DIR || echo conf-dir=$DNS_DIR >>$DNS_FILE
 	rm -rf $TMPDIR $O
 	[ $run_mode = router ] && chinadns_flag=1
 	start_dns
