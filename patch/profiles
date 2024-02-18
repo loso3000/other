@@ -99,7 +99,7 @@ read -p "是否确定关闭系统？(Are you sure to shut down the system)[Y/n]:
 case ${YN} in
 [Yy]) 
     ER "正在关闭系统中，请稍等(Shutting down the system, please wait)..."
-    sync && poweroff
+    poweroff -f
 ;;
 [Nn])
     EW "返回主菜单(return)"
