@@ -1,8 +1,8 @@
 module("luci.controller.bypass",package.seeall)
 local fs=require"nixio.fs"
 local http=require"luci.http"
-CALL=luci.sys.call
-EXEC=luci.sys.exec
+require"luci.sys"
+
 function index()
 	if not nixio.fs.access("/etc/config/bypass") then
 		return
@@ -32,19 +32,19 @@ function index()
 end
 
 function subscribe()
-	CALL("/usr/bin/lua /usr/share/bypass/subscribe")
+	luci.sys.call("/usr/bin/lua /usr/share/bypass/subscribe")
 	http.prepare_content("application/json")
 	http.write_json({ret=1})
 end
 
 function act_status()
 	local e = {}
-	e.tcp = CALL('busybox ps -w | grep by-retcp | grep -v grep  >/dev/null ') == 0
-	e.udp = CALL('busybox ps -w | grep by-reudp | grep -v grep  >/dev/null ') == 0
-	e.nf = CALL('busybox ps -w | grep by-nf | grep -v grep  >/dev/null ') == 0
-	e.sdns = CALL("ps -w | grep 'smartdns_by' | grep -v grep >/dev/null ")==0
-	e.mdns = CALL(" ps -w | grep 'mosdns_by'  | grep -v grep   >/dev/null ")==0
-	e.chinadns=CALL("ps -w | grep 'chinadns-ng -l 5337' | grep -v grep >/dev/null")==0
+	e.tcp = luci.sys.call('busybox ps -w | grep by-retcp | grep -v grep  >/dev/null ') == 0
+	e.udp = luci.sys.call('busybox ps -w | grep by-reudp | grep -v grep  >/dev/null ') == 0
+	e.nf = luci.sys.call('busybox ps -w | grep by-nf | grep -v grep  >/dev/null ') == 0
+	e.sdns = luci.sys.call("busybox ps -w | grep 'smartdns_by' | grep -v grep >/dev/null ")==0
+	e.mdns = luci.sys.call("busybox  ps -w | grep 'mosdns_by'  | grep -v grep   >/dev/null ")==0
+	e.chinadns=luci.sys.call("busybox ps -w | grep 'chinadns-ng -l 5337' | grep -v grep >/dev/null")==0
 	http.prepare_content("application/json")
 	http.write_json(e)
 end
@@ -54,9 +54,9 @@ function check_net()
 	local u=http.formvalue("url")
 	local p
 
-	if CALL("nslookup www."..u..".com >/dev/null 2>&1")==0 then
+	if luci.sys.call("nslookup www."..u..".com >/dev/null 2>&1")==0 then
 	        if u=="google" then p="/generate_204" else p="" end
-		local use_time = EXEC("curl --connect-timeout 3 -silent -o /dev/null -I -skL -w %{time_starttransfer}  https://www."..u..".com"..p)
+		local use_time = luci.sys.exec("curl --connect-timeout 3 -silent -o /dev/null -I -skL -w %{time_starttransfer}  https://www."..u..".com"..p)
 		if use_time~="0" then
      		 	r=string.format("%.1f", use_time * 1000/2)
 			if r=="0" then r="0.1" end
@@ -73,9 +73,9 @@ function act_ping()
 	local e={}
 	local domain=http.formvalue("domain")
 	local port=http.formvalue("port")
-	local dp=EXEC("netstat -unl | grep 5336 >/dev/null && echo -n 5336 || echo -n 53")
-	local ip=EXEC("echo "..domain.." | grep -E ^[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}$ || nslookup "..domain.." 2>/dev/null | grep Address | awk -F' ' '{print$NF}' | grep -E ^[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}$ | sed -n 1p")
-	ip=EXEC("echo -n "..ip)
+	local dp=luci.sys.exec("netstat -unl | grep 5336 >/dev/null && echo -n 5336 || echo -n 53")
+	local ip=luci.sys.exec("echo "..domain.." | grep -E ^[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}$ || nslookup "..domain.." 2>/dev/null | grep Address | awk -F' ' '{print$NF}' | grep -E ^[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}$ | sed -n 1p")
+	ip=luci.sys.exec("echo -n "..ip)
 	local iret=luci.sys.call("ipset add ss_spec_wan_ac "..ip.." 2>/dev/null")
 	e.ping = luci.sys.exec(string.format("tcping -q -c 1 -i 1 -t 2 -p %s %s 2>&1 | awk -F 'time=' '{print $2}' | awk -F ' ' '{print $1}'",port,ip))
 

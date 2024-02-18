@@ -116,28 +116,6 @@ f_bin(){
 	esac
 	echo $ret
 }
-set_lock() {
-	[ ! -d "$LOCK_FILE_DIR" ] && mkdir -p $LOCK_FILE_DIR
-	exec 999>"$LOCK_FILE"
-	flock -xn 999
-}
-
-unset_lock() {
-	flock -u 999
-	rm -rf "$LOCK_FILE"
-}
-unlock() {
-	failcount=1
-	while [ "$failcount" -le 10 ]; do
-		if [ -f "$LOCK_FILE" ]; then
-			let "failcount++"
-			sleep 1s
-			[ "$failcount" -ge 10 ] && unset_lock
-		else
-			break
-		fi
-	done
-}
 
 v2txray() {
 #sed -i "s/option type 'vmess'/option type 'v2ray'\n\toption v2ray_protocol 'vmess'/g" /etc/config/$NAME

@@ -116,15 +116,28 @@ function buildUrl(btn,urlname,sid){
 	if (!s) return false;
 	var v_type=opt.get("type").value;
 	var v_alias=opt.get("alias").value;
+		var _address = ""
+		if (v_type) {
+			try {
+				var v_server = opt.get("server");
+				const ipv6Regex = /^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))$/;
+				if (ipv6Regex.test(v_server.value)) {
+					_address = "[" + v_server.value + "]"
+				} else {
+					_address = v_server.value
+				}
+			} catch (e) {
+			}
+		}
 	var url=null;
 	switch (v_type){
 	case "ss":
-		var v_server=opt.get("server");
+
 		var v_port=opt.get("server_port");
 		var v_method=opt.get("encrypt_method_ss");
 		var v_password=opt.get("password");
 		url=b64encsafe(v_method.value+":"+v_password.value)+"@"+
-			v_server.value+":"+
+			_address+":"+
 			v_port.value+"/?";
 		var params='';
 		var v_plugin=opt.get("plugin").value;
@@ -142,7 +155,7 @@ function buildUrl(btn,urlname,sid){
 		url+=params;
 		break;
 	case "ssr":
-		var v_server=opt.get("server");
+
 		var v_port=opt.get("server_port");
 		var v_protocol=opt.get("protocol");
 		var v_method=opt.get("encrypt_method");
@@ -150,7 +163,7 @@ function buildUrl(btn,urlname,sid){
 		var v_password=opt.get("password");
 		var v_obfs_param=opt.get("obfs_param");
 		var v_protocol_param=opt.get("protocol_param");
-		var ssr_str=v_server.value+":"+
+		var ssr_str=_address+":"+
 			v_port.value+":"+
 			v_protocol.value+":"+
 			v_method.value+":"+
@@ -206,10 +219,9 @@ function buildUrl(btn,urlname,sid){
 		break;
 	case "vless":
 		var v_password=opt.get("uuid");
-		var v_server=opt.get("server");
 		var v_port=opt.get("server_port");
 		url=encodeURIComponent(v_password.value)+
-			"@"+v_server.value+
+			"@"+_address+
 			":"+v_port.value+"?";
 		var params='';
 		var v_transport=opt.get("transport").value;
@@ -253,12 +265,13 @@ function buildUrl(btn,urlname,sid){
 		}
 		url+=params;
 		break;
+
 	case "trojan":
 		var v_password=opt.get("password");
-		var v_server=opt.get("server");
+
 		var v_port=opt.get("server_port");
 		url=encodeURIComponent(v_password.value)+
-			"@"+v_server.value+
+			"@"+_address+
 			":"+v_port.value+"/?";
 		var params='';
 		if (opt.get("tls").checked){
@@ -271,6 +284,23 @@ function buildUrl(btn,urlname,sid){
 			params=params.substring(1);
 		}
 		url+=params;
+
+		break;
+
+	case "hysteria2":
+		 var v_port=opt.get("server_port");
+			var params = "";
+			params += opt.query("auth", "hy2_auth_password");
+			params += opt.query("sni", "tls_host");
+			params += opt.query("insecure", "insecure");
+			params += opt.query("obfs", "salamander");
+			params += opt.query("obfs-password", "hy2_obfs_password");
+			
+			var url =
+				_address + ":" +
+				v_port.value + "?" +
+				params +
+				"#" + encodeURI(v_alias);
 	}
 	if (url){
 		url=v_type.toLowerCase()+"://"+url;
@@ -287,6 +317,7 @@ function buildUrl(btn,urlname,sid){
 		}finally{
 			document.body.removeChild(textarea);
 		}
+			//alert(url);
 	}else{
 		s.innerHTML='';
 		alert("<%:Not a supported Format%>: "+v_type);
@@ -337,6 +368,8 @@ function import_ssr_url(btn, urlname, sid) {
 		var event = document.createEvent("HTMLEvents");
 		event.initEvent("change", true, true);
 		switch (ssu[0]) {
+
+			//alert(url);
 		case "hysteria":
 			try {
 				var url = new URL("http://" + ssu[1]);
@@ -351,8 +384,8 @@ function import_ssr_url(btn, urlname, sid) {
 			document.getElementsByName('cbid.bypass.' + sid + '.server')[0].value = url.hostname;
 			document.getElementsByName('cbid.bypass.' + sid + '.server_port')[0].value = url.port || "80";
 			document.getElementsByName('cbid.bypass.' + sid + '.hysteria_protocol')[0].value = params.get("protocol") || "udp";
-			document.getElementsByName('cbid.bypass.' + sid + '.auth_type')[0].value = params.get("auth") ? "2" : "0";
-			document.getElementsByName('cbid.bypass.' + sid + '.auth_type')[0].dispatchEvent(event);
+			document.getElementsByName('cbid.bypass.' + sid + '.hy_auth_password')[0].value = params.get("auth") ? "2" : "0";
+			document.getElementsByName('cbid.bypass.' + sid + '.hy_auth_password')[0].dispatchEvent(event);
 			document.getElementsByName('cbid.bypass.' + sid + '.auth_payload')[0].value = params.get("auth") || "";
 			document.getElementsByName('cbid.bypass.' + sid + '.uplink_capacity')[0].value = params.get("upmbps") || "";
 			document.getElementsByName('cbid.bypass.' + sid + '.downlink_capacity')[0].value = params.get("downmbps") || "";
@@ -364,6 +397,30 @@ function import_ssr_url(btn, urlname, sid) {
 
 			s.innerHTML = "<font color='green'><%:Import configuration information successfully.%></font>";
 			return false;
+		case "hysteria2":
+			try {
+				var url = new URL("http://" + ssu[1]);
+				var params = url.searchParams;
+			} catch(e) {
+				alert(e);
+				return false;
+			}
+			
+			document.getElementsByName('cbid.bypass.' + sid + '.type')[0].value = ssu[0];
+			document.getElementsByName('cbid.bypass.' + sid + '.type')[0].dispatchEvent(event);
+			document.getElementsByName('cbid.bypass.' + sid + '.server')[0].value = url.hostname;
+			document.getElementsByName('cbid.bypass.' + sid + '.server_port')[0].value = url.port || "80";
+			document.getElementsByName('cbid.bypass.' + sid + '.transport_protocol')[0].value = params.get("protocol") || "udp";
+			document.getElementsByName('cbid.bypass.' + sid + '.hy2_obfs_type')[0].value = params.get("obfs") || "";
+			document.getElementsByName('cbid.bypass.' + sid + '.hy2_obfs_password')[0].value = params.get("obfs_password")|| "";
+			document.getElementsByName('cbid.bypass.' + sid + '.hy2_auth_password')[0].value = params.get("auth") || "";
+			document.getElementsByName('cbid.bypass.' + sid + '.tls_host')[0].value = params.get("sni") || "";
+			document.getElementsByName('cbid.bypass.' + sid + '.insecure')[0].checked = params.get("insecure") ? true : false;
+			document.getElementsByName('cbid.bypass.' + sid + '.alias')[0].value = url.hash ? decodeURIComponent(url.hash.slice(1)) : "";
+
+			s.innerHTML = "<font color='green'><%:Import configuration information successfully.%></font>";
+			return false;
+		
 		case "ss":
 			var url0, param = "";
 			var sipIndex = ssu[1].indexOf("@");
@@ -533,6 +590,7 @@ function import_ssr_url(btn, urlname, sid) {
 			document.getElementsByName('cbid.bypass.' + sid + '.mux')[0].dispatchEvent(event);
 			s.innerHTML = "<font color='green'><%:Import configuration information successfully.%></font>";
 			return false;
+
 		case "vless":
 			try {
 				var url = new URL("http://" + ssu[1]);
