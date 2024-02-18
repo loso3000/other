@@ -230,7 +230,7 @@
 	local bk_use='none'
 	local bklock = '1'
 	local dayword = '0'
-	local check = 0
+	local checknet = '0'
 	if fs.access('/etc/config/advancedplus') then
 		primary_rgbbody = uci:get_first('advancedplus', 'basic', 'primary_rgbbody')
 		primary_rgbm = uci:get_first('advancedplus', 'basic', 'primary_rgbm')
@@ -266,6 +266,7 @@
 	end
 
 function downunsplashUrl()
+    local check = 1
     if fs.access('/tmp/kucatunsplash.tmp') then
         local localtime = sys.exec("a=$(date +%Y%m%d) && cat /tmp/kucatunsplash.tmp | grep $a")
         if localtime ~= '' then 
@@ -282,6 +283,7 @@ function downunsplashUrl()
 end
 
 function downbingUrl()
+    local check = 1
     if fs.access('/tmp/kucatbing.tmp') then
         local localtime = sys.exec("cat /tmp/kucatbing.tmp | grep `date +%Y%m%d`")
         if localtime ~= '' then 
@@ -302,6 +304,7 @@ function downbingUrl()
 end
 
 function downIcibaword()
+    local check = 1
     if fs.access('/tmp/kucaticibaword.tmp') then
         local localtime = sys.exec("cat /tmp/kucaticibaword.tmp | grep `date +%Y%m%d`")
         if localtime ~= '' then 
@@ -326,6 +329,7 @@ function downIcibaword()
 end
 
 function downbirdUrl()
+    local check = 1
     if fs.access('/tmp/kucatbird.tmp') then
         local localtime = sys.exec("cat /tmp/kucatbird.tmp | grep `date +%Y%m%d` ")
         if localtime ~= '' then 
@@ -348,10 +352,7 @@ function downbirdUrl()
         bg_url = media .. "/img/down5.jpg"
     end
 end
-		a = sys.exec("curl -so /dev/null --connect-timeout 5 https://www.taobao.com && echo -ne 1 || echo -ne 0 ")
-        if a == '1' then 
-            check = 1
-        end
+checknet = sys.exec("curl -so /dev/null --connect-timeout 2 https://www.taobao.com && echo -ne 1 || echo -ne 0 ")
 if ( background == "0" ) then
 		math.randomseed(os.time())
 		local bgcount = 0
@@ -374,11 +375,11 @@ if ( background == "0" ) then
 		    currentBg = bgs[math.random(1,bgcount)]
 		    bg_url = currentBg.url
 		end
-elseif  ( background == "2" )  then
+elseif  ( background == "2" and checknet == "1"  )  then
 		    pcall(downunsplashUrl)
-elseif background == "3" then
+elseif background == "3"  and checknet == "1" then
 		    pcall(downbingUrl)
-elseif background == "4" then
+elseif background == "4" and checknet == "1"  then
 		    pcall(downbirdUrl)
 end
 
@@ -408,7 +409,7 @@ else
 		    bg_lock = currentbk.url
 		end
 end
-if dayword == '1' then
+if dayword == '1' and checknet == "1"  then
    pcall(downIcibaword)
 end
 if bkuse == '1'  then
