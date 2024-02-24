@@ -18,8 +18,8 @@ cat <<EOF
 $(echo -e "${Red}Run     Time:	${Sys_time}${White}")
 $(echo -e "${Yellow}$(uname -n)/${TARGET_PROFILE}")
 $(echo -e "${Red}CPU    Model:	${CPU_Model}${White}")
-$(echo -e "${Blue}Mem    Total:	${Mem_sum}${White}")
 Overlay /TMP:	${Overlay_Available} / ${Tmp_Available}
+$(echo -e "${Blue}Mem    Total:	${Mem_sum}${White}")
 FIRWare  Ver:	$(uname -rs)$([ -n "${TEMP}" ] && echo -e "${TEMP}")
 $(echo -e "${Green}TARGET  Info:	${ARCH}${White}")
 $(echo -e "${Red}IPv4 Address:	${IP_Address}${White}")
