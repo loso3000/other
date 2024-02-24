@@ -117,8 +117,9 @@ done
 }
 
 function k_change_ip() {
-  echo -e " q. 返回(return)"
-  export k_ip="请输入新IP(Input new IP[eg:${Red}${IP_Address}${White}])"
+  echo 
+  echo -e " q. 返回(return) ,当前IPv4：`ip -4 a | grep 'br-lan' | grep 'inet' | awk '{print $2}' | awk -F '/' '{print $1}'`"
+  export k_ip="请输入新IPv4地址(Input new IPv4)"
   echo
   while :; do
   domainy=""
@@ -157,7 +158,8 @@ function k_change_ip() {
 ;;
 
   *) 
-  echo -e "\n q. 返回(return)"
+  echo 
+  echo -e " q. 返回(return) ,当前IPv4：`ip -4 a | grep 'br-lan' | grep 'inet' | awk '{print $2}' | awk -F '/' '{print $1}'`"
   export k_ip="输入正确格式IP地址[x.x.x.x](enter IP address format[x.x.x.x])"
   ;;
   esac
@@ -364,9 +366,6 @@ goreboot() {
 }
 clear
 [ -e /tmp/.failsafe ] && export FAILSAFE=1
-[ -f /etc/banner ] && echo -e "${Skyb}$(cat /etc/banner)${White}"
-[ -n "$FAILSAFE" ] && cat /etc/banner.failsafe
-
 if ( grep -qs '^root::' /etc/shadow && \
      [ -z "$FAILSAFE" ] )
 then
@@ -378,9 +377,9 @@ in order to prevent unauthorized SSH logins.
 ------------------------------------------------
 EOF
 fi
-
+[ -f /etc/banner ] && echo -e "${Skyb}$(cat /etc/banner)${White}"
+[ -n "$FAILSAFE" ] && cat /etc/banner.failsafe
 Sysinfo
-
 grep -Fsq '/ overlay ro,' /proc/mounts && {
 	echo -e "${Red}Your JFFS2-partition seems full and overlayfs is mounted read-only."
 	echo -e "Please try to remove files from /overlay/upper/... and reboot!${}"
@@ -491,6 +490,11 @@ function mainmenu() {
        k_kmodregdocker
     ;;
     0)
+      EW " 退出程序成功(Exit the program successfully)"
+      EW " "
+      goexit
+    ;;
+    q)
       EW " 退出程序成功(Exit the program successfully)"
       EW " "
       goexit
