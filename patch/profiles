@@ -1,4 +1,4 @@
-## 2021-2023 sirpdboy  herboy2008@gmail.com
+## 2021-2024 sirpdboy  herboy2008@gmail.com
 Sysinfo() {
 [ -z "${TARGET_PROFILE}" ] && local TARGET_PROFILE=$(jsonfilter -e '@.model.id' < /etc/board.json | tr ',' '_')
 local DISTRIB_ARCH=$(cat /etc/openwrt_release | grep "DISTRIB_ARCH=" |awk -F "'" '{print $2}')
@@ -15,14 +15,14 @@ local Tmp_Available="$(df -h | grep "/tmp" | awk '{print $4}' | awk 'NR==1')"
 local TEMP=$(sensors 2>/dev/null | grep 'Core 0' | awk '{print $3}')
 local Sys_time=$(awk '{a=$1/86400;b=($1%86400)/3600;c=($1%3600)/60;d=($1%60)} {printf("%d 天 %d 小时 %d 分钟 %d 秒\n",a,b,c,d)}' /proc/uptime)
 cat <<EOF
+$(echo -e "${Red}Run     Time:	${Sys_time}${White}")
 $(echo -e "${Yellow}$(uname -n)/${TARGET_PROFILE}")
 $(echo -e "${Red}CPU    Model:	${CPU_Model}${White}")
 $(echo -e "${Blue}Mem    Total:	${Mem_sum}${White}")
-$(echo -e "${Green}TARGET  Info:	${ARCH}${White}")
-FIRWare  Ver:	$(uname -rs)$([ -n "${TEMP}" ] && echo -e "${TEMP}")
-$(echo -e "${Red}IPv4 Address:	${IP_Address}${White}")
 Overlay /TMP:	${Overlay_Available} / ${Tmp_Available}
-$(echo -e "${Red}Run     Time:	${Sys_time}${White}")
+FIRWare  Ver:	$(uname -rs)$([ -n "${TEMP}" ] && echo -e "${TEMP}")
+$(echo -e "${Green}TARGET  Info:	${ARCH}${White}")
+$(echo -e "${Red}IPv4 Address:	${IP_Address}${White}")
 EOF
 }
 
@@ -44,7 +44,6 @@ function ER() {
 function EB() {
   echo
   echo -e "${Blue} $1${Font}"
-  echo
 }
 function EG() {
   echo -e "${Green} $1${Font}"
@@ -119,7 +118,7 @@ done
 
 function k_change_ip() {
   echo -e " q. 返回(return)"
-  export k_ip="请输入新IP(Please input the new IP[eg:192.168.1.1])"
+  export k_ip="请输入新IP(Input new IP[eg:${Red}${IP_Address}${White}])"
   echo
   while :; do
   domainy=""
@@ -134,7 +133,7 @@ function k_change_ip() {
   case $keyipy in
   Y)
     export keyipn="${keyip}"
-    echo "修改中，请稍等...( please wait... )" && sleep 5
+    echo "修改中，请稍等...( please wait... )" 
     for i in `seq 1 600`; do
 		mount | grep overlayfs | grep 'workdir=/overlay/work' >/dev/null  2>&1
 		test $? -eq 0 && break
@@ -143,8 +142,12 @@ function k_change_ip() {
     uci set network.lan.ipaddr="${keyip}"
     uci commit network
     ER "您的IP已经改为(Your IP has been changed to)：${keyip}！"
+    [ -s /etc/config/netwizard ] && uci -q set netwizard.default.lan_ipaddr="${keyip}" && uci commit netwizard 
     /etc/init.d/network restart
-    sleep 5
+    sleep 8
+    uci set network.lan.ipaddr="${keyip}"
+    uci commit network
+    /etc/init.d/network restart
     . /etc/profiles 
   ;; 
 
@@ -204,7 +207,6 @@ case ${YN} in
     uci set argon.@global[0].bing_background=0
     uci commit argon
     reboot -f
-    goreboot
 ;;
 [Nn])
     EW "返回主菜单(return)"
@@ -364,6 +366,19 @@ clear
 [ -e /tmp/.failsafe ] && export FAILSAFE=1
 [ -f /etc/banner ] && echo -e "${Skyb}$(cat /etc/banner)${White}"
 [ -n "$FAILSAFE" ] && cat /etc/banner.failsafe
+
+if ( grep -qs '^root::' /etc/shadow && \
+     [ -z "$FAILSAFE" ] )
+then
+cat << EOF
+================== WARNING! ====================
+There is no root password defined on this device!
+Use the "passwd" command to set up a new password
+in order to prevent unauthorized SSH logins.
+------------------------------------------------
+EOF
+fi
+
 Sysinfo
 
 grep -Fsq '/ overlay ro,' /proc/mounts && {
@@ -397,36 +412,20 @@ esac
 	unset FILE
 }
 
-if ( grep -qs '^root::' /etc/shadow && \
-     [ -z "$FAILSAFE" ] )
-then
-cat << EOF
-================== WARNING! ====================
-There is no root password defined on this device!
-Use the "passwd" command to set up a new password
-in order to prevent unauthorized SSH logins.
-------------------------------------------------
-EOF
-fi
-
 function mainmenu() {
-  EB "     Sirdpboy快捷命令菜单(Shortcut Command Menu)   "
+  ER "     Sirdpboy快捷命令菜单(Shortcut Command Menu)   "
   EG "  menu->调用菜单(Call Menu) 进阶设置中可禁用/显示此快捷菜单 "
   EY " 1. 修改后台IPv4地址(Modify IPv4 address)"
   EY " 2. 清除密码并重启(Clear password and Reboot)"
-  EY " 3. 修复向导/默认主题(Restore wizard default theme)"
-  EY " 4. 重启系统(Reboot)"
-  EY " 5. 关闭系统(Shutdown)"
-  EY " 6. 恢复出厂设置(Restore factory settings)"
-  EY " 7. 网络连接检查(Check network connectivity)"
-  EY " 8. 刷新释放内存(Refresh and free memory)"
-  EY " 9. 停止家长控制(Stop Parentcontrol)"
+  EY " 3. 修复向导和主题(Restore wizard default theme)"
+  EY " 4. 重启系统(Reboot)         5. 关闭系统(Shutdown)"    
+  EY " 6. 重置系统(Reset System)   7. 网络检查(Check Network)"
+  EY " 8. 释放内存(free Memory)    9. 停止家长控制(Stop Parentcontrol)"
   EY " 10. 装载全部网卡驱动(Load all network card drivers)"
   EY " 11. 装载docker服务(Loading Docker Service)"
+  EW " 0. 退出本快捷菜单(Exit)"
   echo
-  EW " 0. 退出菜单(Exit)"
-  echo
-  KEY="请输入数字(please enter a number)"
+  KEY="请输入功能编号(Please Enter)"
   while :; do
   read -p " ${KEY}： " CHOOSE
   case $CHOOSE in
