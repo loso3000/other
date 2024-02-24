@@ -103,10 +103,9 @@ set system.@system[0].timezone=CST-8
 set system.@system[0].zonename=Asia/Shanghai
 set system.@system[0].ttylogin='1'
 delete system.ntp.server
-add_list system.ntp.server='time1.cloud.tencent.com'
-add_list system.ntp.server='ntp1.aliyun.com'
-add_list system.ntp.server='ntp.ntsc.ac.cn'
-add_list system.ntp.server='cn.ntp.org.cn'
+add_list system.ntp.server=ntp.ntsc.ac.cn
+add_list system.ntp.server=ntp.aliyun.com
+add_list system.ntp.server=cn.ntp.org.cn
 set dhcp.@dnsmasq[0].min_ttl='3600'
 set dhcp.@dnsmasq[0].filter_aaaa='0'
 set dhcp.@dnsmasq[0].localservice='0'
@@ -325,6 +324,7 @@ echo '' >/etc/openwrt_version
 
 # sed -i 's,downloads.openwrt.org,mirror.sjtu.edu.cn/openwrt,g' /etc/opkg/distfeeds.conf
 sed -i 's#downloads.openwrt.org#mirrors.cloud.tencent.com/lede#g' /etc/opkg/distfeeds.conf
+sed -i 's,downloads.immortalwrt.org,mirrors.vsean.net/openwrt,g' /etc/opkg/distfeeds.conf
 sed -i "s/# //g" /etc/opkg/distfeeds.conf
 sed -i '/openwrt_luci/ { s/snapshots/releases\/18.06.9/g; }'  /etc/opkg/distfeeds.conf
 else
