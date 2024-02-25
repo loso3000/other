@@ -2057,10 +2057,10 @@ table>tbody>tr,div>.table>.tr,.cbi-map>.cbi-section .cbi-value {
     line-height: 1em;
 }
 
-.cbi-rowstyle-2 .cbi-button-up, .cbi-rowstyle-2 .cbi-button-down, body:not(.Interfaces) .cbi-rowstyle-2:first-child {
+.cbi-rowstyle-2 .cbi-button-up, .cbi-rowstyle-2 .cbi-button-down{
 	background-color: rgba(var(--primary-rgbm), 0.5) !important;
 }
-.cbi-rowstyle-1 .cbi-button-up, .cbi-rowstyle-1 .cbi-button-down, body:not(.Interfaces) .cbi-rowstyle-1:first-child {
+.cbi-rowstyle-1 .cbi-button-up, .cbi-rowstyle-1 .cbi-button-down{
 	background-color: rgba(var(--primary-rgbs), 0.5) !important;
 }
 
