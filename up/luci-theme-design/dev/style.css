@@ -1226,6 +1226,7 @@ header > .container > .brand {
     letter-spacing:1px;
     padding: 0 4.5rem;
     transition: 0.1s ease-in-out;
+    position: absolute;
 }
 header > .container > a[class="brand"]:after {
     content:"";
@@ -1382,16 +1383,16 @@ p#shadowsocksr_status {
   transform: rotate(90deg);
 }
 
-.main > .main-left > .nav > .slide > a[data-title="QuickStart"]:before {
-    content: "\e67e";
-}
-
 .main > .main-left > .nav > .slide > a[data-title="Status"]:before {
     content: "\e6b8";
 }
 
 .main > .main-left > .nav > .slide > a[data-title="System"]:before {
     content: "\e645";
+}
+
+.main>.main-left>.nav>.slide>a[data-title=Modem]:before {
+    content: "\e67e"
 }
 
 .main > .main-left > .nav > .slide > a[data-title="Services"]:before {
@@ -1429,6 +1430,7 @@ p#shadowsocksr_status {
   content: "\e7dd";
 }
 
+.main > .main-left > .nav > .slide > a[data-title="QuickStart"]:before,
 .main > .main-left > .nav > li > a[data-title="Inital Setup"]:before,
 .main > .main-left > .nav > li > a[data-title="NetworkGuide"]:before,
 .main > .main-left > .nav > li > a[href="/cgi-bin/luci//admin/wizard"]:before {
@@ -2989,9 +2991,10 @@ body.lang_pl.node-main-login .cbi-value-title {
         padding: 0;
         display: inline-block;
         position: absolute;
-        width: 300px;
-        height: 50px;
+        width: 18.75rem;
+        height: 2.8125rem;
         padding: 1.15rem 2rem;
+        z-index: 100;
     }
 
     .showSide:before {
