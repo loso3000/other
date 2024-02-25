@@ -122,7 +122,13 @@ a {
     color: #c65621;
     text-decoration: none
 }
-
+a:-webkit-any-link:not(li a, .main-left a, .brand, .pull-right a, .alert-message a, .cbi-button) {
+    /* color: -webkit-link; */
+    cursor: pointer;
+    text-decoration: underline
+    /* color: var(--primarytextcolor); */
+    /* text-shadow: 1px 1px 2px #ccc; */
+}
 a:hover {
     text-decoration: underline
 }
@@ -442,6 +448,8 @@ footer a {
     box-shadow: 0 0 2px 2px rgba(0,0,0,0.14),0 -2px 3px 1px rgba(0,0,0,0.32),0 0px 5px 2px rgba(0,0,0,0.2);
     overflow-x: auto;
     position: fixed;
+  transition: width 0.2s ease-in-out;
+  overflow-y: scroll;
     z-index: 100
 }
 
@@ -1066,7 +1074,7 @@ select,input {
 
 .cbi-section-create {
     margin: 0;
-    padding-left: 1rem;
+    padding-left: 0.5rem;
     align-items: center
 }
 
@@ -1081,6 +1089,8 @@ select,input {
 div.cbi-value var,td.cbi-value-field var,.td.cbi-value-field var {
     font-style: italic;
     color: #0069D6
+  color: var(--primarytextcolor);
+  text-shadow: 1px 1px 2px #ccc;
 }
 
 small {
@@ -1130,7 +1140,42 @@ small {
     color: #fb6340;
     font-weight: 600
 }
-
+/* Define the error text border breathe display animation */
+@keyframes error-border-breathe {
+  0%{
+    border-color: #fb6340;
+  }
+  50%{
+    border-color: transparent;
+  }
+  100%{
+    border-color: #fb6340;
+  }
+}
+/* Center display error text box */
+.cbi-section-error > ul{
+  text-align: center;
+}
+/* Add border for error text box, and border breathe display animation to make it more noticeable */
+.cbi-section-error > ul > li {
+  font-weight: 600;
+  max-width: 60%;
+  color: #fb6340;
+  line-height: 1rem;
+  display: inline-block;
+  border: 2px solid #fb6340;
+  border-radius: 0.3rem;
+  animation: error-border-breathe 1.5s ease-in-out infinite;
+  padding-left: 4px;
+  padding-right: 4px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+.cbi-input-invalid, 
+.cbi-value-error input {
+  color: #fb6340;
+  border: 1px dashed #fb6340;
+}
 fieldset>fieldset {
     margin: 0;
     padding: 0;
@@ -1345,7 +1390,15 @@ td>table>tbody>tr>td,.td>.table>.tbody>.tr>.td {
 #cbi-network-switch_vlan .th,#cbi-network-switch_vlan .td {
     flex-basis: 12%
 }
-
+/* Fix background color of table-titles */
+.cbi-section-node > .cbi-section-table > tbody > .cbi-section-table-titles th {
+  background-color: var(--lighter);
+  border: none;
+}
+/* Fix background color of table-descr */
+.cbi-section-node > .cbi-section-table > tbody > .cbi-section-table-descr th {
+  border: none;
+}
 body.lang_pl.node-main-login .cbi-value-title {
     width: 12rem
 }
@@ -1822,15 +1875,12 @@ body.lang_pl.node-main-login .cbi-value-title {
 button:hover,.btn:hover,.cbi-button:hover,.item:hover::after {
     transform: scale(1.05) translate(0,-0.15rem);
     box-shadow: 0 0.5rem 1rem var(--input-boxhovercolor);
-    -webkit-box-shadow: 0 0 6px var(--input-boxhovercolor);
-    -moz-box-shadow: 0 0 6px var(--input-boxhovercolor);
+  box-shadow: 0 0px 2px var(--input-boxhovercolor), 0 4px 4px var(--input-boxcolor);
 }
 
 .btn:active,.cbi-button:active,button:active,.item:hover::after {
     transform: scale(1) translate(0,0.15rem);
-    box-shadow: 0 0.5rem 1rem var(--input-boxhovercolor);
-    -webkit-box-shadow: 0 0 6px var(--input-boxhovercolor);
-    -moz-box-shadow: 0 0 6px var(--input-boxhovercolor)
+  box-shadow: 0 4px 8px var(--input-boxcolor), 0 6px 6px var(--input-boxhovercolor);
 }
 
 .cbi-button-up {
@@ -2582,7 +2632,31 @@ select[multiple="multiple"] {
     border: none;
     padding: 0 0.8rem;
 }
-
+/* file selector button */
+::file-selector-button {
+  color: #fff;
+  border-radius: .25rem;
+  border: 1px solid #2e6da4;
+  padding: .4rem .5rem;
+  background-color: #337ab7;
+  box-sizing: border-box;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+::file-selector-button:hover,
+::file-selector-button:focus,
+::file-selector-button:active {
+  outline: 0;
+  text-decoration: none;
+}
+::file-selector-button:hover,
+::file-selector-button:focus {
+  box-shadow: 0 0px 2px rgba(0, 0, 0, 0.12), 0 2px 2px rgba(0, 0, 0, 0.2);
+}
+::file-selector-button:active {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.19), 0 5px 5px rgba(0, 0, 0, 0.23);
+}
+/* table */
 .cbi-section-table .cbi-section-table-titles .cbi-section-table-cell {
     width: auto !important
 }
@@ -2777,9 +2851,16 @@ div.cbi-value var,td.cbi-value-field var {
 input[name="ping"],input[name="traceroute"],input[name="nslookup"] {
     width: 80%
 }
-
+/* fix status overview */
+.node-status-overview > .main fieldset:nth-child(4) td:nth-child(2) {
+  white-space: normal;
+}
+.node-status-overview > .main #wan4_i,
+.node-status-overview > .main #wan6_i {
+  min-width: 80px !important;
+}
 .Overview>.main #wan4_i,.Overview>.main #wan6_i,.node-status-overview >.main #wan4_i,.node-status-overview >.main #wan6_i {
-    width: 70px !important
+    min-width: 80px !important
 }
 
 .Overview >.main fieldset>table>tbody>tr>td,.cbi-map>.cbi-section .cbi-value:nth-of-type(4) td:nth-child(2),.Interfaces > .main table tr td:nth-child(3),.node-network-network > .main table tr td:nth-child(3),.Processes > .main table tr td:nth-child(3),.node-status-processes > .main table tr td:nth-child(3),.node-status-overview >.main fieldset>table>tbody>tr>td {
@@ -2870,6 +2951,97 @@ input[name="ping"],input[name="traceroute"],input[name="nslookup"] {
 #cbi-openclash .cm-s-idea span.cm-variable {
     color: #fd8c73!important;
 }
+
+
+/* luci-app-passwall */
+#cbi-passwall #add_link_div,
+#cbi-passwall #set_node_div {
+  background: #fffffff0;
+}
+#cbi-passwall .cbi-section-table tbody ._now_use {
+  background: #5e72e473 !important;
+}
+/* luci-app-commands */
+.commandbox h3 {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.commandbox code {
+  word-break: break-word;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+div.commandbox {
+  height: 16em;
+}
+/* luci-app-ssr-plus */
+#cbi-shadowsocksr .cbi-map-descr h3 {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* luci-app-mwan3 */
+.node-status-mwan .cbi-tabmenu {
+  padding: 3rem 0.5rem 0 0.5rem;
+}
+/* luci-app-openclash */
+.node-services-openclash .cbi-tabmenu {
+  font-size: 0;
+}
+.node-services-openclash .cbi-tabmenu > li {
+  margin-right: 4px;
+}
+.node-services-openclash .cbi-tabmenu > li:last-child {
+  margin-right: 0;
+}
+/* luci-app-ddnsto */
+.node-services-ddnsto .cbi-section-node .cbi-value div {
+  display: table-cell;
+  line-height: 1.6;
+  font-size: 0.875rem;
+}
+
+/* luci-app-dockerman */
+#cbi-dockerd > .cbi-section > br,
+#cbi-docker > .cbi-section > br {
+  display: none;
+}
+
+/* luci-app-diskman */
+#cbi-diskman > .cbi-section > br {
+  display: none;
+}
+
+/* luci-app-istorex (Quick Start) */
+#app #main #page .app-container_body .btn-f,
+#app #main #page .app-container_body .btn-r {
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* IE10+/Edge */
+  user-select: none; /* Standard */
+  width: 30px;
+}
+
+/* luci-app-ttyd */
+.TTYD.node-system-terminal .main {
+  height: 100%!important;
+}
+.TTYD.node-system-terminal .main .main-right,
+.TTYD.node-system-terminal .main .main-right #maincontent,
+.TTYD.node-system-terminal .main .main-right #maincontent .container .cbi-map {
+  height: 100%!important;
+  display: flex!important;
+  flex-direction: column!important;
+}
+.TTYD.node-system-terminal .main .main-right #maincontent,
+.TTYD.node-system-terminal .main .main-right #maincontent .container,
+.TTYD.node-system-terminal .main .main-right #maincontent .container .cbi-map #terminal {
+  flex: 1!important;
+}
+
 /* tab border */
 #cbi-openclash #tab {
     box-shadow: 0 0 2px rgba(255,255,255,0.2)!important;
@@ -2952,6 +3124,7 @@ input[name="ping"],input[name="traceroute"],input[name="nslookup"] {
     font-size: var(--font-x);
     font-weight: 600;
     color: var(--body-color);
+  text-shadow: 1px 1px 2px #ccc;
     text-align: center
 }
 
@@ -3008,7 +3181,12 @@ padding: 0.5rem!important;
 .node-system-flashops br {
     display: none
 }
-
+.node-system-flashops fieldset > ul {
+  padding: 1rem;
+}
+.node-system-flashops fieldset + .cbi-page-actions {
+  margin-top: 1rem;
+}
 .node-status-iptables fieldset,.node-system-packages fieldset,.node-system-flashops fieldset {
     margin-top: 0
 }
@@ -3169,9 +3347,10 @@ img[src*="/luci-static/resources/cbi/reload.gif"] {
         padding:.3rem .6rem
     }
 
-    .cbi-button {
-        font-size: var(--font-z)
-    }
+  .cbi-button:not(.cbi-button-up, .cbi-button-down) {
+    font-size: var(--font-z)
+  }
+
 
     .main-left {
         width: calc(0% + 17rem)
