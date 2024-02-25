@@ -1,0 +1,36 @@
+#!/bin/sh
+
+# author github@sirpdboy
+
+WORDDATETMP="/var/kucatword_date.tmp"
+LOCK="/var/lock/kucatword_lock.lock"
+WORDTMP="/tmp/kucatword_hitokoto.tmp"
+
+kucatword() {
+	local lock="$LOCK"
+	exec 200>"$lock"
+	if flock -n 200 >"/dev/null" 2>&1; then
+		localword=`curl -kLfsm 5 https://v1.hitokoto.cn | awk -F 'hitokoto\":\"' '{print $2}'| awk -F '\"' '{print $1}' `
+		if [ -n "$localword" ]; then
+			echo $localword >$WORDTMP
+			date +%Y%m%d > $WORDDATETMP
+		else
+			rm -rf $WORDTMP
+		fi
+		flock -u 200 >"/dev/null" 2>&1
+
+	fi
+	[ -s "$WORDTMP" ] && cat $WORDTMP || echo -ne "Acquisition failed ,Please github@sirpdboy"
+}
+checknet=`/usr/bin/wget --spider -qT3 https://www.taobao.com  2>"/dev/null" && echo -ne 1 || echo -ne 0 `
+if [ $checknet == 1 ]; then 
+	if [ -f "$WORDDATETMP" ]; then
+		localtime=`cat $WORDDATETMP | grep $(date +%Y%m%d) `
+		if [ $localtime ]; then
+		    [ -s "$WORDTMP" ] && cat $WORDTMP && return
+		fi
+	fi
+	kucatword
+else
+    	echo -ne "No internet connection, no information"
+fi
