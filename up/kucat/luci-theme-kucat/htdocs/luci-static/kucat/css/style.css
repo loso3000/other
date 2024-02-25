@@ -42,7 +42,7 @@
     --menu-color: #bbb;
     --menu-hover-color: #e9eff3;
     --menu-item-color: #b4c9e3;
-    --menu-item-titlebg-color: rgba(255, 255, 255, 0.1);
+    --menu-item-titlebg-color: rgba(255, 255, 255, 0.15);
     --menu-item-hover-bgcolor: rgba(255, 255, 255, 0.2);
     --body-text-color: #8391a2;
     --body-color: #8391a2;
@@ -62,7 +62,8 @@ html {
     margin: 0px;
     padding: 0px;
     height: 100%;
-	background: var(--theme-background);
+    background-color: rgba(var(--primary-rgbbody),1);
+    background: var(--theme-background) ;
     -webkit-background-size: cover;
     -moz-background-size: cover;
     -o-background-size: cover;
@@ -127,7 +128,7 @@ a:-webkit-any-link:not(li a, .main-left a, .brand, .pull-right a, .alert-message
     cursor: pointer;
     text-decoration: underline
     /* color: var(--primarytextcolor); */
-    /* text-shadow: 1px 1px 2px #ccc; */
+    text-shadow: 1px 1px 2px #ccc;
 }
 a:hover {
     text-decoration: underline
@@ -444,7 +445,8 @@ footer a {
     height: 100%;
 
 	backdrop-filter: var(--primary-ufilter);
-	background: var(--bgqs-image);
+background-color:  rgba(var(--primary-rgbm),var(--primary-rgbm-ts));
+    background-image: var(--bgqs-image);
     box-shadow: 0 0 2px 2px rgba(0,0,0,0.14),0 -2px 3px 1px rgba(0,0,0,0.32),0 0px 5px 2px rgba(0,0,0,0.2);
     overflow-x: auto;
     position: fixed;
@@ -869,7 +871,6 @@ select:not([multiple="multiple"]):focus, input:not(.cbi-button):focus {
     -moz-box-shadow: 0 0 6px var(--input-boxhovercolor)
 }
 .btn, button, select, input, .cbi-dropdown {
-
     font-size: var(--font-z);
 	outline: 0;
 	cursor: pointer;
@@ -878,7 +879,8 @@ select:not([multiple="multiple"]):focus, input:not(.cbi-button):focus {
 	border-radius: var(--Radius2);
         border: 1px solid var(--inputborder-color);
 	background-color: var(--inputbg-color);
-	transition: box-shadow .15s ease;
+	transition: box-shadow .25s ease;
+box-shadow: 0 0.3rem 0.8rem var(--input-boxcolor);
 }
 select,input {
     padding: 0 20px 0 10px;
@@ -910,7 +912,8 @@ select,input {
     color: var(--menu-hover-color);
     background-color: #008b89;
     background-image: var(--bgqs-image);
-    box-shadow: 0 0.3rem 0.8rem rgba(0,0,0,0.22);
+
+box-shadow: 0 0.3rem 0.8rem var(--input-boxhovercolor);
     transform: translate(1) translate(0,0);
     transition: transform 225ms,box-shadow 225ms;
     border-radius: var(--Radius2);

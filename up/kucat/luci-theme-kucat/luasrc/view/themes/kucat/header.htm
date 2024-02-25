@@ -13,7 +13,6 @@
 -%>
 
 <%
-	local ver = require "luci.version"
 	local sys  = require "luci.sys"
 	local util = require "luci.util"
 	local http = require "luci.http"
@@ -23,7 +22,7 @@
 	local nutil = require "nixio.util"
 	local uci = require 'luci.model.uci'.cursor()
 	local boardinfo = util.ubus("system", "board")
-	local urlencode = luci.http.protocol and luci.http.protocol.urlencode or luci.util.urlencode
+
 	local request  = disp.context.path
 	local request2 = disp.context.request
 
@@ -36,7 +35,6 @@
 	local node = disp.context.dispatched
 
 	local categories = disp.node_childs(tree)
-	local currentNode = luci.dispatcher.context.path
 	local c = tree
 	local i, r
 	
@@ -111,22 +109,17 @@
 		end
 	end
 
-	local function render_submenu(prefix,parent, node)
+	local function render_submenu(prefix, node)
 		local childs = disp.node_childs(node)
 		if #childs > 0 then
-			local active = (currentNode[2] == parent) and "active" or ""
-			local display = (currentNode[2] == parent) and 'style="display: block;"' or ""
 			
-			write('<ul class="slide-menu %s" %s>' %{
-				active,
-				display
-			})
+			write('<ul class="slide-menu">')
+
 			for i, r in ipairs(childs) do
 				local nnode = node.nodes[r]
 				local title = pcdata(striptags(translate(nnode.title)))
-				local subactive = (currentNode[3] == r) and 'class="active"' or ""
-				write('<li %s><a data-title="%s" href="%s">%s</a></li>' %{
-					subactive,
+
+				write('<li><a data-title="%s" href="%s">%s</a></li>' %{
 					title,
 					nodeurl(prefix, r, nnode.query),
 					title
@@ -147,16 +140,14 @@
 				local grandchildren = disp.node_childs(nnode)
 
 				if #grandchildren > 0 then
-					local active = (currentNode[2] == r) and "active" or ""
 					local title = pcdata(striptags(translate(nnode.title)))
                                         local en_title = pcdata(striptags(string.gsub(nnode.title," ","_")))
-					write('<li class="slide"><a class="menu %s" data-title="%s" href="#">%s</a>' %{
-						active,
+					write('<li class="slide"><a class="menu" data-title="%s" href="#">%s</a>' %{
 						en_title,
 						title
 					})
 
-					render_submenu(category .. "/" .. r,r, nnode)
+					render_submenu(category .. "/" .. r, nnode)
 					write('</li>')
 				else
 					local title = pcdata(striptags(translate(nnode.title)))
@@ -194,7 +185,6 @@
 			end
 		end
 	end
-	local dark_css = fs.readfile('/www/luci-static/kucat/css/dark.css')
 	local bar='/cgi-bin/luci/admin/'
 	local mode = 'light'
     local home = ''
@@ -216,7 +206,7 @@
 	local primary_rgbs_ts = '0.1'
 	local primary_opacity = '0'
 	local bkuse = '0'
-    local desktopbk_use = 'linear-gradient(90deg, rgba(var(--primary-rgbm), 1) 0%, rgba(var(--primary-rgbbody), 1) 100%)'
+	local bk_use='none'
     local loginbk_use = 'background: linear-gradient(0deg, rgba(var(--primary-rgbm), 1) 0%, rgba(var(--primary-rgbbody), 1) 100%)'
 	local bklock = '1'
 	local dayword = '0'
@@ -321,19 +311,22 @@
   	   showword = sys.exec("/usr/libexec/kucat/kucat_word")
 	end
 	if bkuse == '1'  then
-	   desktopbk_use = "url(" .. bg_lock .. ") no-repeat center center fixed"
+	   bk_use='url('..bg_lock..') no-repeat center center fixed'
  	   loginbk_use = "background-image:url(" .. bg_url .. ")"
 	end
-%>
+-%>
 
 <!DOCTYPE html>
 <html lang="<%=luci.i18n.context.lang%>">
 <head>
 	<meta charset="utf-8">
 	<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />
-    <link rel="manifest" href="<%=media%>/manifest.json">
+
 	<title>	<%=striptags( (boardinfo.hostname or "?") .. ( (node and node.title) and ' - ' .. translate(node.title) or '')) %>	- LuCI</title>
 	<meta name="format-detection" content="telephone=no, email=no" />
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="x5-fullscreen" content="true">
     <meta name="full-screen" content="yes">
     <meta name="x5-page-mode" content="app">
@@ -344,20 +337,18 @@
 	<meta name="theme-color" media="(prefers-color-scheme: dark)" content="black">
 	<meta name="application-name" content="<%=striptags( (boardinfo.hostname or "?") ) %> - LuCI">
 	<meta name="apple-mobile-web-app-title" content="<%=striptags( (boardinfo.hostname or "?") ) %> - LuCI">
-	<meta name="msapplication-TileImage" content="<%=media%>/logo.png"/>
+
+    <link rel="apple-touch-icon" sizes="144x144" href="<%=media%>/img/apple-touch-icon.png">
+	<link rel="apple-touch-icon-precomposed" href="<%=media%>/img/apple-touch-icon.png" sizes="144x144">
+
+	<link rel="icon" type="image/png" sizes="192x192" href="<%=media%>/logo.png">
+    <link rel="manifest" href="<%=media%>/manifest.json" crossorigin="use-credentials">
 	<meta name="msapplication-TileColor" content="<%=bar_color%>">
+	<meta name="msapplication-TileImage" content="<%=media%>/logo.png"/>
 	<meta name="theme-color" content="<%=bar_color%>">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-capable" content="yes">
 	<link rel="shortcut icon" href="<%=media%>/favicon.ico" type="image/x-icon">
 	<link rel="icon" href="<%=media%>/logo.png" type="image/png">
 	<link rel="icon" href="<%=media%>/logo.svg" sizes="any">
-    <link rel="apple-touch-icon" sizes="144x144" href="<%=media%>/img/apple-touch-icon.png">
-	<link rel="apple-touch-icon-precomposed" href="<%=media%>/img/apple-touch-icon.png" sizes="144x144">
-	<link rel="icon" type="image/png" sizes="192x192" href="<%=media%>/logo.png">
-	<script src="<%=resource%>/cbi.js<%# ?v=PKG_VERSION %>"></script>
-	<script src="<%=resource%>/xhr.js<%# ?v=PKG_VERSION %>"></script>
-	<script src="<%=media%>/js/jquery.min.js<%# ?v=PKG_VERSION %>"></script>
 	<link rel="stylesheet" href="<%=media%>/css/style.css?v=<%=math.random(1,100000)%>">
 	<style title="text/css">
 
@@ -371,7 +362,7 @@
 		--font-d: <%=fontd%>;
 		--font-z: <%=fontz%>;
 		--font-x: <%=fontx%>;
-		--theme-background: <%=desktopbk_use%>;
+		--theme-background: <%=bk_use%>;
 		--bgqs-image: <%=bgqs_image%>;
 	}
 	img[src*="/luci-static/resources/cbi/add.gif"] {
@@ -404,16 +395,19 @@
 	    display: block;
 	}
 	<% end -%>
-	<% if css then %>
-	    <%=css %>
-	<% end -%>
 	 </style>
 	<% if node and node.css then %>
 	<link rel="stylesheet" href="<%=resource%>/<%=node.css%>">
 	<% end -%>
-
+	<% if css then %>
+	<style title="text/css"><%=css %></style>
+	<% end -%>
+	<script src="<%=resource%>/cbi.js<%# ?v=PKG_VERSION %>"></script>
+	<script src="<%=resource%>/xhr.js<%# ?v=PKG_VERSION %>"></script>
+	<script src="<%=media%>/js/jquery.min.js?v=3.5.1"></script>
 </head>
-<body class="lang_<%=luci.i18n.context.lang%> <%- if node then %> <%= striptags( node.title ) %><%- end %> <% if luci.dispatcher.context.authsession then %>logged-in<% end %> "
+<body
+	class="<%- if node then %><%= striptags( node.title ) %><%- end %> <% if luci.dispatcher.context.authsession then %>logged-in<% end %> lang_<%=luci.i18n.context.lang%> "
 	<% if mode ~= 'auto' then %>
 	data-theme = "<%= mode %>"
 	<% end -%>
@@ -478,8 +472,10 @@
 				<%- if luci.sys.process.info("uid") == 0 and luci.sys.user.getuser("root") and not luci.sys.user.getpasswd("root") then -%>
 					<div class="alert-message warning">
 						<h4><%:No password set!%></h4>
-						<p><%:There is no password set on this router. Please configure a root password to protect the web interface and enable SSH.%></p>
-						<div class="right"><a class="btn" href="<%=url("admin/system/admin")%>"><%:Go to password configuration...%></a></div>
+						<p><%:There is no password set on this router. Please configure a root password to protect the web interface and enable SSH.%>
+						</p>
+						<div class="right"><a class="btn"
+								href="<%=url("admin/system/admin")%>"><%:Go to password configuration...%></a></div>
 					</div>
 				<%- end -%>
 
@@ -490,3 +486,8 @@
 					</div>
 				</noscript>
 				<% if category then render_tabmenu(category, cattree) end %>
+	<script>
+		// thanks for Jo-Philipp Wich <jow@openwrt.org>
+		var luciLocation = <%= luci.http.write_json(luci.dispatcher.context.path) %>;
+	</script>
+	<script src="<%=media%>/js/menu-kucat.js<%# ?v=PKG_VERSION %>"></script>
