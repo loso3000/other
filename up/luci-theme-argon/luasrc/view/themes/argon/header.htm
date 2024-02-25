@@ -111,7 +111,6 @@
 	local function render_submenu(prefix, node)
 		local childs = disp.node_childs(node)
 		if #childs > 0 then
-			
 			write('<ul class="slide-menu">')
 
 			for i, r in ipairs(childs) do
@@ -321,6 +320,7 @@
 					</noscript>
 
 					<% if category then render_tabmenu(category, cattree) end %>
+
 	<script>
 		// thanks for Jo-Philipp Wich <jow@openwrt.org>
 		var luciLocation = <%= luci.http.write_json(luci.dispatcher.context.path) %>;
