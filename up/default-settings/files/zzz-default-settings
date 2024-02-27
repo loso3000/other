@@ -26,14 +26,24 @@ setup_ssid()
     #local mac=`ifconfig ${s} | grep "HWaddr" | awk '{print $5}'`
     #local wifimac=`echo ${mac}|awk -F ":" '{print $4""$5""$6 }'|tr A-Z a-z|cut -c4-`
     uci -q set wireless.${r}.disabled=0
-    uci -q set wireless.${r}.country=CN
+    uci -q set wireless.${r}.hwmode='11a'
+    uci -q set wireless.${r}.country='US'
+    uci -q set wireless.${r}.legacy_rates='1'
+    uci -q set wireless.${r}.mu_beamformer='1'
+    uci -q set wireless.${r}.htmode='HT40'
     if [ `uci -q get wireless.${r}.channel` -lt 14 ]; then
-        uci -q set wireless.${r}.channel=11
+        uci -q set wireless.${r}.channel=40
         uci -q set wireless.default_${r}.ssid="${SSID}"-2.4G
     else
         uci -q set wireless.${r}.channel=149
         uci -q set wireless.default_${r}.ssid="${SSID}"-5G
     fi
+    uci -q set wireless.default_${r}.device='radio0'
+    uci -q set wireless.default_${r}.network='lan'
+    uci -q set wireless.default_${r}.mode='ap'
+    uci -q set wireless.default_${r}.disassoc_low_ack='0'
+    uci -q set wireless.default_${r}.encryption='psk2+tkip+ccmp'
+    uci -q set wireless.default_${r}.wps_pushbutton='0'
     uci -q set wireless.default_${r}.encryption='psk2'
     uci -q set wireless.default_${r}.key="${SSID_PASSWD}"
     uci commit wireless
