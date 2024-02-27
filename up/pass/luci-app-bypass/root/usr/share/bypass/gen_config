@@ -229,7 +229,7 @@ local Xray = {
 			security = (server.tls == '1') and "tls" or (server.reality == '1') and "reality" or nil,
 			tlsSettings = (server.tls == '1') and {
 				-- tls
-				alpn = server.tls_alpn,
+				-- alpn = server.tls_alpn,
 				fingerprint = server.fingerprint,
 				allowInsecure = (server.insecure == "1"),
 				serverName = tls_host,

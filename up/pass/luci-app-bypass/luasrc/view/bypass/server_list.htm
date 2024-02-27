@@ -15,7 +15,7 @@ local dsp=require "luci.dispatcher"
 			const dom=doms[index];
 			const port=ports[index];
 			if (!dom) res()
-			port.innerHTML='<font color="#0072c3"><%:connecting%></font>';
+			port.innerHTML='<font style=\"color:#0072c3\"><%:connecting%></font>';
 			XHR.get('<%=dsp.build_url("admin/services/bypass/ping")%>',{
 				index,
 				domain: dom.getAttribute("hint"),
@@ -27,11 +27,11 @@ local dsp=require "luci.dispatcher"
 					if (result.ping < 300) col='#ff3300';
 					if (result.ping < 200) col='#ff7700';
 					if (result.ping < 100) col='#249400';
-					port.innerHTML='<font color="#249400"><%:ok%></font>'
+					port.innerHTML='<font style=\"color:#249400\"><%:ok%></font>'
 				}else{
-					port.innerHTML='<font color="#ff0000"><%:fail%></font>'
+					port.innerHTML='<font style=\"color:#ff0000\"><%:fail%></font>'
 				}
-				dom.innerHTML =`<font color=${col}>${(result.ping?result.ping:"--")+" ms"}</font>`
+				dom.innerHTML =`<font style=\"${col}\">${(result.ping?result.ping:"--")+" ms"}</font>`
 				res();
 			});
 		})
