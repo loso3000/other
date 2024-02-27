@@ -11,6 +11,7 @@
 
 START=95
 STOP=15
+SERVICE_DAEMONIZE=1
 NAME=shadowsocksr
 LOCK_FILE=/var/lock/ssrplus.lock
 LOG_FILE=/var/log/ssrplus.log
@@ -35,7 +36,7 @@ tmp_shunt_port="303"       #shunt temporary port
 tmp_shunt_local_port="304" #shunt socks temporary port
 tmp_shunt_dns_port="305"   #shunt dns2socks temporary port
 tmp_tcp_local_port="306"   #tcp socks temporary port
-mosdns_config_file=
+
 server_count=0
 redir_tcp=0
 redir_udp=0
