@@ -594,7 +594,6 @@ background-color:  rgba(var(--primary-rgbm),var(--primary-rgbm-ts));
     -webkit-transform: rotate(180deg);
     transform: rotate(180deg)
 }
-
 .main .main-left .nav li.slide .menu:hover,.main .main-left .nav li.slide .menu.active {
     cursor: pointer;
     background-color: var(--menu-item-hover-bgcolor);

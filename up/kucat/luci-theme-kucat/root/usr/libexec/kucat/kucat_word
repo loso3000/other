@@ -8,10 +8,10 @@
 #       https://github.com/sirpdboy/luci-theme-kucat/issues
 # 
 # Licensed to the public under the Apache License 2.0
-
+LANG=`uci get luci.main.lang`
 WORDDATETMP="/var/dayword_kucatword_date.tmp"
 LOCK="/var/lock/dayword_kucatword.lock"
-WORDTMP="/var/dayword_kucatword.tmp"
+WORDTMP="/var/dayword_kucatword_$LANG.tmp"
 test_url() {
 	local url=$1
 	local status="$(/usr/bin/curl -I -o /dev/null -skL --connect-timeout 1 --retry 1 -w %{http_code} "$url")"
@@ -29,21 +29,30 @@ get_word() {
 	local dayword="$(uci -q get $kucat.@basic[0].dayword || echo '0')"
 	case "$dayword" in
 	1)
+		[ "X$LANG" == "Xen" ] && gwordjson=`curl -s 'https://open.iciba.com/dsapi/' | jsonfilter -qe '@.content'` ||  gwordjson=`curl -s 'https://open.iciba.com/dsapi/' | jsonfilter -qe '@.note'`
+		[ -n "${gwordjson}" ] && echo "$gwordjson"
+		;;
+	2)
+	# form iciba : https://api.vvhan.com/api/en
+		[ "X$LANG" == "Xen" ] && gwordjson=`curl -s 'https://api.vvhan.com/api/en?type=sj'| jsonfilter -qe '@.data.zh'` || gwordjson=`curl -s 'https://api.vvhan.com/api/en?type=sj'| jsonfilter -qe '@.data.en'` 
+		[ -n "${gwordjson}" ] && echo "$gwordjson"
+		;;
+	3)
 		local gwordjson=`curl -s 'https://api.yixiangzhilv.com/yiyan/sentence/get/'` 
 		local gword=`echo $gwordjson | jsonfilter -qe '@.content'`
 		local gfrom=`echo $gwordjson | jsonfilter -qe '@.author'`
 		[ -n "${gfrom}" ] && gfrom=$(echo "         ---- $gfrom")|| gfrom=''
 		[ -n "${gword}" ] && echo "$gword       $gfrom"
 		;;
-	2)
+	4)
 		local gwordjson=`curl -s 'https://yijuzhan.com/api/word.php?m=json'` 
 		local gword=`echo $gwordjson | jsonfilter -qe '@.content'`
 		local gfrom=`echo $gwordjson | jsonfilter -qe '@.source'`
 		[ -n "${gfrom}" ] && gfrom=$(echo "    ---- $gfrom")|| gfrom=''
 		[ -n "${gword}" ] && echo "$gword     $gfrom"
 		;;
-	3)
-		local gword=`curl -s https://v2.jinrishici.com/one.svg |awk -F "0\">" '{print $2}' |awk -F '<' '{print $1}'` 
+	5)
+		local gword=`curl -s https://v.api.aa1.cn/api/api-wenan-dujitang/index.php?aa1=json | sed 's/\[//g' | sed 's/\]//g'| jsonfilter -qe '@.dujitang'` 
 		[ -n "${gword}" ] && echo "$gword"
 		;;
 	
@@ -76,7 +85,6 @@ if [ -f "$WORDDATETMP" ]; then
 		    [ -s "$WORDTMP" ] && cat $WORDTMP && return
 		fi
 	fi
-	
 # local checknet=$(test_url "https://www.baidu.com")
 local checknet=`ping -c 3 -W 1 223.5.5.5 > /dev/null 2>&1 &&echo 1 || echo 2`
 if [ "x$checknet" == "x1" ]; then 

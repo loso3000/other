@@ -44,7 +44,7 @@ t.anonymous = true
 
 e = t:option(ListValue, 'background', translate('Wallpaper Source'),translate('Local wallpapers need to be uploaded on their own, and only the first update downloaded on the same day will be automatically downloaded.'))
 e:value('0', translate('Local wallpaper'))
---e:value('1', translate('Online Bing wallpaper'))
+e:value('1', translate('Auto download Iciba wallpaper'))
 e:value('2', translate('Auto download unsplash wallpaper'))
 e:value('3', translate('Auto download Bing wallpaper'))
 e:value('4', translate('Auto download Bird 4K wallpaper'))

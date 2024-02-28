@@ -1,4 +1,4 @@
-/*
+/**
  *  luci-theme-kucat
  *  Copyright (C) 2024 The Sirpdboy Team <herboy2008@gmail.com> 
  *
@@ -74,6 +74,7 @@
     $(".main > .main-left > .nav > .slide > .menu").click(function() {
         var ul = $(this).next(".slide-menu");
         var menu = $(this);
+        if (!menu.hasClass("exit")) {
             $(".main > .main-left > .nav > .slide > .active").next(".slide-menu").stop(true).slideUp("fast");
             $(".main > .main-left > .nav > .slide > .menu").removeClass("active");
             if (!ul.is(":visible")) {
@@ -88,7 +89,11 @@
             }
             return false
 
+	}
+	
+
     });
+
             /**
      * get current node and open it
      */
