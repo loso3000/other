@@ -1,5 +1,9 @@
-/**
- *  Argon is a clean HTML5 theme for LuCI. It is based on luci-theme-material and Argon Template
+/*
+ *  luci-theme-kucat
+ *  Copyright (C) 2024 The Sirpdboy Team <herboy2008@gmail.com> 
+ *
+ *  Have a bug? Please create an issue here on GitHub!
+ *      https://github.com/sirpdboy/luci-theme-kucat/issues
  *
  *  luci-theme-argon
  *      Copyright 2023 Jerrykuku <jerrykuku@qq.com>
@@ -33,10 +37,13 @@
             }
         }
     })(luciLocation);
+
+
     /**
      * get the current node by Burl (primary)
      * @returns {boolean} success?
      */
+     
     function getCurrentNodeByUrl() {
         var ret = false;
         const urlReg = new RegExp(nodeUrl + "$")
@@ -63,10 +70,10 @@
         });
         return ret;
     }
+
     $(".main > .main-left > .nav > .slide > .menu").click(function() {
         var ul = $(this).next(".slide-menu");
         var menu = $(this);
-        if (!menu.hasClass("exit")) {
             $(".main > .main-left > .nav > .slide > .active").next(".slide-menu").stop(true).slideUp("fast");
             $(".main > .main-left > .nav > .slide > .menu").removeClass("active");
             if (!ul.is(":visible")) {
@@ -80,10 +87,17 @@
                 });
             }
             return false
-        }
 
     });
-
+            /**
+     * get current node and open it
+     */
+    if (getCurrentNodeByUrl()) {
+        mainNodeName = "node-" + luciLocation[0] + "-" + luciLocation[1];
+        mainNodeName = mainNodeName.replace(/[ \t\n\r\/]+/g, "_").toLowerCase();
+        $("body").addClass(mainNodeName);
+                }
+		
     /**
      * hook menu click and add the hash
      */
@@ -114,14 +128,6 @@
         return false
     });
 
-    /**
-     * get current node and open it
-     */
-    if (getCurrentNodeByUrl()) {
-        mainNodeName = "node-" + luciLocation[0] + "-" + luciLocation[1];
-        mainNodeName = mainNodeName.replace(/[ \t\n\r\/]+/g, "_").toLowerCase();
-        $("body").addClass(mainNodeName);
-                }
 
     if (mainNodeName != undefined) {
         console.log(mainNodeName);

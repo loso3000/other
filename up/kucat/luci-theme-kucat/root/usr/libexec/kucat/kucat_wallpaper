@@ -1,14 +1,33 @@
 #!/bin/sh
 
+#   luci-theme-kucat
+#   Copyright (C) 2019-2024 The Sirpdboy Team <herboy2008@gmail.com> 
+# 
+#   Have a bug? Please create an issue here on GitHub!
+#       https://github.com/sirpdboy/luci-theme-kucat/issues
+# 
+# Licensed to the public under the Apache License 2.0
+
+
 # author github@sirpdboy
-[ -s "/etc/config/kucat" ] &&kucat='kucat'
+local kucat='kucat'
 [ -s "/etc/config/advancedplus" ] &&kucat='advancedplus'
-background="$(uci -q get $kucat.@basic[0].background || echo '0')"
-KUCATTMP="/var/kucat_date_${background}.tmp"
-BGURL="/www/luci-static/kucat/img/down${background}.jpg"
-REBGURL="/luci-static/kucat/img/down${background}.jpg"
-DFBGURL="/luci-static/kucat/img/bg1.jpg"
-LOCK="/var/lock/kucat_lock_${background}.lock"
+local background="$(uci -q get $kucat.@basic[0].background || echo '0')"
+local KUCATTMP="/var/kucat_date_${background}.tmp"
+local BGURL="/www/luci-static/kucat/img/down${background}.jpg"
+local REBGURL="/luci-static/kucat/img/down${background}.jpg"
+local DFBGURL="/luci-static/kucat/img/bg1.jpg"
+local LOCK="/var/lock/kucat_lock_${background}.lock"
+test_url() {
+	local url=$1
+	local status=$(/usr/bin/curl -I -o /dev/null -skL --connect-timeout 1 --retry 1 -w %{http_code} "$url")
+	case "$status" in
+		204|\
+		200)
+			echo '1'
+		;;
+	esac
+}
 
 curl_bgurl() {
 	case "$background" in
@@ -19,20 +38,16 @@ curl_bgurl() {
 		local ppath="$(curl -s "https://source.unsplash.com/1920x1080/daily?wallpapers" 2>&1 |grep -Eo "photo-\w+-\w+" | head -n1)"
 		[ -n "${ppath}" ] && echo "https://images.unsplash.com/${ppath}?fm=jpg&fit=crop&w=1920&h=1080"
 		;;
-
 	3)
 		local ppath=`curl -s  "https://www.bing.com/HPImageArchive.aspx?format=js&n=1" |jsonfilter -qe '@.images[0].url'`
 		[ -n "${ppath}" ] && echo "https://www.bing.com${ppath}"
 		;;
-
 	4)
 		local i=`awk 'BEGIN{srand();print int(rand()*8)}'`
 		local j=`awk 'BEGIN{srand();print int(rand()*200)}'`
-		ppath=`curl -s "http://wp.birdpaper.com.cn/intf/search?content=4k&pageno=$j&count=9" | awk -F '\"count\":9' '{print $2}' | awk -F ',\"processTime\"' '{print $1}' | sed 's#,#{#' |  jsonfilter -e "@.list[$i].url"`
-
+		local ppath=`curl -s "http://wp.birdpaper.com.cn/intf/search?content=4k&pageno=$j&count=9" | awk -F '\"count\":9' '{print $2}' | awk -F ',\"processTime\"' '{print $1}' | sed 's#,#{#' |  jsonfilter -e "@.list[$i].url"`
 		[ -n "${ppath}" ] && echo "$ppath"
 		;;
-
 	esac
 }
 
@@ -47,8 +62,6 @@ bgurl_down() {
 }
 
 check_url() {
-checknet=`/usr/bin/wget --spider -qT3 https://www.taobao.com  2>"/dev/null" && echo -ne 1 || echo -ne 0 `
-if [ $checknet == 1 ]; then
 	if [ -s $KUCATTMP ]; then
 		localtime=`cat $KUCATTMP | grep $(date +%Y%m%d) `
 		if [ $localtime ]; then
@@ -58,7 +71,11 @@ if [ $checknet == 1 ]; then
 		   fi
 		fi
 	fi
+local checknet=$(test_url "https://www.baidu.com")
+if [ "x$checknet" == "x1" ]; then 
 	bgurl_down
+else
+	[ -s "$DFBGURL" ] && echo -ne $DFBGURL
 fi
 }
 check_url
