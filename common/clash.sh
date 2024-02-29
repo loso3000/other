@@ -1,7 +1,7 @@
 
 #!/bin/bash
 OP=$1
-
+if [ $OP == amd64 ] ;then
 BASE_FILES=${GITHUB_WORKSPACE}/openwrt/package/base-files/files
 			singbox_version="1.8.5"
 			hysteria_version="2.2.4"
@@ -15,6 +15,7 @@ BASE_FILES=${GITHUB_WORKSPACE}/openwrt/package/base-files/files
 			Copy /tmp/hysteria-linux-amd64 ${BASE_FILES}/usr/bin hysteria
 
 			chmod 777 ${BASE_FILES}/usr/bin/sing-box ${BASE_FILES}/usr/bin/hysteria
+fi
 #删除冲突插件
 # rm -rf $(find ./feeds/luci/ -type d -regex ".*\(argon\|design\|openclash\).*")
 #修改默认主题
