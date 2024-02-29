@@ -442,7 +442,7 @@ local function processData(szType, content)
 		else
 			result.insecure = insecure and "1" or "0"
 		end
-		# result.tls_alpn = params.alpn
+		-- result.tls_alpn = params.alpn
 		result.uplink_capacity = params.upmbps
 		result.downlink_capacity = params.downmbps
 		result.type = 'hysteria'
