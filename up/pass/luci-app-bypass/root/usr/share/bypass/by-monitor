@@ -77,7 +77,7 @@ while :;do
 			log "SmartDNS :$dns Error. Restart!"
 			kill -9 $(busybox ps -w | grep smartdns | grep -v grep | awk '{print$1}') 2>/dev/null
 			service_start $(which smartdns) -c $DNS_T 2>/dev/null
-	elif [ "$dns" -eq 2 ]; then
+	elif [ "$dns" -eq 2 ]&& [ $(busybox ps -w | grep mosdns | grep -v grep | wc -l) = 0 ];then
 			log "MosDNS :$dns Error. Restart!"
 			kill -9 $(busybox ps -w | grep mosdns | grep -v grep | grep $MDNS_T | awk '{print $1}') >/dev/null 2>&1
 			service_start $(which mosdns) start -c $MDNS_T 2>/dev/null

@@ -1,6 +1,8 @@
 module("luci.controller.bypass",package.seeall)
 local fs=require"nixio.fs"
 local http=require"luci.http"
+CALL=luci.sys.call
+EXEC=luci.sys.exec
 require"luci.sys"
 
 function index()
@@ -54,23 +56,20 @@ function check_net()
 	local u=http.formvalue("url")
 	local p
 
-	if luci.sys.call("nslookup www."..u..".com >/dev/null 2>&1")==0 then
-	        if u=="google" then p="/generate_204" else p="" end
+	if luci.sys.call("nslookup www."..u..".com >/dev/null 2>&1") == 0 then
+	        if u == "google" then p = "/generate_204" else p = "" end
 		local use_time = luci.sys.exec("curl --connect-timeout 3 -silent -o /dev/null -I -skL -w %{time_starttransfer}  https://www."..u..".com"..p)
-		if use_time~="0" then
+		if use_time ~= "0" then
      		 	r=string.format("%.1f", use_time * 1000/2)
 			if r=="0" then r="0.1" end
 		end
 	end
-
 	http.prepare_content("application/json")
 	http.write_json({ret=r})
 end
 
-
-
 function act_ping()
-	local e={}
+	local e = {}
 	local domain=http.formvalue("domain")
 	local port=http.formvalue("port")
 	local dp=luci.sys.exec("netstat -unl | grep 5336 >/dev/null && echo -n 5336 || echo -n 53")
