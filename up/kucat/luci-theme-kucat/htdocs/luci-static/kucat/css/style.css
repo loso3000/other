@@ -1,4 +1,4 @@
-﻿/*
+/*
  *  luci-theme-kucat
  *  Copyright (C) 2019-2024 The Sirpdboy Team <herboy2008@gmail.com> 
  *
@@ -22,9 +22,9 @@
 
 @import url("fonts.css?v=3");
  :root {
-    --Radius0: 8px;
-    --Radius1: 0.375rem;
-    --Radius2: 0.25rem;
+    --radius0: 8px;
+    --radius1: 0.375rem;
+    --radius2: 0.25rem;
  }
 [data-theme='light'] {
     --primary-solid: #fd8c73;
@@ -120,9 +120,9 @@ body div {
 
 ::-webkit-scrollbar-thumb {
     height: 16px;
-    -webkit-border-radius: var(--Radius0);
-    -moz-border-radius: var(--Radius0);
-    border-radius: var(--Radius0);
+    -webkit-border-radius: var(--radius0);
+    -moz-border-radius: var(--radius0);
+    border-radius: var(--radius0);
     border: 4px solid transparent;
     background-clip: content-box;
     background: #ccc
@@ -173,7 +173,7 @@ header.bar-primary .container-bar-right,header.bar-primary .container-bar-left {
     right: 0;
     margin: 0;
     padding: 0;
-    border-radius: var(--Radius2);
+    border-radius: var(--radius2);
     background-color: #51c291;
     background-color: rgba(var(--primary-rgbm),0.9);
     box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
@@ -198,7 +198,7 @@ header.bar-primary .container-bar-right a {
 
 header.bar-primary .container-bar-left .labelbar:hover,header.bar-primary .container-bar-right .labelbar:hover {
     background-color: rgba(255,255,255,0.3);
-    border-radius: var(--Radius2);
+    border-radius: var(--radius2);
     text-decoration:none
 }
 
@@ -334,7 +334,7 @@ header.pd-primary {
 
     white-space: nowrap;
     font-size: 0.875rem;
-    border-radius: var(--Radius2);
+    border-radius: var(--radius2);
     text-decoration: none;
     color: rgba(var(--primary-rgbm),1);
 }
@@ -370,7 +370,7 @@ header.pd-primary {
 .pdboy-qlogout:hover,
 .showSide:hover {
 	background-color: var(--menu-item-hover-bgcolor);
-	border-radius: var(--Radius2);
+	border-radius: var(--radius2);
 	text-decoration: none
 }
 
@@ -487,9 +487,9 @@ background-color:  rgba(var(--primary-rgbm),var(--primary-rgbm-ts));
 
 .main .main-left::-webkit-scrollbar-thumb {
     height: 16px;
-    -webkit-border-radius: var(--Radius0);
-    -moz-border-radius: var(--Radius0);
-    border-radius: var(--Radius0);
+    -webkit-border-radius: var(--radius0);
+    -moz-border-radius: var(--radius0);
+    border-radius: var(--radius0);
     border: 4px solid transparent;
     background-clip: content-box;
     background: #bbb
@@ -827,7 +827,7 @@ input[type="checkbox"] {
     padding: 5px!important;
     -webkit-appearance: none;
     outline: none;
-    border-radius: var(--Radius2);
+    border-radius: var(--radius2);
     transition: 0.1s
 }
 
@@ -893,7 +893,7 @@ select:not([multiple="multiple"]):focus, input:not(.cbi-button):focus {
 	cursor: pointer;
 	height: 2.4rem;
 	color: var(--inputtext-color);
-	border-radius: var(--Radius2);
+	border-radius: var(--radius2);
         border: 1px solid var(--inputborder-color);
 	background-color: var(--inputbg-color);
 	transition: box-shadow .25s ease;
@@ -933,7 +933,7 @@ select,input {
 box-shadow: 0 0.3rem 0.8rem var(--input-boxhovercolor);
     transform: translate(1) translate(0,0);
     transition: transform 225ms,box-shadow 225ms;
-    border-radius: var(--Radius2);
+    border-radius: var(--radius2);
     line-height: 1;
 }
 
@@ -1003,7 +1003,7 @@ box-shadow: 0 0.3rem 0.8rem var(--input-boxhovercolor);
     vertical-align: baseline;
     border: none;
     outline: none;
-    border-radius: var(--Radius2);
+    border-radius: var(--radius2);
     color: var(--body-text-color);
     background-color: rgba(255,255,255,0.2);
     border: 1px solid var(--inputborder-color);
@@ -1250,7 +1250,7 @@ fieldset>fieldset {
     width: 100% !important;
     height: 1.5rem !important;
     line-height: 1.5rem !important;
-    border-radius:  var(--Radius2) !important;
+    border-radius:  var(--radius2) !important;
     border-color: rgba(0,0,0,0.22) !important;
     background-color: rgba(0,0,0,0.18) !important
 }
@@ -1265,7 +1265,7 @@ fieldset>fieldset {
     line-height: 1.5rem !important;
     background-color: rgba(var(--primary-rgbm),0.8)!important;
     background-image: var(--bgqs-image);
-    border-radius: var(--Radius2);
+    border-radius: var(--radius2);
 }
 #swaptotal>div>div>div,#swapfree>div>div>div,#memfree>div>div>div,#membuff>div>div>div,#conns>div>div>div,#memtotal>div>div>div {
     text-shadow: 0 0 4px #222;
@@ -1521,7 +1521,7 @@ body.lang_pl.node-main-login .cbi-value-title {
     position: relative;
     text-align: center;
     margin: 0;
-    border-radius: var(--Radius0);
+    border-radius: var(--radius0);
     -webkit-backdrop-filter: blur(6px)!important;
     backdrop-filter: blur(6px)!important;
     background-color: rgba(var(--primary-rgbbody),0.5)!important;
@@ -1582,7 +1582,7 @@ body.lang_pl.node-main-login .cbi-value-title {
     letter-spacing: .2em;
     text-transform: none;
     will-change: transform;
-    border-radius: var(--Radius2);
+    border-radius: var(--radius2);
     min-width: 14rem
 }
 
@@ -1617,7 +1617,7 @@ body.lang_pl.node-main-login .cbi-value-title {
 .node-main-login>.main .cbi-value.cbi-value .cbi-value-field .cbi-input-text, .node-main-login>.main .cbi-value.cbi-value .cbi-input-user, .node-main-login>.main .cbi-value.cbi-value-last .cbi-input-password, .node-main-login>.main .cbi-value.cbi-value-last .cbi-input-text[type="password"] {
 
 	box-shadow: none;
-	border-radius: var(--Radius1);
+	border-radius: var(--radius1);
 	padding: 0;
 	color: #fff;
 	text-shadow: 0px 2px 4px #222;
@@ -1713,7 +1713,7 @@ body.lang_pl.node-main-login .cbi-value-title {
     position: absolute;
     color: #fff !important;
     margin-top: 6rem;
-    border-radius: var(--Radius2);
+    border-radius: var(--radius2);
     text-align: center;
     background-color: #e39f4d !important
 }
@@ -1938,7 +1938,7 @@ fieldset[id^="cbi-apply-"] {
     padding: 1rem;
     font-size: var(--font-z);
     text-align: center;
-    border-radius: var(--Radius2);
+    border-radius: var(--radius2);
     background-color: rgba(var(--primary-rgbbody),1);
     box-sizing: border-box;
     -moz-box-sizing: border-box;
@@ -2113,7 +2113,7 @@ table>tbody>tr,div>.table>.tr,.cbi-map>.cbi-section .cbi-value {
     font-family: inherit;
     min-width: inherit;
     overflow: unset;
-    border-radius: var(--Radius2);
+    border-radius: var(--radius2);
     box-shadow: 0 2px 2px 0 rgba(0,0,0,0.16),0 0 2px 0 rgba(0,0,0,0.12)
 }
 .alert-message > * {
@@ -2302,10 +2302,11 @@ td>table>tbody>tr>td {
 }
 .tabs, .cbi-tabmenu {
 	border: none;
-	color: var(--primarytextcolor);
-	border-right: 0.18751rem solid rgba(255, 255, 255, 0);
+	color: var(--menu-hover-color);
+	border-right: 0.18751rem solid rgba(255, 255, 255, 0)!important;
 	letter-spacing: 1px;
 	padding: 0.3rem 1rem;
+    overflow-y: hidden;
 	margin-bottom: 0.5rem;
 	overflow-x: auto;
 }
@@ -2314,7 +2315,7 @@ td>table>tbody>tr>td {
 	font-size: var(--font-z);
 	border-left: 0.18751rem solid var(--menu-item-titlebg-color)!important;
 	border-right: 0.18751rem solid var(--menu-item-titlebg-color)!important;
-	border-radius:  var(--Radius2);
+	border-radius:  var(--radius2);
 	padding: 0.5rem 0rem;
 	transform: scale(1) translate(0, 0);
 	box-shadow: 0 0.5rem 1rem  var(--input-boxcolor);
@@ -2328,7 +2329,7 @@ td>table>tbody>tr>td {
 	padding: 0.7rem 1rem;
 	color: var(--primarytextcolor);
 }
-.cbi-tabmenu > li:hover {
+.cbi-tabmenu li:hover {
 	color: var(--menu-hover-color);
 	background: rgba(var(--primary-rgbm), 0.7);
 	transform: scale(1.05) translate(0, -0.15rem);
@@ -2339,7 +2340,7 @@ td>table>tbody>tr>td {
 	color: var(--menu-hover-color)
 }
 
-.cbi-tabmenu > li[class~="cbi-tab"] {
+.cbi-tabmenu li[class~="cbi-tab"] {
 	border-right: 0.18751rem solid var(--primary-solid) !important;
 	border-left: 0.18751rem solid var(--primary-solid) !important;
 	transform: scale(1.05) translate(0, -0.1rem);
@@ -2532,7 +2533,7 @@ td>table>tbody>tr>td {
     padding: 0m;
     color: var(--primarytextcolor);
     border: 1px solid #dee2e6;
-    border-radius: var(--Radius2);
+    border-radius: var(--radius2);
     background-color: #eee;
     background-clip: padding-box;
     box-shadow: 0 3px 2px rgba(233,236,239,0.05);
@@ -2699,7 +2700,7 @@ td>.ifacebadge {
 td>.ifacebadge,.td>.ifacebadge {
     background-color: #e9ecef;
     font-size: var(--font-x);
-    border-radius: var(--Radius2)
+    border-radius: var(--radius2)
 }
 
 .ifacebadge>em,.ifacebadge>img {
@@ -2753,7 +2754,7 @@ td>.ifacebadge,.td>.ifacebadge {
 
 .ifacebox {
     border: 1px solid #ccc;
-    border-radius: var(--Radius1);
+    border-radius: var(--radius1);
     background-color: #f9f9f9;
     
         border: 1px solid var(--inputborder-color);
@@ -2772,7 +2773,7 @@ td>.ifacebadge,.td>.ifacebadge {
     min-width: 7rem;
     background-color: rgba(var(--primary-rgbm), 0.2);
     transform: translate(-50, -50%);
-    color: var(--body-color)
+    color: var(--body-color);
     text-align: center!important;
 }
 .ifacebox-head.active {
@@ -2790,7 +2791,7 @@ img.cbi-image-button {
 
 #iwsvg,#iwsvg2,#bwsvg {
     border: none !important;
-    border-radius: var(--Radius2);
+    border-radius: var(--radius2);
     background-color: rgba(255,255,255,0.1)!important;
     box-shadow: 0 0 2rem 0 rgba(136,152,170,0.15);
     overflow: hidden
@@ -2839,7 +2840,7 @@ img.cbi-image-button {
 .cbi-value-field>ul>li .ifacebadge {
     font-size: var(--font-x);
 
-    color: var(--body-color)
+    color: var(--body-color);
     background-color: rgba(255,255,255,0.3);
     display: flex;
     align-items: center;
@@ -3038,7 +3039,7 @@ div.commandbox {
 }
 /* luci-app-ttyd */
 .node-system-terminal iframe {
-	border-radius:  var(--Radius2)!important;
+	border-radius:  var(--radius2)!important;
 	min-height:600px!important;
 }
 
@@ -3093,14 +3094,14 @@ div.commandbox {
     border-color: rgba(0,0,0,0.3) !important;
     background-color: rgba(0,0,0,0.22) !important;
     height: 1.4rem !important;
-    border-radius: var(--Radius2) !important;
+    border-radius: var(--radius2) !important;
     margin: 0.5rem 0 !important;
     overflow: hidden
 }
 
 .Software >.main .cbi-section-node:first-child .cbi-value-last>div>div,.node-system-packages>.main .cbi-section-node:first-child .cbi-value-last>div>div {
     border-right: 0 !important;
-    border-radius: var(--Radius2)!important;
+    border-radius: var(--radius2)!important;
     background-color: rgba(var(--primary-rgbm),0.9)!important;
     background-image: var(--bgqs-image);
 }
@@ -3146,7 +3147,7 @@ div.commandbox {
     background-color: var(--inputbg-color);
     font-size: small;
     outline: none;
-    border-radius: var(--Radius2);
+    border-radius: var(--radius2);
     overflow-x: hidden;
 }
 
@@ -3211,7 +3212,7 @@ background-color: rgba(255,255,255,0.12)!important;
 .node-system-flashops .cbi-section-descr {
     padding: 12px;
     line-height: 1.5;
-    border-radius: var(--Radius0)
+    border-radius: var(--radius0)
 }
 
 .Changes .cbi-section {
@@ -3500,7 +3501,7 @@ img[src*="/luci-static/resources/cbi/reload.gif"] {
 
     .showSide:hover {
         background-color: var(--menu-item-hover-bgcolor);
-	border-radius: var(--Radius2);
+	border-radius: var(--radius2);
         text-decoration: none
     }
 
