@@ -1,0 +1,82 @@
+<%#
+ Copyright 2020-2022 sirpdboy Wich <sirpdboy@qq.com>
+ https://github.com/sirpdboy/netspeedtest
+ Licensed to the public under the Apache License 2.0.
+-%>
+<script src="/luci-static/netspeedtest/jquery.min.js"></script>
+<%+cbi/valueheader%>
+	   <div class="cbi-value" ><label class="cbi-value-title" ><%:Test server address%></label>
+		    <div class="cbi-value-field">
+			      <input type="text" class="cbi-input-text" name="cbi.netspeedtest.speedtestport.domain" id="cbi.netspeedtest.speedtestport.domain" value="" />
+			</div>
+	   </div>
+	   <div class="cbi-value" ><label class="cbi-value-title" ><%:Test server port%></label>
+			<div class="cbi-value-field">
+			      <input type="text" class="cbi-input-text" name="cbi.netspeedtest.speedtestport.port" id="cbi.netspeedtest.speedtestport.port" value="" />
+			</div>
+	   </div>
+	   <div class="cbi-value" ><label class="cbi-value-title"><%= translate("Test server port delay") %></label>
+  	       <div class="cbi-value-field">
+
+               <input class="cbi-button cbi-button-reload" id="speedtest_port" type="button"  onclick="run()" size="0" value="<%= translate("Perform port test") %>">
+ 	        </div>
+	   </div>
+
+  <fieldset class="cbi-section" style="display:none">
+    <legend id="speedtestport-legend">
+    <%:Collecting data...%>
+    </legend>
+    <span id="speedtestport-output"></span>
+  </fieldset>
+
+<script type="text/javascript">//<![CDATA[
+
+
+    function run() {
+const RUN_URL = '<%=luci.dispatcher.build_url("admin", "network", "netspeedtest","test_port")%>';
+const S_URL = '<%=luci.dispatcher.build_url("admin", "network", "netspeedtest","speedtestport")%>';
+        var legend = document.getElementById('speedtestport-legend');
+        var output = document.getElementById('speedtestport-output');
+		
+        legend.parentNode.style.display = 'block';
+        legend.style.display = 'inline';
+        prefix_array = $("#cbi-netspeedtest-speedtestport .cbi-section-node").attr("id").split("-");
+        prefix_array[0] = "cbid";
+        prefix = prefix_array.join(".");
+	    var domain = $("[name='" + prefix + ".domain']").val();
+        var port = $("[name='" + prefix + ".port']").val();
+	    var domain = $("[name='cbi.netspeedtest.speedtestport.domain']").val();
+        var port = $("[name='cbi.netspeedtest.speedtestport.port']").val();
+		XHR.get(RUN_URL, {
+            domain: domain,
+            port: port
+				},
+				function(x,rv) {
+				
+					if(x && x.status == 200) {
+						  if (rv.ping == null || rv.ping.trim() == "") {
+							       output.outerHTML = "<font style='color:red'><%:Test server address%> :" + domain + "<%:Test failed%></font>";
+					  	   } 
+						   else {
+							var ping = parseInt(rv.ping);
+							if (ping < 100)
+								output.outerHTML = "<font style='color:green'><%:Test server address%> :" + domain + " -- <%:Test server port%> :" + port + " -- <%:Test server port delay%> :" + ping + " ms" + "</font>";
+							else if (ping < 200)
+								output.outerHTML = "<font style='color:#fb9a05'><%:Test server address%> :" + domain + " -- <%:Test server port%> :" + port + " -- <%:Test server port delay%> :" + ping + " ms" + "</font>";
+							else if (ping >= 200)
+								output.outerHTML = "<font style='color:red'><%:Test server address%> :" + domain + " -- <%:Test server port%> :" + port + " -- <%:Test server port delay%> :" + ping + " ms" + "</font>";
+						  }
+						  setTimeout(function(){
+				window.location = S_URL
+			             },300);
+					}
+				}
+		);
+        return false;
+    }
+		
+		
+
+//]]></script>
+
+<%+cbi/valuefooter%>
