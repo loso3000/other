@@ -2,7 +2,8 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=homebox
 PKG_VERSION:=0.0.0-dev.2023102203
-PKG_RELEASE:=14
+PKG_RELEASE:=1
+PKGARCH:=all 
 
 ifeq ($(ARCH),mipsel)
 	H_ARCH:=mips
@@ -43,11 +44,9 @@ include $(INCLUDE_DIR)/package.mk
 define Package/$(PKG_NAME)
   SECTION:=net
   CATEGORY:=Network
-  SUBMENU:=Web Servers/Proxies
   TITLE:=A Toolbox for Home Local Networks
   URL:=https://github.com/XGHeaven/homebox
   DEPENDS:=@(i386||x86_64||arm||aarch64||mipsel||mips)
-  MENU:=1
 endef
 
 define Package/$(PKG_NAME)/description
@@ -55,7 +54,7 @@ define Package/$(PKG_NAME)/description
 endef
 
 define Build/Prepare
-	[ ! -f $(PKG_BUILD_DIR)/$(PKG_NAME)_$(PKG_VERSION)_Linux_$(H_ARCH).tar.gz ] && wget https://github.com/XGHeaven/homebox/releases/download/v$(PKG_VERSION)/server_Linux_$(H_ARCH).tar.gz -O $(PKG_BUILD_DIR)/server_Linux_$(H_ARCH).tar.gz
+	[ ! -f $(PKG_BUILD_DIR)/server_Linux_$(H_ARCH).tar.gz ] && wget https://github.com/XGHeaven/homebox/releases/download/v$(PKG_VERSION)/server_Linux_$(H_ARCH).tar.gz -O $(PKG_BUILD_DIR)/server_Linux_$(H_ARCH).tar.gz
 	tar -xzvf $(PKG_BUILD_DIR)/server_Linux_$(H_ARCH).tar.gz -C $(PKG_BUILD_DIR)
 endef
 
