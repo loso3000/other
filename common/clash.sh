@@ -3,14 +3,14 @@
 OP=$1
 if [ $OP == amd64 ] ;then
 BASE_FILES=${GITHUB_WORKSPACE}/openwrt/package/base-files/files
-			#singbox_version="1.8.5"
+			singbox_version="1.8.7"
 			hysteria_version="2.2.4"
-			#wget --quiet --no-check-certificate -P /tmp https://github.com/SagerNet/sing-box/releases/download/v${singbox_version}/sing-box-${singbox_version}-linux-amd64.tar.gz
+			wget --quiet --no-check-certificate -P /tmp https://github.com/SagerNet/sing-box/releases/download/v${singbox_version}/sing-box-${singbox_version}-linux-amd64.tar.gz
 			wget --quiet --no-check-certificate -P /tmp \
 				https://github.com/apernet/hysteria/releases/download/app%2Fv${hysteria_version}/hysteria-linux-amd64
 			
-			#tar -xvzf /tmp/sing-box-${singbox_version}-linux-amd64.tar.gz -C /tmp
-			#Copy /tmp/sing-box-${singbox_version}-linux-amd64/sing-box ${BASE_FILES}/usr/bin
+			tar -xvzf /tmp/sing-box-${singbox_version}-linux-amd64.tar.gz -C /tmp
+			Copy /tmp/sing-box-${singbox_version}-linux-amd64/sing-box ${BASE_FILES}/usr/bin
 			Copy /tmp/hysteria-linux-amd64 ${BASE_FILES}/usr/bin hysteria
 
 			chmod 777 ${BASE_FILES}/usr/bin/sing-box ${BASE_FILES}/usr/bin/hysteria
