@@ -8,13 +8,24 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-netspeedtest
 
+PKG_VERSION:=2.2.0
+PKG_RELEASE:=20240305
+
 LUCI_TITLE:=LuCI Support for netspeedtest
-LUCI_DEPENDS:=+python3 +iperf3-ssl +homebox
+LUCI_DEPENDS:=+iperf3-ssl +librespeed-go +python3-speedtest-cli +ca-certificates
 LUCI_PKGARCH:=all
-PKG_VERSION:=2.1.6
-PKG_RELEASE:=20240301
 PKG_MAINTAINER:=<https://github.com/sirpdboy/netspeedtest>
 
+
+define Package/$(PKG_NAME)/conffiles
+/etc/config/netspeedtest
+endef
+
+define Package/$(PKG_NAME)/postinst
+endef
+
+define Package/$(PKG_NAME)/prerm
+endef
 include $(TOPDIR)/feeds/luci/luci.mk
 
 

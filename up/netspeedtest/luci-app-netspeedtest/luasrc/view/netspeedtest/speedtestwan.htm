@@ -8,7 +8,6 @@
 <div class="cbi-value-field">
     <input class="cbi-button cbi-button-apply" id="update_service" type="button"  onclick="run()" value="<%= translate('Perform Wan Speedtest') %>" />
 </div>
-
   <fieldset class="cbi-section" style="display:none">
     <legend id="wanspeedtest-legend">
     <%:Collecting data...%>
@@ -17,20 +16,20 @@
   </fieldset>
 
 <script type="text/javascript">
-    const RUN_URL = '<%=luci.dispatcher.build_url("admin", "network", "netspeedtest","speedtestrun")%>';
-    function run(s) {
-	var legend = document.getElementById('wanspeedtest-legend');
-	var output = document.getElementById('wanspeedtest-output');
-			output.innerHTML =
+    const RUN_URL = '<%=luci.dispatcher.build_url("admin", "network", "netspeedtest","speedtestwanrun")%>';
+    function run(btn) {
+	var legend=document.getElementById('wanspeedtest-legend');
+	var output=document.getElementById('wanspeedtest-output');
+	output.innerHTML =
 				'<img src="<%=resource%>/icons/loading.gif" alt="<%:Loading%>" style="vertical-align:middle" /> ' +
 				'<%:Network speed test, please wait...%>'
 			;
-			legend.parentNode.style.display = 'block';
-			legend.style.display = 'inline';
+    <%=luci.sys.exec("/etc/init.d/netspeedtest nstest")%>
+	legend.parentNode.style.display = 'block';
+	legend.style.display = 'inline';
         XHR.get(RUN_URL, null, 
 		
-				function(x)
-				{
+		(x) =>{
 					if (x.responseText)
 					{
 						legend.style.display = 'none';
@@ -45,9 +44,9 @@
 					}
 
 				}
-		);
-        return false;
-    }
+	);
+    return false;
+}
 
 </script>
 <%+cbi/valuefooter%>
