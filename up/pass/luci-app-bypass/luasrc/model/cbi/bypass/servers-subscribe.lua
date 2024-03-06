@@ -52,13 +52,13 @@ o.write=function()
 	luci.http.redirect(luci.dispatcher.build_url("admin","services",bypass,"servers-subscribe"))
 end
 
+o=s:option(ListValue,"filter_mode",translate("Filter Words Mode"))
+o:value("",translate("Discard Mode"))
+o:value(1,translate("Keep Mode"))
 o = s:option(Value, "filter_words", translate("Subscribe Filter Words"))
 o.rmempty = true
 o.description = translate("Filter Words splited by /")
 
-o = s:option(Value, "save_words", translate("Subscribe Save Words"))
-o.rmempty = true
-o.description = translate("Save Words splited by /")
 
 o=s:option(Flag,"switch",translate("Subscribe Default Auto-Switch"))
 o.rmempty=false
@@ -76,6 +76,8 @@ o.description=translate("Through proxy update list,Not Recommended")
 
 
 o = s:option(Value, "user_agent", translate("User-Agent"))
-o.default = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36"
+o:value("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36", translate("Win64"))
+o:value("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",translate("Linux"))
+o.default = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
 
 return m

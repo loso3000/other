@@ -9,6 +9,7 @@ require "nixio"
 require "luci.util"
 SYS=require "luci.sys"
 require "luci.jsonc"
+local datatypes = require "luci.cbi.datatypes"
 require "luci.model.ipkg"
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -25,8 +26,8 @@ local ucic = luci.model.uci.cursor()
 local proxy = ucic:get_first(name, 'server_subscribe', 'proxy', '0')
 local switch = ucic:get_first(name, 'server_subscribe', 'switch', '0')
 local subscribe_url = ucic:get_first(name, 'server_subscribe', 'subscribe_url', {})
-local filter_words = ucic:get_first(name, 'server_subscribe', 'filter_words', '时间/剩余')
-local save_words = ucic:get_first(name, 'server_subscribe', 'save_words', '')
+local filter_words = ucic:get_first(name, 'server_subscribe', 'filter_words', '过期/时间/剩余/流量')
+local filter_mode=ucic:get_first(name,'server_subscribe','filter_mode','0')
 local insecure = ucic:get_first(name, 'server_subscribe', 'insecure', 1)
 local v2_ss = SYS.exec('type -t -p ss-redir sslocal') ~= "" and "ss" or "v2ray"
 
@@ -38,38 +39,7 @@ local log = function(...)
 	io.write(os.date("%Y-%m-%d %H:%M:%S ").."Subscribe : "..table.concat({...}," ").."\n")
 	io.close(file)
 end
-local encrypt_methods_ss = {
-	-- plain
-	"none",
-	"plain",
-	-- aead
-	"aes-128-gcm",
-	"aes-192-gcm",
-	"aes-256-gcm",
-	"chacha20-ietf-poly1305",
-	"xchacha20-ietf-poly1305",
-	-- aead 2022
-	"2022-blake3-aes-128-gcm",
-	"2022-blake3-aes-256-gcm",
-	"2022-blake3-chacha20-poly1305"
-	--[[ stream
-	"table",
-	"rc4",
-	"rc4-md5",
-	"aes-128-cfb",
-	"aes-192-cfb",
-	"aes-256-cfb",
-	"aes-128-ctr",
-	"aes-192-ctr",
-	"aes-256-ctr",
-	"bf-cfb",
-	"camellia-128-cfb",
-	"camellia-192-cfb",
-	"camellia-256-cfb",
-	"salsa20",
-	"chacha20",
-	"chacha20-ietf" ]]
-}
+
 -- 分割字符串
 local function split(full, sep)
 	if full then
@@ -154,15 +124,19 @@ end
 local function processData(szType, content)
 	local result = {type = szType, local_port = 1234, kcp_param = '--nocomp'}
 	if szType == 'ssr' then
+
+		result.type = 'ssr'
 		local dat = split(content, "/%?")
 		local hostInfo = split(dat[1], ':')
-		result.type = 'ssr'
-		result.server = hostInfo[1]
-		result.server_port = hostInfo[2]
-		result.protocol = hostInfo[3]
-		result.encrypt_method = hostInfo[4]
-		result.obfs = hostInfo[5]
-		result.password = base64Decode(hostInfo[6])
+		if dat[1]:match('%[(.*)%]') then
+			result.server = dat[1]:match('%[(.*)%]')
+		else
+			result.server = hostInfo[#hostInfo-5]
+		end		result.server_port = hostInfo[#hostInfo-4]
+		result.protocol = hostInfo[#hostInfo-3]
+		result.encrypt_method = hostInfo[#hostInfo-2]
+		result.obfs = hostInfo[#hostInfo-1]
+		result.password = base64Decode(hostInfo[#hostInfo])
 		local params = {}
 		for _, v in pairs(split(dat[2], '&')) do
 			local t = split(v, '=')
@@ -171,9 +145,8 @@ local function processData(szType, content)
 		result.obfs_param = base64Decode(params.obfsparam)
 		result.protocol_param = base64Decode(params.protoparam)
 		local group = base64Decode(params.group)
-		if group then
-			result.alias = "[" .. group .. "] "
-		end
+		result.alias=""
+		if group then result.alias="["..group.."] " end
 		result.alias = result.alias .. base64Decode(params.remarks)
 	elseif szType == 'vmess' then
 		local info = jsonParse(content)
@@ -187,6 +160,11 @@ local function processData(szType, content)
 		result.alias = info.ps
 		-- result.mux = 1
 		-- result.concurrency = 8
+		if not info.net then
+			info.net = "tcp"
+		end
+		info.net = string.lower(info.net)
+		result.transport = info.net
 		if info.net == 'ws' then
 			result.ws_host = info.host
 			result.ws_path = info.path
@@ -203,7 +181,8 @@ local function processData(szType, content)
 			result.http_host = info.host
 			result.http_path = info.path
 		end
-		if info.net == 'kcp' then
+		if info.net == 'kcp' or info.net == 'mkcp' then
+			info.net = "kcp"
 			result.kcp_guise = info.type
 			result.mtu = 1350
 			result.tti = 50
@@ -227,15 +206,13 @@ local function processData(szType, content)
 		end
 		if info.security then
 			result.security = info.security
+		else
+			result.security = "auto"
 		end
 		if info.tls == "tls" or info.tls == "1" then
 			result.tls = "1"
-			if info.sni and info.sni ~= "" then
-				result.tls_host = info.sni
-			elseif info.host then
-				result.tls_host = info.host
-			end
-			result.insecure = 1
+			result.tls_host = (info.sni and info.sni ~= "") and info.sni or info.host
+			result.insecure = insecure and "1" or "0"
 		else
 			result.tls = "0"
 		end
@@ -244,27 +221,25 @@ local function processData(szType, content)
 		-- 	result.server = nil
 		-- end
 	elseif szType == "ss" then
+
+		--SS-URI = "ss://" userinfo "@" hostname ":" port [ "/" ] [ "?" plugin ] [ "#" tag ]
+		--userinfo = websafe-base64-encode-utf8(method  ":" password)
+		--ss://YWVzLTEyOC1nY206dGVzdA@192.168.100.1:8888#Example1
+		--ss://cmM0LW1kNTpwYXNzd2Q@192.168.100.1:8888/?plugin=obfs-local%3Bobfs%3Dhttp#Example2
+		--ss://2022-blake3-aes-256-gcm:YctPZ6U7xPPcU%2Bgp3u%2B0tx%2FtRizJN9K8y%2BuKlW2qjlI%3D@192.168.100.1:8888#Example3
+		--ss://2022-blake3-aes-256-gcm:YctPZ6U7xPPcU%2Bgp3u%2B0tx%2FtRizJN9K8y%2BuKlW2qjlI%3D@192.168.100.1:8888/?plugin=v2ray-plugin%3Bserver#Example3
+
 		local idx_sp = 0
 		local alias = ""
 		if content:find("#") then
 			idx_sp = content:find("#")
 			alias = content:sub(idx_sp + 1, -1)
 		end
-		local info = content:sub(1, idx_sp - 1)
-		local hostInfo = split(base64Decode(info), "@")
-		local host = split(hostInfo[2], ":")
-		local userinfo = base64Decode(hostInfo[1])
-		local method = userinfo:sub(1, userinfo:find(":") - 1)
-		local password = userinfo:sub(userinfo:find(":") + 1, #userinfo)
 		result.alias = UrlDecode(alias)
-		result.type = v2_ss
-		result.v2ray_protocol = (v2_ss == "v2ray") and "shadowsocks" or nil
-		result.encrypt_method_ss = method
-		result.password = password
-		result.server = host[1]
-		if host[2]:find("/%?") then
-			local query = split(host[2], "/%?")
-			result.server_port = query[1]
+		local info = content:sub(1, idx_sp - 1)
+		if info:find("/%?") then
+			local find_index = info:find("/%?")
+			local query = split(info, "/%?")
 			local params = {}
 			for _, v in pairs(split(query[2], '&')) do
 				local t = split(v, '=')
@@ -279,17 +254,54 @@ local function processData(szType, content)
 				else
 					result.plugin = plugin_info
 				end
-				-- 部分机场下发的插件名为 simple-obfs，这里应该改为 obfs-local
-				if result.plugin == "simple-obfs" then
-					result.plugin = "obfs-local"
+			end
+			if result.plugin == "simple-obfs" then
+				result.plugin = "obfs-local"
+			end
+			info = info:sub(1, find_index - 1)
+		end
+
+		local hostInfo = split(base64Decode(info), "@")
+		if hostInfo and #hostInfo > 0 then
+			local host_port = hostInfo[#hostInfo]
+			-- [2001:4860:4860::8888]:443
+			-- 8.8.8.8:443
+			if host_port:find(":") then
+				local sp = split(host_port, ":")
+				result.server_port = sp[#sp]
+
+					result.server = sp[1]
+
+			else
+				result.server = host_port
+			end
+
+			local userinfo = nil
+			if #hostInfo > 2 then
+				userinfo = {}
+				for i = 1, #hostInfo - 1 do
+					tinsert(userinfo, hostInfo[i])
+				end
+				userinfo = table.concat(userinfo, '@')
+			else
+				userinfo = base64Decode(hostInfo[1])
+			end
+
+			local method = userinfo:sub(1, userinfo:find(":") - 1)
+			local password = userinfo:sub(userinfo:find(":") + 1, #userinfo)
+
+			result.alias = UrlDecode(alias)
+			result.type = v2_ss
+			result.v2ray_protocol = (v2_ss == "v2ray") and "shadowsocks" or nil
+			result.encrypt_method_ss = method
+			result.password = password
+
+			local aead = false
+			for k, v in ipairs({"aes-128-gcm", "aes-256-gcm", "chacha20-poly1305", "chacha20-ietf-poly1305"}) do
+				if method:lower() == v:lower() then
+					aead = true
 				end
 			end
-		else
-			result.server_port = host[2]:gsub("/","")
-		end
-		if not checkTabValue(encrypt_methods_ss)[method] then
-			-- 1202 年了还不支持 SS AEAD 的屑机场
-			result.server = nil
 		end
 	elseif szType == "sip008" then
 		result.type = v2_ss
@@ -301,9 +313,7 @@ local function processData(szType, content)
 		result.plugin = content.plugin
 		result.plugin_opts = content.plugin_opts
 		result.alias = content.remarks
-		if not checkTabValue(encrypt_methods_ss)[content.method] then
-			result.server = nil
-		end
+
 	elseif szType == "ssd" then
 		result.type = v2_ss
 		result.v2ray_protocol = (v2_ss == "v2ray") and "shadowsocks" or nil
@@ -311,6 +321,7 @@ local function processData(szType, content)
 		result.server_port = content.port
 		result.password = content.password
 		result.encrypt_method_ss = content.method
+		result.plugin = content.plugin
 		result.plugin_opts = content.plugin_options
 		result.alias = "[" .. content.airport .. "] " .. content.remarks
 		if content.plugin == "simple-obfs" then
@@ -318,9 +329,7 @@ local function processData(szType, content)
 		else
 			result.plugin = content.plugin
 		end
-		if not checkTabValue(encrypt_methods_ss)[content.encryption] then
-			result.server = nil
-		end
+
 	elseif szType == "trojan" then
 		local idx_sp = 0
 		local alias = ""
@@ -332,80 +341,126 @@ local function processData(szType, content)
 		local hostInfo = split(info, "@")
 		local host = split(hostInfo[2], ":")
 		local userinfo = hostInfo[1]
-		local password = userinfo
+		local password = UrlDecode(userinfo)
 		result.alias = UrlDecode(alias)
 		result.type = v2_tj
 		result.v2ray_protocol = "trojan"
 		result.server = host[1]
 		-- 按照官方的建议 默认验证ssl证书
-		result.insecure = insecure
+		result.insecure = insecure and "1" or "0"
 		result.tls = "1"
+		local port="443"
 		if host[2]:find("?") then
 			local query = split(host[2], "?")
 			result.server_port = query[1]
 			local params = {}
 			for _, v in pairs(split(query[2], '&')) do
 				local t = split(v, '=')
-				params[t[1]] = t[2]
+				params[string.lower(t[1])]=UrlDecode(t[2])
 			end
-			if params.sni then
+			if params.peer or params.sni then
 				-- 未指定peer（sni）默认使用remote addr
-				result.tls_host = params.sni
+				result.tls='1'
+				result.tls_host = params.peer or params.sni
 			end
 		else
-			result.server_port = host[2]
+			result.server_port = port
 		end
 		result.password = password
 	elseif szType == "vless" then
-		local url = URL.parse("http://" .. content)
-		local params = url.query
-
-		result.alias = url.fragment and UrlDecode(url.fragment) or nil
 		result.type = "v2ray"
 		result.v2ray_protocol = "vless"
-		result.server = url.host
-		result.server_port = url.port
-		result.vmess_id = url.user
-		result.vless_encryption = params.encryption or "none"
-		result.transport = params.type or "tcp"
-		result.tls = (params.security == "tls" or params.security == "xtls") and "1" or "0"
-		result.tls_host = params.sni
-		result.tls_flow = (params.security == "tls" or params.security == "reality") and params.flow or nil
-		result.fingerprint = params.fp
-		result.reality = (params.security == "reality") and "1" or "0"
-		result.reality_publickey = params.pbk and UrlDecode(params.pbk) or nil
-		result.reality_shortid = params.sid
-		result.reality_spiderx = params.spx and UrlDecode(params.spx) or nil
-		if result.transport == "ws" then
-			result.ws_host = (result.tls ~= "1") and (params.host and UrlDecode(params.host)) or nil
-			result.ws_path = params.path and UrlDecode(params.path) or "/"
-		-- make it compatible with bullshit, "h2" transport is non-existent at all
-		elseif result.transport == "http" or result.transport == "h2" then
-			result.transport = "h2"
-			result.h2_host = params.host and UrlDecode(params.host) or nil
-			result.h2_path = params.path and UrlDecode(params.path) or nil
-		elseif result.transport == "kcp" then
-			result.kcp_guise = params.headerType or "none"
-			result.seed = params.seed
-			result.mtu = 1350
-			result.tti = 50
-			result.uplink_capacity = 5
-			result.downlink_capacity = 20
-			result.read_buffer_size = 2
-			result.write_buffer_size = 2
-		elseif result.transport == "quic" then
-			result.quic_guise = params.headerType or "none"
-			result.quic_security = params.quicSecurity or "none"
-			result.quic_key = params.key
-		elseif result.transport == "grpc" then
-			result.serviceName = params.serviceName
-			result.grpc_mode = params.mode or "gun"
-		elseif result.transport == "tcp" then
-			result.tcp_guise = params.headerType or "none"
-			if result.tcp_guise == "http" then
-				result.tcp_host = params.host and UrlDecode(params.host) or nil
-				result.tcp_path = params.path and UrlDecode(params.path) or nil
+		local alias = ""
+		if content:find("#") then
+			local idx_sp = content:find("#")
+			alias = content:sub(idx_sp + 1, -1)
+			content = content:sub(0, idx_sp - 1)
+		end
+		result.alias = UrlDecode(alias)
+		if content:find("@") then
+			local Info = split(content, "@")
+			result.vmess_id = UrlDecode(Info[1])
+			local port = "443"
+			Info[2] = (Info[2] or ""):gsub("/%?", "?")
+			local query = split(Info[2], "?")
+			local host_port = query[1]
+			local params = {}
+			for _, v in pairs(split(query[2], '&')) do
+				local t = split(v, '=')
+				params[t[1]] = UrlDecode(t[2])
 			end
+			-- [2001:4860:4860::8888]:443
+			-- 8.8.8.8:443
+			if host_port:find(":") then
+				local sp = split(host_port, ":")
+				port = sp[#sp]
+				result.address = sp[1]
+			else
+				result.address = host_port
+			end
+
+			if not params.type then
+				params.type = "tcp"
+			end
+			params.type = string.lower(params.type)
+			result.transport = params.type or "tcp"
+			if params.type == 'ws' then
+				result.ws_host = params.host and UrlDecode(params.host) or nil
+				result.ws_path = params.path and UrlDecode(params.path) or "/"
+
+			end
+			if params.type == 'h2' or params.type == 'http' then
+				params.type = "h2"
+				result.transport = "h2"
+				result.h2_host = params.host and UrlDecode(params.host) or nil
+				result.h2_path = params.path and UrlDecode(params.path) or nil
+			end
+			if params.type == 'tcp' then
+				result.tcp_guise = params.headerType or "none"
+				result.tcp_host = params.host
+				result.tcp_path = params.path
+			end
+			if params.type == 'kcp' or params.type == 'mkcp' then
+				params.type = "kcp"
+				result.kcp_guise = params.headerType or "none"
+				result.seed = params.seed
+				result.mtu = 1350
+				result.tti = 50
+				result.uplink_capacity = 5
+				result.downlink_capacity = 20
+				result.read_buffer_size = 2
+				result.write_buffer_size = 2
+			end
+			if params.type == 'quic' then
+				result.quic_guise = params.headerType or "none"
+				result.quic_key = params.key
+				result.quic_security = params.quicSecurity or "none"
+			end
+			if params.type == 'grpc' then
+				if params.path then result.serviceName = params.path end
+				if params.serviceName then result.serviceName = params.serviceName end
+				result.grpc_mode = params.mode or "gun"
+			end
+			
+			result.vless_encryption = params.encryption or "none"
+
+			result.tls_flow = params.flow or nil
+
+			result.tls = "0"
+			if params.security == "tls" or params.security == "reality" then
+				result.tls = "1"
+				result.tls_host = (params.sni and params.sni ~= "") and params.sni or params.host
+				result.fingerprint = (params.fp and params.fp ~= "") and params.fp or "chrome"
+				if params.security == "reality" then
+					result.reality = "1"
+					result.reality_publickey = params.pbk and UrlDecode(params.pbk) or nil
+					result.reality_shortId = params.sid or nil
+					result.reality_spiderX = params.spx and UrlDecode(params.spx) or nil
+				end
+			end
+
+			result.port = port
+			result.insecure = insecure and "1" or "0"
 		end
 	elseif szType == 'hysteria' then
 		local alias = ""
@@ -442,7 +497,6 @@ local function processData(szType, content)
 		else
 			result.insecure = insecure and "1" or "0"
 		end
-		-- result.tls_alpn = params.alpn
 		result.uplink_capacity = params.upmbps
 		result.downlink_capacity = params.downmbps
 		result.type = 'hysteria'
@@ -518,45 +572,13 @@ local function curl(url)
 end
 
 local function check_filer(result)
-	do
-		-- 过滤的关键词列表
-		local filter_word = split(filter_words, "/")
-		-- 保留的关键词列表
-		local check_save = false
-		if save_words ~= nil and save_words ~= "" and save_words ~= "NULL" then
-			check_save = true
-		end
-		local save_word = split(save_words, "/")
-
-		-- 检查结果
-		local filter_result = false
-		local save_result = true
-
-		-- 检查是否存在过滤关键词
-		for i, v in pairs(filter_word) do
-			if tostring(result.alias):find(v, nil, true) then
-				filter_result = true
-			end
-		end
-
-		-- 检查是否打开了保留关键词检查，并且进行过滤
-		if check_save == true then
-			for i, v in pairs(save_word) do
-				if tostring(result.alias):find(v, nil, true) then
-					save_result = false
-				end
-			end
-		else
-			save_result = false
-		end
-
-		-- 不等时返回
-		if filter_result == true or save_result == true then
-			return true
-		else
-			return false
+	local filter_word=split(filter_words,"/")
+	for i,v in pairs(filter_word) do
+		if result.alias:find(v) then
+			return filter_mode=='0'
 		end
 	end
+	return filter_mode=='1'
 end
 
 local execute = function()
@@ -601,6 +623,7 @@ local execute = function()
 				end
 				for _, v in ipairs(nodes) do
 					if v then
+				       xpcall(function ()
 						local result
 						if szType=='ssd' then
 							result = processData(szType, v)
@@ -628,7 +651,7 @@ local execute = function()
 							 	log('丢弃节点:' .. result.alias .. ",找不到可使用二进制.")
 							elseif not result.server or not result.server_port or result.alias == "NULL" or check_filer(result) or result.server:match("[^0-9a-zA-Z%-%.%s]") or cache[groupHash][result.hashkey] then
 								num=num+1
-								log('丢弃过滤节点: ' .. result.type .. ' 节点: ' .. result.alias)
+								log('丢弃无效节点: ' .. result.type .. ' 节点: ' .. result.alias)
 							else
 								-- log('成功解析: ' .. result.type ..' 节点: ' .. result.alias)
 								result.grouphashkey = groupHash
@@ -638,7 +661,11 @@ local execute = function()
 						else
 							num=num+1
 						end
-					end
+				           end, function ()
+				           	log(v, "解析错误，跳过此节点。")
+				           end
+				       )
+				       end
 				end
 				log('第'..i..'个链接成功解析节点数量: '..#nodes-num)
 			else
@@ -700,9 +727,9 @@ local execute = function()
 			local firstServer = ucic:get_first(name, uciType)
 			if firstServer then
 				if not ucic:get(name, globalServer) then
-					-- SYS.call("touch /var/lock/bypass-uci.lock")
 					ucic:set(name, ucic:get_first(name, 'global'), 'global_server', ucic:get_first(name, uciType))
 					ucic:commit(name)
+					Z='1'
 					log('当前主服务器节点为空，自动启用到第一个节点。')
 				else
 					log('维持当前主服务器节点。')
@@ -716,8 +743,9 @@ local execute = function()
 				luci.sys.call("/etc/init.d/" .. name .. " stop > /dev/null 2>&1 &")
 			end
 		end
-		-- SYS.call("rm -rf /var/lock/bypass-uci.lock")
+	if proxy=='0' or Z=='1' then
 		SYS.call("/etc/init.d/bypass start > /dev/null 2>&1 &")
+	end
 	end
 end
 
@@ -732,11 +760,6 @@ if subscribe_url and #subscribe_url > 0 then
 		log(e)
 		log(debug.traceback())
 		log('发生错误, 正在恢复服务')
-		if ucic:get_first(name,uciType) then
-			SYS.call("/etc/init.d/bypass stop > /dev/null 2>&1 & ;/etc/init.d/bypass start > /dev/null 2>&1 &") -- 不加&的话日志会出现的更早
-		else
-			SYS.call("/etc/init.d/" .. name .. " stop > /dev/null 2>&1 &") -- 不加&的话日志会出现的更早
-		end
 	end)
 	log('--------------------订阅完毕---------------------')
 end

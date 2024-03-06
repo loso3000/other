@@ -463,7 +463,7 @@ start_retcp(){
 
 		$cmd -c $config_file >/dev/null 2>&1 &
 
-		log "Main Node: `$cmd version  | awk '{print "Hysteria2: " $2}' | head -9 | tail +9 ` $ttype Started!"
+		log "Main Node: `$cmd version  | grep Version | awk '{print "Hysteria2: " $2}' ` $ttype Started!"
 
 		;;
 	trojan)
@@ -535,7 +535,7 @@ start_reudp(){
 	
 		gen_config_file $UDP_RELAY_SERVER $rtype 0 $udp_server
 		$cmd -c $config_file  >/dev/null 2>&1 &
-		log "UDP Node: `$cmd version  | awk '{print "Hysteria2: " $2}' | head -9 | tail +9 `  $utype Started!"
+		log "UDP Node: `$cmd version | grep Version | awk '{print "Hysteria2: " $2}'  `  $utype Started!"
 		;;
 	socks5)
 		$BIN_DIR/genred2config $VAR/redsocks-by-reudp.json socks5 udp $udp_local_port $udp_server \
@@ -572,7 +572,7 @@ start_renf(){
 	hysteria2)
 		gen_config_file $NF_SERVER $rtype 0 $nf_ip
 		$cmd -c $config_file >/dev/null 2>&1 &
-		log "NF  Shunt : `$cmd version  | awk '{print "Hysteria2: " $2}' | head -9 | tail +9 `  $ntype Started!"
+		log "NF  Shunt : `$cmd version  | grep Version | awk '{print "Hysteria2: " $2}'  `  $ntype Started!"
 		;;
 	trojan)
 		gen_config_file $NF_SERVER $rtype "" $nf_ip
@@ -629,7 +629,7 @@ start_local(){
 	hysteria2)
 		gen_config_file $SO_SERVER $rtype $socks5_port $socks5_ip
 		$cmd -c $config_file >/dev/null 2>&1 &
-		log "Socks5 Node: `$cmd version  | awk '{print "Hysteria2: " $2}' | head -9 | tail +9 `  $type Started!"
+		log "Socks5 Node: `$cmd version  | grep Version | awk '{print "Hysteria2: " $2}' `  $type Started!"
 		
 		;;
 	trojan)
