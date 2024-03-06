@@ -52,9 +52,11 @@ function speedtestportrun(btn) {
         }
 	
 	console.log(data);
-	XHR.get('<%=dsp.build_url("admin/network/netspeedtest/test_port")%>',{
-				domain: dom.domain,
-				port: port.port
+	XHR.get('<%=luci.dispatcher.build_url("admin/network/netspeedtest/test_port")%>',{
+
+            domain: domain,
+            port: port
+
 			},
 				(x,rv) =>{
 				

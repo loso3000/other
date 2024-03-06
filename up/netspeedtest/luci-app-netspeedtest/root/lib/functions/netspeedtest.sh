@@ -73,6 +73,7 @@ speedtest_start_ookla(){
     CMD="$1"
     echone "\n  ookla-speedtest测速"
     info=`$CMD > $TMP_TEST ` >/dev/null 2>&1
+    echone "\n  info:$info ----------------- "
     echone   "\n  测服信息:`cat  $TMP_TEST | grep 'Server'| cut -c10- | awk -F: '{printf $2$3}'`  线路:`cat  $TMP_TEST | grep 'ISP' | awk -F: '{printf $2}' `  延时：`cat  $TMP_TEST | grep 'Latency' | awk -F: '{printf $2}'  | awk -F '(' '{printf $1}'`"
     echone  "\n  下行速率:`cat  $TMP_TEST  | grep 'Download' |awk -F: '{printf $2}'  | awk -F '(' '{printf $1}'`  --"
     echone  "--  上行速率:`cat  $TMP_TEST  | grep 'Upload' |awk -F: '{printf $2}' | awk -F '(' '{printf $1}'`"

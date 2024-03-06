@@ -20,10 +20,10 @@ msgid "Network speed diagnosis test (including intranet and extranet)<br/>For sp
 msgstr "网络速度诊断测试（包括内网、外网、特定端口服务器测速）<br/>使用说明见:"
 
 msgid "Lan Speedtest Iperf3"
-msgstr "内网iperf3吞吐测速"
+msgstr "本地iperf3吞吐测速"
 
 msgid "Lan Speedtest Web"
-msgstr "内网测速网页版"
+msgstr "本地测速网页版"
 
 msgid "Running state"
 msgstr "运行状态"

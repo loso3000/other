@@ -24,7 +24,6 @@
 				'<img src="<%=resource%>/icons/loading.gif" alt="<%:Loading%>" style="vertical-align:middle" /> ' +
 				'<%:Network speed test, please wait...%>'
 			;
-    <%=luci.sys.exec("/etc/init.d/netspeedtest nstest")%>
 	legend.parentNode.style.display = 'block';
 	legend.style.display = 'inline';
         XHR.get(RUN_URL, null, 
