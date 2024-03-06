@@ -37,7 +37,7 @@ function test_port()
 		e.type = "ping"
 	end
 	if e.ping=="" then e.ping="0" end
-	sys.call(string.format("echo -ne '\n$(date) server：%s -- port：%s -- TCP：%s Ms' >> /var/log/netspeedtest.log",domain,port,e.ping))
+	sys.call(string.format("echo -ne `\n $(date) server：%s -- port：%s -- TCP：%s Ms` >> /var/log/netspeedtest.log",domain,port,e.ping))
 	luci.http.prepare_content("application/json")
 	luci.http.write_json(e)
 end
