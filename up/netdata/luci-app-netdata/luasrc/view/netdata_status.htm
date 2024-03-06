@@ -1,0 +1,34 @@
+<%#
+ Copyright 2008-2024 by sirpdboy <herboy2008@gmail.com>
+ https://github.com/sirpdboy/luci-app-netdata
+ Licensed to the public under the Apache License 2.0.
+-%>
+<script type="text/javascript">//<![CDATA[
+	XHR.poll(3, '<%=url([[admin]], [[status]], [[netdata_status]])%>', null,
+		function(x, d) {
+			var tb = document.getElementById('netdata_status');
+			if (d && tb)
+			{
+				if (d.running)
+				{
+
+					URL = window.location.protocol + "//" + window.location.hostname + ":<%=luci.model.uci.cursor():get("netdata", "netdata", "port") %>";
+					tb.innerHTML = '<em style=\"color:green\"><%:The Netdata service is running.%></em>';
+					tb.innerHTML +='<em> <br/><br/><%:Click the new page to open Netdata%> </em>';
+					tb.innerHTML += "<input class=\"cbi-button cbi-button-reload \" type=\"button\" value=\" "+ URL + "\" onclick=\"window.open('"+URL+"')\"/>";
+				}
+				else
+				{
+					tb.innerHTML = '<em style=\"color:red\"><%:The Netdata service is not running.%></em>';
+				}
+			}
+		}
+	);
+//]]></script>
+<style>.mar-10 {margin-left: 50px; margin-right: 10px;}</style>
+<fieldset class="cbi-section">
+	<legend><%:NetData Status%></legend>
+	<p id="netdata_status">
+		<em><%:Collecting data...%></em>
+	</p>
+</fieldset>
