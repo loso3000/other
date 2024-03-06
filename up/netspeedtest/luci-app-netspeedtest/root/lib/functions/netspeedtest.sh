@@ -70,25 +70,28 @@ case $1 in
 }
 
 speedtest_start_ookla(){
-    CMD="$1"
     echone "\n  ookla-speedtest测速"
-    info=`$CMD > $TMP_TEST ` >/dev/null 2>&1
+    info=$($1 > $TMP_TEST ) >/dev/null 2>&1
     echone "\n  info:$info ----------------- "
     echone   "\n  测服信息:`cat  $TMP_TEST | grep 'Server'| cut -c10- | awk -F: '{printf $2$3}'`  线路:`cat  $TMP_TEST | grep 'ISP' | awk -F: '{printf $2}' `  延时：`cat  $TMP_TEST | grep 'Latency' | awk -F: '{printf $2}'  | awk -F '(' '{printf $1}'`"
     echone  "\n  下行速率:`cat  $TMP_TEST  | grep 'Download' |awk -F: '{printf $2}'  | awk -F '(' '{printf $1}'`  --"
     echone  "--  上行速率:`cat  $TMP_TEST  | grep 'Upload' |awk -F: '{printf $2}' | awk -F '(' '{printf $1}'`"
+    echo -ne "\n  测速结果图片链接:`cat  $TMP_TEST | grep 'URL' | cut -c15-`"  >> $LOG
     echone  "\n  测试时间: `date +%Y-%m-%d' '%H:%M:%S`"
     echone  "\n  ————————————————————————————\n"
-    echo -ne  $(cat  $TMP_TEST  | grep 'URL' | cut -c15- ) 
+    cat $TMP_TEST | grep 'URL' | cut -c15- > /var/speedtesturl.tmp
+    echo -ne "`cat $TMP_TEST | grep 'URL' | cut -c15- `"
 }
+
 speedtest_start_cli(){
-    CMD=$1
     echone  "\n  python3-speedtest测速"
-    info=`$CMD > $TMP_TEST ` >/dev/null 2>&1
+    info=$($1 > $TMP_TEST ) >/dev/null 2>&1
     echone   "\n  测服信息:`cat  $TMP_TEST | grep 'Hosted by'| cut -c10- | awk -F: '{printf $1}'`  延时：`cat  $TMP_TEST | grep 'Hosted by' | awk -F: '{printf $2}'`"
     echone  "\n  下行速率:`cat  $TMP_TEST  | grep 'Download:' |awk -F: '{printf $2}' `  --"
     echone  "--  上行速率:`cat  $TMP_TEST  | grep 'Upload:' |awk -F: '{printf $2}' `"
+    echo -ne  "\n  测速结果图片链接:`cat  $TMP_TEST | grep 'results' | cut -c16-`"  >> $LOG
     echone  "\n  测试时间: `date +%Y-%m-%d' '%H:%M:%S`"
     echone  "\n  ————————————————————————————\n"
-    echo -ne  $(cat  $TMP_TEST  | grep 'results:' | cut -c16- )
+    cat $TMP_TEST | grep 'results:' | cut -c16- > /var/speedtesturl.tmp
+    echo -ne "`cat $TMP_TEST | grep 'results:' | cut -c16-`"
 }
