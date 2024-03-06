@@ -14,7 +14,6 @@ function index()
         entry({"admin", "network", "netspeedtest", "speedtestwan"},cbi("netspeedtest/speedtestwan", {hideapplybtn=true, hidesavebtn=true, hideresetbtn=true}),_("Wan Speedtest"), 40).leaf = true
         entry({"admin", "network", "netspeedtest", "speedtestport"},cbi("netspeedtest/speedtestport", {hideapplybtn=true, hidesavebtn=true, hideresetbtn=true}),_("Server Port Latency Test"), 50).leaf = true
 	entry({"admin", "network", "netspeedtest", "test_port"}, call("test_port"))
-	entry({"admin", "network", "netspeedtest", "checknet"}, call("check_net"))
 	entry({"admin", "network", "iperf3_status"}, call("iperf3_status"))
 	entry({"admin", "network", "test_iperf0"}, post("test_iperf0"), nil).leaf = true
 	entry({"admin", "network", "test_iperf1"}, post("test_iperf1"), nil).leaf = true
@@ -33,12 +32,12 @@ function test_port()
 	e.ping = luci.sys.exec(string.format("echo -n $(tcping -q -c 1 -i 1 -t 2 -p %s %s 2>&1  | grep -o 'time=[0-9]*.[0-9]*' | awk -F '=' '{print $2}') 2>/dev/null", port, ip))
 	
 	e.type = "tcping"
-	if r=="" then
+	if e.ping=="" then
 		e.ping=sys.call("echo -n $(ping -c 1 -W 1 %q 2>&1 | grep -o 'time=[0-9]*.[0-9]*' | awk -F '=' '{print $2}') 2>/dev/null" % ip)
 		e.type = "ping"
 	end
 	if e.ping=="" then e.ping="0" end
-	sys.call(string.format("echo -ne '\n$(date +%Y-%m-%d' '%H:%M:%S) server：%s -- port：%s -- TCP：%s Ms' >> /var/log/netspeedtest.log",domain,port,e.ping))
+	sys.call(string.format("echo -ne '\n$(date) server：%s -- port：%s -- TCP：%s Ms' >> /var/log/netspeedtest.log",domain,port,e.ping))
 	luci.http.prepare_content("application/json")
 	luci.http.write_json(e)
 end
