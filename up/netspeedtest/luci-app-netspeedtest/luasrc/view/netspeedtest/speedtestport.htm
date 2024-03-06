@@ -44,39 +44,24 @@ function speedtestportrun(btn) {
 
 	btn.value='<%:Waiting (executing)...%>';
 	btn.disabled=true;
-    var domain=opt.get("domain").value;
-    var port=opt.get("port").value;
-	var data = {
-            domain: domain,
-            port: port
-        }
-	
-	console.log(data);
+    var sdomain=opt.get("sdomain").value;
+    var sport=opt.get("sport").value;
+	console.log(sdomain);
 	XHR.get('<%=luci.dispatcher.build_url("admin/network/netspeedtest/test_port")%>',{
-
-            domain: domain,
-            port: port
-
+            sdomain: sdomain,
+            sport: sport
 			},
-				(x,rv) =>{
+				(x) =>{
 				
 					if(x && x.status == 200) {
-					console.log(x);
-					console.log(rv);
-						  if (rv.ping == null || rv.ping.trim() == "") {
-							       output.outerHTML = "<font style='color:red'><%:Test failed%></font>";
-					  	   } 
-						   else {
-							var ping = parseInt(rv.ping);
-							if (ping < 100)
-								output.outerHTML = "<font style='color:green'><%:Test server port delay%> :" + ping + " ms</font>";
-							else if (ping >= 100)
-								output.outerHTML = "<font style='color:red'><%:Test server port delay%> :" + ping + " ms</font>";
-						  }
+						  output.innerHTML="<font style=\'color:green\'>"+"<%:Connect OK%>"+"</font>";
 						  setTimeout(function(){
 			                 	window.location = S_URL
-			             },800);
+			             },1000);
 					}
+					
+				btn.disabled=false;
+				btn.value='<%:Perform port test%>';
 				}
 		);
         return false;

@@ -25,19 +25,25 @@ end
 
 function test_port()
 	local e = {}
-	local domain = luci.http.formvalue('domain')
-	local port = luci.http.formvalue('port')
+	local uci = luci.model.uci.cursor()
+	local domain = luci.http.formvalue('sdomain')
+	local port = luci.http.formvalue('sport')
+	name='netspeedtest'
 	local ip=sys.exec("echo "..domain.." | grep -E ^[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}$ || nslookup "..domain.." 2>/dev/null | grep Address | awk -F' ' '{print$NF}' | grep -E ^[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}$ | sed -n 1p")
 	ip=sys.exec("echo -n "..ip)
 	e.ping = luci.sys.exec(string.format("echo -n $(tcping -q -c 1 -i 1 -t 2 -p %s %s 2>&1  | grep -o 'time=[0-9]*.[0-9]*' | awk -F '=' '{print $2}') 2>/dev/null", port, ip))
-	
 	e.type = "tcping"
 	if e.ping=="" then
 		e.ping=sys.call("echo -n $(ping -c 1 -W 1 %q 2>&1 | grep -o 'time=[0-9]*.[0-9]*' | awk -F '=' '{print $2}') 2>/dev/null" % ip)
 		e.type = "ping"
 	end
 	if e.ping=="" then e.ping="0" end
-	sys.call(string.format("echo -ne `\n $(date) server：%s -- port：%s -- TCP：%s Ms` >> /var/log/netspeedtest.log",domain,port,e.ping))
+	sys.call(string.format('echo -ne "\n $(date) server：%s -- port：%s -- TCP：%s Ms \n" >> /var/log/netspeedtest.log ',domain,port,e.ping))
+	
+	uci:set(name, 'speedtestport', 'sdomain', domain)
+	uci:set(name, 'speedtestport', 'sport', port)
+	uci:set(name, 'speedtestport', 'tcpspeed', e.ping)
+	uci:commit(name)
 	luci.http.prepare_content("application/json")
 	luci.http.write_json(e)
 end

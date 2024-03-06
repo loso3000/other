@@ -17,6 +17,7 @@
 
 <script type="text/javascript">
     const RUN_URL = '<%=luci.dispatcher.build_url("admin", "network", "netspeedtest","speedtestwanrun")%>';
+    const S_URL = '<%=luci.dispatcher.build_url("admin", "network", "netspeedtest","speedtestwan")%>';
     function run(btn) {
 	var legend=document.getElementById('wanspeedtest-legend');
 	var output=document.getElementById('wanspeedtest-output');
@@ -41,7 +42,9 @@
 						output.innerHTML ='</p><%:Operation execution complete%></p>';
 
 					}
-
+					 setTimeout(function(){
+			                 	window.location = S_URL
+			             },10000);
 				}
 	);
     return false;

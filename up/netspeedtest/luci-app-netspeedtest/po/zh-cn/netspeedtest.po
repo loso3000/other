@@ -136,6 +136,9 @@ msgstr "测试失败"
 msgid "Waiting (executing)..."
 msgstr "等待（执行）中"
 
+msgid "Server Port Delay Value"
+msgstr "服务器端口延时值"
+
 msgid "iperf3 commands reference"
 msgstr "iperf3命令参考"
 
