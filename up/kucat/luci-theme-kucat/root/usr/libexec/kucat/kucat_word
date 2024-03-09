@@ -13,8 +13,8 @@ WORDDATETMP="/var/dayword_kucatword_date.tmp"
 LOCK="/var/lock/dayword_kucatword.lock"
 WORDTMP="/var/dayword_kucatword_$LANG.tmp"
 test_url() {
-	local url=$1
-	local status="$(/usr/bin/curl -I -o /dev/null -skL --connect-timeout 1 --retry 1 -w %{http_code} "$url")"
+	url=$1
+	status="$(/usr/bin/curl -I -o /dev/null -skL --connect-timeout 1 --retry 1 -w %{http_code} "$url")"
 	case "$status" in
 		204|\
 		200)
@@ -24,9 +24,9 @@ test_url() {
 }
 
 get_word() {
-	local kucat='kucat'
+	kucat='kucat'
 	[ -s "/etc/config/advancedplus" ] &&kucat='advancedplus'
-	local dayword="$(uci -q get $kucat.@basic[0].dayword || echo '0')"
+	dayword="$(uci -q get $kucat.@basic[0].dayword || echo '0')"
 	case "$dayword" in
 	1)
 		[ "X$LANG" == "Xen" ] && gwordjson=`curl -s 'https://open.iciba.com/dsapi/' | jsonfilter -qe '@.content'` ||  gwordjson=`curl -s 'https://open.iciba.com/dsapi/' | jsonfilter -qe '@.note'`
@@ -67,11 +67,14 @@ get_word() {
 }
 
 kucatword() {
-	local lock="$LOCK"
+	lock="$LOCK"
 	exec 200>"$lock"
 	if flock -n 200 >"/dev/null" 2>&1; then
 		local localword="$(get_word)"
-		 [ -n "$localword" ] && echo "$localword" >$WORDTMP  && date +%Y%m%d > $WORDDATETMP
+		if [ -n "$localword" ]; then
+			echo "$localword" >$WORDTMP 
+			date +%Y%m%d > $WORDDATETMP
+		fi
 		flock -u 200 >"/dev/null" 2>&1
 	fi
 	[ -s "$WORDTMP" ] && cat $WORDTMP || echo -ne "Acquisition failed ,Please Issues:github@sirpdboy"
@@ -83,7 +86,6 @@ if [ -f "$WORDDATETMP" ]; then
 		    [ -s "$WORDTMP" ] && cat $WORDTMP && return
 		fi
 	fi
-# local checknet=$(test_url "https://www.baidu.com")
 local checknet=`ping -c 1 -W 1 223.5.5.5 > /dev/null 2>&1 &&echo 1 || echo 2`
 if [ "x$checknet" == "x1" ]; then 
 	kucatword

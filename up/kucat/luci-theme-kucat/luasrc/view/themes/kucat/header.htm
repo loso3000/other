@@ -21,6 +21,12 @@
 	local fs = require "nixio.fs"
 	local nutil = require "nixio.util"
 	local uci = require 'luci.model.uci'.cursor()
+	local urlencode  
+	if luci.http.protocol and luci.http.protocol.urlencode then  
+    	urlencode = luci.http.protocol.urlencode  
+	else  
+    	urlencode = luci.util.urlencode  
+	end  
 	local boardinfo = util.ubus("system", "board")
 
 	local request  = disp.context.path
@@ -47,7 +53,7 @@
 		end
 	end
     function getExtension(str)
-		return str:match(".+%.(%w+)$")
+		return urlencode(str:match(".+%.(%w+)$"))
 	end
 	-- tag all nodes leading to this page
 	for i, r in ipairs(request) do
@@ -186,67 +192,32 @@
 		end
 	end
 	local bar='/cgi-bin/luci/admin/'
-	local mode = 'light'
-    local home = ''
-    local user = ''
-    local setbar = "1"
-	local bgqs = '1'
-    local ssr = ""
-    local gohome = bar .. 'status/'  ..home
-    local gouser = bar .. 'system/'  ..user
-    local gossr = bar .. 'services/'  ..ssr
-	local background = '0' 
-	local fontd = '1.2rem' 
-	local fontz = '0.92rem' 
-	local fontx = '0.875rem'
-	local primary_rgbbody = '248,248,248'
-	local primary_rgbm = '45,102,147'
-	local primary_rgbm_ts = '0.8'
-	local primary_rgbs = '132,188,218'
-	local primary_rgbs_ts = '0.1'
-	local primary_opacity = '0'
-	local bkuse = '0'
 	local bk_use='rgba(var(--primary-rgbbody),1)'
     local loginbk_use = 'background: linear-gradient(0deg, rgba(var(--primary-rgbm), 1) 0%, rgba(var(--primary-rgbbody), 1) 100%)'
-	local bklock = '1'
-	local dayword = '0'
-	local kucat = ''
     if fs.access('/etc/config/advancedplus') then
       kucat = 'advancedplus'
 	elseif fs.access('/etc/config/kucat') then
 	    kucat = 'kucat'
 	end
 	if (kucat and kucat ~= '') then
-		primary_rgbbody = uci:get_first(kucat, 'basic', 'primary_rgbbody')
-		primary_rgbm = uci:get_first(kucat, 'basic', 'primary_rgbm')
-		primary_rgbm_ts = uci:get_first(kucat, 'basic', 'primary_rgbm_ts')
-		primary_opacity = uci:get_first(kucat, 'basic', 'primary_opacity')
-		primary_rgbs = uci:get_first(kucat, 'basic', 'primary_rgbs')
-		primary_rgbs_ts = uci:get_first(kucat, 'basic', 'primary_rgbs_ts')
-		mode = uci:get_first(kucat, 'basic', 'mode')
-		setbar = uci:get_first(kucat, 'basic', 'setbar')
-		home =  uci:get_first(kucat, 'basic', 'gohome')
-		user = uci:get_first(kucat, 'basic', 'gouser')
-		ssr =  uci:get_first(kucat, 'basic', 'gossr')
-		gohome = bar .. "status/" .. home
-		gouser = bar .. "system/" .. user
-		gossr = bar .. "services/" .. ssr
-		background = uci:get_first(kucat, 'basic', 'background')
-		bkuse = uci:get_first(kucat, 'basic', 'bkuse')
-		bklock = uci:get_first(kucat, 'basic', 'bklock')
-		fontd = uci:get_first(kucat, 'basic', 'font_d')
-		fontz = uci:get_first(kucat, 'basic', 'font_z')
-		fontx = uci:get_first(kucat, 'basic', 'font_x')
-		bgqs = uci:get_first(kucat, 'basic', 'bgqs')
-		dayword = uci:get_first(kucat, 'basic', 'dayword')
+	    local config = uci:get_all(kucat, "@basic[0]")
+		primary_rgbbody,primary_rgbm,primary_rgbm_ts,primary_opacity,primary_rgbs,primary_rgbs_ts,mode = config.primary_rgbbody,config.primary_rgbm,config.primary_rgbm_ts,config.primary_opacity,config.primary_rgbs,config.primary_rgbs_ts,config.mode
+		gohome,gouser,gossr = bar .. "status/" .. config.gohome,bar .. "system/" .. config.gouser,bar .. "services/" .. config.gossr
+		background,bkuse,bklock,fontd,fontz,fontx = config.background,config.bkuse,config.bklock,config.font_d,config.font_z,config.font_x
+		bgqs,setbar,dayword = config.bgqs,config.setbar,config.dayword
+	else
+		primary_rgbbody,primary_rgbm,primary_rgbm_ts,primary_opacity,primary_rgbs,primary_rgbs_ts,mode = '248,248,248','45,102,147','0.8','0','132,188,218','0.1','light'
+		gohome,gouser,gossr = bar .. "status/" ,bar .. "system/" ,bar .. "services/"
+		background,bkuse,bklock,fontd,fontz,fontx = '0','0','1','1.2rem' ,'0.92rem' ,'0.875rem'
+		bgqs,setbar,dayword = '1','1','0'
 	end
-	local primary_ufilter =  "saturate(150%) contrast(50%) blur(" .. primary_opacity .. "px)"
+	local ufilter = string.format("blur(%dpx)", tonumber(primary_opacity))
 	if primary_opacity == '0' then
-	    primary_ufilter = 'none'
+	    ufilter = 'none'
 	end
-	local bgqs_image = '-webkit-linear-gradient(45deg, rgba(255, 255, 255, 0.2) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.2) 75%, transparent 75%, transparent)'
+	local bgqs_image = '-webkit-linear-gradient(135deg, rgba(255, 255, 255, 0.1) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0.1) 75%, transparent 75%, transparent)'
 	if bgqs == '1' then
-	    bgqs_image = 'rgba(var(--primary-rgbm),var(--primary-rgbm-ts))'
+	    bgqs_image = 'none'
 	end
 	local bg_url = media..'/img/bg1.jpg'
 	if background == '0' then
@@ -311,8 +282,8 @@
   	   showword = sys.exec("/usr/libexec/kucat/kucat_word")
 	end
 	if bkuse == '1'  then
-	   bk_use='url('..bg_lock..') no-repeat center center fixed'
- 	   loginbk_use = "background-image:url(" .. bg_url .. ")"
+	   bk_use='background:url('..bg_lock..')'
+ 	   loginbk_use = "background:url(" .. bg_url .. ")"
 	end
 -%>
 
@@ -321,6 +292,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />
+	<link rel="manifest" href="<%=media%>/manifest.json" crossorigin="use-credentials">
 
 	<title>	<%=striptags( (boardinfo.hostname or "?") .. ( (node and node.title) and ' - ' .. translate(node.title) or '')) %>	- LuCI</title>
 	<meta name="format-detection" content="telephone=no, email=no" />
@@ -342,7 +314,6 @@
 	<link rel="apple-touch-icon-precomposed" href="<%=media%>/img/apple-touch-icon.png" sizes="144x144">
 
 	<link rel="icon" type="image/png" sizes="192x192" href="<%=media%>/logo.png">
-    <link rel="manifest" href="<%=media%>/manifest.json" crossorigin="use-credentials">
 	<meta name="msapplication-TileColor" content="<%=bar_color%>">
 	<meta name="msapplication-TileImage" content="<%=media%>/logo.png"/>
 	<meta name="theme-color" content="<%=bar_color%>">
@@ -358,11 +329,10 @@
 		--primary-rgbm-ts: <%=primary_rgbm_ts%>;
 		--primary-rgbs: <%=primary_rgbs%>;
 		--primary-rgbs-ts: <%=primary_rgbs_ts%>;
-		--primary-ufilter: <%=primary_ufilter%>;
 		--font-d: <%=fontd%>;
 		--font-z: <%=fontz%>;
 		--font-x: <%=fontx%>;
-		--theme-background: <%=bk_use%>;
+		--ufilter: <%=ufilter%>;
 		--bgqs-image: <%=bgqs_image%>;
 	}
 	img[src*="/luci-static/resources/cbi/add.gif"] {
@@ -395,6 +365,7 @@
 	    display: block;
 	}
 	<% end -%>
+
 	 </style>
 	<% if node and node.css then %>
 	<link rel="stylesheet" href="<%=resource%>/<%=node.css%>">
@@ -407,7 +378,7 @@
 	<script src="<%=media%>/js/jquery.min.js?v=3.5.1"></script>
 </head>
 <body
-	class="<%- if node then %><%= striptags( node.title ) %><%- end %> <% if luci.dispatcher.context.authsession then %>logged-in<% end %> lang_<%=luci.i18n.context.lang%> "
+	class="<%- if node then %><%= striptags( node.title ) %><%- end %> <% if luci.dispatcher.context.authsession then %>logged-in<% end %> lang_<%=luci.i18n.context.lang%> " style="<%=bk_use%>;"
 	<% if mode ~= 'auto' then %>
 	data-theme = "<%= mode %>"
 	<% end -%>

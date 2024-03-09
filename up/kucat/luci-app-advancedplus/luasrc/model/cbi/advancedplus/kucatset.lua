@@ -11,12 +11,7 @@ local opacity_sets = {
     8,
     9,
     10,
-    20,
-    30,
-    50,
-    80,
-    100,
-    200,
+    20
 }
 
 local ts_sets = {

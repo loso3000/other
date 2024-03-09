@@ -29,7 +29,7 @@
 [data-theme='light'] {
     --primary-solid: #fd8c73;
     --primarytextcolor: #677087;
-    --primary-title-color: #67678f;
+    --primary-title-color: #464653;
     --menu-color: #f5f5f5f5;
     --menu-hover-color: #fff;
     --menu-item-color: #5a636b;
@@ -73,20 +73,6 @@
     --font-sans: "Microsoft Yahei", "Google Sans","WenQuanYi Micro Hei", "sans-serif", "Helvetica Neue", "Helvetica", "Hiragino Sans GB";
 }
 
-html {
-    margin: 0px;
-    padding: 0px;
-    height: 100%;
-    background: var(--theme-background) ;
-    -webkit-background-size: cover;
-    -moz-background-size: cover;
-    -o-background-size: cover;
-    background-size: cover;
-    background-repeat: no-repeat;
-    -webkit-text-size-adjust: 100%;
-    overflow-y: hidden;
-    -ms-text-size-adjust: 100%
-}
 html, body {
     font-family: var(--font-sans);
 
@@ -98,8 +84,13 @@ body {
     letter-spacing: 0.050em;
     font-size: var(--font-x);
     overflow-x: hidden;
-    font-family: var(--font-sans);
-    color: var(--body-color)
+    color: var(--body-color);
+	background-position: top center;
+	-webkit-background-size: cover;
+	-moz-background-size: cover;
+	-o-background-size: cover;
+	background-size: cover;
+	background-repeat: no-repeat;
 }
 
 body div {
@@ -177,9 +168,7 @@ header.bar-primary .container-bar-right,header.bar-primary .container-bar-left {
     background-color: #51c291;
     background-color: rgba(var(--primary-rgbm),0.9);
     box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
-    background-image: var(--bgqs-image);
-    background-image: -webkit-linear-gradient(135deg,rgba(255,255,255,0.2) 25%,transparent 25%,transparent 50%,rgba(255,255,255,0.2) 50%,rgba(255,255,255,0.2) 75%,transparent 75%,transparent) !important;
-
+    background-image: -webkit-linear-gradient(135deg, rgba(255, 255, 255, 0.2) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.2) 75%, transparent 75%, transparent) !important;
     transition: all .1s ease;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: auto;
@@ -280,8 +269,6 @@ header.bar-primary .container-bar-left .pdboy-gopoweroff:before {
 }
 
 header.pd-primary {
-	-webkit-backdrop-filter: var(--primary-ufilter);
-	backdrop-filter: var(--primary-ufilter);
 	background-color: rgba(var(--primary-rgbm), var(--primary-rgbm-ts));
 	background-image: -webkit-linear-gradient(135deg, rgba(255, 255, 255, 0.2) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.2) 75%, transparent 75%, transparent) !important;
 	box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.35);
@@ -447,8 +434,6 @@ footer {
     padding: 1rem 1rem 2rem 0;
     color: rgba(var(--primary-rgbm),1);
     font-size: var(--font-x);
-    -webkit-backdrop-filter: var(--primary-ufilter);
-    backdrop-filter: var(--primary-ufilter);
     background-color: rgba(var(--primary-rgbbody),var(--primary-rgbm-ts))
 }
 
@@ -461,9 +446,7 @@ footer a {
     float: left;
     width: calc(0% + 17rem);
     height: 100%;
-
-	backdrop-filter: var(--primary-ufilter);
-background-color:  rgba(var(--primary-rgbm),var(--primary-rgbm-ts));
+    background-color:  rgba(var(--primary-rgbm),var(--primary-rgbm-ts));
     background-image: var(--bgqs-image);
     box-shadow: 0 0 2px 2px rgba(0,0,0,0.14),0 -2px 3px 1px rgba(0,0,0,0.32),0 0px 5px 2px rgba(0,0,0,0.2);
     overflow-x: auto;
@@ -475,8 +458,6 @@ background-color:  rgba(var(--primary-rgbm),var(--primary-rgbm-ts));
 
 .main>.main-right #maincontent .container {
     background-color: rgba(var(--primary-rgbbody),var(--primary-rgbm-ts));
-    -webkit-backdrop-filter: var(--primary-ufilter);
-    backdrop-filter: var(--primary-ufilter);
     padding: 1rem 1rem 4rem 1rem
 }
 
@@ -1495,6 +1476,7 @@ body.lang_pl.node-main-login .cbi-value-title {
     padding: 0rem;
     background: none;
     border: none;
+    backdrop-filter: none;
     box-shadow: none;
     float: center;
     text-align: center;
@@ -2148,7 +2130,7 @@ h1 {
 }
 
 h2 {
-    font-size: var(--font-d);
+    font-size: 1.7rem;
     padding: 0.5rem 1.5rem 0.2rem;
     font-weight: bold;
     text-transform: capitalize;
@@ -2669,7 +2651,6 @@ select[multiple="multiple"] {
     font-size: small;
     line-height: 1.42857143;
     margin: 0 1.5rem 1rem 1.5rem;
-    color: var(--body-color);
 }
 .cbi-value-field .ifacebadge {
     display: inline-flex;
@@ -3337,6 +3318,10 @@ img[src*="/luci-static/resources/cbi/reload.gif"] {
 .cbi-map>.cbi-section .cbi-value {
     padding-left: 1rem;
     padding-right: 1rem
+}
+.main>.main-left, .cbi-section, .cbi-section-error, #iptables, .Firewall form, #cbi-network>.cbi-section-node, #cbi-wireless>.cbi-section-node, #cbi-wireless>#wifi_assoclist_table, [data-tab-title], [data-page^="admin-system-admin"]:not(.node-main-login) .cbi-map:not(#cbi-dropbear), [data-page="admin-system-opkg"] #maincontent>.container, .tabs, .cbi-tabmenu, .cbi-tooltip ,#syslog ,header.pd-primary,#view div,#view table{
+	backdrop-filter:var(--ufilter);
+	-webkit-backdrop-filter: var(--ufilter);
 }
 
 #cbi-netspeedtest-homebox>.cbi-section-node>.cbi-value,.cbi-value .cbi-value-description {
