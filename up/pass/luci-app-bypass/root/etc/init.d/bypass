@@ -85,12 +85,12 @@ bootstrap_dns=$(uci_get_by_type global bootstrap_dns '114.114.114.114')
 socks5_ip=''
 gen_log()(
 
-	[ -s $LOG ] && echo -e '\n------------Start------------' >> $LOG
+	[ -s $LOG ] && echo -e "$(date +'%Y-%m-%d %H:%M:%S') ===程序开始运行===" >> $LOG
 	log "Check network status."
 )
 
 log(){
-	echo "$(date +'%Y-%m-%d %H:%M:%S') $*" >> $LOG
+	echo -e "$(date +'%Y-%m-%d %H:%M:%S') $*" >> $LOG
 }
 
 clean_log() {
@@ -286,7 +286,7 @@ rules(){
 		get_soip 1;return 1
 	fi
 	if `busybox ps -w | grep by-retcp | grep -qv grep`;then
-		log "Rules     :Bypass has Started.";/etc/init.d/bypass stop  >/dev/null 2>&1;/etc/init.d/bypass start  >/dev/null 2>&1
+		log "Rules     :Bypass has Started.";/etc/init.d/bypass restart  >/dev/null 2>&1
 	fi
 	cat $LOG 2>/dev/null | sed -n '$p' | grep -q 'Check network status.\|Download IP/GFW files.' || gen_log
 	check_net
@@ -1303,7 +1303,8 @@ start_monitor(){
 }
 
 start(){
-	[ $(uci_get_by_name global enabled 0) = 0 ] && stop && exit 1
+        enabled=$(uci -q get ${NAME}.@global[0].enabled) 
+	[ $enabled == 0 ] && stop && exit 1
 	[ -f $LOC ] && exit 1
 	touch $LOC
 	[ ! -s $LOG ]  && echo '' > $LOG
@@ -1355,19 +1356,17 @@ start(){
 				uci -q set AdGuardHome.AdGuardHome.redirect ="$(uci -q get AdGuardHome.AdGuardHome.redirectold)"
 				uci -q del AdGuardHome.AdGuardHome.redirectold
 				uci commit AdGuardHome
-				
 				uci -q del dhcp.@dnsmasq[0].dns_redirect
 				sed -i "/dhcp_option '6/d" /etc/config/dhcp
 				uci commit dhcp
 				/etc/init.d/AdGuardHome stop >/dev/null 2>&1 &
 		fi
 	elif [ $adguardhome == 1 ]; then
-		log "Please ensure that Luci app adguardhome and ADG main program exist in the system!"
+		log "请确认已经安装好Luci-app-adguardhome和ADG程序在系统中!"
 	fi
-	[ $DEBUG ] && 	echo "Start end"
 	clean_log 
 	rm -f $LOCK $LOC
-	log "运行完成！\n"
+	log "===程序运行完成===\n"
 }
 
 stop(){
@@ -1430,7 +1429,7 @@ stop(){
 			sleep 1
 		done
 	fi
-	log "清空并关闭相关程序和缓存完成。"
+	log "===清空缓存及关闭相关程序完成==="
 }
 
 boot() {
