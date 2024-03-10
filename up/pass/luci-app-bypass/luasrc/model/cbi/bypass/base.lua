@@ -27,6 +27,9 @@ s.anonymous=true
 
 s:tab("Main", translate("Main"))
 
+o = s:taboption("Main", Flag, "enabled", translate("Enable Service[Master Switch]"))
+o.rmempty = false
+
 o = s:taboption("Main",ListValue,"global_server",translate("Main Server"))
 o:value("", translate("Disable"))
 for _,key in pairs(key_table) do o:value(key,server_table[key]) end

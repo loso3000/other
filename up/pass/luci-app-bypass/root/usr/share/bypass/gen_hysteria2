@@ -9,7 +9,7 @@ local local_port = arg[3] or "0"
 local socks_port = arg[4] or "0"
 
 local node = ucursor:get_all("bypass", server_section)
-local server_host = arg[5] or node.server
+local server_host = node.server
 local server_port = node.server_port
 local server = server_host .. ":" .. server_port
 
@@ -62,7 +62,7 @@ local hysteria2 = {
 
 	auth = node.hy2_auth_password,
 	tls = {
-		sni = node.server,
+		sni = node.tls_host,
 		insecure = (node.insecure == "1") and true or false,
 		pinSHA256 = (node.insecure == "1") and node.pinsha256 or nil
 	},

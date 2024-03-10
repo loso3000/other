@@ -96,10 +96,9 @@ end
 -- base64
 local function base64Decode(text)
 	local raw = text
-	if not text then
-		return ''
-	end
+	if not text then return '' end
 	text = text:gsub("%z", "")
+	text = text:gsub("%c", "")
 	text = text:gsub("_", "/")
 	text = text:gsub("-", "+")
 	local mod4 = #text % 4
@@ -132,7 +131,8 @@ local function processData(szType, content)
 			result.server = dat[1]:match('%[(.*)%]')
 		else
 			result.server = hostInfo[#hostInfo-5]
-		end		result.server_port = hostInfo[#hostInfo-4]
+		end
+		result.server_port = hostInfo[#hostInfo-4]
 		result.protocol = hostInfo[#hostInfo-3]
 		result.encrypt_method = hostInfo[#hostInfo-2]
 		result.obfs = hostInfo[#hostInfo-1]
@@ -151,11 +151,14 @@ local function processData(szType, content)
 	elseif szType == 'vmess' then
 		local info = jsonParse(content)
 		result.type = 'v2ray'
-		result.v2ray_protocol = 'vmess'
+
+
+
+		result.alter_id = info.aid
+
 		result.server = info.add
 		result.server_port = info.port
-		result.transport = info.net
-		result.alter_id = info.aid
+		result.v2ray_protocol = 'vmess'
 		result.vmess_id = info.id
 		result.alias = info.ps
 		-- result.mux = 1
@@ -182,7 +185,6 @@ local function processData(szType, content)
 			result.http_path = info.path
 		end
 		if info.net == 'kcp' or info.net == 'mkcp' then
-			info.net = "kcp"
 			result.kcp_guise = info.type
 			result.mtu = 1350
 			result.tti = 50
@@ -222,6 +224,8 @@ local function processData(szType, content)
 		-- end
 	elseif szType == "ss" then
 
+	        result.type = v2_ss
+
 		--SS-URI = "ss://" userinfo "@" hostname ":" port [ "/" ] [ "?" plugin ] [ "#" tag ]
 		--userinfo = websafe-base64-encode-utf8(method  ":" password)
 		--ss://YWVzLTEyOC1nY206dGVzdA@192.168.100.1:8888#Example1
@@ -255,7 +259,7 @@ local function processData(szType, content)
 					result.plugin = plugin_info
 				end
 			end
-			if result.plugin == "simple-obfs" then
+			if result.plugin and result.plugin == "simple-obfs" then
 				result.plugin = "obfs-local"
 			end
 			info = info:sub(1, find_index - 1)
@@ -290,8 +294,6 @@ local function processData(szType, content)
 			local method = userinfo:sub(1, userinfo:find(":") - 1)
 			local password = userinfo:sub(userinfo:find(":") + 1, #userinfo)
 
-			result.alias = UrlDecode(alias)
-			result.type = v2_ss
 			result.v2ray_protocol = (v2_ss == "v2ray") and "shadowsocks" or nil
 			result.encrypt_method_ss = method
 			result.password = password
@@ -302,17 +304,77 @@ local function processData(szType, content)
 					aead = true
 				end
 			end
+			if aead then
+
+					result.type = v2_ss
+					result.v2ray_protocol = 'shadowsocks'
+					result.transport = 'tcp'
+					if method:lower() == "chacha20-ietf-poly1305" then
+						result.method = "chacha20-poly1305"
+					end
+
+			end
+			local aead2022 = false
+			for k, v in ipairs({"2022-blake3-aes-128-gcm", "2022-blake3-aes-256-gcm", "2022-blake3-chacha20-poly1305"}) do
+				if method:lower() == v:lower() then
+					aead2022 = true
+				end
+			end
+			if aead2022 then
+					result.type = v2_ss
+					result.v2ray_protocol = 'shadowsocks'
+					result.transport = 'tcp'
+			end
 		end
-	elseif szType == "sip008" then
-		result.type = v2_ss
-		result.v2ray_protocol = (v2_ss == "v2ray") and "shadowsocks" or nil
-		result.server = content.server
-		result.server_port = content.server_port
-		result.password = content.password
-		result.encrypt_method_ss = content.method
-		result.plugin = content.plugin
-		result.plugin_opts = content.plugin_opts
-		result.alias = content.remarks
+	elseif szType == "trojan" then
+		local alias = ""
+		if content:find("#") then
+			local idx_sp = content:find("#")
+			alias = content:sub(idx_sp + 1, -1)
+			content = content:sub(0, idx_sp - 1)
+		end
+		result.alias = UrlDecode(alias)
+		result.type = "Trojan-Plus"
+
+		if content:find("@") then
+			local Info = split(content, "@")
+			result.password = UrlDecode(Info[1])
+			local port = "443"
+			Info[2] = (Info[2] or ""):gsub("/%?", "?")
+			local query = split(Info[2], "?")
+			local host_port = query[1]
+			local params = {}
+			for _, v in pairs(split(query[2], '&')) do
+				local t = split(v, '=')
+				params[string.lower(t[1])] = UrlDecode(t[2])
+			end
+			if host_port:find(":") then
+				local sp = split(host_port, ":")
+				port = sp[#sp]
+				result.server = sp[1]
+			else
+				result.server = host_port
+			end
+
+			local peer, sni = nil, ""
+			if params.peer then peer = params.peer end
+			sni = params.sni and params.sni or ""
+			result.server_port = port
+			result.tls = '1'
+			result.tls_host = peer and peer or sni
+			if params.allowinsecure then
+				if params.allowinsecure == "1" or params.allowinsecure == "0" then
+					result.insecure = params.allowinsecure
+				else
+					result.insecure = string.lower(params.allowinsecure) == "true" and "1" or "0"
+				end
+				--log(result.alias .. ' 使用节点AllowInsecure设定: '.. result.insecure)
+			else
+	    	                 -- 按照官方的建议 默认验证ssl证书
+		                 result.insecure = insecure and "1" or "0"
+			end
+		end
+		
 
 	elseif szType == "ssd" then
 		result.type = v2_ss
@@ -320,7 +382,7 @@ local function processData(szType, content)
 		result.server = content.server
 		result.server_port = content.port
 		result.password = content.password
-		result.encrypt_method_ss = content.method
+		result.encrypt_method_ss = content.encryption
 		result.plugin = content.plugin
 		result.plugin_opts = content.plugin_options
 		result.alias = "[" .. content.airport .. "] " .. content.remarks
@@ -329,44 +391,6 @@ local function processData(szType, content)
 		else
 			result.plugin = content.plugin
 		end
-
-	elseif szType == "trojan" then
-		local idx_sp = 0
-		local alias = ""
-		if content:find("#") then
-			idx_sp = content:find("#")
-			alias = content:sub(idx_sp + 1, -1)
-		end
-		local info = content:sub(1, idx_sp - 1)
-		local hostInfo = split(info, "@")
-		local host = split(hostInfo[2], ":")
-		local userinfo = hostInfo[1]
-		local password = UrlDecode(userinfo)
-		result.alias = UrlDecode(alias)
-		result.type = v2_tj
-		result.v2ray_protocol = "trojan"
-		result.server = host[1]
-		-- 按照官方的建议 默认验证ssl证书
-		result.insecure = insecure and "1" or "0"
-		result.tls = "1"
-		local port="443"
-		if host[2]:find("?") then
-			local query = split(host[2], "?")
-			result.server_port = query[1]
-			local params = {}
-			for _, v in pairs(split(query[2], '&')) do
-				local t = split(v, '=')
-				params[string.lower(t[1])]=UrlDecode(t[2])
-			end
-			if params.peer or params.sni then
-				-- 未指定peer（sni）默认使用remote addr
-				result.tls='1'
-				result.tls_host = params.peer or params.sni
-			end
-		else
-			result.server_port = port
-		end
-		result.password = password
 	elseif szType == "vless" then
 		result.type = "v2ray"
 		result.v2ray_protocol = "vless"
@@ -394,52 +418,50 @@ local function processData(szType, content)
 			if host_port:find(":") then
 				local sp = split(host_port, ":")
 				port = sp[#sp]
-				result.address = sp[1]
+				result.server = sp[1]
 			else
-				result.address = host_port
+				result.server = host_port
 			end
 
 			if not params.type then
 				params.type = "tcp"
 			end
 			params.type = string.lower(params.type)
-			result.transport = params.type or "tcp"
+			result.transport = params.type
 			if params.type == 'ws' then
-				result.ws_host = params.host and UrlDecode(params.host) or nil
-				result.ws_path = params.path and UrlDecode(params.path) or "/"
 
-			end
-			if params.type == 'h2' or params.type == 'http' then
-				params.type = "h2"
-				result.transport = "h2"
-				result.h2_host = params.host and UrlDecode(params.host) or nil
-				result.h2_path = params.path and UrlDecode(params.path) or nil
-			end
-			if params.type == 'tcp' then
+			result.ws_host = (result.tls ~= "1") and (params.host and UrlDecode(params.host)) or nil
+			result.ws_path = params.path and UrlDecode(params.path) or "/"
+
+
+		        elseif result.transport == "http" or result.transport == "h2" then
+			result.transport = "h2"
+			result.h2_host = params.host and UrlDecode(params.host) or nil
+			result.h2_path = params.path and UrlDecode(params.path) or nil
+			elseif params.type == 'tcp' then
 				result.tcp_guise = params.headerType or "none"
-				result.tcp_host = params.host
-				result.tcp_path = params.path
-			end
-			if params.type == 'kcp' or params.type == 'mkcp' then
+				if result.tcp_guise == "http" then
+				result.tcp_host = params.host and UrlDecode(params.host) or nil
+				result.tcp_path = params.path and UrlDecode(params.path) or nil
+			       end
+			elseif params.type == 'kcp' or params.type == 'mkcp' then
 				params.type = "kcp"
 				result.kcp_guise = params.headerType or "none"
-				result.seed = params.seed
 				result.mtu = 1350
 				result.tti = 50
 				result.uplink_capacity = 5
 				result.downlink_capacity = 20
 				result.read_buffer_size = 2
 				result.write_buffer_size = 2
-			end
-			if params.type == 'quic' then
+				result.seed = params.seed
+			elseif params.type == 'quic' then
 				result.quic_guise = params.headerType or "none"
 				result.quic_key = params.key
 				result.quic_security = params.quicSecurity or "none"
-			end
-			if params.type == 'grpc' then
+			elseif params.type == 'grpc' then
 				if params.path then result.serviceName = params.path end
 				if params.serviceName then result.serviceName = params.serviceName end
-				result.grpc_mode = params.mode or "gun"
+				result.grpc_mode = params.mode
 			end
 			
 			result.vless_encryption = params.encryption or "none"
@@ -453,13 +475,13 @@ local function processData(szType, content)
 				result.fingerprint = (params.fp and params.fp ~= "") and params.fp or "chrome"
 				if params.security == "reality" then
 					result.reality = "1"
-					result.reality_publickey = params.pbk and UrlDecode(params.pbk) or nil
+					result.reality_publickey = params.pbk or nil
 					result.reality_shortId = params.sid or nil
-					result.reality_spiderX = params.spx and UrlDecode(params.spx) or nil
+					result.reality_spiderX = params.spx or nil
 				end
 			end
 
-			result.port = port
+			result.server_port = port
 			result.insecure = insecure and "1" or "0"
 		end
 	elseif szType == 'hysteria' then
@@ -530,6 +552,7 @@ local function processData(szType, content)
 		else
 			result.server = host_port
 		end
+		result.tls_host = params.sni
 		if params.insecure and (params.insecure == "1" or params.insecure == "0") then
 			result.insecure = params.insecure
 		else
@@ -625,7 +648,7 @@ local execute = function()
 					if v then
 				        xpcall(function ()
 						local result
-						if szType=='ssd' then
+						if szType == 'ssd' then
 							result = processData(szType, v)
 						elseif not szType then
 							local node = trim(v)
@@ -649,9 +672,9 @@ local execute = function()
 							-- 中文做地址的 也没有人拿中文域名搞，就算中文域也有Puny Code SB 机场
 							if not result.type then
 							 	log('丢弃节点:' .. result.alias .. ",找不到可使用二进制.")
-							elseif not result.server or not result.server_port or result.alias == "NULL" or check_filer(result) or result.server:match("[^0-9a-zA-Z%-%.%s]") or cache[groupHash][result.hashkey] then
+							elseif not result.server or  result.alias == "NULL" or check_filer(result)  then
 								num=num+1
-								log('丢弃无效节点: ' .. result.type .. ' 节点: ' .. result.alias)
+								log('丢弃无效节点: ' .. szType .. ' 节点: ' .. result.alias )
 							else
 								-- log('成功解析: ' .. result.type ..' 节点: ' .. result.alias)
 								result.grouphashkey = groupHash

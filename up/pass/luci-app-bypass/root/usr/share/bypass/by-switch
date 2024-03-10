@@ -37,7 +37,7 @@ f_bin(){
 		ss)w=$(which ss-local);;
 		ssr)w=$(which ssr-local);;
 		v2ray)w=$(which xray)||w=$(which r2ray);;
-		hysteria2)w=$(which -v hysteria);;
+		hysteria2)w=$(which hysteria);;
 		trojan)w=$(which trojan-plus);;
 		naiveproxy)w=$(which naive);;
 	esac
@@ -110,7 +110,7 @@ curl_check(){
 	fi
 	type=$(uci_get_by_name $1 type)
 	if [ $type = tun ];then
-		curl --interface $(uci_get_by_name $1 iface br-lan) --resolve dns.google:443:8.8.8.8 -so /dev/null --connect-timeout 20 https://dns.google;return $?
+		curl --interface $(uci_get_by_name $1 iface br-lan) --resolve www.google.com:443:216.239.38.120 -so /dev/null --connect-timeout 20 https://www.google.com;i=$?
 		[ $i = 0 ] || log "Server : $($UCI$1.alias || uci_get_by_name $1 server) cURL check error, Try to switch another server."
 		return $i
 	elif [ $type != socks5 ];then
@@ -245,7 +245,7 @@ while :;do
 	if [ $a = 1 ];then
 		log "Current server : $($UCI$SERVER_B.alias || uci_get_by_name $SERVER_B server) error.Try to switch another server."
 		select_proxy
-		if [ $SERVER_C != 0 ];then
+		if [ $SERVER_C != nil ];then
 			log "Another server : $($UCI$SERVER_C.alias || uci_get_by_name $SERVER_C server) is available.Now switching server."
 			SERVER_B=$SERVER_C
 			switch_proxy
@@ -255,7 +255,6 @@ while :;do
 		fi
 	elif [ $a = 2 ];then
 		log "Network Problem. Do nothing."
-	        /usr/share/bypass/checknetwork check
 	fi
 	sleep $time_a
 done

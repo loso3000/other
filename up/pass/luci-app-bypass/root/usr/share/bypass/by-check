@@ -13,12 +13,12 @@ end
 socket=nixio.socket("inet","stream")
 socket:setopt("socket","rcvtimeo",t)
 socket:setopt("socket","sndtimeo",t)
---print("Detecting ports on server: "..addr..":"..port.."...")
+print("Detecting ports on server: "..addr..":"..port.."...")
 if socket:connect(addr,port) then
-	--print("Port open")
+	print("Port open")
 	os.exit(0)
 else
-	--print("Port closed")
+	print("Port closed")
 	os.exit(1)
 end
 socket:close()

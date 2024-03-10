@@ -139,6 +139,8 @@ o.rawhtml = true
 o.template = "bypass/ssrurl"
 o.value = sid
 
+o = s:option(Value, "alias", translate("Alias(optional)"))
+
 o = s:option(ListValue, "type", translate("Server Node Type"))
 if is_finded("xray") or is_finded("v2ray") then
 	o:value("v2ray", translate("V2Ray/XRay"))
@@ -153,7 +155,7 @@ if is_finded("sslocal") or is_finded("ssmanager") then
 	o:value("ss", translate("Shadowsocks-rust Version"))
 end
 if is_finded("trojan-plus")  or is_finded("trojan") then
-	o:value("trojan", translate("Trojan"))
+	o:value("trojan", translate("Trojan-plus"))
 end
 if is_finded("naive") then
 	o:value("naiveproxy", translate("NaiveProxy"))
@@ -173,8 +175,6 @@ end
 
 o.description = translate("Using incorrect encryption mothod may causes service fail to start")
 
-o = s:option(Value, "alias", translate("Alias(optional)"))
-
 o = s:option(ListValue, "iface", translate("Network interface to use"))
 for _, e in ipairs(luci.sys.net.devices()) do
 	if e ~= "lo" then
@@ -187,7 +187,7 @@ o.description = translate("Redirect traffic to this network interface")
 o = s:option(ListValue, "v2ray_protocol", translate("V2Ray/XRay protocol"))
 o:value("vless", translate("VLESS"))
 o:value("vmess", translate("VMess"))
-o:value("trojan", translate("Trojan"))
+o:value("trojan", translate("Trojan-plus"))
 o:value("shadowsocks", translate("Shadowsocks"))
 if is_finded("xray") then
 	o:value("wireguard", translate("WireGuard"))
@@ -527,6 +527,7 @@ o:depends({type = "v2ray", v2ray_protocol = "vmess"})
 -- VmessId
 o = s:option(Value, "vmess_id", translate("Vmess/VLESS ID (UUID)"))
 o.rmempty = true
+o.password = true
 o.default = uuid
 o:depends({type = "v2ray", v2ray_protocol = "vmess"})
 o:depends({type = "v2ray", v2ray_protocol = "vless"})
@@ -591,7 +592,7 @@ o.rmempty = true
 -- [[ WS部分 ]]--
 -- WS域名
 o = s:option(Value, "ws_host", translate("WebSocket Host"))
-o:depends({transport = "ws", tls = false})
+o:depends({transport = "ws"})
 o.datatype = "hostname"
 o.rmempty = true
 
@@ -850,6 +851,7 @@ o:depends("type", "hysteria2")
 o.rmempty = true
 
 o = s:option(DynamicList, "tls_alpn", translate("TLS ALPN"))
+
 o:depends("tls", true)
 o:depends("type", "tuic")
 o:depends("type", "hysteria")
