@@ -623,7 +623,7 @@ local execute = function()
 				end
 				for _, v in ipairs(nodes) do
 					if v then
-				       xpcall(function ()
+				        xpcall(function ()
 						local result
 						if szType=='ssd' then
 							result = processData(szType, v)
