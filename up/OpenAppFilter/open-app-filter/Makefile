@@ -20,6 +20,7 @@ define Build/Prepare
 	cp -rf ./src/* $(PKG_BUILD_DIR)
 endef
 
+TARGET_CFLAGS += -Wno-implicit-function-declaration -Wno-int-conversion
 define Build/Compile
 	$(MAKE) -C $(PKG_BUILD_DIR)/ \
 	CC="$(TARGET_CROSS)gcc" \
