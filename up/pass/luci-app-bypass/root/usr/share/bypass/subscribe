@@ -752,7 +752,6 @@ local execute = function()
 				if not ucic:get(name, globalServer) then
 					ucic:set(name, ucic:get_first(name, 'global'), 'global_server', ucic:get_first(name, uciType))
 					ucic:commit(name)
-					Z='1'
 					log('当前主服务器节点为空，自动启用到第一个节点。')
 				else
 					log('维持当前主服务器节点。')
@@ -766,9 +765,7 @@ local execute = function()
 				luci.sys.call("/etc/init.d/" .. name .. " stop > /dev/null 2>&1 &")
 			end
 		end
-	if proxy=='0' or Z=='1' then
 		SYS.call("/etc/init.d/bypass start > /dev/null 2>&1 &")
-	end
 	end
 end
 

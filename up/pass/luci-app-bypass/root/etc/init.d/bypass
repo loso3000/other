@@ -1304,7 +1304,7 @@ start_monitor(){
 
 start(){
         enabled=$(uci -q get ${NAME}.@global[0].enabled) 
-	[ $enabled == 0 ] && stop && exit 1
+	[ $enabled == 0 ] && exit 1
 	[ -f $LOC ] && exit 1
 	touch $LOC
 	[ ! -s $LOG ]  && echo '' > $LOG
