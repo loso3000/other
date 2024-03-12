@@ -2081,7 +2081,11 @@ table>tbody>tr,div>.table>.tr,.cbi-map>.cbi-section .cbi-value {
 }
 
 #lease6_status_table tr>td>img,#online_status_table tr>td>img,#lease_status_table tr>td>img {
-    width: 50px!important
+    width: 40px!important
+}
+
+#online_status_table tr>td {
+  padding: 0.5em 1.5rem;
 }
 .container .alert, .container .alert-message {
 	margin-top: 1rem;
