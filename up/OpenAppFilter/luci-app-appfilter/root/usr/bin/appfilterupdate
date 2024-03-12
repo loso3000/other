@@ -1,0 +1,49 @@
+#!/bin/sh
+
+TMPDIR=/tmp
+TMP=$TMPDIR/upfeature.cfg.new
+LOG=$TMPDIR/oafupdate.log
+CFGDIR=/etc/appfilter
+
+log() {
+ [ ! -f $LOG ] && touch $LOG
+ echo "$(date +'%Y-%m-%d %H:%M:%S') $*" >> $LOG
+ echo "$(date +'%Y-%m-%d %H:%M:%S') $*"
+}
+
+exist() {
+  command -v "$1" >/dev/null 2>&1
+}
+
+clean_log() {
+	local logsnum=$(cat $LOG 2>/dev/null | wc -l)
+	[ "$logsnum" -gt 100 ] && {
+		echo "$(date "+%Y-%m-%d %H:%M:%S") LOG long ,clear log!" >$LOG
+	}
+}
+update() {
+kill -9 $(busybox ps -w | grep 'curl' | grep 'feature.cfg'| grep -v 'grep' | awk '{print $1}') 2>/dev/null
+[ -f $TMP ] && rm -f $TMP
+space=$(uci -q get appfilter.global.filter_space)
+if [ $space -eq 0 ];then
+ CFG=$CFGDIR/feature_cn.cfg
+ URL=`uci get appfilter.global.update_url 2>/dev/null` || URL="https://gh.404delivr.workers.dev/https://raw.githubusercontent.com/destan19/OpenAppFilter/master/open-app-filter/files/feature_cn.cfg"
+ curl -kLfsm 3 -o  $TMP $URL || curl -Lfsm 5 -o $TMP https://gh.404delivr.workers.dev/https://raw.githubusercontent.com/destan19/OpenAppFilter/master/open-app-filter/files/feature_cn.cfg
+else
+ CFG=$CFGDIR/feature_en.cfg
+ URL="http://www.openappfilter.com/assets/feature/feature2.0_en_22.12.01.cfg"
+ curl -kLfsm 3 -o  $TMP $URL || curl -Lfsm 5 -o $TMP https://gh.404delivr.workers.dev/https://raw.githubusercontent.com/destan19/OpenAppFilter/master/open-app-filter/files/feature_en.cfg
+fi
+        if ! cmp -s $TMP $CFG ;then
+			cp -f $TMP $CFG 
+			log "Appfilter Update  : Updated feature.cfg List !"
+	else
+			log "Appfilter Update  : feature.cfg is new."
+			exit 1
+	fi
+}
+clean_log
+update
+rm -f $TMP
+/etc/init.d/appfilter restart
+
