@@ -8,7 +8,7 @@
 # Blog: https://mlapp.cn
 #=================================================
 
-if [ $1 == amd64 ] ;then
+if [ $1 == xxamd64 ] ;then
 BASE_FILES=${GITHUB_WORKSPACE}/openwrt/package/base-files/files
 singbox_version="1.8.8"
 hysteria_version="2.3.0"
