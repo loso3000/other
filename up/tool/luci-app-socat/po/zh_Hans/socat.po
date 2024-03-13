@@ -1,5 +1,5 @@
 msgid "Socat"
-msgstr "Socat"
+msgstr "端口映射"
 
 msgid "Socat is a relay for bidirectional data transfer between two independent data channels."
 msgstr "Socat 是用于在两个独立数据通道之间进行双向数据传输的中继器。"
