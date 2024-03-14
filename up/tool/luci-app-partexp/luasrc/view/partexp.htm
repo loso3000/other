@@ -83,7 +83,7 @@ function apply_run(btn){
 	var kconfig = opt.get("keep_config").checked ? 1 : 0;
     else
 	var kconfig = 0;
-	
+	console.log(kconfig);
 
 	XHR.get('<%=url([[admin]], [[system]], [[partexp]], [[partexprun]])%>',{
             targetf: targetf,
