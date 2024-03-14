@@ -1,7 +1,8 @@
-msgid "Speed Limit"
+
+msgid "SpeedLimit"
 msgstr "用户限速"
 
-msgid "CowB Speed Limit can limit user's speed via MAC or IP or IP range."
+msgid "Speed Limit can limit user's speed via MAC or IP or IP range."
 msgstr "可以通过MAC或IP或IP段限制用户网速。"
 
 msgid "Running state"
