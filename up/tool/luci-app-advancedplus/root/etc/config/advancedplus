@@ -9,7 +9,7 @@ config basic
 	option font_x '0.875rem'
 	option bklock '1'
 	option setbar '1'
-	option dayword '1'
+	option dayword '0'
 	option background '0'
 	option bgqs '1'
 	option mode 'light'
