@@ -67,7 +67,7 @@ wantest() {
     echo -ne "\n   ————————————————————\n"  >> $LOG
      ;;
     *)  
-    echo -e "  —————python3-speedtest测速$TESTMODE—————"  >> $LOG
+    echo -ne "\n  —————python3-speedtest测速$TESTMODE—————"  >> $LOG
     info=$($BINTEMP > $TMP_T 2>&1 )
     echo -ne "\n   测服信息:$(cat  $TMP_T | grep 'Hosted by'| cut -c10- | awk -F: '{printf $1}')  延时：$(cat  $TMP_T | grep 'Hosted by' | awk -F: '{printf $2}')" >> $LOG
     echo -ne "\n  下行速率:$(cat  $TMP_T  | grep 'Download:' |awk -F: '{printf $2}' )"   >> $LOG
