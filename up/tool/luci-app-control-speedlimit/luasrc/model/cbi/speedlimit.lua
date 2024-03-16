@@ -12,7 +12,7 @@ else
 end
 
 m = Map("speedlimit", translate("SpeedLimit"))
-m.description = translate("Speed Limit can limit user's speed via MAC or IP or IP range.").. translate("The denomination is MB/S. You can type in 0 and move the rule to top to unlimit someone to exclude for overlapping IP range, click --custom-- (at the bottom of the MAC list) to type in IP or IP range or IP with mask.") .. "<br/><br/>" .. translate("Running state") .. state_msg .. "<br />"
+m.description = translate("The denomination is MB/S. You can type in 0 and move the rule to top to unlimit someone to exclude for overlapping IP range.") .. "<br/><br/>" .. translate("Running state") .. state_msg .. "<br />"
 
 s = m:section(TypedSection, "usrlimit")
 s.template = "cbi/tblsection"
@@ -23,7 +23,7 @@ s.sortable  = true
 e = s:option(Flag, "enable", translate("Enable"))
 e.rmempty = false
 
-usr = s:option(Value, "usr",translate("MAC/IP/IPrange<font color=\"green\">(MAC support the separation is : or - .)</font>"))
+usr = s:option(Value, "usr",translate("MAC/IP/IPrange"))
 sys.net.mac_hints(function(mac, name)
 	usr:value(mac, "%s (%s)" %{ mac, name })
 end)
