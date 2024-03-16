@@ -65,7 +65,7 @@ start()
 		ethtool -K $c tx-checksum-ipv6 on >/dev/null 2>&1)
 		ethtool -K $c tx-scatter-gather on >/dev/null 2>&1
 		ethtool -K $c gso on >/dev/null 2>&1
-		ethtool -K $c tso on >/dev/null 2>&1
+		ethtool -K $c tso off >/dev/null 2>&1
 		ethtool -K $c ufo on >/dev/null 2>&1
 	done
 }
