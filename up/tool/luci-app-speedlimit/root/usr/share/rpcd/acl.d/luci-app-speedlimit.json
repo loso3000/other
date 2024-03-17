@@ -1,0 +1,11 @@
+{
+	"luci-app-speedlimit": {
+		"description": "Grant UCI access for luci-app-speedlimit",
+		"read": {
+			"uci": [ "speedlimit" ]
+		},
+		"write": {
+			"uci": [ "speedlimit" ]
+		}
+	}
+}
