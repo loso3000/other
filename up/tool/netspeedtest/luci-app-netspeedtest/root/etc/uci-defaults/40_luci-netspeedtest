@@ -6,5 +6,11 @@ chmod +x /etc/init.d/partexp  >/dev/null 2>&1
 [  `uci -q get netspeedtest.speedtestport` ]  || uci set netspeedtest.speedtestport=speedtestport
 [  `uci -q get netspeedtest.speedtestwan` ]  || uci set netspeedtest.speedtestport=speedtestwan
 
+LOGD=/etc/netspeedtest
+LOG=$LOGD/netspeedtest.log
+LOGT=$LOGD/netspeedtestpos
+[ -d "$LOGD" ] || mkdir -p $LOGD
+[ -f "$LOG" ] || echo "start" > $LOG
+[ -f "$LOGT" ] || echo "start" > $LOGT
 rm -rf /tmp/luci-modulecache /tmp/luci-indexcache*
 exit 0
