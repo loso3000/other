@@ -29,24 +29,6 @@ define Package/$(PKG_NAME)/conffiles
 /etc/config/speedlimit
 endef
 
-define Package/$(PKG_NAME)/install
-	$(INSTALL_DIR) $(1)/usr/lib/lua/luci
-	cp -pR ./luasrc/* $(1)/usr/lib/lua/luci
+include $(TOPDIR)/feeds/luci/luci.mk
 
-	$(INSTALL_DIR) $(1)/etc/init.d
-	$(INSTALL_BIN) ./root/etc/init.d/* $(1)/etc/init.d/
-
-	$(INSTALL_DIR) $(1)/etc/hotplug.d/iface
-	$(INSTALL_BIN) ./root/etc/hotplug.d/iface/* $(1)/etc/hotplug.d/iface/
-	
-	$(INSTALL_DIR) $(1)/etc/uci-defaults
-	$(INSTALL_BIN) ./root/etc/uci-defaults/* $(1)/etc/uci-defaults/
-	
-	$(INSTALL_DIR) $(1)/etc/config
-	$(INSTALL_CONF) ./root/etc/config/* $(1)/etc/config/
-
-	# $(INSTALL_DIR) $(1)/usr/lib/lua/luci/i18n
-	# po2lmo ./po/zh-cn/*.po $(1)/usr/lib/lua/luci/i18n/speedlimit.zh-cn.lmo
-endef
-
-$(eval $(call BuildPackage,$(PKG_NAME)))
+# call BuildPackage - OpenWrt buildroot signature
