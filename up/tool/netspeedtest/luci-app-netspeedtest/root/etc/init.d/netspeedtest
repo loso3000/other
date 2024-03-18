@@ -15,7 +15,13 @@ EXTRA_COMMANDS="wantest"
 TMP_T=/var/netspeedtest_nstest.tmp
 BINSPEEDTEST='/usr/bin/speedtest'
 LOCK=/var/lock/netspeedtest_nstest.lock
-LOG=/var/log/netspeedtest.log
+LOGD=/etc/netspeedtest
+LOG=$LOGD/netspeedtest.log
+LOGT=$LOGD/netspeedtestpos
+[ -d "$LOGD" ] || mkdir -p $LOGD
+[ -f "$LOG" ] || echo "start" > $LOG
+[ -f "$LOGT" ] || echo "start" > $LOGT
+
 MAX_LOG=500
 limit_log() {
 	local logf=$1
@@ -29,10 +35,6 @@ limit_log() {
 	fi
 }
 
-init_log() {
-	local logf=$1
-	[ ! -f "$logf" ] && echo "" > $logf
-}
 
 echone() {
   echo -ne $* >> $LOG
@@ -42,7 +44,6 @@ echone() {
 wantest() {
     [ -f $LOCK ] && exit
     limit_log $LOG 500
-    init_log $LOG
     touch $LOCK
     TESTMODE=$1
     BINTEMP=$(git_bin_handle $TESTMODE)
@@ -50,31 +51,31 @@ wantest() {
     # echone "\n  BINTEMP:  $BINTEMP "  | tee -a $LOG
     case $TESTMODE in
     0) 
-    echo -ne "\n   —————ookla-speedtest测速$TESTMODE—————" >> $LOG
-    info=$($BINTEMP > $TMP_T 2>&1 )
+    echo -ne "\n   —————ookla-speedtest测速$TESTMODE—————" | tee -a $LOG
+    $BINTEMP | tee -a $TMP_T
     RESULT=$(cat  $TMP_T | grep 'URL' | cut -c15-)
     if [ -n "$RESULT" ] ;then
-    echo -ne "\n   测服信息:`cat  $TMP_T | grep 'Server'| cut -c10- | awk -F: '{printf $2$3}'`  线路:`cat  $TMP_T | grep 'ISP' | awk -F: '{printf $2}' `  延时：`cat  $TMP_T | grep 'Latency' | awk -F: '{printf $2}'  | awk -F '(' '{printf $1}'`"  >> $LOG
-    echo -ne "\n   下行速率:`cat  $TMP_T  | grep 'Download' |awk -F: '{printf $2}'  | awk -F '(' '{printf $1}'`  --"  >> $LOG
-    echo -ne  "--  上行速率:`cat  $TMP_T  | grep 'Upload' |awk -F: '{printf $2}' | awk -F '(' '{printf $1}'`"  >> $LOG
-    echo -ne "\n   测速结果图片链接:`cat  $TMP_T | grep 'URL' | cut -c15-`"  >> $LOG
-    echo -ne "$RESULT"
+    echo -ne "\n   测服信息:`cat  $TMP_T | grep 'Server'| cut -c10- | awk -F: '{printf $2$3}'`  线路:`cat  $TMP_T | grep 'ISP' | awk -F: '{printf $2}' `  延时：`cat  $TMP_T | grep 'Latency' | awk -F: '{printf $2}'  | awk -F '(' '{printf $1}'`"  | tee -a $LOG
+    echo -ne "\n   下行速率:`cat  $TMP_T  | grep 'Download' |awk -F: '{printf $2}'  | awk -F '(' '{printf $1}'`  --"  | tee -a $LOG
+    echo -ne  "--  上行速率:`cat  $TMP_T  | grep 'Upload' |awk -F: '{printf $2}' | awk -F '(' '{printf $1}'`"  | tee -a $LOG
+    echo -ne "\n   测速结果图片链接:`cat  $TMP_T | grep 'URL' | cut -c15-`"  | tee -a $LOG
+    echo -ne "$RESULT" 
     else
-    echo -ne "\n  因客户端在LUCI状态下无法执行，测试失败！" >> $LOG
-    echo -ne "\n  请SSH登陆后输入 ：/etc/init.d/netspeedtest wantest 0 然后等完成后，刷新后查看记录！" >> $LOG
+    echo -ne "\n  因客户端在LUCI状态下无法执行，测试失败！" | tee -a $LOG
+    echo -ne "\n  请SSH登陆后输入 ：/etc/init.d/netspeedtest wantest 0 然后等完成后，刷新后查看记录！" | tee -a $LOG
     fi
-    echo -ne "\n   测试时间: `date +%Y-%m-%d' '%H:%M:%S`"  >> $LOG
-    echo -ne "\n   ————————————————————\n"  >> $LOG
+    echo -ne "\n   测试时间: `date +%Y-%m-%d' '%H:%M:%S`"  | tee -a $LOG
+    echo -ne "\n   ————————————————————\n"  | tee -a $LOG
      ;;
     *)  
-    echo -ne "\n  —————python3-speedtest测速$TESTMODE—————"  >> $LOG
-    info=$($BINTEMP > $TMP_T 2>&1 )
-    echo -ne "\n   测服信息:$(cat  $TMP_T | grep 'Hosted by'| cut -c10- | awk -F: '{printf $1}')  延时：$(cat  $TMP_T | grep 'Hosted by' | awk -F: '{printf $2}')" >> $LOG
-    echo -ne "\n  下行速率:$(cat  $TMP_T  | grep 'Download:' |awk -F: '{printf $2}' )"   >> $LOG
-    echo -ne "  ----  上行速率:$(cat  $TMP_T  | grep 'Upload:' |awk -F: '{printf $2}' )"  >> $LOG
-    echo -ne "\n   测试结果图片链接:$(cat  $TMP_T  | grep 'results:' | cut -c16- )"  >> $LOG
-    echo -ne "\n   测试时间:`date +%Y-%m-%d" "%H:%M:%S`"  >> $LOG
-    echo -ne "\n   ————————————————————\n"  >> $LOG
+    echo -ne "\n  —————python3-speedtest测速$TESTMODE—————"  | tee -a $LOG
+    $BINTEMP | tee -a $TMP_T
+    echo -ne "\n   测服信息:$(cat  $TMP_T | grep 'Hosted by'| cut -c10- | awk -F: '{printf $1}')  延时：$(cat  $TMP_T | grep 'Hosted by' | awk -F: '{printf $2}')" | tee -a $LOG
+    echo -ne "\n  下行速率:$(cat  $TMP_T  | grep 'Download:' |awk -F: '{printf $2}' )"   | tee -a $LOG
+    echo -ne "  ----  上行速率:$(cat  $TMP_T  | grep 'Upload:' |awk -F: '{printf $2}' )"  | tee -a $LOG
+    echo -ne "\n   测试结果图片链接:$(cat  $TMP_T  | grep 'results:' | cut -c16- )"  | tee -a $LOG
+    echo -ne "\n   测试时间:`date +%Y-%m-%d" "%H:%M:%S`"  | tee -a $LOG
+    echo -ne "\n   ————————————————————\n"  | tee -a $LOG
     echo -ne $(cat  $TMP_T  | grep 'results:' | awk '{print $NF}')
 
      ;;  

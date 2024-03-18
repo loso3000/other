@@ -2,8 +2,8 @@ module("luci.controller.speedlimit", package.seeall)
 
 function index()
 	if not nixio.fs.access("/etc/config/speedlimit") then return end
-    entry({"admin", "control"}, firstchild(), "Control", 44).dependent = false
-	local e = entry({"admin","control","speedlimit"},cbi("speedlimit"),_("Speed Limit"),67)
-	e.dependent=false
-        e.acl_depends = { "luci-app-speedlimit" }
+	local e = entry({"admin","control","speedlimit"},alias("admin", "control", "speedlimit", "speedlimit"),_("Speed Limit"), 54)
+	e.dependent = false
+	e.acl_depends = { "luci-app-partexp" }
+	entry({"admin", "control", "speedlimit", "speedlimit"},cbi("speedlimit"),_("Speed Limit"),67).leaf = true 
  end
