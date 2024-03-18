@@ -1198,6 +1198,8 @@ add_cron(){
 			echo "5 $(uci_get_by_type server_subscribe auto_update_time 6) * * * $BIN_DIR/subscribe" >>$CRON_FILE
 			/etc/init.d/cron restart
 		fi
+	else
+	    grep $NAME $CRON_FILE && sed -i "/$NAME/d" $CRON_FILE && /etc/init.d/cron restart
 	fi
 }
 
@@ -1383,7 +1385,7 @@ stop(){
 	[ $(iptables -nL | grep BY-SERVER-RULE | wc -l) = 0 ] || (iptables -F BY-SERVER-RULE && iptables -X BY-SERVER-RULE;while iptables -D INPUT -j BY-SERVER-RULE 2>/dev/null;do :;done)
 
 	rm -rf $DNS_DIR $VAR $DNS_FILE $CON_T /tmp/lock/$NAME-update.lock $MDNS $FWI
-	[ -z "$GLOBAL_SERVER" ] && grep -q $NAME $CRON_FILE && sed -i '/$NAME/d' $CRON_FILE && /etc/init.d/cron restart
+	[ -z "$GLOBAL_SERVER" ] && grep $NAME $CRON_FILE && sed -i "/$NAME/d" $CRON_FILE && /etc/init.d/cron restart
 	if [ $STATUS = Y -o -z "$GLOBAL_SERVER" ];then
 		if [[ ` uci -q get AdGuardHome.AdGuardHome.redirectold ` ]]; then
 				uci -q set AdGuardHome.AdGuardHome.enabled='0'

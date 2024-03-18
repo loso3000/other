@@ -334,8 +334,7 @@ local function processData(szType, content)
 			content = content:sub(0, idx_sp - 1)
 		end
 		result.alias = UrlDecode(alias)
-		result.type = "Trojan-Plus"
-
+		result.type = "trojan"
 		if content:find("@") then
 			local Info = split(content, "@")
 			result.password = UrlDecode(Info[1])
@@ -374,7 +373,6 @@ local function processData(szType, content)
 		                 result.insecure = insecure and "1" or "0"
 			end
 		end
-		
 
 	elseif szType == "ssd" then
 		result.type = v2_ss
@@ -391,6 +389,7 @@ local function processData(szType, content)
 		else
 			result.plugin = content.plugin
 		end
+		
 	elseif szType == "vless" then
 		result.type = "v2ray"
 		result.v2ray_protocol = "vless"
@@ -430,14 +429,15 @@ local function processData(szType, content)
 			result.transport = params.type
 			if params.type == 'ws' then
 
-			result.ws_host = (result.tls ~= "1") and (params.host and UrlDecode(params.host)) or nil
-			result.ws_path = params.path and UrlDecode(params.path) or "/"
+				result.ws_host = (result.tls ~= "1") and (params.host and UrlDecode(params.host)) or nil
+				result.ws_path = params.path and UrlDecode(params.path) or "/"
 
 
 		        elseif result.transport == "http" or result.transport == "h2" then
-			result.transport = "h2"
-			result.h2_host = params.host and UrlDecode(params.host) or nil
-			result.h2_path = params.path and UrlDecode(params.path) or nil
+			
+				result.transport = "h2"
+				result.h2_host = params.host and UrlDecode(params.host) or nil
+				result.h2_path = params.path and UrlDecode(params.path) or nil
 			elseif params.type == 'tcp' then
 				result.tcp_guise = params.headerType or "none"
 				if result.tcp_guise == "http" then
@@ -674,7 +674,7 @@ local execute = function()
 							 	log('丢弃节点:' .. result.alias .. ",找不到可使用二进制.")
 							elseif not result.server or  result.alias == "NULL" or check_filer(result)  then
 								num=num+1
-								log('丢弃无效节点: ' .. szType .. ' 节点: ' .. result.alias )
+								log('丢弃过滤节点: ' .. result.type .. ' 节点: ' .. result.alias )
 							else
 								-- log('成功解析: ' .. result.type ..' 节点: ' .. result.alias)
 								result.grouphashkey = groupHash
