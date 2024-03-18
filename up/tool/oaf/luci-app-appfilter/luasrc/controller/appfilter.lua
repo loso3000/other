@@ -8,7 +8,7 @@ function index()
 	end
 	local page
 	page = entry({"admin", "control", "appfilter"},
-		alias("admin", "control", "appfilter", "Basic Settings"), _("App Filter"), 20)
+		alias("admin", "control", "appfilter", "base_setting"), _("App Filter"), 20)
 	page.dependent = true
 	page.acl_depends = { "luci-app-appfilter" }
 

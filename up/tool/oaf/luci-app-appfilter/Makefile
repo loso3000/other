@@ -11,9 +11,6 @@ LUCI_DEPENDS:=+appfilter +kmod-oaf  +luci-compat
 
 PKG_VERSION:=5.0.2
 
-define Package/$(PKG_NAME)/conffiles
-/etc/config/appfilter
-endef
 include $(TOPDIR)/feeds/luci/luci.mk
 
 # call BuildPackage - OpenWrt buildroot signature
