@@ -6,10 +6,12 @@ function index()
 	if not nixio.fs.access("/etc/config/appfilter") then
 		return
 	end
-        entry({"admin", "control"}, firstchild(), "Control", 44).dependent = false
-	local e = entry({"admin","control","appfilter"},firstchild(),_("Basic Settings"),20)
-	e.dependent=false
-	e.acl_depends = { "luci-app-appfilter" }
+	local page
+	page = entry({"admin", "control", "appfilter"},
+		alias("admin", "control", "appfilter", "Basic Settings"), _("App Filter"), 20)
+	page.dependent = true
+	page.acl_depends = { "luci-app-appfilter" }
+
 	entry({"admin", "control", "appfilter", "base_setting"},   cbi("appfilter/base_setting"), _("Basic Settings"), 20).leaf=true
 
 	entry({"admin", "control", "appfilter", "user_list"}, 

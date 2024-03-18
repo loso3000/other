@@ -8,9 +8,8 @@ include $(TOPDIR)/rules.mk
 LUCI_TITLE:=Open App Filter Module
 LUCI_PKGARCH:=all
 LUCI_DEPENDS:=+appfilter +kmod-oaf  +luci-compat
-PKG_NAME:=luci-app-appfilter
+
 PKG_VERSION:=5.0.2
-PKG_RELEASE:=1
 
 define Package/$(PKG_NAME)/conffiles
 /etc/config/appfilter
