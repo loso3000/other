@@ -73,7 +73,6 @@ XHR.poll(3, '<%=url([[admin]], [[network]], [[netspeedtest]], [[netcheck]])%>', 
 	function(x, data) {
 		var lv = document.getElementById('cbid.logview.test.conf');
 
-	console.log(x.responseText);
 		if (x.responseText && lv) {
 			if (x.responseText=="\u0000"){
 				for(j = 0,len=this.XHR._q.length; j < len; j++) {
