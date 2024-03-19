@@ -12,7 +12,7 @@ function index()
 
 	local e = entry({"admin","network","netspeedtest"},alias("admin", "network", "netspeedtest", "speedtestlan"),_("Net Speedtest"),90)
 	e.dependent = false
-	e.acl_depends = { "luci-app-appfilter" }
+	e.acl_depends = { "luci-app-netspeedtest" }
 	
 	entry({"admin", "network", "netspeedtest", "speedtestlan"},cbi("netspeedtest/speedtestlan"),_("Lan Speedtest Web"),20).leaf = true
 	entry({"admin", "network", "netspeedtest", "speedtestiperf3"},cbi("netspeedtest/speedtestiperf3", {hideapplybtn=true, hidesavebtn=true, hideresetbtn=true}),_("Lan Speedtest Iperf3"),30).leaf = true
