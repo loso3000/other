@@ -608,11 +608,11 @@ local execute = function()
 	-- exec
 	do
 		local i=0
-		log('--------------------开始订阅---------------------')
 		if proxy=='0' then
 			log('服务正在暂停')
 			SYS.init.stop(name)
 		end
+		log('--------------------开始订阅---------------------')
 		for k,url in ipairs(subscribe_url) do
 			i=i+1
 			local raw=curl(url)
@@ -742,17 +742,18 @@ local execute = function()
 				end
 			end
 		end
-		ucic:commit(name)
 		log('--------------------------------------------------')
 		log('新增节点数量: ' .. add, '删除节点数量: ' .. del)
 		local globalServer = ucic:get_first(name, 'global', 'global_server', '')
-		if globalServer ~= "nil" then
-			local firstServer = ucic:get_first(name, uciType)
-			if firstServer then
+		local enabled = ucic:get_first(name, 'global', 'enabled', 0)
+		if globalServer and enabled=='1' then
+			if ucic:get_first(name,uciType) then
 				if not ucic:get(name, globalServer) then
-					ucic:set(name, ucic:get_first(name, 'global'), 'global_server', ucic:get_first(name, uciType))
 					ucic:commit(name)
-					log('当前主服务器节点为空，自动启用到第一个节点。')
+
+					ucic:set(name, ucic:get_first(name, 'global'), 'global_server', ucic:get_first(name, uciType))
+					log('当前主服务器节点为空，自动更换到第一个节点。')
+					Z='1'
 				else
 					log('维持当前主服务器节点。')
 				end
@@ -764,8 +765,13 @@ local execute = function()
 				log('没有服务器节点了，停止服务')
 				luci.sys.call("/etc/init.d/" .. name .. " stop > /dev/null 2>&1 &")
 			end
+		else
+		
+	   		 luci.sys.call("/etc/init.d/" .. name .. " stop > /dev/null 2>&1 &")
 		end
-		SYS.call("/etc/init.d/bypass start > /dev/null 2>&1 &")
+	        ucic:commit(name)
+
+
 	end
 end
 
