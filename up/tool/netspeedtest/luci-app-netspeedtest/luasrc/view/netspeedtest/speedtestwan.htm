@@ -8,11 +8,25 @@
 <%local fs=require"nixio.fs"%>
 <input type="button" class="btn cbi-button cbi-button-apply" id="apply_run_button" value="<%:Click to execute%>" onclick=" return apply_run(this) "/>
 <div id="logview" style="display:none">
-<textarea id="cbid.logview.1.conf" class="cbi-input-textarea" style="width: 100%;display:block;" data-update="change" rows="20" cols="80" readonly="readonly" > </textarea>
+<input type="checkbox" id="reversetag" value="reverse" onclick=" return reverselog()" style="vertical-align:middle;height: auto;"><%:reverse%></input>
+<textarea id="cbid.logview.test.conf" class="cbi-input-textarea" style="width: 100%;display:block;" data-update="change" rows="20" cols="80" readonly="readonly" > </textarea>
 </div>
 <script type="text/javascript">//<![CDATA[
 	const RUN_URL = '<%=luci.dispatcher.build_url("admin", "network", "netspeedtest","speedtestwanrun")%>';
     const S_URL = '<%=luci.dispatcher.build_url("admin", "network", "netspeedtest","netcheck")%>';
+var checkbtn = document.getElementById('apply_run_button');
+
+var islogreverse = false;
+function reverselog(){
+	var lv = document.getElementById('cbid.logview.test.conf');
+	lv.innerHTML=lv.innerHTML.split('\n').reverse().join('\n')
+	if (islogreverse){
+	islogreverse=false;
+	}else{
+	islogreverse=true;
+	}
+	return
+}
 function apply_run(btn) {
 
 	var sid='speedtestwan'
@@ -45,8 +59,6 @@ function apply_run(btn) {
 	btn.disabled=true;
     var cli=opt.get("speedtest_cli").value;
 	console.log(cli);
-	
-
         XHR.get(RUN_URL, { cli: cli	},
 		(x) =>{}
 	);
@@ -56,11 +68,12 @@ function apply_run(btn) {
 
 function poll_check(){
 var tag = document.getElementById('logview');
-var checkbtn = document.getElementById('apply_run_button');
 tag.style.display="block"
 XHR.poll(3, '<%=url([[admin]], [[network]], [[netspeedtest]], [[netcheck]])%>', null,
 	function(x, data) {
-		var lv = document.getElementById('cbid.logview.1.conf');
+		var lv = document.getElementById('cbid.logview.test.conf');
+
+	console.log(x.responseText);
 		if (x.responseText && lv) {
 			if (x.responseText=="\u0000"){
 				for(j = 0,len=this.XHR._q.length; j < len; j++) {
@@ -71,14 +84,17 @@ XHR.poll(3, '<%=url([[admin]], [[network]], [[netspeedtest]], [[netcheck]])%>', 
 						break;
 					}
 				}
-
+				return	
 			}
+			if (islogreverse){
+				lv.innerHTML = x.responseText.split('\n').reverse().join('\n')+lv.innerHTML;
+			}else{
+				lv.innerHTML += x.responseText;
+		          }
 		}
-	});
-    return false;
-}
+	}
+);}
 
-   
 //]]>
 </script>
 <%+cbi/valuefooter%>
