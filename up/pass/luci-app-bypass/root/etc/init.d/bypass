@@ -55,7 +55,6 @@ switch_server=$1
 server_count=0
 PS="busybox ps -w"
 STATUS=Y
-DEBUG=0
 
 uci_get_by_name() {
 	local ret=$(uci get $NAME.$1.$2 2>/dev/null)
@@ -281,7 +280,6 @@ get_soip(){
 
 rules(){
 	server=$(uci_get_by_name $GLOBAL_SERVER server)
-	[ $DEBUG ] && echo "[DEBUG] Start rules  server:$server"
 	if [ ! $server ];then
 		get_soip 1;return 1
 	fi
@@ -296,12 +294,10 @@ rules(){
 	if [ ! -s $VAR/china.txt ] || [ ! -s $VAR/china_v6.txt ] || [ ! -s $VAR/gfw.list ] ;then
 		if [ ! -s $T_FILE/china.txt ] || [ ! -s $T_FILE/china_v6.txt ] || [ ! -s $T_FILE/gfw.list ] ;then
 			log "Rules      : Download IP/GFW files."
-			[ $DEBUG ] && echo "[DEBUG] Start rules update --First"
 			$BIN_DIR/update --First ;exit 0;
 		else
 			cp -f $T_FILE/*.txt $VAR
 			cp -f $T_FILE/gfw.list $VAR
-			[ $DEBUG ] && echo "[DEBUG] Start rules update cp"
 		fi
 	fi
 	log "Rules      : Check IP/GFW files success!"
@@ -309,7 +305,6 @@ rules(){
 	kcp_enable=$(uci_get_by_name $GLOBAL_SERVER kcp_enable 0)
 	server=$(host_ip $GLOBAL_SERVER)
 	[ $kcp_enable = 1 ] && kcp_server=$server
-	[ $DEBUG ] && echo "[DEBUG] Start rules kcp_enable: server:$server  GLOBAL_SERVER:$GLOBAL_SERVER kcp_enable:$kcp_enable"
 	#udp
 	UDP_RELAY_SERVER=$(uci_get_by_type global udp_relay_server)
 	[ $UDP_RELAY_SERVER ] || UDP_RELAY_SERVER=
@@ -319,7 +314,6 @@ rules(){
 		UDP_RELAY_SERVER=
 	fi
 	#nf
-	[ $DEBUG ] && echo "[DEBUG] Start rules kcp_enable: UDP_RELAY_SERVER:$UDP_RELAY_SERVER kcp_enable:$(uci_get_by_name $UDP_RELAY_SERVER kcp_enable)"
 	if [ $run_mode != oversea ];then
 	 NF_SERVER=$(uci_get_by_type global nf_server)
  	   [ "$NF_SERVER" = $GLOBAL_SERVER ] && NF=1 || [ ! $(uci_get_by_name $NF_SERVER server) ] && NF_SERVER=
@@ -339,11 +333,9 @@ rules(){
 		UDP=1
 	fi
 
-	[ $DEBUG ] && echo "[DEBUG] Start rules  udp_server=$udp_server  GLOBAL_SERVER:$GLOBAL_SERVER UDP_RELAY_SERVER:$UDP_RELAY_SERVER"
 	ttype=$(uci_get_by_name $GLOBAL_SERVER type)
 	utype=$(uci_get_by_name $UDP_RELAY_SERVER type)
 	if [ "$UDP" = 1 ];then
-	[ $DEBUG ] && echo "[DEBUG] Rules Start:UDP -S $udp_server -L $local_port" 
 		[ $ttype = trojan -o $utype = trojan ] && [ $udp_local_port = $local_port ] && let udp_local_port=local_port+1
 		[ $ttype = hysteria2 -o $utype = hysteria2 ] && [ $udp_local_port = $local_port ] && let udp_local_port=local_port+1
 		UDP="-S $udp_server -L $udp_local_port"
@@ -368,7 +360,6 @@ rules(){
 	fi
 	[ "$NF" = 1 ] && NF="-N $nf_ip -P $nf_local_port"
 	get_soip
-	[ $DEBUG ] && echo "[DEBUG] Rules Start: run_mode:$run_mode server:$server   NF_SERVER:$NF_SERVER   nf_ip:$nf_ip" 
 	if [ -n "$lan_ac_ips" ];then
 		case $lan_ac_mode in
 			w|W|b|B)local ac_ips="$lan_ac_mode$lan_ac_ips";;
@@ -395,7 +386,6 @@ rules(){
 
 start_retcp(){
 	rtype=tcp
-	[ $DEBUG ] && echo "[DEBUG] start_retcp:  kcp_enable:$kcp_enable" 
 	if [ $kcp_enable = 1 ];then
 		cmd=$(which kcptun-client) || cmd=0
 		[ ! $cmd ] && 	log "Main Node: Can't find KCPTUN program, start failed!" && return 1
@@ -410,11 +400,9 @@ start_retcp(){
 	fi
 	threads=$(uci_get_by_type global threads 0)
 	[ $threads = 0 ] && threads=$(cat /proc/cpuinfo | grep 'processor' | wc -l)
-	[ $DEBUG ] && echo "[DEBUG] start_retcp:  threads:$threads" 
 	cmd=$(f_bin $ttype)
 	[ ! $cmd ] && log "Main Node: Can't find $(echo $ttype | tr a-z A-Z) program, start failed!"  && return 1
 
-	[ $DEBUG ] && echo "[DEBUG] start_retcp:   ttype:$ttype" 
 	redir_tcp=1
 	case $ttype in
 	ss|ssr)
@@ -482,18 +470,15 @@ start_retcp(){
 		log "Main Node: Network Tunnel $threads Threads Started!"
 		;;
 	esac
-	[ $DEBUG ] && echo "[DEBUG] start_retcp: end" 
 	log "Main Node: Main Server $(uci_get_by_name $GLOBAL_SERVER alias)  Started!"
 }
 
 start_reudp(){
 	rtype=udp
-	 [ $DEBUG ] && echo "[DEBUG] start_reudp start"
 	cmd=$(f_bin $utype)
 	[ ! $cmd ] && log "UDP Node: Can't find $(echo $utype | tr a-z A-Z) program, start failed!" && return 1
 
 	redir_udp=1
-	 [ $DEBUG ] && echo "[DEBUG] start_reudp utype:$utype"
 	case $utype in
 	ss|ssr)
 		gen_config_file $UDP_RELAY_SERVER $rtype
@@ -537,7 +522,6 @@ start_reudp(){
 		log "Network Tunnel UDP Relay $utype not supported!"
 		;;
 	esac
-	 [ $DEBUG ] && echo "[DEBUG] start_reudp  end"
 	log "UDP Node: UDP Server $(uci_get_by_name  $UDP_RELAY_SERVER alias)  Started!"
 }
 
@@ -1315,26 +1299,17 @@ start(){
 		switch_enable=1
 	fi
 	if rules;then
-			[ $DEBUG ] && echo "[DEBUG] Start tcp"
 		if start_retcp;then
-			[ $DEBUG ] && echo "[DEBUG] Start udp  UDP_RELAY_SERVER:$UDP_RELAY_SERVER"
 			[ -n "$UDP_RELAY_SERVER" ] && start_reudp
-			[ $DEBUG ] && echo "[DEBUG] Start nf:$NF"
 			[ -n "$NF" ] && start_renf
-			[ $DEBUG ] && echo "[DEBUG] Start dns:$dns_mode"
 			[ "x$dns_mode" = "x1" ] && gen_smartdns || gen_mosdns
-			[ $DEBUG ] && echo "[DEBUG] Start switch"
 			start_switch
 			add_cron
 		fi
 	fi
-	[ $DEBUG ] && echo "Start start_local"
 	[ "$SO_SERVER" -a "$socks5_start" != 1 ] && start_local
-	[ $DEBUG ] && echo "Start start_server "
 	start_server 
-	[ $DEBUG ] && echo "Start start_monitor"
 	start_monitor
-	[ $DEBUG ] && echo "Start start_AdGuardHome"
 	adbin="$(uci -q get AdGuardHome.AdGuardHome.binpath)"
 	if [[ -x /etc/init.d/AdGuardHome && -x "$adbin" ]]; then
 		if [[ $adguardhome == 1 && -n "$GLOBAL_SERVER" ]]; then
