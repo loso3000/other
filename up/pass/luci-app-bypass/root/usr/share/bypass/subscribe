@@ -745,15 +745,13 @@ local execute = function()
 		log('--------------------------------------------------')
 		log('新增节点数量: ' .. add, '删除节点数量: ' .. del)
 		local globalServer = ucic:get_first(name, 'global', 'global_server', '')
-		local enabled = ucic:get_first(name, 'global', 'enabled', 0)
-		if globalServer and enabled=='1' then
-			if ucic:get_first(name,uciType) then
+		if globalServer ~= "nil" then
+			local firstServer = ucic:get_first(name, uciType)
+			if firstServer then
 				if not ucic:get(name, globalServer) then
-					ucic:commit(name)
-
 					ucic:set(name, ucic:get_first(name, 'global'), 'global_server', ucic:get_first(name, uciType))
+					ucic:commit(name)
 					log('当前主服务器节点为空，自动更换到第一个节点。')
-					Z='1'
 				else
 					log('维持当前主服务器节点。')
 				end
@@ -763,15 +761,18 @@ local execute = function()
 				ucic:delete(name,ucic:get_first(name,'global'),'nf_server')
 				ucic:commit(name)
 				log('没有服务器节点了，停止服务')
-				luci.sys.call("/etc/init.d/" .. name .. " stop > /dev/null 2>&1 &")
+				SYS.exec("/etc/init.d/" .. name .. " stop > /dev/null 2>&1 &")
 			end
-		else
-		
-	   		 luci.sys.call("/etc/init.d/" .. name .. " stop > /dev/null 2>&1 &")
 		end
-	        ucic:commit(name)
 
+		ucic:commit(name)
 
+		local enabled = ucic:get_first(name, 'global', 'enabled', 0)
+		if  enabled=='0' or globalServer == "nil" then
+			SYS.exec("/etc/init.d/" .. name .. " stop > /dev/null 2>&1 &")
+		else
+	   		SYS.exec("/etc/init.d/" .. name .. " restart > /dev/null 2>&1 &")
+	        end
 	end
 end
 
