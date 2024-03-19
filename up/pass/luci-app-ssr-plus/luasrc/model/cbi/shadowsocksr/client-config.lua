@@ -337,7 +337,7 @@ o:depends({type = "hysteria", flag_transport = true})
 o:value("udp", translate("UDP"))
 o.default = "udp"
 o.rmempty = true
-o = s:option(Value, "hopinterval", translate("Hop Interval(Unit:Second)"))
+o = s:option(Value, "hopinterval", translate("Port Hopping Interval(Unit:Second)"))
 o:depends({type = "hysteria", flag_transport = true, flag_port_hopping = true})
 o.datatype = "uinteger"
 o.rmempty = true
@@ -366,7 +366,8 @@ o = s:option(Flag, "flag_quicparam", translate("Hysterir QUIC parameters"))
 o:depends("type", "hysteria")
 o.rmempty = true
 o.default = "0"
-o = s:option(Flag, "disablepathmtudiscovery", translate("Disable QUIC path MTU discovery."))
+
+o = s:option(Flag, "disablepathmtudiscovery", translate("Disable QUIC path MTU discovery"))
 o:depends({type = "hysteria",flag_quicparam = "1"})
 o.rmempty = true
 o.default = false

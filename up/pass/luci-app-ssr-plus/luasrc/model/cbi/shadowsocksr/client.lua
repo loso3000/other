@@ -11,7 +11,6 @@ local function is_finded(e)
 end
 
 m = Map("shadowsocksr")
-
 m:section(SimpleSection).template = "shadowsocksr/status"
 
 local server_table = {}
@@ -79,7 +78,6 @@ o.default = "0"
 o.rmempty = false
 
 o = s:option(ListValue, "run_mode", translate("Running Mode"))
-
 o:value("gfw", translate("GFW List Mode"))
 o:value("router", translate("IP Route Mode"))
 o:value("all", translate("Global Mode"))
@@ -91,7 +89,7 @@ o:value("1", translate("All Ports"))
 o:value("2", translate("Only Common Ports"))
 o:value("3", translate("Custom Ports"))
 cp = s:option(Value, "custom_ports", translate("Enter Custom Ports"))
-cp:depends("dports", "3")  -- 仅当用户选择“Custom Ports”时显示
+cp:depends("dports", "3")  -- 浠呭綋鐢ㄦ埛閫夋嫨鈥淐ustom Ports鈥濇椂鏄剧ず
 cp.placeholder = "e.g., 80,443,8080"
 o.default = 1
 
@@ -133,6 +131,7 @@ o:value("tcp://4.2.2.3:53,tcp://4.2.2.4:53", translate("Level 3 Public DNS-3 (4.
 o:value("tcp://1.1.1.1:53,tcp://1.0.0.1:53", translate("Cloudflare DNS"))
 o:depends("pdnsd_enable", "3")
 o.description = translate("Custom DNS Server for mosdns")
+
 o = s:option(Flag, "mosdns_ipv6", translate("Disable IPv6 in MOSDNS query mode"))
 o:depends("pdnsd_enable", "3")
 o.rmempty = false

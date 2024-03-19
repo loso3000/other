@@ -6,6 +6,8 @@ PKG_VERSION:=190
 PKG_RELEASE:=3
 
 PKG_CONFIG_DEPENDS:= \
+	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_NONE_V2RAY \
+	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_V2ray \
 	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_Xray \
 	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_ChinaDNS_NG \
 	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_MosDNS \
@@ -34,6 +36,8 @@ LUCI_DEPENDS:= \
 	+coreutils +coreutils-base64 +dns2socks +dns2tcp +dnsmasq-full +@PACKAGE_dnsmasq_full_ipset +ipset +kmod-ipt-nat \
 	+ip-full +iptables +iptables-mod-tproxy +lua +lua-neturl +libuci-lua +microsocks \
 	+tcping +resolveip +shadowsocksr-libev-ssr-check +uclient-fetch \
+	+PACKAGE_$(PKG_NAME)_INCLUDE_V2ray:curl \
+	+PACKAGE_$(PKG_NAME)_INCLUDE_V2ray:v2ray-core \
 	+PACKAGE_$(PKG_NAME)_INCLUDE_Xray:curl \
 	+PACKAGE_$(PKG_NAME)_INCLUDE_Xray:xray-core \
 	+PACKAGE_$(PKG_NAME)_INCLUDE_ChinaDNS_NG:chinadns-ng \
@@ -94,9 +98,20 @@ choice
 	depends on !(TARGET_x86_geode||TARGET_x86_legacy)
 endchoice
 
-config PACKAGE_$(PKG_NAME)_INCLUDE_Xray
+choice
+	prompt "V2ray-core Selection"
+	default PACKAGE_$(PKG_NAME)_INCLUDE_Xray if aarch64||arm||i386||x86_64
+	default PACKAGE_$(PKG_NAME)_INCLUDE_NONE_V2RAY
+
+	config PACKAGE_$(PKG_NAME)_INCLUDE_NONE_V2RAY
+	bool "None"
+
+	config PACKAGE_$(PKG_NAME)_INCLUDE_V2ray
+	bool "V2ray-core"
+
+	config PACKAGE_$(PKG_NAME)_INCLUDE_Xray
 	bool "Xray-core"
-	default y
+endchoice
 
 config PACKAGE_$(PKG_NAME)_INCLUDE_ChinaDNS_NG
 	bool "Include ChinaDNS-NG"
