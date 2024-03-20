@@ -475,6 +475,7 @@ local function processData(szType, content)
 				result.fingerprint = (params.fp and params.fp ~= "") and params.fp or "chrome"
 				if params.security == "reality" then
 					result.reality = "1"
+					result.tls = "0"
 					result.reality_publickey = params.pbk or nil
 					result.reality_shortId = params.sid or nil
 					result.reality_spiderX = params.spx or nil

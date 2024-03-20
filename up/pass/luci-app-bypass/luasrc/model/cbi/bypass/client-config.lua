@@ -799,6 +799,7 @@ o.default = "0"
 
 if is_finded("xray") then
 	-- [[ REALITY ]]
+
 	o = s:option(Flag, "reality", translate("REALITY"))
 	o.rmempty = true
 	o.default = "0"
