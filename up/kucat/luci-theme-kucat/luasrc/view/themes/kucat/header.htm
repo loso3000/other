@@ -13,6 +13,7 @@
 -%>
 
 <%
+	local ver = require "luci.version"
 	local sys  = require "luci.sys"
 	local util = require "luci.util"
 	local http = require "luci.http"
@@ -21,14 +22,9 @@
 	local fs = require "nixio.fs"
 	local nutil = require "nixio.util"
 	local uci = require 'luci.model.uci'.cursor()
-	local urlencode  
-	if luci.http.protocol and luci.http.protocol.urlencode then  
-    	urlencode = luci.http.protocol.urlencode  
-	else  
-    	urlencode = luci.util.urlencode  
-	end  
-	local boardinfo = util.ubus("system", "board")
 
+	local boardinfo = util.ubus("system", "board")
+	local urlencode = luci.http.protocol and luci.http.protocol.urlencode or luci.util.urlencode
 	local request  = disp.context.path
 	local request2 = disp.context.request
 
@@ -396,9 +392,9 @@
 <header class="bar-primary">
 		<div id="header-bar-left" class="container-bar-left">
 			<a class="labelbar pdboy-closebar" href="javascript:void(0)" onclick="pdclosebar()" title="Close" ></a>
-  			<a class="labelbar pdboy-gohome" href="<%=gohome%>" title="<%=Status%>"></a>
-  		    <a class="labelbar pdboy-goadvanced" href="<%=gouser%>" title="<%=System%>"></a>
-  			<a class="labelbar pdboy-gossr" href="<%=gossr%>" title="<%=Services%>"></a>
+  			<a class="labelbar pdboy-gohome" href="<%=gohome%>" title="<%:Status%>"></a>
+  		    <a class="labelbar pdboy-goadvanced" href="<%=gouser%>" title="<%:System%>"></a>
+  			<a class="labelbar pdboy-gossr" href="<%=gossr%>" title="<%:Services%>"></a>
   		    <a class="labelbar pdboy-gonet" href="<%=url("admin/network/network")%>" title="<%:Network%>"></a>
   		    <a class="labelbar pdboy-gopoweroff" href="<%=url("admin/system/reboot")%>" title="<%:Reboot%>"></a>
 		</div>
@@ -437,7 +433,7 @@
                </div>
             </header>
 		<div class="darkMask"></div>
-            <div class="login-bg" style="<%=loginbk_use%>;"></div>
+            <div class="login-bg" style="<%=loginbk_use%>"></div>
 		<div id="maincontent">
 			<div class="container">
 				<%- if luci.sys.process.info("uid") == 0 and luci.sys.user.getuser("root") and not luci.sys.user.getpasswd("root") then -%>
