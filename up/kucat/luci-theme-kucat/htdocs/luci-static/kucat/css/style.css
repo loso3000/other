@@ -81,16 +81,18 @@ html, body {
 	padding: 0;
 }
 body {
-    letter-spacing: 0.050em;
-    font-size: var(--font-x);
-    overflow-x: hidden;
-    color: var(--body-color);
-	background-position: top center;
-	-webkit-background-size: cover;
-	-moz-background-size: cover;
-	-o-background-size: cover;
-	background-size: cover;
-	background-repeat: no-repeat;
+letter-spacing: 0.050em;
+  font-size: var(--font-x);
+  overflow-x: hidden;
+  color: var(--body-color);
+  background-position: top center;
+  -webkit-background-size: cover;
+  background: fixed;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+  background-repeat: no-repeat;
+
 }
 
 body div {
@@ -1439,14 +1441,14 @@ body.lang_pl.node-main-login .cbi-value-title {
     height: 100%;
     left: 0px;
     top: 0px;
-    background-size: cover;
     background-position: top center;
-	transition: all 0.1s;
+    transition: all 0.1s;
     -webkit-background-size: cover;
     -moz-background-size: cover;
     -o-background-size: cover;
     background-size: cover;
-	background-repeat: no-repeat;
+    background: fixed;
+    background-repeat: no-repeat;
 }
 
 .node-main-login>.main>.main-right>.login-bg.blur {
