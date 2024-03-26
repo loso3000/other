@@ -32,6 +32,8 @@ SDNS=/tmp/etc/smartdns
 DNS_T=$SDNS/smartdns-by.conf
 MDNS=/tmp/etc/mosdns
 MDNS_T=$MDNS/mosdns-by.yaml
+NAME=bypass
+VAR=/tmp/etc/$NAME
 [ "$password" != "" ] && password="--key "${password}
 
 log() {
@@ -39,8 +41,8 @@ log() {
 }
 
 re(){
-	/etc/init.d/$NAME restart
-	exit 0
+	/etc/init.d/$NAME stop
+	/etc/init.d/$NAME start
 }
 
 while :;do
@@ -62,13 +64,12 @@ while :;do
 		t=`busybox ps -w | grep by-reudp | grep -v grep | wc -l`
 		if [ $t = 0 ];then
 			log "Redir UDP :$redir_udp Error. Restart!"
-			/etc/init.d/bypass restart >/dev/null 2>&1
-			exit 0
+			re
 		fi
 	fi
 #redir netflix
 	if [ $redir_nf = 1 ] && [ $(busybox ps -w | grep by-nf | grep -v grep | wc -l) = 0 ];then
-			log "Redir Netflix :$redir_nf Error. Restart!"
+		log "Redir Netflix :$redir_nf Error. Restart!"
 		re
 	fi
 
@@ -86,22 +87,22 @@ while :;do
 	if [ $chinadns = 1 ] && [ $(busybox ps -w | grep chinadns-ng | grep -v grep  | wc -l) = 0 ];then
 			log "ChinaDNS-NG :$chinadns Error. Restart!"
 			kill -9 $(busybox ps -w | grep chinadns-ng | grep -v grep | awk '{print$1}') 2>/dev/null
-			$(which chinadns-ng) -l 5337 -c '127.0.0.1#5336' -t '127.0.0.1#5335' -4 china_v4  -p 3  -6 china_v6 -f -n $([ $gfw_mode = 1 ] && echo -g /tmp/etc/bypass/gfw.list) >/dev/null 2>&1 &
-		        if [ "x$dns_mode" = "x1" ] ;then
-			   service_start $(which chinadns-ng) -l 5337 -c '127.0.0.1#5336' -t '127.0.0.1#5335' -4 china_v4  -p 3 -6 china_v6 -f -n $([ $gfw_mode = 1 ] && echo -g $VAR/gfw.list) 
+		        if [ "$dns" -eq 1 ] ;then
+			    # service_start $(which chinadns-ng) -l 5337 -c '127.0.0.1#5336' -t '127.0.0.1#5335' -4 china_v4  -p 3  -6 china_v6 -f -n $([ $gfw_mode = 1 ] && echo -g /tmp/etc/bypass/gfw.list) >/dev/null 2>&1 &
+			    service_start $(which chinadns-ng) -l 5337 -c '127.0.0.1#5336' -t '127.0.0.1#5335' -4 china_v4  -p 3 -6 china_v6 -f -n $([ $gfw_mode = 1 ] && echo -g $VAR/gfw.list)  >/dev/null 2>&1 &
 		        else
 			   bootstrap_dns=$(uci_get_by_type global bootstrap_dns '114.114.114.114')
-			   service_start $(which chinadns-ng) -l 5337 -c "${bootstrap_dns}#53" -t '127.0.0.1#5335' -4 china_v4  -p 3 -6 china_v6 -f -n $([ $gfw_mode = 1 ] && echo -g $VAR/gfw.list) 
+			   service_start $(which chinadns-ng) -l 5337 -c "${bootstrap_dns}#53" -t '127.0.0.1#5335' -4 china_v4  -p 3 -6 china_v6 -f -n $([ $gfw_mode = 1 ] && echo -g $VAR/gfw.list)  >/dev/null 2>&1 &
 		        fi
 	fi
 #localsocks
 	if [ $socks5 = 1 ] && [ $(busybox ps -w | grep by-socks | grep -v grep  | wc -l) = 0 ];then
-			log "Global Socks Server :$socks5 Error. Restart!"
+		log "Global Socks Server :$socks5 Error. Restart!"
 		re
 	fi
 #server
 	if [ $server_count -gt 0 ] && [ $(busybox ps -w | grep by-server | grep -v grep  | wc -l) -lt $server_count ];then
-			log "SSR Server :$server_count Error. Restart!"
+		log "SSR Server :$server_count Error. Restart!"
 		re
 	fi
 done
