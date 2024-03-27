@@ -130,6 +130,7 @@ String.prototype.replaceAll = function(search, replacement) {
     else if (targetElem.className.indexOf('cbi-button-edit') > -1) {
       renamePath(targetElem.parentNode.parentNode.dataset['filename']);
     }
+
     else if (targetElem = getFileElem(targetElem)) {
       if (targetElem.className.indexOf('parent-icon') > -1) {
         update_list(currentPath.replace(/\/[^/]+($|\/$)/, ''));
@@ -270,6 +271,26 @@ String.prototype.replaceAll = function(search, replacement) {
     }
   };
 
+  document.getElementById('mkdir-toggle').onclick = function() {
+    var dirname = null;
+    if (dirname = prompt("请输入文件夹名称：")) {
+      var formData = new FormData();
+      formData.append('path', currentPath);
+      formData.append('dirname', dirname);
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", "/cgi-bin/luci/admin/system/fileassistant/mkdir", true);
+      xhr.onload = function() {
+        if (xhr.status == 200) {
+          var res = JSON.parse(xhr.responseText);
+          refresh_list(res.data, currentPath);
+        }
+        else {
+          alert('创建失败，请稍后再试...');
+        }
+      };
+      xhr.send(formData);
+    }
+  };
   document.addEventListener('DOMContentLoaded', function(evt) {
     var initPath = '/';
     if (/path=([/\w]+)/.test(location.search)) {

@@ -2,6 +2,7 @@ module("luci.controller.fileassistant", package.seeall)
 
 function index()
 
+
     local page
     page = entry({"admin", "system", "fileassistant"}, template("fileassistant"), _("文件管理"), 84)
     page.i18n = "base"
@@ -24,6 +25,9 @@ function index()
     page.leaf = true
 
     page = entry({"admin", "system", "fileassistant", "install"}, call("fileassistant_install"), nil)
+    page.leaf = true
+
+    page = entry({"admin", "system", "fileassistant", "mkdir"}, call("fileassistant_mkdir"), nil)
     page.leaf = true
 
 end
@@ -112,12 +116,15 @@ function fileassistant_upload()
     local filecontent = luci.http.formvalue("upload-file")
     local filename = luci.http.formvalue("upload-filename")
     local uploaddir = luci.http.formvalue("upload-dir")
-    local filepath = uploaddir..filename
 
     local fp
     luci.http.setfilehandler(
         function(meta, chunk, eof)
             if not fp and meta and meta.name == "upload-file" then
+                if not uploaddir or not filename then
+                    error("uploaddir or filename is nil")
+                end
+                local filepath = uploaddir..filename
                 fp = io.open(filepath, "w")
             end
             if fp and chunk then
@@ -131,7 +138,12 @@ function fileassistant_upload()
 
     list_response(uploaddir, true)
 end
-
+function fileassistant_mkdir()
+    local path = luci.http.formvalue("path")
+    local dirname = luci.http.formvalue("dirname")
+    local success = os.execute('sh -c \'cd "'..path..'" && mkdir -p "'..dirname..'"\'')
+    list_response(path, success)
+end
 function scandir(directory)
     local i, t, popen = 0, {}, io.popen
 

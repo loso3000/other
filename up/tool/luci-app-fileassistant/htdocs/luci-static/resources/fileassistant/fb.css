@@ -14,9 +14,9 @@
     border-bottom: none;
 }
 .fb-container .panel-container {
-    display: flex;
+display: flex;
   padding-bottom: 1rem;
-    align-items: center;
+  align-items: center;
   justify-content: space-evenly;
     border-bottom: 1px solid #aaa;
 }
