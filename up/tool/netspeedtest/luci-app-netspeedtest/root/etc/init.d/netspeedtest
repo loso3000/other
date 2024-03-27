@@ -20,7 +20,7 @@ LOG=/var/log/netspeedtest.log
 LOGE=$LOGD/netspeedtest.log
 LOGT=$LOGD/netspeedtestpos
 [ -d "$LOGD" ] || mkdir -p $LOGD
-[ -f "$LOGE" ] || echo "start" > $LOG
+[ -f "$LOGE" ] || echo "start" > $LOGE
 [ -f "$LOGT" ] || echo "start" > $LOGT
 [ -f "$LOG" ] || echo "start" > $LOG
 
