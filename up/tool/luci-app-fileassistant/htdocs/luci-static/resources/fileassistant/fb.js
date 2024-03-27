@@ -157,7 +157,13 @@ String.prototype.replaceAll = function(search, replacement) {
     }
   }
   function refresh_list(filenames, path) {
-    var listHtml = '<table class="cbi-section-table"><tbody>';
+    var listHtml = '<table class="cbi-section-table"><thead><tr class="cbi-section-table-row cbi-rowstyle-2">'
+      +'<td class="cbi-value-field">文件</td>'
+      +'<td class="cbi-value-field">修改时间</td>'
+      +'<td class="cbi-value-field">大小</td>'
+      +'<td class="cbi-value-field  cbi-value-perm">权限</td>'
+      +'<td class="cbi-section-table-cell">操作</td>'
+      +'</tr></thead><tbody>';
     if (path !== '/') {
       listHtml += '<tr class="cbi-section-table-row cbi-rowstyle-2"><td class="parent-icon" colspan="6"><strong>..返回上级目录</strong></td></tr>';
     }
@@ -183,7 +189,14 @@ String.prototype.replaceAll = function(search, replacement) {
           if (ext === 'ipk') {
             install_btn = ' <button class="cbi-button cbi-button-install">安装</button>';
           }
-		  
+         var DateTime = new Date(o.date).toLocaleString('zh-CN', {  
+            year: 'numeric',  
+            month: '2-digit',  
+            day: '2-digit',  
+            hour: '2-digit',  
+            minute: '2-digit',  
+            second: '2-digit'  
+        });
           listHtml += '<tr class="cbi-section-table-row cbi-rowstyle-' + (1 + i%2)
             + '" data-filename="' + o.filename + '" data-isdir="' + Number(f[1][0] === 'd' || f[1][0] === 'z') + '"'
             + ((f[1][0] === 'z' || f[1][0] === 'l') ? (' data-linktarget="' + f[9].split(' -> ')[1]) : '')
@@ -192,7 +205,7 @@ String.prototype.replaceAll = function(search, replacement) {
             +   '<strong>' + o.displayname + '</strong>'
             + '</td>'
 
-            + '<td class="cbi-value-field cbi-value-date">'+o.date+'</td>'
+            + '<td class="cbi-value-field cbi-value-date">'+DateTime+'</td>'
             + '<td class="cbi-value-field cbi-value-size">'+o.size+'</td>'
             + '<td class="cbi-value-field cbi-value-perm">'+o.perms+'</td>'
             + '<td class="cbi-section-table-cell">\

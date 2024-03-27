@@ -27,24 +27,29 @@ text-align: left;
     display: none;
     margin: 1rem 0;
 }
+.fb-container table>tbody>tr>td {
+   padding: 0.5rem 1rem!important;
+}
 .fb-container .upload-file {
     margin-right: 2rem;
 }
+.fb-container .cbi-value-title {
+   text-align: right !important;
+}
 .fb-container .cbi-value-field {
-    text-align: left;
+    text-align: left !important;
 }
 .fb-container .parent-icon strong {
     margin-left: 1rem;
     font-size: 1rem;
 }
-.fb-container .cbi-section-table tr .cbi-value-field {
-text-align: left;
-}
+
 .fb-container td[class$="-icon"] {
     cursor: pointer;
 }
 .fb-container .file-icon, .fb-container .folder-icon, .fb-container .link-icon {
     position: relative;
+    white-space: nowrap;
 }
 .fb-container .file-icon:before, .fb-container .folder-icon:before, .fb-container .link-icon:before {
     display: inline-block;
@@ -52,7 +57,6 @@ text-align: left;
     height: 1.5rem;
     content: '';
     background-size: contain;
-    margin: 0 0.5rem 0 1rem;
     vertical-align: middle;
 }
 .fb-container .file-icon:before {
@@ -68,6 +72,9 @@ text-align: left;
     .fb-container .upload-file {
         width: 14.6rem;
     }
+.fb-container .cbi-value-title {
+   text-align: left !important;
+}
     .fb-container .cbi-value-owner,
     .fb-container .cbi-value-perm {
         display: none;
