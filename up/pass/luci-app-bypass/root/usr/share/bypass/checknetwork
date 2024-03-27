@@ -1,5 +1,5 @@
 #!/bin/sh
-[ "$1" = check ] || exit 1
+[ "x$1" = "xcheck" ] || exit 1
 NAME=bypass
 T_FILE=/etc/bypass
 log(){
@@ -7,7 +7,7 @@ log(){
 }
 
 B=0
-while ! curl -so /dev/null -m 3 www.baidu.com;do
+while ! curl -so /dev/null -m 3 www.taobao.com;do
    [ $B -ge 5 ]&& log "服务重启中...";/etc/init.d/$NAME stop;/etc/init.d/$NAME start
    log "请检查网络,服务重启倒计时：$((5-B))"
    let B++

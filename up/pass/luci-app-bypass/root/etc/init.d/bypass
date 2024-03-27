@@ -259,11 +259,10 @@ gen_config_file(){
 
 
 check_net(){
-	if ! curl -so /dev/null -m 3 www.baidu.com;then
+	if ! curl -so /dev/null -m 3 www.taobao.com;then
 		log "Rules     :Wait for network to connect..."
 		/etc/init.d/dnsmasq restart
 		$BIN_DIR/checknetwork check
-		exit 1
 	fi
 }
 
