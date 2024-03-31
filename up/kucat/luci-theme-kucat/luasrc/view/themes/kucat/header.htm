@@ -188,8 +188,8 @@
 		end
 	end
 	local bar='/cgi-bin/luci/admin/'
-	local bk_use='rgba(var(--primary-rgbbody),1)'
-    local loginbk_use = 'background: linear-gradient(0deg, rgba(var(--primary-rgbm), 1) 0%, rgba(var(--primary-rgbbody), 1) 100%)'
+	local bk_use='background: rgba(var(--primary-rgbbody),1)'
+    local loginbk_use = 'background: linear-gradient(0deg, rgba(var(--primary-rgbm), 1) 0%, rgba(var(--primary-rgbbody), 1) 100%);display: block;'
     if fs.access('/etc/config/advancedplus') then
       kucat = 'advancedplus'
 	elseif fs.access('/etc/config/kucat') then
