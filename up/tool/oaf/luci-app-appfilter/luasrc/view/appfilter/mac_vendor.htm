@@ -1,0 +1,13 @@
+
+<script src="/luci-static/resources/mac_vendor/mac_vendor.js?v=<%=math.random(1,100000)%>"></script>
+<script>
+    window.mac_vendor && window.mac_vendor.onready(function(api) {
+        $(document.getElementById('cbid.appfilter.user.users')).find('.cbi-checkbox').each(function(i,e){
+            var mac = e.querySelector('input.cbi-input-checkbox').value;
+            var vendor = api.query(mac);
+            if (vendor && vendor.vendor_cn) {
+                e.querySelector('span').innerText += (' ['+vendor.vendor_cn+']');
+            }
+        })
+    });
+</script>
