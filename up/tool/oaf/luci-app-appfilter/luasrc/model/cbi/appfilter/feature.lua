@@ -27,20 +27,18 @@ end
 local display_str = "<strong>"..translate("Current version")..":  </strong>" .. version .. 
                     "<br><strong>"..translate("Feature format")..":</strong>  " ..format ..
                     "<br><strong>"..translate("App number")..":</strong>  " ..rule_count
-local display_str2 = "<font color=\'green\'>此处可以自行添加、修改特征库。如更新失败，可至<a href=\'http://www.openappfilter.com/download.html\' target=\'_blank\'>官方特征库</a> 复制到此使用。官方特征库会被升级覆盖，如要修改请按示例添加至用户特征库。</font>"
+local display_str2 = "<font color=\'green\'>此处可以自行添加、修改特征库。如更新失败，可至<a href=\'https://www.openappfilter.com/#/feature\' target=\'_blank\'>官方特征库</a> 复制到此使用。官方特征库会被升级覆盖，如要修改请按示例添加至用户特征库。</font>"
 s = m:section(TypedSection, "global",  "", display_str)
 s.addremove = false
 s.anonymous = true
 
 o = s:option(DynamicList, "update_url", translate('更新特征库地址'))
 
-o:value("http://www.openappfilter.com/assets/feature/feature2.0_cn_23.07.29.cfg", translate("openappfilter2.0_cn-v230729"))
-o:value("http://www.openappfilter.com/assets/feature/feature2.0_cn_22.12.01.cfg", translate("openappfilter2.0_cn-v221201"))
-o:value("http://www.openappfilter.com/assets/feature/feature2.0_en_22.12.01.cfg", translate("openappfilter2.0_en-v221201"))
-o:value("https://gh.404delivr.workers.dev/https://raw.githubusercontent.com/destan19/OpenAppFilter/master/open-app-filter/files/feature_cn.cfg", translate("github-feature_cn"))
-o:value("https://gh.404delivr.workers.dev/https://raw.githubusercontent.com/destan19/OpenAppFilter/master/open-app-filter/files/feature_en.cfg", translate("github-feature_en"))
-o:value("http://www.openappfilter.com/assets/feature/feature2.0_en_22.12.01.cfg", translate("openappfilter_cn-v221201"))
-o.default = "http://www.openappfilter.com/assets/feature/feature2.0_cn_23.07.29.cfg"
+o:value("https://gh.404delivr.workers.dev/https://raw.githubusercontent.com/destan19/OpenAppFilter/master/open-app-filter/files/feature_cn.cfg", translate("destan19_cn_v22.3.24"))
+o:value("https://gh.404delivr.workers.dev/https://raw.githubusercontent.com/destan19/OpenAppFilter/master/open-app-filter/files/feature_en.cfg", translate("destan19_en_v22.3.24"))
+o:value("https://gh.404delivr.workers.dev/https://raw.githubusercontent.com/jjm2473/OpenAppFilter/master/open-app-filter/files/feature_cn.cfg", translate("jjm2473_cn_v23.07.29"))
+o:value("https://gh.404delivr.workers.dev/https://raw.githubusercontent.com/jjm2473/OpenAppFilter/dev4/open-app-filter/files/feature_en.cfg", translate("jjm2473_en_v23.07.29"))
+o.default = "https://gh.404delivr.workers.dev/https://raw.githubusercontent.com/jjm2473/OpenAppFilter/master/open-app-filter/files/feature_cn.cfg"
 
 o = s:option(Button, "Update", translate("手动更新官方特征库"))
 o.inputstyle = "apply"
