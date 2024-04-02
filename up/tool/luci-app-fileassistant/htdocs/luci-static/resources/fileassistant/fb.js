@@ -189,14 +189,15 @@ String.prototype.replaceAll = function(search, replacement) {
           if (ext === 'ipk') {
             install_btn = ' <button class="cbi-button cbi-button-install">安装</button>';
           }
-         var DateTime = new Date(o.date).toLocaleString('zh-CN', {  
-            year: 'numeric',  
-            month: '2-digit',  
-            day: '2-digit',  
-            hour: '2-digit',  
-            minute: '2-digit',  
-            second: '2-digit'  
-        });
+
+	var dateObj = new Date(o.date);
+var month = ('0' + (dateObj.getMonth() + 1)).slice(-2); // 月份从0开始，所以加1  
+var day = ('0' + dateObj.getDate()).slice(-2);  
+var hours = ('0' + dateObj.getHours()).slice(-2);  
+var minutes = ('0' + dateObj.getMinutes()).slice(-2);  
+var seconds = ('0' + dateObj.getSeconds()).slice(-2);  
+  
+var DateTime = month + '-' + day + ' ' + hours + ':' + minutes + ':' + seconds ;
           listHtml += '<tr class="cbi-section-table-row cbi-rowstyle-' + (1 + i%2)
             + '" data-filename="' + o.filename + '" data-isdir="' + Number(f[1][0] === 'd' || f[1][0] === 'z') + '"'
             + ((f[1][0] === 'z' || f[1][0] === 'l') ? (' data-linktarget="' + f[9].split(' -> ')[1]) : '')
