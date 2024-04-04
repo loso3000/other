@@ -1,0 +1,121 @@
+#!/usr/bin/lua
+
+local ucursor = require "luci.model.uci".cursor()
+local json = require "luci.jsonc"
+
+local server_section = arg[1]
+local proto = arg[2]
+local local_port = arg[3] or "0"
+local socks_port = arg[4] or "0"
+
+local node = ucursor:get_all("bypass", server_section)
+local server_host = node.server
+local server_port = node.server_port
+local server = server_host .. ":" .. server_port
+
+local hysteria = {
+    server = server,
+    protocol = node.transport_protocol or "udp",
+    obfs = node.hy_obfs_password or node.hy_auth_password,
+    auth = (node.hy_auth_type == "base64") and node.hy_auth_password or nil,
+    auth_str = (node.hy_auth_type == "string") and node.hy_auth_password or nil,
+    alpn = node.hy_alpn or nil,
+    server_name = node.tls_host or node.server,
+    insecure = (node.insecure == "1") and true or false,
+    up_mbps = tonumber(node.uplink_capacity) or 10,
+    down_mbps = tonumber(node.downlink_capacity) or 50,
+    retry = -1,
+    retry_interval = 5,
+    recv_window_conn = (node.hy_recv_window_conn) and tonumber(node.hy_recv_window_conn) or nil,
+    recv_window = (node.hy_recv_window) and tonumber(node.hy_recv_window) or nil,
+    disable_mtu_discovery = (node.hy_disable_mtu_discovery) and true or false,
+    socks5 = (proto:find("tcp") and tonumber(socks_port) and tonumber(socks_port) ~= 0) and {
+	listen = "0.0.0.0:" .. tonumber(socks_port),
+	disable_udp = false
+    } or nil,
+  tcpRedirect = (proto:find("tcp") and local_port ~= "0") and {
+		listen = "0.0.0.0:" .. tonumber(local_port)
+	} or nil,
+
+    tproxy_udp = (proto:find("udp") and local_port ~= "0") and {
+	listen = "0.0.0.0:" .. tonumber(local_port),
+        timeout = 60
+    } or nil
+}
+local hysteria2 = {
+	server = server,
+	fast_open = (node.fast_open == "1") and true or false,
+	lazy = (node.lazy_mode == "1") and true or false,
+	transport = {
+		type = node.transport_protocol or "udp",
+		udp = { 
+			hopInterval = tonumber(node.hopinterval) and tonumber(node.hopinterval) .. "s"  or "30s"
+		}
+	},
+
+	obfs = (node.hy2_obfs_password) and {
+			type = "salamander",
+			salamander = {
+				password = node.hy2_obfs_password
+			}
+	} or nil,
+
+	auth = node.hy2_auth_password,
+	tls = {
+		sni = node.tls_host,
+		insecure = (node.insecure == "1") and true or false,
+		pinSHA256 = (node.insecure == "1") and node.pinsha256 or nil
+	},
+
+	quic = {
+		initStreamReceiveWindow = (node.initstreamreceivewindow) and tonumber(node.initstreamreceivewindow) or nil,
+		initConnReceiveWindow = (node.initconnreceivewindow) and tonumber(node.initconnreceivewindow) or nil,
+		maxIdleTimeout = (node.maxidletimeout) and tonumber(node.maxidletimeout) or nil,
+		disablePathMTUDiscovery = (node.disablepathmtudiscovery == "1") and true or false
+	},
+	bandwidth = (node.uplink_capacity or node.downlink_capacity) and {
+			up = tonumber(node.uplink_capacity) and tonumber(node.uplink_capacity) .. " mbps" or nil,
+			down = node.downlink_capacity and node.downlink_capacity .. " mbps" or nil
+	} or nil,
+	socks5 = (proto:find("tcp") and tonumber(socks_port) and tonumber(socks_port) ~= 0) and {
+		listen = "0.0.0.0:" .. tonumber(socks_port),
+		disable_udp = false
+	} or nil,
+
+--[[
+	tcpTProxy = (proto:find("tcp") and local_port ~= "0") and {
+		listen = "0.0.0.0:" .. tonumber(local_port)
+	} or nil,
+]]
+
+	tcpRedirect = (proto:find("tcp") and local_port ~= "0") and {
+		listen = "0.0.0.0:" .. tonumber(local_port)
+	} or nil,
+
+	udpTProxy = (proto:find("udp") and local_port ~= "0") and {
+		listen = "0.0.0.0:" .. tonumber(local_port)
+	} or nil
+}
+
+local config = {}
+function config:new(o)
+	o = o or {}
+	setmetatable(o, self)
+	self.__index = self
+	return o
+end
+function config:handleIndex(index)
+	local switch = {
+		hysteria = function()
+			print(json.stringify(hysteria, 1))
+		end,
+		hysteria2 = function()
+			print(json.stringify(hysteria2, 1))
+		end,
+	}
+	if switch[index] then
+		switch[index]()
+	end
+end
+local f = config:new()
+f:handleIndex(node.type)

@@ -1,0 +1,22 @@
+#!/bin/sh
+[ "$1" = --down ] || exit 1
+K=/tmp/bypass/bin
+T=$K/tmp
+kill -9 $(ps -w | grep $T | grep -v grep | awk '{print$1}') 2>/dev/null
+mkdir -p $K
+if [ $2 = 1 ];then
+	while ! curl -m 9 -Lfso $T https://cdn.jsdelivr.net/gh/sirpdboy/list/K2P_16M/xray;do
+		sleep 2
+	done
+	base64 -d $T > $K/xray
+	chmod +x $K/xray
+fi
+if [ $3 = 1 ];then
+	while ! curl -m 9 -Lfso $T https://cdn.jsdelivr.net/gh/sirpdboy/list/K2P_16M/xray-plugin;do
+		sleep 2
+	done
+	base64 -d $T > $K/xray-plugin
+	chmod +x $K/xray-plugin
+fi
+rm -f $T
+[ $4 = 0 ] && /etc/init.d/bypass start &
