@@ -111,58 +111,7 @@ msgid "custom_tcpcongestion"
 msgstr "连接服务器节点的 TCP 拥塞控制算法"
 
 msgid "comment_tcpcongestion_disable"
-msgstr "使用系统默认值"
-
-
-msgid "custom_sniffing"
-msgstr "流量嗅探"
-
-msgid "custom_domainsExcluded"
-msgstr "流量嗅探域名排除列表"
-
-msgid "custom_routeOnly"
-msgstr "嗅探得到的域名仅用于 Xray 路由"
-
-
-msgid "custom_dns_enable"
-msgstr "Xray DNS 功能"
-
-msgid "comment_dns_inbound_enable"
-msgstr "监听 5335 端口，需要上传 geosite.dat 到 /usr/share/xray，更新固件后要重新上传"
-
-msgid "custom_dns_local"
-msgstr "本地 DNS"
-
-msgid "custom_dns_remote"
-msgstr "远端 DNS"
-
-msgid "custom_dns_remote_domains"
-msgstr "远端 DNS 域名列表"
-
-msgid "custom_dokodemo_door_dns_address"
-msgstr "查询非 A 和 AAAA 记录 DNS"
-
-msgid "custom_nonIPQuery"
-msgstr "非 A 和 AAAA 记录处理方式"
-
-msgid "custom_nonIPQuery_outbound_tag"
-msgstr "非 A 和 AAAA 记录查询方式"
-
-
-msgid "custom_log"
-msgstr "Xray 日志功能"
-
-msgid "custom_loglevel"
-msgstr "日志级别"
-
-msgid "custom_dnsLog"
-msgstr "DNS 查询记录"
-
-msgid "custom_access"
-msgstr "访问记录"
-
-msgid "custom_error"
-msgstr "错误记录"
+msgstr "系统默认值"
 
 
 msgid "If true, allowss insecure connection at TLS client, e.g., TLS server uses unverifiable certificates."
@@ -636,17 +585,8 @@ msgstr "使用 MOSDNS 查询"
 msgid "Custom DNS Server for mosdns"
 msgstr "MOSDNS 自定义 DNS 服务器"
 
-msgid "Domestic DNS Server (ChinaDNS Mode With MosDNS)"
-msgstr "国内 DNS 服务器 (MosDNS 下的 ChinaDNS 模式)"
-
 msgid "Disable IPv6 In MOSDNS Query Mode (Shunt Mode)"
 msgstr "禁止 MOSDNS 返回 IPv6 记录 (分流模式)"
-
-msgid "Prevent DNS leak (Only Work With ChinaDNS Mode)"
-msgstr "防止DNS泄漏 (仅适用于ChinaDNS模式)"
-
-msgid "Disable ChinaDNS in MosDNS"
-msgstr "禁用 MosDNS 下的 ChinaDNS 模式"
 
 msgid "DNS Server IP:Port"
 msgstr "DNS服务器 IP:Port"
@@ -957,14 +897,17 @@ msgstr "WebSocket 主机名"
 msgid "WebSocket Path"
 msgstr "WebSocket 路径"
 
-msgid "Enable early data"
-msgstr "启用前置数据"
-
 msgid "Max Early Data"
 msgstr "最大前置数据"
 
 msgid "Early Data Header Name"
 msgstr "前置数据标头"
+
+msgid "Httpupgrade Host"
+msgstr "HTTPUpgrade 主机名"
+
+msgid "Httpupgrade Path"
+msgstr "HTTPUpgrade 路径"
 
 msgid "HTTP/2 Host"
 msgstr "HTTP/2 主机名"
@@ -1011,9 +954,6 @@ msgstr "微信视频通话"
 msgid "DTLS 1.2"
 msgstr "DTLS 1.2 数据包"
 
-msgid "WireGuard"
-msgstr "WireGuard 数据包"
-
 msgid "MTU"
 msgstr "最大传输单元"
 
@@ -1047,9 +987,6 @@ msgstr "节点公钥"
 msgid "Pre-shared key"
 msgstr "预共享密钥"
 
-msgid "Packet Encoding"
-msgstr "数据包编码"
-
 msgid "Network interface to use"
 msgstr "使用的网络接口"
 
@@ -1065,9 +1002,6 @@ msgstr "重置完成"
 msgid "Reset Error"
 msgstr "重置错误"
 
-msgid "Reset pdnsd cache"
-msgstr "重置PDNSD缓存"
-
 msgid "Finger Print"
 msgstr "指纹伪造"
 
@@ -1076,9 +1010,6 @@ msgstr "重新应用"
 
 msgid "Apply"
 msgstr "应用"
-
-msgid "Default Packet Encoding"
-msgstr "默认数据包编码"
 
 msgid "Enable Netflix Mode"
 msgstr "启用 Netflix 分流模式"
@@ -1091,12 +1022,6 @@ msgstr "TUIC 服务器IP地址"
 
 msgid "TUIC User Password"
 msgstr "TUIC用户密钥"
-
-msgid "TUIC UserName For Local Socks"
-msgstr "用于本地 Socks 服务器连接的用户名"
-
-msgid "TUIC Password For Local Socks"
-msgstr "用于本地 Socks 服务器连接的密码"
 
 msgid "UDP relay mode"
 msgstr "UDP中继模式"
@@ -1134,9 +1059,6 @@ msgstr "发送窗口（无需确认即可发送的最大字节数：默认8Mb*2�
 msgid "TUIC receive window"
 msgstr "接收窗口（无需确认即可接收的最大字节数：默认8Mb）"
 
-msgid "Set if the listening socket should be dual-stack"
-msgstr "设置监听套接字为双栈"
-
 msgid "Dual-stack Listening Socket"
 msgstr "双栈Socket监听"
 
@@ -1145,9 +1067,3 @@ msgstr "socks5服务器可以从外部接收的最大数据包大小（单位：
 
 msgid "Disable ChinaDNS-NG"
 msgstr "直通模式（禁用ChinaDNS-NG）"
-
-msgid "MosDNS GeoIP List Data"
-msgstr "【MosDNS GeoIP】数据库"
-
-msgid "Dynamic Mode"
-msgstr "MosDNS动态模式"
