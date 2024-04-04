@@ -19,6 +19,7 @@ setipv6() {
 			uci -q set network.wan.ipv6='0'
 			uci -q set network.wan.delegate='0'
 			uci -q set network.lan.delegate='0'
+			uci del network.lan.ip6assign
 			# uci -q delete network.globals.ula_prefix
 		;;
 		1)
@@ -32,6 +33,9 @@ setipv6() {
 			uci -q set network.wan.ipv6='auto'
 			uci -q set network.wan.delegate='0'
 			uci -q set network.lan.delegate='0'
+			uci -q set network.lan.ip6assign='64'
+			uci -q set network.wan.master='1'
+			uci -q set dhcp.wan6.dhcpv6='relay'
 		;;
 		2)
 			uci -q set dhcp.lan.ra='relay'
@@ -45,6 +49,9 @@ setipv6() {
 			uci -q set network.wan.ipv6='auto'
 			uci -q set network.wan.delegate='0'
 			uci -q set network.lan.delegate='0'
+			uci -q set network.lan.ip6assign='64'
+			uci -q set network.wan.master='1'
+			uci -q set dhcp.wan6.dhcpv6='relay'
 		;;
 		3)
 			uci -q set dhcp.lan.ra='hybrid'
@@ -58,6 +65,9 @@ setipv6() {
 			uci -q set network.wan.ipv6='auto'
 			uci -q set network.wan.delegate='0'
 			uci -q set network.lan.delegate='0'
+			uci -q set network.lan.ip6assign='64'
+			uci -q set network.wan.master='1'
+			uci -q set dhcp.wan6.dhcpv6='relay'
 		;;
 	esac
 }

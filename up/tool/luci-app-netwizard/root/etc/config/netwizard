@@ -4,5 +4,4 @@ config netwizard 'default'
 	option ipv6 '0'
 	option redirectdns '0'
 	option synflood '1'
-	option redirectdns '1'
 
