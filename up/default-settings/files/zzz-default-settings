@@ -110,9 +110,10 @@ set system.@system[0].timezone=CST-8
 set system.@system[0].zonename=Asia/Shanghai
 set system.@system[0].ttylogin='1'
 delete system.ntp.server
-add_list system.ntp.server=ntp.ntsc.ac.cn
-add_list system.ntp.server=ntp.aliyun.com
-add_list system.ntp.server=cn.ntp.org.cn
+add_list system.ntp.server='time1.cloud.tencent.com'
+add_list system.ntp.server='ntp1.aliyun.com'
+add_list system.ntp.server='ntp.ntsc.ac.cn'
+add_list system.ntp.server='cn.ntp.org.cn'
 set dhcp.@dnsmasq[0].min_ttl='3600'
 set dhcp.@dnsmasq[0].filter_aaaa='0'
 set dhcp.@dnsmasq[0].localservice='0'
@@ -148,18 +149,26 @@ set turboacc.config.sw_flow='0'
 
 EOF
 
-sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/aria2.lua
-sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/view/aria2/overview_status.htm
-sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/hd_idle.lua
-sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/samba4.lua
-sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/minidlna.lua
-sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/transmission.lua
-sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/mjpg-streamer.lua
-sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/p910nd.lua
-sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/usb_printer.lua
-sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/xunlei.lua
-sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/cifs.lua
+sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/aria2.lua
+sed -i 's/services/nas/g' /usr/lib/lua/luci/view/aria2/overview_status.htm
+sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/hd_idle.lua
+sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/minidlna.lua
+sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/transmission.lua
+sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/mjpg-streamer.lua
+sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/p910nd.lua
+sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/usb_printer.lua
+sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/xunlei.lua
+sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/cifs.lua
 sed -i 's/services/nas/g'  /usr/lib/lua/luci/view/minidlna_status.htm
+sed -i 's/services/vpn/g' /usr/lib/lua/luci/controller/zerotier.lua   #zerotier
+sed -i 's/services/vpn/g' /usr/lib/lua/luci/view/zerotier/zerotier_status.htm   #zerotier
+sed -i 's/services/vpn/g' /usr/share/luci/menu.d/luci-app-zerotier.json
+sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/samba4.lua
+sed -i 's/services/nas/g' /usr/share/luci/menu.d/luci-app-samba4.json
+sed -i 's/services/nas/g' /usr/share/luci/menu.d/luci-app-gowebdav.json
+sed -i 's/services/nas/g' /usr/share/luci/menu.d/luci-app-qbittorrent.json
+sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/alist.lua
+sed -i 's/services/nas/g' /usr/share/luci/menu.d/luci-app-alist.json
 
 elif  [ $frmware = Bypass ] ;then
 uci -q batch <<-EOF
@@ -178,8 +187,26 @@ set network.wan.ipv6='0'
 delete network.wan6
 set turboacc.config.sw_flow='0'
 EOF
-sed -i 's/\"nas\"/\"services\"/g' /usr/lib/lua/luci/controller/samba4.lua
-
+sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/aria2.lua
+sed -i 's/services/nas/g' /usr/lib/lua/luci/view/aria2/overview_status.htm
+sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/hd_idle.lua
+sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/minidlna.lua
+sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/transmission.lua
+sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/mjpg-streamer.lua
+sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/p910nd.lua
+sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/usb_printer.lua
+sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/xunlei.lua
+sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/cifs.lua
+sed -i 's/services/nas/g'  /usr/lib/lua/luci/view/minidlna_status.htm
+sed -i 's/services/vpn/g' /usr/lib/lua/luci/controller/zerotier.lua   #zerotier
+sed -i 's/services/vpn/g' /usr/lib/lua/luci/view/zerotier/zerotier_status.htm   #zerotier
+sed -i 's/services/vpn/g' /usr/share/luci/menu.d/luci-app-zerotier.json
+sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/samba4.lua
+sed -i 's/services/nas/g' /usr/share/luci/menu.d/luci-app-samba4.json
+sed -i 's/services/nas/g' /usr/share/luci/menu.d/luci-app-gowebdav.json
+sed -i 's/services/nas/g' /usr/share/luci/menu.d/luci-app-qbittorrent.json
+sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/alist.lua
+sed -i 's/services/nas/g' /usr/share/luci/menu.d/luci-app-alist.json
 else
 
 uci -q batch <<-EOF
@@ -197,7 +224,16 @@ set network.wan.delegate='0'
 set network.wan.ipv6='auto'
 set turboacc.config.sw_flow='0'
 EOF
-sed -i 's/\"nas\"/\"services\"/g' /usr/lib/lua/luci/controller/samba4.lua
+sed -i 's/nas/services/g' /usr/lib/lua/luci/controller/cifs.lua
+sed -i 's/nas/services/g' /usr/lib/lua/luci/controller/zerotier.lua   #zerotier
+sed -i 's/nas/services/g' /usr/lib/lua/luci/view/zerotier/zerotier_status.htm   #zerotier
+sed -i 's/nas/services/g' /usr/share/luci/menu.d/luci-app-zerotier.json
+sed -i 's/nas/services/g' /usr/lib/lua/luci/controller/samba4.lua
+sed -i 's/nas/services/g' /usr/share/luci/menu.d/luci-app-samba4.json
+sed -i 's/nas/services/g' /usr/share/luci/menu.d/luci-app-gowebdav.json
+sed -i 's/nas/services/g' /usr/share/luci/menu.d/luci-app-qbittorrent.json
+sed -i 's/nas/services/g' /usr/lib/lua/luci/controller/alist.lua
+sed -i 's/nas/services/g' /usr/share/luci/menu.d/luci-app-alist.json
 fi
 uci commit dropbear
 uci commit vsftpd
@@ -346,7 +382,6 @@ else
     sed -i 's/immortalwrt/openwrt/g' /etc/config/luci
     # opkg mirror
     sed -i 's,downloads.immortalwrt.org,mirrors.vsean.net/openwrt,g' /etc/opkg/distfeeds.conf
-    # sed -i 's,downloads.immortalwrt.org,mirrors.vsean.net/openwrt,g' /etc/opkg/distfeeds.conf
 
 fi
 test $ver -lt 5 && {
