@@ -169,6 +169,7 @@ sed -i 's/services/nas/g' /usr/share/luci/menu.d/luci-app-gowebdav.json
 sed -i 's/services/nas/g' /usr/share/luci/menu.d/luci-app-qbittorrent.json
 sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/alist.lua
 sed -i 's/services/nas/g' /usr/share/luci/menu.d/luci-app-alist.json
+sed -i 's/services/nas/g' /usr/lib/lua/luci/view/alist/*.htm
 
 elif  [ $frmware = Bypass ] ;then
 uci -q batch <<-EOF
@@ -207,6 +208,7 @@ sed -i 's/services/nas/g' /usr/share/luci/menu.d/luci-app-gowebdav.json
 sed -i 's/services/nas/g' /usr/share/luci/menu.d/luci-app-qbittorrent.json
 sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/alist.lua
 sed -i 's/services/nas/g' /usr/share/luci/menu.d/luci-app-alist.json
+sed -i 's/services/nas/g' /usr/lib/lua/luci/view/alist/*.htm
 else
 
 uci -q batch <<-EOF
@@ -234,6 +236,7 @@ sed -i 's/nas/services/g' /usr/share/luci/menu.d/luci-app-gowebdav.json
 sed -i 's/nas/services/g' /usr/share/luci/menu.d/luci-app-qbittorrent.json
 sed -i 's/nas/services/g' /usr/lib/lua/luci/controller/alist.lua
 sed -i 's/nas/services/g' /usr/share/luci/menu.d/luci-app-alist.json
+sed -i 's/nas/services/g' /usr/lib/lua/luci/view/alist/*.htm
 fi
 uci commit dropbear
 uci commit vsftpd
