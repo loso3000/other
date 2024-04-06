@@ -1,0 +1,59 @@
+#!/bin/sh /etc/rc.common
+
+START=90
+USE_PROCD=1
+BINFILE=/usr/bin/vhusbd
+
+gitarch(){
+google_status=$(curl -I -4 -m 3 -o /dev/null -s -w %{http_code} http://www.google.com/generate_204)
+[ "$google_status" -ne "204" ] && proxy="https://ghproxy.com/" || proxy=""
+   ARCH=$(uname -m)
+  if [ -z "${ARCH##*arm*}" ]; then
+    FILENAME="vhusbdarm"
+  elif [ "$ARCH" = "mips" ]; then
+    FILENAME="vhusbdmips"
+  elif [ "$ARCH" = "mipsel" ]; then
+    FILENAME="vhusbdmipsel"
+  elif [ -z "${ARCH##*x86_64*}" ]; then
+    FILENAME="vhusbdx86_64"
+  elif [ -z "${ARCH##*aarch64*}" ]; then
+    FILENAME="vhusbdarm64"
+  else
+    FILENAME="vhusbdi386"
+  fi
+  #wget https://www.virtualhere.com/sites/default/files/usbserver/$FILENAME
+  curl --connect-timeout 5 -m 60 --ipv4 -kfSLo $BINFILE ""$proxy"https://www.virtualhere.com/sites/default/files/usbserver/$FILENAME" 
+  [[ -f $BINFILE && $? == 0 ]] && chmod +x $BINFILE || exit 1
+}
+
+start_service()
+{
+  [ -f $BINFILE ] || gitarch
+  enabled=$(uci -q get vhusbd.config.enabled)
+  access=$(uci -q get vhusbd.config.access)
+  [ x$enabled == x1 ] &&{
+	[ x$access == x1 ] && iptables -I INPUT -p tcp --dport 7575 -j ACCEPT -m comment --comment 'virtualhere port'
+	procd_open_instance
+	procd_set_param command $BINFILE -b -c /etc/config/vhusbdconfig -r /tmp/vhusbd.log
+	procd_set_param respawn
+	procd_set_param stderr 1
+	procd_close_instance
+  } || stop_service
+}
+
+service_triggers()
+{
+	procd_add_reload_trigger "vhusbd"
+}
+
+stop_service()
+{
+    iptables -D INPUT -p tcp --dport 7575 -j ACCEPT -m comment --comment 'virtualhere port' 2>/dev/null
+    kill -9 `pgrep vhusbd`
+}
+
+restart()
+{
+    stop
+    start
+}

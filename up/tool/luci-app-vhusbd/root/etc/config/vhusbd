@@ -1,0 +1,4 @@
+config setting 'config'
+	option profile '/etc/config/vhusbdconfig'
+	option enabled '0'
+	option access '0'
