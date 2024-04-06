@@ -185,7 +185,7 @@ test_proxy(){
 check_proxy(){
 	for i in $(seq 1 $(uci_get_by_type global switch_try_count 3));do
 		curl -so /dev/null --connect-timeout $time_b https://www.google.com && return 0
-		curl -so /dev/null --connect-timeout $time_b https://www.baidu.com && a=1 || a=2
+		curl -so /dev/null --connect-timeout $time_b https://www.taobao.com && a=1 || a=2
 		sleep 1
 	done
 	return $a
@@ -203,58 +203,60 @@ select_proxy(){
 		get_ip || continue
 		port=$(uci_get_by_name $d server_port)
 		ipset add ss_spec_wan_ac $ip 2>/dev/null
-		x=$?
-		$S/by-check $ip $port $time_b && curl_check $d
-		y=$?
-		[ $x = 0 ] && ipset del ss_spec_wan_ac $ip 2>/dev/null
-		if [ $y = 0 ];then
+		$S/by-check $ip $port $time_b
+		local ret=$?
+		ipset del ss_spec_wan_ac $ip 2>/dev/null
+		if [ "$ret" == "0" ]; then
 			SERVER_C=$d
 			c=$i
 			return 0
 		fi
+
 	done
 }
 
 switch_proxy(){
-	/etc/init.d/$NAME restart $SERVER_B
+	/etc/init.d/$NAME restart $1
+	return 0
 }
 
 [ "$1" = start ] || exit 1
 SERVER_A=$(uci_get_by_type global global_server)
 SERVER_B=$SERVER_A
-[ $(uci_get_by_name $SERVER_A kcp_enable 0) = 1 ] && exit 1
+SERVER_C=0
+[ $(uci_get_by_name $SERVER_A kcp_enable 0) = 1 ] && return 1
 c=1
 time_a=$(uci_get_by_type global switch_time 300)
 time_b=$(uci_get_by_type global switch_timeout 5)
 UCI="uci -q get $NAME."
 sleep 10
 while :;do
+	sleep $time_a
 	if [ $SERVER_A != $SERVER_B ];then
 		log "Current server : $($UCI$SERVER_B.alias || uci_get_by_name $SERVER_B server) is not main server, Try to switch back to $($UCI$SERVER_A.alias || uci_get_by_name $SERVER_A server)."
 		if test_proxy $SERVER_A;then
-			log "Main server is available. Switch to main server."
+			log "Main server is avilable. Switch to main server."
 			SERVER_B=$SERVER_A
-			switch_proxy
+			switch_proxy $SERVER_B
 			continue
 		else
-			log "Main server is not available. Continue using current server."
+			log "Main server is not avilable. Continue using current server."
 		fi
 	fi
 	check_proxy
-	a=$?
-	if [ $a = 1 ];then
+	current_ret=$?
+	if [ "$current_ret" == "1" ]; then
 		log "Current server : $($UCI$SERVER_B.alias || uci_get_by_name $SERVER_B server) error.Try to switch another server."
 		select_proxy
 		if [ $SERVER_C != 0 ];then
 			log "Another server : $($UCI$SERVER_C.alias || uci_get_by_name $SERVER_C server) is available.Now switching server."
 			SERVER_B=$SERVER_C
-			switch_proxy
+			switch_proxy  $SERVER_B
 		else
 			log "No server available. Try restart current server."
-			switch_proxy
+			switch_proxy  $SERVER_B
 		fi
-	elif [ $a = 2 ];then
+	elif [ "$current_ret" == "2" ];then
 		log "Network Problem. Do nothing."
 	fi
-	sleep $time_a
 done
