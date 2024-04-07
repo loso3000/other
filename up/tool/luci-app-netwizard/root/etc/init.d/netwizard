@@ -26,6 +26,7 @@ setipv6() {
 			$UCIDEL dhcp.wan.ra
 			$UCIDEL dhcp.wan.ndp
 			$UCIDEL dhcp.wan.ra_flags
+			$UCIDEL dhcp.lan.dns
 			uci add_list dhcp.wan.ra_flags='none'
 			$UCISET network.lan.delegate='0'
 			$UCISET network.wan.ipv6='0'
@@ -36,16 +37,16 @@ setipv6() {
 			$UCISET dhcp.lan.ra='server'
 			$UCISET dhcp.lan.dhcpv6='server'
 			$UCIDEL dhcp.@dnsmasq[0].filter_aaaa
-			$UCISET dhcp.lan.ndp=''
+			$UCISET dhcp.lan.ndp='relay'
 			$UCISET dhcp.lan.ra_management='1'
 			$UCISET dhcp.lan.ra_default='1'
 			$UCISET dhcp.lan.force='1'
 			$UCIDEL dhcp.lan.ra_flags
-			$UCISET network.lan.delegate='0'
-			$UCISET network.wan.ipv6='auto'
-			$UCISET network.wan.delegate='0'
 			$UCISET dhcp.wan.master='1'
-			$UCIDEL network.wan6.delegate
+			$UCISET network.wan.ipv6='auto'
+			$UCISET network.lan.delegate='0'
+			$UCISET network.wan.delegate='0'
+			$UCISET network.wan6.delegate='0'
 			$UCIDEL network.wan6.reqaddress='try'
 			$UCISET network.wan6.reqprefix='auto'
 			$UCIDEL firewall.@zone[1].network
@@ -84,7 +85,11 @@ setipv6() {
 			$UCISET network.wan.ipv6='auto'
 			$UCISET network.wan.delegate='0'
 			$UCISET network.lan.delegate='0'
+			$UCISET network.wan6.delegate=0
 			$UCISET network.lan.ip6assign='64'
+			$UCISET network.wan6.$ifname="@wan"
+			$UCISET network.wan6.reqaddress=try
+			$UCISET network.wan6.reqprefix=auto
 			$UCIDEL firewall.@zone[1].network
 			uci add_list firewall.@zone[1].network='wan'
 			uci add_list firewall.@zone[1].network='wan6'
@@ -135,6 +140,8 @@ add_netwizard() {
 	$UCISET network.wan6.delegate='1'
 	$UCIDEL dhcp.wan.master
 	$UCIDEL dhcp.lan.master
+	uci -q add_list dhcp.lan.dns="2400:3200::1"
+	uci -q add_list dhcp.lan.dns="240C::6666"
 	sed -i '/j MASQUERADE/d' /etc/firewall.user
 	a=$(ip address | awk -F ': ' '/eth[0-9]+/ {print $2}' )
 	b=$(echo "$a" | wc -l)
@@ -207,7 +214,7 @@ add_netwizard() {
 			}
 			$UCIDEL firewall.@zone[0].network
 			uci add_list firewall.@zone[0].network='lan'
-			uci add_list firewall.@zone[0].network='utun'
+			[  `uci show network  | grep utun | wc -l ` -gt 1 ] && uci add_list firewall.@zone[0].network='utun'
 			[ "x$ipv6" = "x1" ] && {
 			      	setipv6 2
 			      	$UCISET network.lan6=interface
@@ -242,7 +249,6 @@ add_netwizard() {
 	    $UCISET dhcp.lan.ignore="0" 
 	    [ "x$dnsset" = "x1" ] && {
 	          [ "${dns_tables}" = "1" ] && uci -q add_list dhcp.lan.dhcp_option="6,${lan_ipaddr}" || uci -q add_list dhcp.lan.dhcp_option="6,${dns_tables}" 
-		 uci -q add_list dhcp.lan.dns="240C::6666"
 	    }
 	else
 	    # $UCISET dhcp.lan.dynamicdhcp="0" 
@@ -294,7 +300,7 @@ add_netwizard() {
 	uci commit dhcp
 	uci commit firewall
 	uci commit network
-	(sleep 15
+	(sleep 2
 	 /etc/init.d/network restart
 	 /etc/init.d/dnsmasq reload)&
 }
