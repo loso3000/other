@@ -622,10 +622,10 @@ footer a {
 .main .main-left .nav li.slide .menu[data-title=iStore]:before {
     content: "\e908"
 }
-
+.main .main-left .nav li.slide .menu[data-title=Netwizard]:before,
 .main .main-left .nav li.slide .menu[data-title=Inital_Setup]:before,
 .main .main-left .nav li.slide .menu[data-title=Wizard]:before {
-    content: "\e90b"
+    content: "\e93e"
 }
 
 .main .main-left .nav li.slide .menu[data-title=Docker]:before {
@@ -648,8 +648,11 @@ footer a {
 .main .main-left .nav li.slide .menu[data-title=Logout]:before {
     content: "\e915"
 }
-
-.main .main-left .nav li.slide .menu[data-title=Wizard]:after,.main .main-left .nav li.slide .menu[data-title=iStore]:after,.main .main-left .nav li.slide .menu[data-title=Logout]:after {
+.main .main-left .nav li.slide .menu[data-title=Inital_Setup]:after,
+.main .main-left .nav li.slide .menu[data-title=Netwizard]:after,
+.main .main-left .nav li.slide .menu[data-title=Wizard]:after,
+.main .main-left .nav li.slide .menu[data-title=iStore]:after,
+.main .main-left .nav li.slide .menu[data-title=Logout]:after {
     content: ""
 }
 
