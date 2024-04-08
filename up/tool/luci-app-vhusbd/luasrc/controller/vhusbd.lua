@@ -9,7 +9,7 @@ module("luci.controller.vhusbd", package.seeall)
 function index()
 	
 	if not nixio.fs.access("/etc/config/vhusbd") then return end
-	local e = entry({"admin", "nas", "vhusbd"}, cbi("vhusbd"), _("VirtualHere"), 46).dependent = true
+	local e = entry({"admin", "nas", "vhusbd"}, cbi("vhusbd"), _("VirtualHere"), 46)
 	e.dependent = true
 	e.acl_depends = { "luci-app-vhusbd" }
 	
