@@ -8,6 +8,11 @@ sed -i 's,media .. \"\/b,resource .. \"\/b,g' /usr/lib/lua/luci/view/themes/argo
 uci -q set luci.main.lang='zh_cn'
 uci -q set luci.main.mediaurlbase='/luci-static/kucat'
 
+DISTRIB_FREE=$(cat /etc/openwrt_release | grep "Vip" | cut -d " " -f 2 | cut -d "-" -f 1)
+if [ "$DISTRIB_FREE" = "Vip" ]; then
+    echo "src/gz is_store https://istore.linkease.com/repo/all/store" >/etc/opkg/customfeeds.conf
+    echo "src/gz dllkids https://op.dllkids.xyz/packages/x86_64" >>/etc/opkg/customfeeds.conf
+fi
 # stop avahi cups
 # /etc/init.d/avahi-daemon disable  && /etc/init.d/avahi-daemon stop  
 debug=0
