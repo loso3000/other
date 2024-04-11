@@ -7,6 +7,7 @@ test -n "$ver" || ver=0
 sed -i 's,media .. \"\/b,resource .. \"\/b,g' /usr/lib/lua/luci/view/themes/argon/sysauth.htm
 uci -q set luci.main.lang='zh_cn'
 uci -q set luci.main.mediaurlbase='/luci-static/kucat'
+
 # stop avahi cups
 # /etc/init.d/avahi-daemon disable  && /etc/init.d/avahi-daemon stop  
 debug=0
@@ -94,7 +95,8 @@ test $ver -lt 1 && {
 	[ x$debug = x1 ] && uci -q set base_config.@base[0].base$ver=$?;echo $ver
 }
 test $ver -lt 2 && {
-   frmware=`cat /etc/ezopenwrt_version | awk -F '-' '{printf $2}'`
+frmware=`cat /etc/ezopenwrt_version | awk -F '-' '{printf $2}'`
+
     ver=2
 	[ "$(uci -q get dropbear.@dropbear[0] 2>/dev/null)" = "dropbear" ] && {
 		uci -q set dropbear.@dropbear[0].PasswordAuth='on'
@@ -148,7 +150,6 @@ set turboacc.config.hw_flow='0'
 set turboacc.config.sw_flow='0'
 
 EOF
-
 sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/aria2.lua
 sed -i 's/services/nas/g' /usr/lib/lua/luci/view/aria2/overview_status.htm
 sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/hd_idle.lua
@@ -169,7 +170,8 @@ sed -i 's/services/nas/g' /usr/share/luci/menu.d/luci-app-gowebdav.json
 sed -i 's/services/nas/g' /usr/share/luci/menu.d/luci-app-qbittorrent.json
 sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/alist.lua
 sed -i 's/services/nas/g' /usr/share/luci/menu.d/luci-app-alist.json
-sed -i 's/services/nas/g' /usr/lib/lua/luci/view/alist/*.htm
+sed -i 's/services/nas/g' /usr/lib/lua/luci/view/alist/alist_status.htm
+sed -i 's/services/nas/g' /usr/lib/lua/luci/view/alist/admin_info.htm
 
 elif  [ $frmware = Bypass ] ;then
 uci -q batch <<-EOF
@@ -188,6 +190,7 @@ set network.wan.ipv6='0'
 delete network.wan6
 set turboacc.config.sw_flow='0'
 EOF
+
 sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/aria2.lua
 sed -i 's/services/nas/g' /usr/lib/lua/luci/view/aria2/overview_status.htm
 sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/hd_idle.lua
@@ -208,7 +211,8 @@ sed -i 's/services/nas/g' /usr/share/luci/menu.d/luci-app-gowebdav.json
 sed -i 's/services/nas/g' /usr/share/luci/menu.d/luci-app-qbittorrent.json
 sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/alist.lua
 sed -i 's/services/nas/g' /usr/share/luci/menu.d/luci-app-alist.json
-sed -i 's/services/nas/g' /usr/lib/lua/luci/view/alist/*.htm
+sed -i 's/services/nas/g' /usr/lib/lua/luci/view/alist/alist_status.htm
+sed -i 's/services/nas/g' /usr/lib/lua/luci/view/alist/admin_info.htm
 else
 
 uci -q batch <<-EOF
@@ -236,7 +240,8 @@ sed -i 's/nas/services/g' /usr/share/luci/menu.d/luci-app-gowebdav.json
 sed -i 's/nas/services/g' /usr/share/luci/menu.d/luci-app-qbittorrent.json
 sed -i 's/nas/services/g' /usr/lib/lua/luci/controller/alist.lua
 sed -i 's/nas/services/g' /usr/share/luci/menu.d/luci-app-alist.json
-sed -i 's/nas/services/g' /usr/lib/lua/luci/view/alist/*.htm
+sed -i 's/nas/services/g' /usr/lib/lua/luci/view/alist/alist_status.htm
+sed -i 's/nas/services/g' /usr/lib/lua/luci/view/alist/admin_info.htm
 fi
 uci commit dropbear
 uci commit vsftpd
@@ -259,7 +264,7 @@ rm -f /usr/lib/lua/luci/view/admin_status/index/ddns.htm
 rm -f /usr/lib/lua/luci/view/admin_status/index/minidlna.htm
 rm -f /usr/lib/lua/luci/view/admin_status/index/mwan.htm
 rm -f /usr/lib/lua/luci/view/admin_status/index/upnp.htm
-	[ x$debug = x1 ] && uci -q set base_config.@base[0].base$ver=$?;echo $ver
+[ x$debug = x1 ] && uci -q set base_config.@base[0].base$ver=$?;echo $ver
 }
 
 test $ver -lt 3 && {
@@ -323,8 +328,8 @@ test -x /usr/bin/wget && rm -f /bin/wget && ln -s /usr/bin/wget /bin/wget
 test -x /usr/bin/vim && touch /root/.vimrc
 
 #clean all log if new flash firmware
-mount -t pstore -o noatime pstore /sys/fs/pstore 2>/dev/null
-rm -f /sys/fs/pstore/*
+#mount -t pstore -o noatime pstore /sys/fs/pstore 2>/dev/null
+#rm -f /sys/fs/pstore/*
 
 #usb fixup
 test -f /etc/usb-mode.json && {
@@ -346,46 +351,38 @@ test $ver -lt 4 && {
 	[ x$debug = x1 ] && uci -q set base_config.@base[0].base$ver=$? ; echo $ver
 }
 
-
 echo 'iptables -I zone_lan_forward -t filter -m conntrack --ctstate DNAT -j ACCEPT' >> /etc/firewall.user
 sed -i '/coremark/d' /etc/crontabs/root
 
 ln -sf /sbin/ip /usr/bin/ip
-
 # Disable opkg signature check
 sed -i 's/option check_signature/# option check_signature/g' /etc/opkg.conf
-
 new_DISTRIB_REVISION=`cat  /etc/ezopenwrt_version`
-
 if [ ` cat /etc/config/luci | grep immortalwrt` ] ;then 
-
-
-sed -i 's/immortalwrt/openwrt/g' /etc/config/luci
-sed -i '/DISTRIB_DESCRIPTION/d' /etc/openwrt_release
-echo "DISTRIB_DESCRIPTION='OpenWrt '" >> /etc/openwrt_release
-sed -i '/DISTRIB_REVISION/d' /etc/openwrt_release
-echo '' >/etc/openwrt_version
-[ -f /etc/ezopenwrt_version ]  && { 
-    echo "DISTRIB_REVISION=' "${new_DISTRIB_REVISION}"'" >> /etc/openwrt_release
-}
-
-# sed -i 's,downloads.openwrt.org,mirror.sjtu.edu.cn/openwrt,g' /etc/opkg/distfeeds.conf
-sed -i 's#downloads.openwrt.org#mirrors.cloud.tencent.com/lede#g' /etc/opkg/distfeeds.conf
-sed -i 's,downloads.immortalwrt.org,mirrors.vsean.net/openwrt,g' /etc/opkg/distfeeds.conf
-sed -i "s/# //g" /etc/opkg/distfeeds.conf
-sed -i '/openwrt_luci/ { s/snapshots/releases\/18.06.9/g; }'  /etc/opkg/distfeeds.conf
-else
-[ -f /etc/ezopenwrt_version ]  && { 
-    sed -i '/DISTRIB_DESCRIPTION/d' /etc/openwrt_release
-    sed -i '/DISTRIB_REVISION/d' /etc/openwrt_release
-    new_DISTRIB_REVISION=`cat  /etc/ezopenwrt_version`
-    echo "DISTRIB_DESCRIPTION='EzOpWrt "${new_DISTRIB_REVISION}"'" >> /etc/openwrt_release
-}
-
+	[ -f /etc/ezopenwrt_version ]  && { 
+  	  sed -i '/DISTRIB_DESCRIPTION/d' /etc/openwrt_release
+  	  sed -i '/DISTRIB_REVISION/d' /etc/openwrt_release
+ 	   new_DISTRIB_REVISION=`cat  /etc/ezopenwrt_version`
+ 	   echo "DISTRIB_DESCRIPTION='EzOpWrt "${new_DISTRIB_REVISION}"'" >> /etc/openwrt_release
+	}
     sed -i 's/immortalwrt/openwrt/g' /etc/config/luci
     # opkg mirror
+    sed -i 's#downloads.openwrt.org#mirrors.cloud.tencent.com/lede#g' /etc/opkg/distfeeds.conf
     sed -i 's,downloads.immortalwrt.org,mirrors.vsean.net/openwrt,g' /etc/opkg/distfeeds.conf
-
+else
+	sed -i 's/immortalwrt/openwrt/g' /etc/config/luci
+	sed -i '/DISTRIB_DESCRIPTION/d' /etc/openwrt_release
+	echo "DISTRIB_DESCRIPTION='OpenWrt '" >> /etc/openwrt_release
+	sed -i '/DISTRIB_REVISION/d' /etc/openwrt_release
+	echo '' >/etc/openwrt_version
+	[ -f /etc/ezopenwrt_version ]  && { 
+   		 echo "DISTRIB_REVISION=' "${new_DISTRIB_REVISION}"'" >> /etc/openwrt_release
+	}
+	#sed -i 's,downloads.openwrt.org,mirror.sjtu.edu.cn/openwrt,g' /etc/opkg/distfeeds.conf
+	sed -i 's#downloads.openwrt.org#mirrors.cloud.tencent.com/lede#g' /etc/opkg/distfeeds.conf
+	# sed -i 's,downloads.immortalwrt.org,mirrors.vsean.net/openwrt,g' /etc/opkg/distfeeds.conf
+	sed -i "s/# //g" /etc/opkg/distfeeds.conf
+	sed -i '/openwrt_luci/ { s/snapshots/releases\/18.06.9/g; }'  /etc/opkg/distfeeds.conf
 fi
 test $ver -lt 5 && {
 	ver=5
