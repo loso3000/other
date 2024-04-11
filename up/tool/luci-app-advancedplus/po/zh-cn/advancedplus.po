@@ -388,14 +388,14 @@ msgstr "选择加载安装应用商店、DOCKER、所有驱动等"
 msgid "Select the type of loading"
 msgstr "选择加载的类型"
 
-msgid "iStore"
-msgstr "应用商店"
+msgid "Install iStore"
+msgstr "安装iStore"
 
-msgid "Docker"
-msgstr "Docker仓库"
+msgid "Install Docker"
+msgstr "安装Docker仓库"
 
-msgid "All drives"
-msgstr "全部驱动"
+msgid "Install All drives"
+msgstr "安装全部驱动"
 
 msgid "Perform operation"
 msgstr "执行操作"

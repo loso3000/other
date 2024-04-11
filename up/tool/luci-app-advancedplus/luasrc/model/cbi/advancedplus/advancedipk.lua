@@ -17,9 +17,9 @@ s=m:section(TypedSection, "basic", "")
 s.anonymous=true
 
 e=s:option(ListValue,'select_ipk', translate('Select the type of loading'))
-e:value("istore", translate("iStore"))
-e:value("docker", translate("Docker"))
-e:value("drv", translate("All drives"))
+e:value("istore", translate("Install iStore"))
+e:value("docker", translate("Install Docker"))
+e:value("drv", translate("Install All drives"))
 e.default="istore"
 
 e=s:option(Button, "restart", translate("Perform operation"))

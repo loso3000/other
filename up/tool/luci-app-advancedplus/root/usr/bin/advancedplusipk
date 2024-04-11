@@ -20,6 +20,15 @@ is_iStoreOS() {
     [ -s "/www/luci-static/istore/index.js" ] && return 0  || return 1
 }
 
+is_free() {
+     DISTRIB_FREE=$(cat /etc/openwrt_release | grep "Free" | cut -d " " -f 2 | cut -d "-" -f 1)
+    if [ "$DISTRIB_FREE" = "Free" ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
 istore_install(){
     if is_iStoreOS; then
         echo "已经内置iStore应用商店,无须安装！"
@@ -67,16 +76,24 @@ istore_install(){
         echo "iStore应用商店安装完成."
     fi
 }
+
 drv_install(){
     echo "开始安装Docker安装完成..."
-    echo "目前此功能仅限VIP版本提供！"
-    bash /etc/kmodreg docker
+    if is_free; then
+            echo "目前此功能仅限VIP版本提供！"
+    else
+            bash /etc/kmodreg docker
+    fi
     echo "Docker安装完成."
 }
+
 docker_install(){
     echo "开始安装所有驱动..."
-    echo "目前此功能仅限VIP版本提供！"
-    bash /etc/kmodreg drv 
+    if is_free; then
+        echo "目前此功能仅限VIP版本提供！"
+    else
+        bash /etc/kmodreg drv 
+    fi
     echo "所有驱动完成！"
 }
 
