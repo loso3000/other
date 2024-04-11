@@ -11,13 +11,22 @@ is_x86_64() {
     fi
 }
 
-remove_check_signature_option() {
+remove_check_signature() {
     local opkg_conf="/etc/opkg.conf"
     sed -i '/option check_signature/d' "$opkg_conf"
 }
 
-is_iStoreOS() {
+is_iStore() {
     [ -s "/www/luci-static/istore/index.js" ] && return 0  || return 1
+}
+
+is_vip() {
+     DISTRIB_FREE=$(cat /etc/openwrt_release | grep "Vip" | cut -d " " -f 2 | cut -d "-" -f 1)
+    if [ "$DISTRIB_FREE" = "Vip" ]; then
+        return 0
+    else
+        return 1
+    fi
 }
 
 is_free() {
@@ -30,11 +39,11 @@ is_free() {
 }
 
 istore_install(){
-    if is_iStoreOS; then
+    if is_iStore; then
         echo "已经内置iStore应用商店,无须安装！"
      else
        echo "正在安装iStore应用商店...."
-	remove_check_signature_option
+	remove_check_signature
         opkg update
         opkg remove git-lfs
         setup_software_source 1
@@ -60,41 +69,63 @@ istore_install(){
             /etc/init.d/system reload
             if is_x86_64; then
                 extra_info="with iStoreOS Style"
+		echo "src/gz is_store https://istore.linkease.com/repo/all/store" >/etc/opkg/customfeeds.conf
+		if is_vip; then
+	        	echo "src/gz dllkids https://op.dllkids.xyz/packages/x86_64" >>/etc/opkg/customfeeds.conf
+		fi
                 current_revision=$(grep "DISTRIB_REVISION" /etc/openwrt_release | cut -d "'" -f 2)
                 if [[ $current_revision != *"$extra_info"* ]]; then
                     new_revision="${current_revision} ${extra_info}"
                     sed -i "s/DISTRIB_REVISION=.*$/DISTRIB_REVISION='$new_revision'/" /etc/openwrt_release
                 fi
             else
+                echo "src/gz is_store https://istore.linkease.com/repo/all/store" >/etc/opkg/customfeeds.conf
+		if is_vip; then
+                  local total_lines=$(opkg print-architecture | wc -l)
+                  local architecture=""
+                  local source="https://op.dllkids.xyz/packages/"
+                  if [ "$total_lines" -eq 4 ]; then
+                     architecture=$(opkg print-architecture | awk 'NR==4{print $2}')
+                     echo "No.4 architecture info===="${architecture}
+                     echo "src/gz custom_dllkids "${source}${architecture} >>/etc/opkg/customfeeds.conf
+                   elif [ "$total_lines" -eq 3 ]; then
+                     architecture=$(opkg print-architecture | awk 'NR==3{print $2}')
+                     echo "No.3 architecture info===="${architecture}
+                     echo "src/gz custom_dllkids "${source}${architecture} >>/etc/opkg/customfeeds.conf
+                   else
+                      echo "未知的返回结果行数: $total_lines"
+                   fi
+		fi
                 if ! grep -q " like iStoreOS" /tmp/sysinfo/model; then
                     sed -i '1s/$/ like iStoreOS/' /tmp/sysinfo/model
                 fi
             fi
         uci set luci.main.mediaurlbase='/luci-static/Kucat'
         uci commit
+        opkg update
 	rm -rf /tmp/is-opkg
-        echo "iStore应用商店安装完成."
+        echo "iStore应用商店安装完成,需要重启OPENWRT才能生效！"
     fi
 }
 
 drv_install(){
-    echo "开始安装Docker安装完成..."
     if is_free; then
             echo "目前此功能仅限VIP版本提供！"
     else
-            bash /etc/kmodreg docker
+        echo "开始安装Docker安装完成..."
+        bash /etc/kmodreg docker
+        echo "Docker安装完成,需要重启OPENWRT才能生效！"
     fi
-    echo "Docker安装完成."
 }
 
 docker_install(){
-    echo "开始安装所有驱动..."
     if is_free; then
         echo "目前此功能仅限VIP版本提供！"
     else
+        echo "开始安装所有驱动..."
         bash /etc/kmodreg drv 
+        echo "所有驱动完成,需要重启OPENWRT才能生效！"
     fi
-    echo "所有驱动完成！"
 }
 
 case $1 in
