@@ -55,11 +55,10 @@ function k_theme() {
 echo
 while :; do
 echo -e "\n q. 返回(return)"
-read -p "是否恢复网络和主题?(Do you want to restore the network and theme?)[Y/n]:" YN
+read -p "是否重置网络和主题设置?(Do you want to reset the network and theme?)[Y/n]:" YN
 
 case ${YN} in
 [Yy]) 
-    ER "已恢复网络和主题(The network and theme has been restored.)..."
     [  -s /etc/init.d/advancedplus ] && /etc/init.d/advancedplus reset   
     uci set luci.main.mediaurlbase='/luci-static/kucat'
     uci set luci.themes.KuCat=/luci-static/kucat
@@ -121,6 +120,8 @@ EOF
 
     uci set network.lan.ipaddr=${IP_Address}
     uci commit network
+    
+    ER "已重置网络和主题(The network and theme has been restored.)..."
     /etc/init.d/network restart
     sleep 5
     . /etc/profiles 
@@ -140,7 +141,14 @@ EOF
 esac
 done
 }
-
+is_vip() {
+     DISTRIB_FREE=$(cat /etc/openwrt_release | grep "Vip" | cut -d " " -f 2 | cut -d "-" -f 1)
+    if [ "$DISTRIB_FREE" = "Vip" ]; then
+        return 0
+    else
+        return 1
+    fi
+}
 function k_poweroff() {
 echo
 while :; do
@@ -320,10 +328,14 @@ case ${YN} in
 [Yy]) 
 
     echo
+if is_vip; then
     ER "正在装载中，请稍等。。。(In mount, Please wait....)"
     bash /etc/kmodreg drv 2 > /dev/null 2>&1 
     echo
     EY "已装载全部的网卡驱动！(All NIC drivers are loaded!)"
+else
+        echo "目前此功能仅限VIP版本提供！"
+fi
     echo
     sleep 5
     . /etc/profiles 
@@ -356,10 +368,14 @@ case ${YN} in
 [Yy]) 
 
     echo
+if is_vip; then
     ER "正在装载中，请稍等。。。(In mount, Please wait....)"
     bash /etc/kmodreg docker 2 > /dev/null 2>&1 
     echo
     EY "docker服务装载成功！请重新登录！(Docker service successfully loaded!)"
+else
+    echo "目前此功能仅限VIP版本提供！"
+fi
     echo
     sleep 5
     . /etc/profiles 
@@ -470,15 +486,15 @@ function mainmenu() {
   EG "  menu->调用菜单(Call Menu) 进阶设置中可禁用/显示此快捷菜单 "
   EY " 1. 修改后台IPv4地址(Modify IPv4 address)"
   EY " 2. 清除密码并重启(Clear password and Reboot)"
-  EY " 3. 修复网络和主题(Restore Network and theme)"
+  EY " 3. 重置网络和主题设置(Reset network and theme settings)"
   EY " 4. 重启系统(Reboot)         5. 关闭系统(Shutdown)"    
   EY " 6. 重置系统(Reset System)   7. 网络检查(Check Network)"
   EY " 8. 释放内存(free Memory)    9. 停止家长控制(Stop Parentcontrol)"
   EY " 10. 装载全部网卡驱动(Load all network card drivers)"
   EY " 11. 装载docker服务(Loading Docker Service)"
-  EW " 0/q. 退出本快捷菜单(Exit)"
+  EW " 0/q. 退出本快捷菜单(Exit Shortcut Menu)"
   echo
-  KEY="请输入功能编号(Please Enter)"
+  KEY="输入功能编号(Enter the function number)"
   while :; do
   read -p " ${KEY}： " CHOOSE
   case $CHOOSE in
