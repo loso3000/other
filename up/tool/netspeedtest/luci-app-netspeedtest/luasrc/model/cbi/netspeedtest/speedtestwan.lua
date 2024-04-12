@@ -2,6 +2,7 @@
 require("luci.util")
 local o,t,e
 
+luci.sys.exec("echo '-' >/tmp/netspeedtest.log&&echo 1 > /tmp/netspeedtestpos" )
 o = Map("netspeedtest", "<font color='green'>" .. translate("Net Speedtest") .."</font>",translate( "Network speed diagnosis test (including intranet and extranet)<br/>For specific usage, see:") ..translate("<a href=\'https://github.com/sirpdboy/netspeedtest.git' target=\'_blank\'>GitHub @sirpdboy/netspeedtest</a>") )
 
 t=o:section(TypedSection,"speedtestwan",translate("Broadband speed test"))

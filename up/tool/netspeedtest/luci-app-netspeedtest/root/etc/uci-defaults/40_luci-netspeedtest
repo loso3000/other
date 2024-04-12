@@ -30,7 +30,7 @@ LOGE=$LOGD/netspeedtest.log
 LOGT=$LOGD/netspeedtestpos
 [ -d "$LOGD" ] || mkdir -p $LOGD
 [ -f "$LOGE" ] || echo "start" > $LOGE
-[ -f "$LOGT" ] || echo "start" > $LOGT
+[ -f "$LOGT" ] || echo "1" > $LOGT
 [ -f "$LOG" ] || echo "start" > $LOG
 
 rm -rf /tmp/luci-modulecache /tmp/luci-indexcache*

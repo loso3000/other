@@ -31,12 +31,12 @@ end
 
 function netcheck()
 	http.prepare_content("text/plain; charset=utf-8")
-	local f=io.open("/etc/netspeedtest/netspeedtest.log", "r+")
-	local fdp=fs.readfile("/etc/netspeedtest/netspeedtestpos") or 0
+	local f=io.open("/tmp/netspeedtest.log", "r+")
+	local fdp=fs.readfile("/tmp/netspeedtestpos") or 0
 	f:seek("set",fdp)
 	local a=f:read(2048000) or ""
 	fdp=f:seek()
-	fs.writefile("/etc/netspeedtest/netspeedtestpos",tostring(fdp))
+	fs.writefile("/tmp/netspeedtestpos",tostring(fdp))
 	f:close()
 	http.write(a)
 end
@@ -45,10 +45,10 @@ function speedtestwanrun()
 	local cli = luci.http.formvalue('cli')
 	uci:set(name, 'speedtestwan', 'speedtest_cli', cli)
 	uci:commit(name)
-	fs.writefile("/etc/netspeedtest/netspeedtestpos","0")
+	fs.writefile("/tmp/netspeedtestpos","0")
 	http.prepare_content("application/json")
 	http.write('')
-	sys.exec(string.format("/etc/init.d/netspeedtest wantest " ..cli.. " > /etc/netspeedtest/netspeedtest.log 2>&1 &" ))
+	sys.exec(string.format("/etc/init.d/netspeedtest wantest " ..cli.. " > /tmp/netspeedtest.log 2>&1 &" ))
 end
 
 function test_port()
