@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 skin="Kucat"
 
@@ -40,7 +40,7 @@ is_free() {
 
 istore_install(){
     if is_iStore; then
-        echo "已经内置iStore应用商店,无须安装！"
+        echo "已存在有iStore应用商店,无须再安装！"
      else
        echo "正在安装iStore应用商店...."
 	remove_check_signature
@@ -104,31 +104,37 @@ istore_install(){
         uci commit
         opkg update
 	rm -rf /tmp/is-opkg
-        echo "iStore应用商店安装完成,需要重启OPENWRT才能生效！"
+        echo "iStore应用商店安装完成！"
     fi
+    exit
 }
 
 drv_install(){
     if is_vip; then
-        bash /etc/kmodreg docker
+        bash /etc/kmodreg drv 
     else
          echo "目前此功能仅限VIP版本提供！"
     fi
+    exit
 }
 
 docker_install(){
     if is_vip; then
-        bash /etc/kmodreg drv 
+        bash /etc/kmodreg docker
     else
         echo "目前此功能仅限VIP版本提供！"
     fi
+    exit
 }
 
-case $1 in
-    istore) 
-        istore_install ;;  
-    drv) 
-        drv_install ;;  
-    docker) 
-        docker_install;;  
+case "$1" in
+    "istore") 
+        istore_install
+	;;  
+    "drv") 
+        drv_install
+	;;  
+    "docker") 
+        docker_install
+	;;  
     esac
