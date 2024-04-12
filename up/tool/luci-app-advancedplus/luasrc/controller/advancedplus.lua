@@ -52,7 +52,6 @@ function act_check()
 end
 
 function advanced_run()
-	luci.sys.exec("echo 1 > /tmp/advancedpos")
 	local selectipk = luci.http.formvalue('select_ipk')
 	uci:set(name, 'advancedplus', 'select_ipk', selectipk)
 	uci:commit(name)
