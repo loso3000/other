@@ -100,10 +100,9 @@ istore_install(){
                     sed -i '1s/$/ like iStoreOS/' /tmp/sysinfo/model
                 fi
             fi
-        uci set luci.main.mediaurlbase='/luci-static/Kucat'
+        uci -q set luci.main.mediaurlbase='/luci-static/kucat'
         uci commit
-        opkg update
-	rm -rf /tmp/is-opkg
+	rm -rf /tmp/is-opkg /tmp/luci*
         echo "iStore应用商店安装完成！"
     fi
     exit
