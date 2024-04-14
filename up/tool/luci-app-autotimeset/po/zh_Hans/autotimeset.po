@@ -21,6 +21,8 @@ msgstr "任务设置"
 msgid "Test/Verify Settings"
 msgstr "测试/验证设置"
 
+msgid "Scheduled Type"
+msgstr "任务类型"
 
 msgid "Delayed Start(seconds)"
 msgstr "开机任务延时(秒)"
