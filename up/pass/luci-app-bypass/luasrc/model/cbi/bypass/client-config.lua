@@ -412,7 +412,9 @@ o.datatype = "uinteger"
 o.default = "30"
 
 o = s:option(Value, "keepaliveperiod", translate("The keep-alive period.(Unit:second)"))
+o.description = translate("Default value 0 indicatesno heartbeat.")
 o:depends({type = "hysteria2", flag_quicparam = "1"})
+o:depends({type = "v2ray", v2ray_protocol = "wireguard"})
 o.rmempty = true
 o.datatype = "uinteger"
 o.default = "10"
@@ -743,6 +745,7 @@ o = s:option(Value, "uplink_capacity", translate("Uplink Capacity(Default:Mbps)"
 o.datatype = "uinteger"
 o:depends("transport", "kcp")
 o:depends("type", "hysteria")
+o.default = 5
 o:depends("type", "hysteria2")
 o.rmempty = true
 
@@ -750,6 +753,7 @@ o = s:option(Value, "downlink_capacity", translate("Downlink Capacity(Default:Mb
 o.datatype = "uinteger"
 o:depends("transport", "kcp")
 o:depends("type", "hysteria")
+o.default = 20
 o:depends("type", "hysteria2")
 o.rmempty = true
 
@@ -774,8 +778,17 @@ o:depends("transport", "kcp")
 o.rmempty = true
 
 -- [[ WireGuard 部分 ]]--
+o = s:option(Flag, "kernelmode", translate("Enabled Kernel virtual NIC TUN(optional)"))
+o.description = translate("Virtual NIC TUN of Linux kernel can be used only when system supports and have root permission. If used, IPv6 routing table 1023 is occupied.")
+o:depends({type = "v2ray", v2ray_protocol = "wireguard"})
+o.default = "0"
+o.rmempty = true
 o = s:option(DynamicList, "local_addresses", translate("Local addresses"))
 o.datatype = "cidr"
+o:depends({type = "v2ray", v2ray_protocol = "wireguard"})
+o.rmempty = true
+o = s:option(DynamicList, "reserved", translate("Reserved bytes(optional)"))
+o.description = translate("Wireguard reserved bytes.")
 o:depends({type = "v2ray", v2ray_protocol = "wireguard"})
 o.rmempty = true
 
@@ -793,6 +806,12 @@ o:depends({type = "v2ray", v2ray_protocol = "wireguard"})
 o.password = true
 o.rmempty = true
 
+o = s:option(DynamicList, "allowedips", translate("allowedIPs(optional)"))
+o.description = translate("Wireguard allows only traffic from specific source IP.")
+o.datatype = "cidr"
+o:depends({type = "v2ray", v2ray_protocol = "wireguard"})
+o.default = "0.0.0.0/0"
+o.rmempty = true
 -- [[ TLS ]]--
 o = s:option(Flag, "tls", translate("TLS"))
 o.rmempty = true

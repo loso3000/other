@@ -1416,7 +1416,7 @@ boot() {
 		sleep $delay
 	fi
 	touch $LOCK
-	restart
+	start
 	touch ${LOCK_FILE_DIR}/${NAME}_ready.lock
 }
 
