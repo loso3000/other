@@ -3,7 +3,7 @@
 . "${IPKG_INSTROOT}/lib/functions/network.sh"
 . "${IPKG_INSTROOT}/lib/mwan3/mwan3.sh"
 
-START=19
+START=99
 USE_PROCD=1
 SCRIPTNAME="mwan3-init"
 
