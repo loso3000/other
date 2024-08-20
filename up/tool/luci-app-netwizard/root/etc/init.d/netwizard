@@ -27,7 +27,6 @@ setipv6() {
 			$UCIDEL dhcp.wan.ndp
 			$UCIDEL dhcp.wan.ra_flags
 			$UCIDEL dhcp.lan.dns
-			$UCIDEL network.lan.ra_slaac
 			uci add_list dhcp.wan.ra_flags='none'
 			$UCISET network.lan.delegate='0'
 			$UCISET network.wan.ipv6='0'
@@ -43,10 +42,10 @@ setipv6() {
 			$UCISET dhcp.lan.ra_default='1'
 			$UCISET dhcp.lan.force='1'
 			$UCIDEL dhcp.lan.ra_flags
+			$UCISET dhcp.lan.ra_slaac='1'
 			$UCISET dhcp.wan.master='1'
 			$UCISET network.wan.ipv6='auto'
 			$UCISET network.lan.delegate='0'
-			$UCISET network.lan.ra_slaac='1'
 			$UCISET network.wan.delegate='0'
 			$UCISET network.wan6.delegate='0'
 			$UCIDEL network.wan6.reqaddress='try'
@@ -65,8 +64,8 @@ setipv6() {
 			$UCISET dhcp.lan.ra_management='1'
 			$UCISET dhcp.lan.ra_default='1'
 			$UCISET dhcp.lan.force='1'
+			$UCISET dhcp.lan.ra_slaac='1'
 			$UCISET network.lan.delegate='0'
-			$UCISET network.lan.ra_slaac='1'
 			$UCISET network.lan.ip6assign='64'
 			$UCISET dhcp.lan.master='1'
 		;;
@@ -79,6 +78,7 @@ setipv6() {
 			$UCISET dhcp.lan.ra_management='1'
 			$UCISET dhcp.lan.ra_default='1'
 			$UCISET dhcp.lan.force='1'
+			$UCISET dhcp.lan.ra_slaac='1'
 			$UCISET dhcp.wan.master='1'
 			$UCIDEL dhcp.wan.ra_flags
 			$UCISET dhcp.wan.ra='hybrid'
@@ -88,7 +88,6 @@ setipv6() {
 			$UCISET network.wan.ipv6='auto'
 			$UCISET network.wan.delegate='0'
 			$UCISET network.lan.delegate='0'
-			$UCISET network.lan.ra_slaac='1'
 			$UCISET network.wan6.delegate=0
 			$UCISET network.lan.ip6assign='64'
 			$UCISET network.wan6.$ifname="@wan"
