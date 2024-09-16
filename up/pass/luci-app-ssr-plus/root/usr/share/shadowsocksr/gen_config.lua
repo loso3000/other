@@ -2,12 +2,15 @@
 
 local ucursor = require "luci.model.uci".cursor()
 local json = require "luci.jsonc"
+
 local server_section = arg[1]
 local proto = arg[2]
 local local_port = arg[3] or "0"
 local socks_port = arg[4] or "0"
+
 local chain = arg[5] or "0"
 local chain_local_port = string.split(chain, "/")[2] or "0"
+
 local server = ucursor:get_all("shadowsocksr", server_section)
 local outbound_settings = nil
 
@@ -23,7 +26,7 @@ function vmess_vless()
 						alterId = (server.v2ray_protocol == "vmess" or not server.v2ray_protocol) and tonumber(server.alter_id) or nil,
 						security = (server.v2ray_protocol == "vmess" or not server.v2ray_protocol) and server.security or nil,
 						encryption = (server.v2ray_protocol == "vless") and server.vless_encryption or nil,
-						flow = ((server.tls == '1') or (server.reality == '1')) and server.tls_flow or nil
+						flow = ((server.xtls == '1') or (server.tls == '1') or (server.reality == '1')) and server.tls_flow or nil
 					}
 				}
 			}
@@ -175,8 +178,8 @@ local Xray = {
 		-- 底层传输配置
 		streamSettings = (server.v2ray_protocol ~= "wireguard") and {
 			network = server.transport or "tcp",
-			security = (server.tls == '1') and "tls" or (server.reality == '1') and "reality" or nil,
-			tlsSettings = (server.tls == '1') and {
+			security = (server.xtls == '1') and "xtls" or (server.tls == '1') and "tls" or (server.reality == '1') and "reality" or nil,
+			tlsSettings = (server.tls == '1') and (server.tls_host or server.fingerprint) and {
 				-- tls
 				alpn = server.tls_alpn,
 				fingerprint = server.fingerprint,
@@ -186,6 +189,12 @@ local Xray = {
 					usage = "verify",
 					certificateFile = server.certpath
 				} or nil,
+			} or nil,
+			xtlsSettings = (server.xtls == '1') and server.tls_host and {
+				-- xtls
+				allowInsecure = (server.insecure == "1") and true or nil,
+				serverName = server.tls_host,
+				minVersion = "1.3"
 			} or nil,
 			realitySettings = (server.reality == '1') and {
 				publicKey = server.reality_publickey,
@@ -231,6 +240,11 @@ local Xray = {
 				-- httpupgrade
 				host = (server.httpupgrade_host or server.tls_host) or nil,
                                 path = server.httpupgrade_path or ""
+			} or nil,
+			splithttpSettings = (server.transport == "splithttp") and {
+				-- splithttp
+				host = (server.splithttp_host or server.tls_host) or nil,
+                                path = server.splithttp_path or ""
 			} or nil,
 			httpSettings = (server.transport == "h2") and {
 				-- h2
