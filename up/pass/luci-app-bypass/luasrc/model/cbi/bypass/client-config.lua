@@ -563,6 +563,7 @@ o:value("tcp", "TCP")
 o:value("kcp", "mKCP")
 o:value("ws", "WebSocket")
 o:value("httpupgrade", "HTTPUpgrade")
+o:value("splithttp", "SplitHTTP")
 o:value("h2", "HTTP/2")
 o:value("quic", "QUIC")
 o:value("grpc", "gRPC")
@@ -630,6 +631,15 @@ o.rmempty = true
 -- httpupgrade路径
 o = s:option(Value, "httpupgrade_path", translate("Httpupgrade Path"))
 o:depends("transport", "httpupgrade")
+o.rmempty = true
+-- [[ splithttp部分 ]]--
+-- splithttp域名
+o = s:option(Value, "splithttp_host", translate("Splithttp Host"))
+o:depends({transport = "splithttp", tls = false})
+o.rmempty = true
+-- splithttp路径
+o = s:option(Value, "splithttp_path", translate("Splithttp Path"))
+o:depends("transport", "splithttp")
 o.rmempty = true
 
 -- [[ H2部分 ]]--
@@ -853,6 +863,7 @@ if is_finded("xray") then
 		o:value(v, translate(v))
 	end
 	o.rmempty = true
+	o:depends("xtls", true)
 	o:depends({type = "v2ray", v2ray_protocol = "vless", transport = "tcp", tls = true})
 
 	o:depends({type = "v2ray", v2ray_protocol = "vless", transport = "tcp", reality = true})
@@ -878,13 +889,14 @@ end
 o = s:option(Value, "tls_host", translate("TLS Host"))
 o.datatype = "hostname"
 o:depends("tls", true)
+o:depends("xtls", true)
 o:depends("reality", true)
 o:depends("type", "hysteria")
 o:depends("type", "hysteria2")
 o.rmempty = true
 
 o = s:option(DynamicList, "tls_alpn", translate("TLS ALPN"))
-
+o.default = "h3"
 o:depends("tls", true)
 o:depends("type", "tuic")
 o:depends("type", "hysteria")

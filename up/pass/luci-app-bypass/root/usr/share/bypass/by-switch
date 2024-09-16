@@ -13,7 +13,7 @@ uci_get_by_type(){
 }
 
 log(){
-	echo "$(date +'%Y-%m-%d %H:%M:%S') By-Switch : $*" >> /tmp/log/$NAME.log
+	echo "$(date +'%Y-%m-%d %H:%M:%S') 自动切换检测： $*" >> /tmp/log/$NAME.log
 }
 
 
@@ -184,8 +184,10 @@ test_proxy(){
 
 check_proxy(){
 	for i in $(seq 1 $(uci_get_by_type global switch_try_count 3));do
-		curl -so /dev/null --connect-timeout $time_b https://www.google.com && return 0
-		curl -so /dev/null --connect-timeout $time_b https://www.taobao.com && a=1 || a=2
+		curl --connect-timeout $time_b -so /dev/null https://www.google.com/generate_204 && return 0
+		a=2
+		ping -c 3 -W 1 223.5.5.5 > /dev/null 2>&1
+		[ $? -eq 0 ] &&	a=1
 		sleep 1
 	done
 	return $a
@@ -223,6 +225,7 @@ switch_proxy(){
 [ "$1" = start ] || exit 1
 SERVER_A=$(uci_get_by_type global global_server)
 SERVER_B=$SERVER_A
+
 SERVER_C=0
 [ $(uci_get_by_name $SERVER_A kcp_enable 0) = 1 ] && return 1
 c=1
@@ -231,32 +234,39 @@ time_b=$(uci_get_by_type global switch_timeout 5)
 UCI="uci -q get $NAME."
 sleep 10
 while :;do
-	sleep $time_a
+	#检测主节点是否能使用
+	check_proxy
+	status=$?
+	if [ "$status" == 2 ]; then
+		log "无法连接到网络，请检查网络是否正常！"
+		return 2
+	fi
+
 	if [ $SERVER_A != $SERVER_B ];then
-		log "Current server : $($UCI$SERVER_B.alias || uci_get_by_name $SERVER_B server) is not main server, Try to switch back to $($UCI$SERVER_A.alias || uci_get_by_name $SERVER_A server)."
-		if test_proxy $SERVER_A;then
-			log "Main server is avilable. Switch to main server."
+		test_proxy $SERVER_A
+		[ $? -eq 0 ] && {
+			#主节点正常，切换到主节点
+			log "${SERVER_A}主节点【$($UCI$SERVER_A.alias || uci_get_by_name $SERVER_A server)】正常，切换到主节点！"
 			SERVER_B=$SERVER_A
 			switch_proxy $SERVER_B
-			continue
-		else
-			log "Main server is not avilable. Continue using current server."
-		fi
+			[ $? -eq 0 ] && {
+				log "【$($UCI$SERVER_B.alias || uci_get_by_name $SERVER_B server)】节点切换完毕！"
+			}
+			return 0
+		}
 	fi
-	check_proxy
-	current_ret=$?
-	if [ "$current_ret" == "1" ]; then
-		log "Current server : $($UCI$SERVER_B.alias || uci_get_by_name $SERVER_B server) error.Try to switch another server."
+		
+	if [ "$status" == 0 ]; then
+		return 0
+	elif [ "$status" == "1" ]; then
+	
+		log "【$($UCI$SERVER_B.alias || uci_get_by_name $SERVER_B server) 】异常，切换到下一个节点！"
 		select_proxy
 		if [ $SERVER_C != 0 ];then
-			log "Another server : $($UCI$SERVER_C.alias || uci_get_by_name $SERVER_C server) is available.Now switching server."
 			SERVER_B=$SERVER_C
-			switch_proxy  $SERVER_B
-		else
-			log "No server available. Try restart current server."
+			log "$($UCI$SERVER_B.alias || uci_get_by_name $SERVER_B server) 正常，切换到此节点！"
 			switch_proxy  $SERVER_B
 		fi
-	elif [ "$current_ret" == "2" ];then
-		log "Network Problem. Do nothing."
 	fi
+	sleep $time_a
 done
