@@ -10,8 +10,8 @@ LUCI_TITLE:=LuCI support for Kucat theme setting by sirpdboy
 LUCI_DEPENDS:=+luci-compat +curl +wget +libustream-openssl
 LUCI_PKGARCH:=all
 
-PKG_VERSION:=1.8.0
-PKG_RELEASE:=20240411
+PKG_VERSION:=1.8.1
+PKG_RELEASE:=20241009
 
 define Package/$(PKG_NAME)/conffiles
 /etc/config/advancedplus
