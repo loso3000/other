@@ -239,11 +239,21 @@ add_netwizard() {
 		$UCISET network.lan.netmask="${lan_netmask}"
 	}
 	[ "x$redirectdns" = "x1" ] && {
-        	echo "iptables -t nat -A PREROUTING -p udp --dport 53 -j REDIRECT --to-ports 53" >> /etc/firewall.user
-        	echo "iptables -t nat -A PREROUTING -p tcp --dport 53 -j REDIRECT --to-ports 53" >> /etc/firewall.user
-        	echo "[ -n "$(command -v ip6tables)" ] && ip6tables -t nat -A PREROUTING -p udp --dport 53 -j REDIRECT --to-ports 53" >> /etc/firewall.user
-        	echo "[ -n "$(command -v ip6tables)" ] && ip6tables -t nat -A PREROUTING -p tcp --dport 53 -j REDIRECT --to-ports 53" >> /etc/firewall.user
-	} || sed -i '/--dport 53 -j REDIRECT --to-ports 53/d' /etc/firewall.user
+                      if [ -n "$(command -v fw4)" ] && [ -n "$(command -v nft)" ] && [ -n "$(dnsmasq --version | grep 'Compile time options:.* nftset')" ]; then
+                     		echo "nft  add rule inet fw4 dstnat ip protocol udp ip dport 53 redirect to 53" >> /etc/firewall.user
+                     		echo "nft  add rule inet fw4 dstnat meta l4proto udp ip dport 53 redirect to 53" >> /etc/firewall.user
+			else
+        			echo "iptables -t nat -A PREROUTING -p udp --dport 53 -j REDIRECT --to-ports 53" >> /etc/firewall.user
+        			echo "iptables -t nat -A PREROUTING -p tcp --dport 53 -j REDIRECT --to-ports 53" >> /etc/firewall.user
+        			echo "[ -n "$(command -v ip6tables)" ] && ip6tables -t nat -A PREROUTING -p udp --dport 53 -j REDIRECT --to-ports 53" >> /etc/firewall.user
+        			echo "[ -n "$(command -v ip6tables)" ] && ip6tables -t nat -A PREROUTING -p tcp --dport 53 -j REDIRECT --to-ports 53" >> /etc/firewall.user
+	 		       echolog "系统未安装iptables或ipset或Dnsmasq没有开启ipset支持，无法透明代理！"
+			fi
+	} || 
+        { 
+                sed -i '/--dport 53 -j REDIRECT --to-ports 53/d' /etc/firewall.user
+                sed -i '/53 redirect to 53/d' /etc/firewall.user
+        }
 	[ "x$synflood" = "x1" ] && $UCISET firewall.@defaults[0].syn_flood='1' || $UCIDEL firewall.@defaults[0].syn_flood
 	sed -i "/dhcp_option '6/d" /etc/config/dhcp
 	sed -i "/list dns/d" /etc/config/dhcp
