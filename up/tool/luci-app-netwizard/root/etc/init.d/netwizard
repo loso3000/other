@@ -90,7 +90,7 @@ setipv6() {
 			$UCISET network.lan.delegate='0'
 			$UCISET network.wan6.delegate=0
 			$UCISET network.lan.ip6assign='64'
-			$UCISET network.wan6.$ifname="@wan"
+			# $UCISET network.wan6.$ifname="@wan"
 			$UCISET network.wan6.reqaddress=try
 			$UCISET network.wan6.reqprefix=auto
 			$UCIDEL firewall.@zone[1].network
@@ -213,8 +213,13 @@ add_netwizard() {
 					     [ "x$ifname" = "xdevice" ] &&  $UCISET network.@$ifname[0].ports="${lannet} ${wan_interface}"  || $UCISET network.lan.$ifname="${lannet} ${wan_interface}"
 					fi
 				[ "x$masq" = "x1" ] && $UCISET firewall.@zone[0].masq='1' || $UCIDEL firewall.@zone[0].masq
-				[ "x$lan_snat" = "x1" ] && echo "${snat_tables}" >> /etc/firewall.user 
-			}
+
+                                if [ -n "$(command -v fw4)" ] && [ -n "$(command -v nft)" ] && [ -n "$(dnsmasq --version | grep 'Compile time options:.* nftset')" ]; then
+				   
+				else
+				   [ "x$lan_snat" = "x1" ] && echo "${snat_tables}" >> /etc/firewall.user 
+				fi
+}
 			$UCIDEL firewall.@zone[0].network
 			uci add_list firewall.@zone[0].network='lan'
 			[  `uci show network  | grep utun | wc -l ` -gt 1 ] && uci add_list firewall.@zone[0].network='utun'
