@@ -90,6 +90,7 @@ setipv6() {
 			$UCISET network.lan.delegate='0'
 			$UCISET network.wan6.delegate=0
 			$UCISET network.lan.ip6assign='64'
+			$UCISET network.wan6.$ifname="${wan_interface}"
 			$UCISET network.wan6.reqaddress=try
 			$UCISET network.wan6.reqprefix=auto
 			$UCIDEL firewall.@zone[1].network
@@ -129,6 +130,7 @@ add_netwizard() {
 	ifname=$(uci -q get network.lan.ifname ) 
 	[ "x$ifname" = "x" ] && ifname="device" || ifname="ifname" 
  	[ -n "$wan_interface" ] || wan_interface=$(uci -q get network.wan.$ifname 2>/dev/null) 
+ 	[ -n "$wan_interface" ] || wan_interface=$(uci -q get network.lan.$ifname 2>/dev/null) 
  	$UCIDEL network.lan.gateway
 	$UCIDEL dhcp.lan.ignore
 	$UCIDEL network.lan.dns
