@@ -90,7 +90,6 @@ setipv6() {
 			$UCISET network.lan.delegate='0'
 			$UCISET network.wan6.delegate=0
 			$UCISET network.lan.ip6assign='64'
-			# $UCISET network.wan6.$ifname="@wan"
 			$UCISET network.wan6.reqaddress=try
 			$UCISET network.wan6.reqprefix=auto
 			$UCIDEL firewall.@zone[1].network
@@ -214,8 +213,8 @@ add_netwizard() {
 					fi
 				[ "x$masq" = "x1" ] && $UCISET firewall.@zone[0].masq='1' || $UCIDEL firewall.@zone[0].masq
 
-                                if [ -n "$(command -v fw4)" ] && [ -n "$(command -v nft)" ] && [ -n "$(dnsmasq --version | grep 'Compile time options:.* nftset')" ]; then
-				   
+			 if [ -n "$(command -v fw4)" ] && [ -n "$(command -v nft)" ] && [ -n "$(dnsmasq --version | grep 'Compile time options:.* nftset')" ]; then
+				   sed -i '/j MASQUERADE/d' /etc/firewall.user
 				else
 				   [ "x$lan_snat" = "x1" ] && echo "${snat_tables}" >> /etc/firewall.user 
 				fi
@@ -243,7 +242,7 @@ add_netwizard() {
 		$UCISET network.lan.ipaddr="${lan_ipaddr}"
 		$UCISET network.lan.netmask="${lan_netmask}"
 	}
-	[ "x$redirectdns" = "x1" ] && {
+	if  [ "x$redirectdns" = "x1" ] ;then
                       if [ -n "$(command -v fw4)" ] && [ -n "$(command -v nft)" ] && [ -n "$(dnsmasq --version | grep 'Compile time options:.* nftset')" ]; then
                      		echo "nft  add rule inet fw4 dstnat ip protocol udp ip dport 53 redirect to 53" >> /etc/firewall.user
                      		echo "nft  add rule inet fw4 dstnat meta l4proto udp ip dport 53 redirect to 53" >> /etc/firewall.user
@@ -252,13 +251,11 @@ add_netwizard() {
         			echo "iptables -t nat -A PREROUTING -p tcp --dport 53 -j REDIRECT --to-ports 53" >> /etc/firewall.user
         			echo "[ -n "$(command -v ip6tables)" ] && ip6tables -t nat -A PREROUTING -p udp --dport 53 -j REDIRECT --to-ports 53" >> /etc/firewall.user
         			echo "[ -n "$(command -v ip6tables)" ] && ip6tables -t nat -A PREROUTING -p tcp --dport 53 -j REDIRECT --to-ports 53" >> /etc/firewall.user
-	 		       echolog "系统未安装iptables或ipset或Dnsmasq没有开启ipset支持，无法透明代理！"
 			fi
-	} || 
-        { 
+	else
                 sed -i '/--dport 53 -j REDIRECT --to-ports 53/d' /etc/firewall.user
                 sed -i '/53 redirect to 53/d' /etc/firewall.user
-        }
+        fi
 	[ "x$synflood" = "x1" ] && $UCISET firewall.@defaults[0].syn_flood='1' || $UCIDEL firewall.@defaults[0].syn_flood
 	sed -i "/dhcp_option '6/d" /etc/config/dhcp
 	sed -i "/list dns/d" /etc/config/dhcp
