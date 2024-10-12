@@ -87,6 +87,10 @@ do
 				local cmd="$minute $hour * $month $week /usr/bin/timesethandler customscript2 Scheduled_task" 
 				echo "$cmd" >> $CR
 				;;
+			16)
+				local cmd="$minute $hour * $month $week /usr/bin/timesethandler restartlan Scheduled_task" 
+				echo "$cmd" >> $CR
+				;;
 		esac
     fi
  done
@@ -142,6 +146,9 @@ do
 				;;
 			15) 
 				echo  "sleep $delay &&  /usr/bin/timesethandler customscript2  Startup_task" >>$TT
+				;;
+			16) 
+				echo  "sleep $delay &&  /usr/bin/timesethandler restartlan  Startup_task" >>$TT
 				;;
 		esac
     fi
