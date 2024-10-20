@@ -12,102 +12,101 @@ setipv6() {
 	case $1 in
 		0) 
 		uci batch <<EOF
-			-q delete network.wan6
-			-q set dhcp.lan.ra=''
-			-q set dhcp.lan.dhcpv6=''
-			-q set dhcp.lan.ndp=''
-			-q set dhcp.@dnsmasq[0].filter_aaaa="1"
-			-q set dhcp.lan.force='1'
-			-q delete dhcp.lan.ignore
-			-q delete dhcp.lan.ra
-			-q delete dhcp.lan.ra_default
-			-q delete dhcp.lan.ra_slaac
-			-q delete dhcp.lan.dhcpv6
-			-q delete dhcp.lan.ra_flags
-			-q delete dhcp.wan.ra
-			-q delete dhcp.wan.ndp
-			-q delete dhcp.wan.ra_flags
-			-q delete dhcp.lan.dns
+			delete network.wan6
+			set dhcp.lan.ra=''
+			set dhcp.lan.dhcpv6=''
+			set dhcp.lan.ndp=''
+			set dhcp.@dnsmasq[0].filter_aaaa="1"
+			set dhcp.lan.force='1'
+			delete dhcp.lan.ignore
+			delete dhcp.lan.ra
+			delete dhcp.lan.ra_default
+			delete dhcp.lan.ra_slaac
+			delete dhcp.lan.dhcpv6
+			delete dhcp.lan.ra_flags
+			delete dhcp.wan.ra
+			delete dhcp.wan.ndp
+			delete dhcp.wan.ra_flags
+			delete dhcp.lan.dns
 			add_list dhcp.wan.ra_flags='none'
-			-q set network.lan.delegate='0'
-			-q set network.wan.ipv6='0'
-			-q set network.wan.delegate='0'
-			# -q delete network.globals.ula_prefix
-			-q set firewall.@defaults[0].disable_ipv6='1'
-		EOF
+			set network.lan.delegate='0'
+			set network.wan.ipv6='0'
+			set network.wan.delegate='0'
+			# delete network.globals.ula_prefix
+			set firewall.@defaults[0].disable_ipv6='1'
+EOF
 		;;
 		1)
 		uci batch <<EOF
-			-q set dhcp.lan.ra='server'
-			-q set dhcp.lan.dhcpv6='server'
-			-q delete dhcp.@dnsmasq[0].filter_aaaa
-			-q set dhcp.lan.ndp='relay'
-			-q set dhcp.lan.ra_management='1'
-			-q set dhcp.lan.ra_default='1'
-			-q set dhcp.lan.force='1'
-			-q delete dhcp.lan.ra_flags
-			-q set dhcp.lan.ra_slaac='1'
-			-q set dhcp.wan.master='1'
-			-q set network.wan.ipv6='auto'
-			-q set network.lan.delegate='0'
-			-q set network.wan.delegate='0'
-			-q set network.wan6.delegate='0'
-			-q delete network.wan6.reqaddress='try'
-			-q set network.wan6.reqprefix='auto'
-			-q delete firewall.@zone[1].network
+			set dhcp.lan.ra='server'
+			set dhcp.lan.dhcpv6='server'
+			delete dhcp.@dnsmasq[0].filter_aaaa
+			set dhcp.lan.ndp='relay'
+			set dhcp.lan.ra_management='1'
+			set dhcp.lan.ra_default='1'
+			set dhcp.lan.force='1'
+			delete dhcp.lan.ra_flags
+			set dhcp.lan.ra_slaac='1'
+			set dhcp.wan.master='1'
+			set network.wan.ipv6='auto'
+			set network.lan.delegate='0'
+			set network.wan.delegate='0'
+			set network.wan6.delegate='0'
+			delete network.wan6.reqaddress='try'
+			set network.wan6.reqprefix='auto'
+			delete firewall.@zone[1].network
 			add_list firewall.@zone[1].network='wan'
 			add_list firewall.@zone[1].network='wan6'
-			-q set firewall.@defaults[0].disable_ipv6='0'
+			set firewall.@defaults[0].disable_ipv6='0'
 
-		EOF
+EOF
 		;;
 		2)
 		uci batch <<EOF
-			-q set dhcp.lan.ra='relay'
-			-q set dhcp.lan.dhcpv6='relay'
-			-q set dhcp.lan.ndp='relay'
-			-q delete dhcp.@dnsmasq[0].filter_aaaa
-			-q set dhcp.lan.ndp=''
-			-q set dhcp.lan.ra_management='1'
-			-q set dhcp.lan.ra_default='1'
-			-q set dhcp.lan.force='1'
-			-q set dhcp.lan.ra_slaac='1'
-			-q set network.lan.delegate='0'
-			-q set network.lan.ip6assign='64'
-			-q set dhcp.lan.master='1'
+			set dhcp.lan.ra='relay'
+			set dhcp.lan.dhcpv6='relay'
+			set dhcp.lan.ndp='relay'
+			delete dhcp.@dnsmasq[0].filter_aaaa
+			set dhcp.lan.ndp=''
+			set dhcp.lan.ra_management='1'
+			set dhcp.lan.ra_default='1'
+			set dhcp.lan.force='1'
+			set dhcp.lan.ra_slaac='1'
+			set network.lan.delegate='0'
+			set network.lan.ip6assign='64'
+			set dhcp.lan.master='1'
 
-		EOF
+EOF
 		;;
 		3)
 		uci batch <<EOF
-			-q set dhcp.lan.ra='hybrid'
-			-q set dhcp.lan.dhcpv6='hybrid'
-			-q set dhcp.lan.ndp='hybrid'
-			-q delete dhcp.@dnsmasq[0].filter_aaaa
-			-q set dhcp.lan.ndp=''
-			-q set dhcp.lan.ra_management='1'
-			-q set dhcp.lan.ra_default='1'
-			-q set dhcp.lan.force='1'
-			-q set dhcp.lan.ra_slaac='1'
-			-q set dhcp.wan.master='1'
-			-q delete dhcp.wan.ra_flags
-			-q set dhcp.wan.ra='hybrid'
-			-q set dhcp.wan.dhcpv6='hybrid'
-			-q set dhcp.wan.ndp='hybrid'
+			set dhcp.lan.ra='hybrid'
+			set dhcp.lan.dhcpv6='hybrid'
+			set dhcp.lan.ndp='hybrid'
+			delete dhcp.@dnsmasq[0].filter_aaaa
+			set dhcp.lan.ndp=''
+			set dhcp.lan.ra_management='1'
+			set dhcp.lan.ra_default='1'
+			set dhcp.lan.force='1'
+			set dhcp.lan.ra_slaac='1'
+			set dhcp.wan.master='1'
+			delete dhcp.wan.ra_flags
+			set dhcp.wan.ra='hybrid'
+			set dhcp.wan.dhcpv6='hybrid'
+			set dhcp.wan.ndp='hybrid'
 			add_list dhcp.wan.ra_flags='none'
-			-q set network.wan.ipv6='auto'
-			-q set network.wan.delegate='0'
-			-q set network.lan.delegate='0'
-			-q set network.wan6.delegate=0
-			-q set network.lan.ip6assign='64'
-			-q set network.wan6.$ifname="${wan_interface}"
-			-q set network.wan6.reqaddress=try
-			-q set network.wan6.reqprefix=auto
-			-q delete firewall.@zone[1].network
+			set network.wan.ipv6='auto'
+			set network.wan.delegate='0'
+			set network.lan.delegate='0'
+			set network.wan6.delegate=0
+			set network.lan.ip6assign='64'
+			set network.wan6.$ifname="${wan_interface}"
+			set network.wan6.reqaddress=try
+			set network.wan6.reqprefix=auto
+			delete firewall.@zone[1].network
 			add_list firewall.@zone[1].network='wan'
 			add_list firewall.@zone[1].network='wan6'
-
-		EOF
+EOF
 		;;
 	esac
 }
