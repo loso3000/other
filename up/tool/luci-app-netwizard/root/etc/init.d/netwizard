@@ -11,91 +11,103 @@ boot() {
 setipv6() {
 	case $1 in
 		0) 
-			$UCIDEL network.wan6
-			$UCISET dhcp.lan.ra=''
-			$UCISET dhcp.lan.dhcpv6=''
-			$UCISET dhcp.lan.ndp=''
-			$UCISET dhcp.@dnsmasq[0].filter_aaaa="1"
-			$UCISET dhcp.lan.force='1'
-			$UCIDEL dhcp.lan.ignore
-			$UCIDEL dhcp.lan.ra
-			$UCIDEL dhcp.lan.ra_default
-			$UCIDEL dhcp.lan.ra_slaac
-			$UCIDEL dhcp.lan.dhcpv6
-			$UCIDEL dhcp.lan.ra_flags
-			$UCIDEL dhcp.wan.ra
-			$UCIDEL dhcp.wan.ndp
-			$UCIDEL dhcp.wan.ra_flags
-			$UCIDEL dhcp.lan.dns
-			uci add_list dhcp.wan.ra_flags='none'
-			$UCISET network.lan.delegate='0'
-			$UCISET network.wan.ipv6='0'
-			$UCISET network.wan.delegate='0'
-			# $UCIDEL network.globals.ula_prefix
+		uci batch <<EOF
+			-q delete network.wan6
+			-q set dhcp.lan.ra=''
+			-q set dhcp.lan.dhcpv6=''
+			-q set dhcp.lan.ndp=''
+			-q set dhcp.@dnsmasq[0].filter_aaaa="1"
+			-q set dhcp.lan.force='1'
+			-q delete dhcp.lan.ignore
+			-q delete dhcp.lan.ra
+			-q delete dhcp.lan.ra_default
+			-q delete dhcp.lan.ra_slaac
+			-q delete dhcp.lan.dhcpv6
+			-q delete dhcp.lan.ra_flags
+			-q delete dhcp.wan.ra
+			-q delete dhcp.wan.ndp
+			-q delete dhcp.wan.ra_flags
+			-q delete dhcp.lan.dns
+			add_list dhcp.wan.ra_flags='none'
+			-q set network.lan.delegate='0'
+			-q set network.wan.ipv6='0'
+			-q set network.wan.delegate='0'
+			# -q delete network.globals.ula_prefix
+			-q set firewall.@defaults[0].disable_ipv6='1'
+		EOF
 		;;
 		1)
-			$UCISET dhcp.lan.ra='server'
-			$UCISET dhcp.lan.dhcpv6='server'
-			$UCIDEL dhcp.@dnsmasq[0].filter_aaaa
-			$UCISET dhcp.lan.ndp='relay'
-			$UCISET dhcp.lan.ra_management='1'
-			$UCISET dhcp.lan.ra_default='1'
-			$UCISET dhcp.lan.force='1'
-			$UCIDEL dhcp.lan.ra_flags
-			$UCISET dhcp.lan.ra_slaac='1'
-			$UCISET dhcp.wan.master='1'
-			$UCISET network.wan.ipv6='auto'
-			$UCISET network.lan.delegate='0'
-			$UCISET network.wan.delegate='0'
-			$UCISET network.wan6.delegate='0'
-			$UCIDEL network.wan6.reqaddress='try'
-			$UCISET network.wan6.reqprefix='auto'
-			$UCIDEL firewall.@zone[1].network
-			uci add_list firewall.@zone[1].network='wan'
-			uci add_list firewall.@zone[1].network='wan6'
+		uci batch <<EOF
+			-q set dhcp.lan.ra='server'
+			-q set dhcp.lan.dhcpv6='server'
+			-q delete dhcp.@dnsmasq[0].filter_aaaa
+			-q set dhcp.lan.ndp='relay'
+			-q set dhcp.lan.ra_management='1'
+			-q set dhcp.lan.ra_default='1'
+			-q set dhcp.lan.force='1'
+			-q delete dhcp.lan.ra_flags
+			-q set dhcp.lan.ra_slaac='1'
+			-q set dhcp.wan.master='1'
+			-q set network.wan.ipv6='auto'
+			-q set network.lan.delegate='0'
+			-q set network.wan.delegate='0'
+			-q set network.wan6.delegate='0'
+			-q delete network.wan6.reqaddress='try'
+			-q set network.wan6.reqprefix='auto'
+			-q delete firewall.@zone[1].network
+			add_list firewall.@zone[1].network='wan'
+			add_list firewall.@zone[1].network='wan6'
+			-q set firewall.@defaults[0].disable_ipv6='0'
 
+		EOF
 		;;
 		2)
-			$UCISET dhcp.lan.ra='relay'
-			$UCISET dhcp.lan.dhcpv6='relay'
-			$UCISET dhcp.lan.ndp='relay'
-			$UCIDEL dhcp.@dnsmasq[0].filter_aaaa
-			$UCISET dhcp.lan.ndp=''
-			$UCISET dhcp.lan.ra_management='1'
-			$UCISET dhcp.lan.ra_default='1'
-			$UCISET dhcp.lan.force='1'
-			$UCISET dhcp.lan.ra_slaac='1'
-			$UCISET network.lan.delegate='0'
-			$UCISET network.lan.ip6assign='64'
-			$UCISET dhcp.lan.master='1'
+		uci batch <<EOF
+			-q set dhcp.lan.ra='relay'
+			-q set dhcp.lan.dhcpv6='relay'
+			-q set dhcp.lan.ndp='relay'
+			-q delete dhcp.@dnsmasq[0].filter_aaaa
+			-q set dhcp.lan.ndp=''
+			-q set dhcp.lan.ra_management='1'
+			-q set dhcp.lan.ra_default='1'
+			-q set dhcp.lan.force='1'
+			-q set dhcp.lan.ra_slaac='1'
+			-q set network.lan.delegate='0'
+			-q set network.lan.ip6assign='64'
+			-q set dhcp.lan.master='1'
+
+		EOF
 		;;
 		3)
-			$UCISET dhcp.lan.ra='hybrid'
-			$UCISET dhcp.lan.dhcpv6='hybrid'
-			$UCISET dhcp.lan.ndp='hybrid'
-			$UCIDEL dhcp.@dnsmasq[0].filter_aaaa
-			$UCISET dhcp.lan.ndp=''
-			$UCISET dhcp.lan.ra_management='1'
-			$UCISET dhcp.lan.ra_default='1'
-			$UCISET dhcp.lan.force='1'
-			$UCISET dhcp.lan.ra_slaac='1'
-			$UCISET dhcp.wan.master='1'
-			$UCIDEL dhcp.wan.ra_flags
-			$UCISET dhcp.wan.ra='hybrid'
-			$UCISET dhcp.wan.dhcpv6='hybrid'
-			$UCISET dhcp.wan.ndp='hybrid'
-			uci add_list dhcp.wan.ra_flags='none'
-			$UCISET network.wan.ipv6='auto'
-			$UCISET network.wan.delegate='0'
-			$UCISET network.lan.delegate='0'
-			$UCISET network.wan6.delegate=0
-			$UCISET network.lan.ip6assign='64'
-			$UCISET network.wan6.$ifname="${wan_interface}"
-			$UCISET network.wan6.reqaddress=try
-			$UCISET network.wan6.reqprefix=auto
-			$UCIDEL firewall.@zone[1].network
-			uci add_list firewall.@zone[1].network='wan'
-			uci add_list firewall.@zone[1].network='wan6'
+		uci batch <<EOF
+			-q set dhcp.lan.ra='hybrid'
+			-q set dhcp.lan.dhcpv6='hybrid'
+			-q set dhcp.lan.ndp='hybrid'
+			-q delete dhcp.@dnsmasq[0].filter_aaaa
+			-q set dhcp.lan.ndp=''
+			-q set dhcp.lan.ra_management='1'
+			-q set dhcp.lan.ra_default='1'
+			-q set dhcp.lan.force='1'
+			-q set dhcp.lan.ra_slaac='1'
+			-q set dhcp.wan.master='1'
+			-q delete dhcp.wan.ra_flags
+			-q set dhcp.wan.ra='hybrid'
+			-q set dhcp.wan.dhcpv6='hybrid'
+			-q set dhcp.wan.ndp='hybrid'
+			add_list dhcp.wan.ra_flags='none'
+			-q set network.wan.ipv6='auto'
+			-q set network.wan.delegate='0'
+			-q set network.lan.delegate='0'
+			-q set network.wan6.delegate=0
+			-q set network.lan.ip6assign='64'
+			-q set network.wan6.$ifname="${wan_interface}"
+			-q set network.wan6.reqaddress=try
+			-q set network.wan6.reqprefix=auto
+			-q delete firewall.@zone[1].network
+			add_list firewall.@zone[1].network='wan'
+			add_list firewall.@zone[1].network='wan6'
+
+		EOF
 		;;
 	esac
 }
@@ -191,8 +203,11 @@ add_netwizard() {
 				#$UCISET network.wan.metric='40'
 				$UCISET network.wan.username="${wan_pppoe_user}"
 				$UCISET network.wan.password="${wan_pppoe_pass}"
-				$UCISET network.wan.keepalive='60 60'
+				$UCISET network.wan.keepalive='60 20'
 				$UCISET network.wan.mtu='1420'
+				$UCISET network.wan.persist='1'
+				$UCISET network.wan.holdoff='5'
+				$UCISET network.wan.pppd_options='debug noipdefault'
 				config_get wan_dns "$cfg" wan_dns
 				test -n "${wan_dns}" && {
 					$UCISET network.wan.peerdns='0'
