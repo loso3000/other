@@ -56,7 +56,7 @@ else
 fi
 # stop avahi cups
 # /etc/init.d/avahi-daemon disable  && /etc/init.d/avahi-daemon stop  
-debug=1
+debug=0
 setup_ssid()
 {
 COUNTRY='US'
@@ -154,11 +154,9 @@ test $ver -lt 1 && {
     sed -i '/option disabled/d' /etc/config/wireless  >/dev/null 2>&1
     sed -i '/set wireless.radio${devidx}.disabled/d' /lib/wifi/mac80211.sh   >/dev/null 2>&1
     [ "x$ifname" = "xdevice" ] &&  uci -q set network.@$ifname[0].ports="eth0"  || uci -q set network.lan.$ifname="eth0"
+
     uci commit network
     setup_network
-
-   #sed -i 's/root::0:0:99999:7:::/root:$1$V4UetPzk$CYXluq4wUazHjmCDBCqXF.:0:0:99999:7:::/g' /etc/shadow
-   sed -i 's/root.*/root::0:0:99999:7:::/g' /etc/shadow
     sed -i '/lcp-echo/d' /etc/ppp/options
     echo "lcp-echo-failure 10" >>  /etc/ppp/options 
     echo "lcp-echo-interval 200" >>  /etc/ppp/options
@@ -176,6 +174,10 @@ frmware=`cat /etc/ezopenwrt_version | awk -F '-' '{printf $2}'`
 		uci commit dropbear
 		touch /etc/dropbear/authorized_keys && chmod 600 /etc/dropbear/authorized_keys
 	}
+ uci -q set system.@system[0].hostname='EzOpWrt'
+ uci commit system
+  #sed -i 's/root::0:0:99999:7:::/root:$1$V4UetPzk$CYXluq4wUazHjmCDBCqXF.:0:0:99999:7:::/g' /etc/shadow
+  sed -i 's/root.*/root::0:0:99999:7:::/g' /etc/shadow
 
 uci -q batch <<-EOF
 set system.@system[0].timezone=CST-8
@@ -421,7 +423,7 @@ test $ver -lt 4 && {
 	[ x$debug = x1 ] && uci -q set base_config.@base[0].base$ver=$? ; echo $ver
 }
 
-# echo 'iptables -I zone_lan_forward -t filter -m conntrack --ctstate DNAT -j ACCEPT' >> /etc/firewall.user
+echo 'iptables -I zone_lan_forward -t filter -m conntrack --ctstate DNAT -j ACCEPT' >> /etc/firewall.user
 sed -i '/coremark/d' /etc/crontabs/root
 
 ln -sf /sbin/ip /usr/bin/ip
