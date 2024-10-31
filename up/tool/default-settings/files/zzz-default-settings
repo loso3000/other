@@ -1,49 +1,114 @@
 #!/bin/sh
-touch /etc/config/base_config
-uci -q get base_config.@base[0] >/dev/null 2>&1 || uci add base_config base >/dev/null 2>&1
 ver=$(uci -q get base_config.@base[0].ver 2>/dev/null)
-test -n "$ver" || ver=0
+test -n "$ver" || {
+touch /etc/config/base_config
+uci add base_config base >/dev/null 2>&1
+ver=0
+}
 #argon
 sed -i 's,media .. \"\/b,resource .. \"\/b,g' /usr/lib/lua/luci/view/themes/argon/sysauth.htm
 uci -q set luci.main.lang='auto'
 uci -q set luci.main.mediaurlbase='/luci-static/kucat'
 
+DISTRIB_FREE=$(cat /etc/openwrt_release | grep "Vip" | cut -d " " -f 2 | cut -d "-" -f 1)
+
+is_x86_64() {
+    DISTRIB_ARCH=$(cat /etc/openwrt_release | grep "DISTRIB_ARCH" | cut -d "'" -f 2)
+    if [ "$DISTRIB_ARCH" = "x86_64" ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+is_vip() {
+     DISTRIB_FREE=$(cat /etc/openwrt_release | grep "Vip" | cut -d " " -f 2 | cut -d "-" -f 1)
+    if [ "$DISTRIB_FREE" = "Vip" ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+ if is_x86_64; then
+	if is_vip; then
+	        	echo "src/gz is_store https://istore.linkease.com/repo/all/store" >/etc/opkg/customfeeds.conf
+	        	echo "src/gz dllkids https://op.dllkids.xyz/packages/x86_64" >>/etc/opkg/customfeeds.conf
+	fi
+else
+	if is_vip; then
+                echo "src/gz is_store https://istore.linkease.com/repo/all/store" >/etc/opkg/customfeeds.conf
+                local total_lines=$(opkg print-architecture | wc -l)
+                local architecture=""
+                local source="https://op.dllkids.xyz/packages/"
+                if [ "$total_lines" -eq 4 ]; then
+                     architecture=$(opkg print-architecture | awk 'NR==4{print $2}')
+                     echo "No.4 architecture info===="${architecture}
+                     echo "src/gz custom_dllkids "${source}${architecture} >>/etc/opkg/customfeeds.conf
+                elif [ "$total_lines" -eq 3 ]; then
+                     architecture=$(opkg print-architecture | awk 'NR==3{print $2}')
+                     echo "No.3 architecture info===="${architecture}
+                     echo "src/gz custom_dllkids "${source}${architecture} >>/etc/opkg/customfeeds.conf
+                else
+                      echo "未知的返回结果行数: $total_lines"
+                fi
+	fi
+fi
 # stop avahi cups
 # /etc/init.d/avahi-daemon disable  && /etc/init.d/avahi-daemon stop  
-debug=0
+debug=1
 setup_ssid()
 {
-    local r="$1"
-    if ! uci show wireless.${r} >/dev/null 2>&1; then
+COUNTRY='US'
+CH50=149
+CH24=11
+HWMODE50='11a'
+HWMODE24='11b'
+HTMODE50='VHT80'
+HTMODE24='HT20'
+# lan zone
+NETWORKID=lan
+local r="$1"
+uci -q delete wireless.default_${r}
+ if ! uci show wireless.${r} >/dev/null 2>&1; then
         return
-    fi
+ fi
     SUBFIX=`echo -n $MACADDR | sed 's/://g' | tr a-z A-Z | tail -c4`
     SSID=${DISTRIB_ID}_${SUBFIX}
-    logger "default-wifi: set $1 -- ssid:${SSID} -- password:${SSID_PASSWD}"
     # local s="wlan$1"
     #local mac=`ifconfig ${s} | grep "HWaddr" | awk '{print $5}'`
     #local wifimac=`echo ${mac}|awk -F ":" '{print $4""$5""$6 }'|tr A-Z a-z|cut -c4-`
     uci -q set wireless.${r}.disabled=0
-    uci -q set wireless.${r}.hwmode='11a'
-    uci -q set wireless.${r}.country='US'
+    uci -q set wireless.${r}.country=${COUNTRY}
     uci -q set wireless.${r}.legacy_rates='1'
     uci -q set wireless.${r}.mu_beamformer='1'
-    uci -q set wireless.${r}.htmode='HT40'
+    uci -q set wireless.${r}.bursting='1'
+    uci -q set wireless.${r}.ff='1'
+    uci -q set wireless.${r}.compression='1'
+    uci -q set wireless.${r}.noscan='0'
+    uci -q set wireless.${r}.txpower='20'
     if [ `uci -q get wireless.${r}.channel` -lt 14 ]; then
-        uci -q set wireless.${r}.channel=40
-        uci -q set wireless.default_${r}.ssid="${SSID}"-2.4G
+        uci -q set wireless.${r}.channel=${CH24}
+        uci -q set wireless.${r}.htmode=${HTMODE24}
+        uci -q set wireless.${r}.hwmode=${HWMODE24}
+        uci -q set wireless.${NETWORKID}_${r}.ssid="${SSID}"
+        logger "default-wifi: set $1 -- ssid:${SSID} -- password:${SSID_PASSWD}"
     else
-        uci -q set wireless.${r}.channel=149
-        uci -q set wireless.default_${r}.ssid="${SSID}"-5G
+        uci -q set wireless.${r}.channel=${CH50}
+        uci -q set wireless.${r}.htmode=${HTMODE50}
+        uci -q set wireless.${r}.hwmode=${HWMODE50}
+        uci -q set wireless.${NETWORKID}_${r}.ssid="${SSID}"_5G
+        logger "default-wifi: set $1 -- ssid:${SSID}_5G -- password:${SSID_PASSWD}"
     fi
-    uci -q set wireless.default_${r}.device='radio0'
-    uci -q set wireless.default_${r}.network='lan'
-    uci -q set wireless.default_${r}.mode='ap'
-    uci -q set wireless.default_${r}.disassoc_low_ack='0'
-    uci -q set wireless.default_${r}.encryption='psk2+tkip+ccmp'
-    uci -q set wireless.default_${r}.wps_pushbutton='0'
-    uci -q set wireless.default_${r}.encryption='psk2'
-    uci -q set wireless.default_${r}.key="${SSID_PASSWD}"
+    uci -q set wireless.${NETWORKID}_${r}=wifi-iface
+    uci -q set wireless.${NETWORKID}_${r}.device=${r}
+    uci -q set wireless.${NETWORKID}_${r}.network=${NETWORKID}
+    uci -q set wireless.${NETWORKID}_${r}.mode='ap'
+    uci -q set wireless.${NETWORKID}_${r}.disassoc_low_ack='0'
+    uci -q set wireless.${NETWORKID}_${r}.encryption='psk2+ccmp'
+    uci -q set wireless.${NETWORKID}_${r}.wps_pushbutton='0'
+    uci -q set wireless.${NETWORKID}_${r}.isolate='0'
+    uci -q set wireless.${NETWORKID}_${r}.key="${SSID_PASSWD}"
     uci commit wireless
 }
 setup_network()
@@ -55,7 +120,7 @@ setup_network()
 	  lannet=""
 	  for i in $(seq 1 $b) ; do [ "${wan_interface}" = "$(echo "$a" | sed -n ${i}p)" ] || lannet="${lannet} $(echo "$a" | sed -n ${i}p)" ;done
  	  [ "x$ifname" = "xdevice" ] &&  uci -q set network.@$ifname[0].ports="${lannet}"  || uci -q set network.lan.$ifname="${lannet}"
- 	  [ `uci -q get network.wan6` ] && uci -q set network.wan6.$ifname="@wan"
+ 	 # [ `uci -q get network.wan6` ] && uci -q set network.wan6.$ifname="@wan"
      }
 }
 
@@ -88,7 +153,12 @@ test $ver -lt 1 && {
     fi
     sed -i '/option disabled/d' /etc/config/wireless  >/dev/null 2>&1
     sed -i '/set wireless.radio${devidx}.disabled/d' /lib/wifi/mac80211.sh   >/dev/null 2>&1
+    [ "x$ifname" = "xdevice" ] &&  uci -q set network.@$ifname[0].ports="eth0"  || uci -q set network.lan.$ifname="eth0"
+    uci commit network
     setup_network
+
+   #sed -i 's/root::0:0:99999:7:::/root:$1$V4UetPzk$CYXluq4wUazHjmCDBCqXF.:0:0:99999:7:::/g' /etc/shadow
+   sed -i 's/root.*/root::0:0:99999:7:::/g' /etc/shadow
     sed -i '/lcp-echo/d' /etc/ppp/options
     echo "lcp-echo-failure 10" >>  /etc/ppp/options 
     echo "lcp-echo-interval 200" >>  /etc/ppp/options
@@ -150,7 +220,6 @@ set turboacc.config.hw_flow='0'
 set turboacc.config.sw_flow='0'
 
 EOF
-
 sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/aria2.lua
 sed -i 's/services/nas/g' /usr/lib/lua/luci/view/aria2/overview_status.htm
 sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/hd_idle.lua
@@ -185,7 +254,7 @@ set dhcp.lan.ra_default='1'
 set dhcp.lan.force='1'
 set network.lan.delegate='0'
 set network.wan.mtu=1420
-set network.wan.metric='41'
+set network.wan.metric='40'
 set network.wan.delegate='0'
 set network.wan.ipv6='0'
 delete network.wan6
@@ -265,7 +334,7 @@ rm -f /usr/lib/lua/luci/view/admin_status/index/ddns.htm
 rm -f /usr/lib/lua/luci/view/admin_status/index/minidlna.htm
 rm -f /usr/lib/lua/luci/view/admin_status/index/mwan.htm
 rm -f /usr/lib/lua/luci/view/admin_status/index/upnp.htm
-	[ x$debug = x1 ] && uci -q set base_config.@base[0].base$ver=$?;echo $ver
+[ x$debug = x1 ] && uci -q set base_config.@base[0].base$ver=$?;echo $ver
 }
 
 test $ver -lt 3 && {
@@ -329,8 +398,8 @@ test -x /usr/bin/wget && rm -f /bin/wget && ln -s /usr/bin/wget /bin/wget
 test -x /usr/bin/vim && touch /root/.vimrc
 
 #clean all log if new flash firmware
-mount -t pstore -o noatime pstore /sys/fs/pstore 2>/dev/null
-rm -f /sys/fs/pstore/*
+#mount -t pstore -o noatime pstore /sys/fs/pstore 2>/dev/null
+#rm -f /sys/fs/pstore/*
 
 #usb fixup
 test -f /etc/usb-mode.json && {
@@ -352,57 +421,74 @@ test $ver -lt 4 && {
 	[ x$debug = x1 ] && uci -q set base_config.@base[0].base$ver=$? ; echo $ver
 }
 
-
-echo 'iptables -I zone_lan_forward -t filter -m conntrack --ctstate DNAT -j ACCEPT' >> /etc/firewall.user
+# echo 'iptables -I zone_lan_forward -t filter -m conntrack --ctstate DNAT -j ACCEPT' >> /etc/firewall.user
 sed -i '/coremark/d' /etc/crontabs/root
 
 ln -sf /sbin/ip /usr/bin/ip
-
 # Disable opkg signature check
 sed -i 's/option check_signature/# option check_signature/g' /etc/opkg.conf
-
 new_DISTRIB_REVISION=`cat  /etc/ezopenwrt_version`
-
 if [ ` cat /etc/config/luci | grep immortalwrt` ] ;then 
-
-
-sed -i 's/immortalwrt/openwrt/g' /etc/config/luci
-sed -i '/DISTRIB_DESCRIPTION/d' /etc/openwrt_release
-echo "DISTRIB_DESCRIPTION='OpenWrt '" >> /etc/openwrt_release
-sed -i '/DISTRIB_REVISION/d' /etc/openwrt_release
-echo '' >/etc/openwrt_version
-[ -f /etc/ezopenwrt_version ]  && { 
-    echo "DISTRIB_REVISION=' "${new_DISTRIB_REVISION}"'" >> /etc/openwrt_release
-}
-
-# sed -i 's,downloads.openwrt.org,mirror.sjtu.edu.cn/openwrt,g' /etc/opkg/distfeeds.conf
-sed -i 's#downloads.openwrt.org#mirrors.cloud.tencent.com/lede#g' /etc/opkg/distfeeds.conf
-sed -i 's,downloads.immortalwrt.org,mirrors.vsean.net/openwrt,g' /etc/opkg/distfeeds.conf
-sed -i "s/# //g" /etc/opkg/distfeeds.conf
-sed -i '/openwrt_luci/ { s/snapshots/releases\/18.06.9/g; }'  /etc/opkg/distfeeds.conf
-else
-[ -f /etc/ezopenwrt_version ]  && { 
-    sed -i '/DISTRIB_DESCRIPTION/d' /etc/openwrt_release
-    sed -i '/DISTRIB_REVISION/d' /etc/openwrt_release
-    new_DISTRIB_REVISION=`cat  /etc/ezopenwrt_version`
-    echo "DISTRIB_DESCRIPTION='EzOpWrt "${new_DISTRIB_REVISION}"'" >> /etc/openwrt_release
-}
-
+	[ -f /etc/ezopenwrt_version ]  && { 
+  	  sed -i '/DISTRIB_DESCRIPTION/d' /etc/openwrt_release
+  	  sed -i '/DISTRIB_REVISION/d' /etc/openwrt_release
+ 	   echo "DISTRIB_DESCRIPTION='EzOpWrt "${new_DISTRIB_REVISION}"'" >> /etc/openwrt_release
+	}
     sed -i 's/immortalwrt/openwrt/g' /etc/config/luci
     # opkg mirror
+    sed -i 's#downloads.openwrt.org#mirrors.cloud.tencent.com/lede#g' /etc/opkg/distfeeds.conf
     sed -i 's,downloads.immortalwrt.org,mirrors.vsean.net/openwrt,g' /etc/opkg/distfeeds.conf
-
+else
+	sed -i 's/immortalwrt/openwrt/g' /etc/config/luci
+	sed -i '/DISTRIB_DESCRIPTION/d' /etc/openwrt_release
+	# echo "DISTRIB_DESCRIPTION='OpenWrt '" >> /etc/openwrt_release
+	sed -i '/DISTRIB_REVISION/d' /etc/openwrt_release
+	echo '' >/etc/openwrt_version
+	[ -f /etc/ezopenwrt_version ]  && { 
+   	   #echo "DISTRIB_REVISION=' "${new_DISTRIB_REVISION}"'" >> /etc/openwrt_release
+ 	   echo "DISTRIB_DESCRIPTION='EzOpWrt "${new_DISTRIB_REVISION}"'" >> /etc/openwrt_release
+	}
+	#sed -i 's,downloads.openwrt.org,mirror.sjtu.edu.cn/openwrt,g' /etc/opkg/distfeeds.conf
+	sed -i 's#downloads.openwrt.org#mirrors.cloud.tencent.com/lede#g' /etc/opkg/distfeeds.conf
+	# sed -i 's,downloads.immortalwrt.org,mirrors.vsean.net/openwrt,g' /etc/opkg/distfeeds.conf
+	sed -i "s/# //g" /etc/opkg/distfeeds.conf
+	sed -i '/openwrt_luci/ { s/snapshots/releases\/18.06.9/g; }'  /etc/opkg/distfeeds.conf
 fi
 test $ver -lt 5 && {
 	ver=5
-	rm -f /etc/nginx/conf.d/_lan.crt  /etc/nginx/conf.d/_lan.key
-	test -e /etc/nginx/conf.d/_lan.conf && \
-	/usr/bin/nginx-util 'add_ssl' '_lan'
+	# rm -f /etc/nginx/conf.d/_lan.crt  /etc/nginx/conf.d/_lan.key
+	# test -e /etc/nginx/conf.d/_lan.conf && \
+	# /usr/bin/nginx-util 'add_ssl' '_lan'
+	[ x$debug = x1 ] && uci -q set base_config.@base[0].base$ver=$? ; echo $ver
+}
+test $ver -lt 6 && {
+	ver=6
+HOSTNAME="samsungTV"
+TAG="googleDNS"
+MAC=""
+IPADDR=""
+DNS1="8.8.4.4"
+DNS2="8.8.8.8"
+
+uci batch <<EOF
+  set dhcp.${HOSTNAME}="host"
+  set dhcp.${HOSTNAME}.name="${HOSTNAME}"
+  set dhcp.${HOSTNAME}.mac="${MAC}"
+  set dhcp.${HOSTNAME}.ip="${IPADDR}"
+  set dhcp.${HOSTNAME}.tag="${TAG}"
+  set dhcp.${TAG}="tag"
+  set dhcp.${TAG}.dhcp_option="6,${DNS1},${DNS2}"
+EOF
+
+uci commit && cd /etc/init.d && \
+./dnsmasq restart
 	[ x$debug = x1 ] && uci -q set base_config.@base[0].base$ver=$? ; echo $ver
 }
 uci -q set base_config.@base[0].ver=$ver
 uci commit base_config
 ntpd -n -q -p 1.lede.pool.ntp.org
+sed -i '/luciversion/d' /usr/lib/lua/luci/version.lua
+echo "luciversion ='23.05'" >> /usr/lib/lua/luci/version.lua
 sed -i '/log-facility/d' /etc/dnsmasq.conf
 echo "log-facility=/dev/null" >> /etc/dnsmasq.conf
 echo 'hsts=0' > /root/.wgetrc
