@@ -14,6 +14,8 @@ msgstr "开机启动任务"
 msgid "The task to be executed upon startup, with a startup delay time unit of seconds."
 msgstr "开机启动执行的任务，启动延时时间单位为秒。"
 
+msgid "Control"
+msgstr "管控"
 
 msgid "Scheduled Setting"
 msgstr "任务设置"
