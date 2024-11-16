@@ -1,2 +1,0 @@
-#!/bin/sh
-ntfs-3g -o utf8 "$@" 
