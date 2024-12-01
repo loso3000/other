@@ -79,6 +79,9 @@ msgstr "TG聊天群"
 msgid "Log"
 msgstr "日志"
 
+msgid "Routing"
+msgstr "路由表"
+
 msgid "NAS"
 msgstr "存储"
 
