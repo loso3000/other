@@ -226,7 +226,6 @@ set_ttyd
 set_firewall_wan
 tsoset
 
- [ ! -f '/etc/opkg/distfeeds.conf.bak ' ] || mv -f '/etc/opkg/distfeeds.conf.bak ' '/etc/opkg/distfeeds.conf'
     if [ -n "$(command -v fw4)" ] && [ -n "$(command -v nft)" ] && [ -n "$(dnsmasq --version | grep 'Compile time options:.* nftset')" ]; then
           echo  ' '
     else
