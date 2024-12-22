@@ -630,7 +630,6 @@ local methods = {
 			if (cpuinfo == nil) or (cpuinfo == "") then
 				cpuinfo = "?"
 			end
-
 			return { cpuinfo = cpuinfo }
 		end
 	},
