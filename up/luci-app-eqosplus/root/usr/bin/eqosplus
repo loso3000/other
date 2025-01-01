@@ -9,7 +9,6 @@ NAME=eqosplus
 IDLIST="/var/$NAME.idlist"
 LOCK="/var/lock/$NAME.lock"
 TMPID="/var/$NAME.tmpid"
-
 if [ x$(uci get $NAME.@$NAME[0].ifname) = 'x1' ] ;then
      # dev=`ifconfig | grep "Point-to-Point" | cut -d " " -f1`
      ifname=$(uci -q get network.lan.ifname ) 
@@ -18,7 +17,6 @@ if [ x$(uci get $NAME.@$NAME[0].ifname) = 'x1' ] ;then
      [ ! ${dev} ] && dev=br-lan
      dev=br-lan
      #ALL_DEVICES=$(echo $(ifconfig | grep 'Point-to-Point' | cut -d ' ' -f1) $(uci -q get network.wan.$ifname) $(ports_for_device $(uci -q get network.wan.device)) | tr ' ' '\n' | sort -u)
-
 else
      dev=`uci -q get $NAME.@$NAME[0].ifname `
 fi
@@ -44,7 +42,6 @@ dbg_tc() {
 	[ "${DEBUG:-0}" -eq 0 ] || echo "DEBUG: tc $*"
 	$bin_tc $*
 }
-
 dbg_ip() {
 	[ "${DEBUG:-0}" -eq 0 ] || echo "DEBUG: ip $*"
 	$bin_ip $*
@@ -69,6 +66,7 @@ ipt(){
 	$ip6tables $*
 }
 
+
 iptm(){
 	$iptables "-t mangle $*"
 	$ip6tables "-t mangle $*"
@@ -76,6 +74,7 @@ iptm(){
 
 stop_qos() {
  
+
 	 for face in $( tc qdisc show | grep htb | awk '{print $5}');do
 		    $tc qdisc del dev $face root
 	 done
@@ -133,7 +132,6 @@ filter_mac() {
   $TCF match u32 0x${M1}${M2} 0xFFFFFFFF at -12 match u16 0x${M0} 0xFFFF at -14 flowid $2
 }
 add_mac() {
-
 	id=`expr $1 + 11 `
 	M0=$(echo $mac | cut -d : -f 1)$(echo $mac | cut -d : -f 2)
 	M1=$(echo $mac | cut -d : -f 3)$(echo $mac | cut -d : -f 4)

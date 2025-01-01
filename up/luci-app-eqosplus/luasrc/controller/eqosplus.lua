@@ -3,6 +3,7 @@ module("luci.controller.eqosplus", package.seeall)
 function index()
     if not nixio.fs.access("/etc/config/eqosplus") then return end
     entry({"admin", "control"}, firstchild(), "Control", 44).dependent = false
+
     local e = entry({"admin", "control", "eqosplus"}, cbi("eqosplus"), _("Eqosplus"), 10)
     e.dependent=false
     e.acl_depends = { "luci-app-eqosplus" }
