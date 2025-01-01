@@ -2,7 +2,7 @@
 
 local json = require "luci.jsonc"
 local fs   = require "nixio.fs"
-
+local sys  = require "luci.sys"
 local function readfile(path)
 	local s = fs.readfile(path)
 	return s and (s:gsub("^%s+", ""):gsub("%s+$", ""))
@@ -12,7 +12,7 @@ local methods = {
 	getInitList = {
 		args = { name = "name" },
 		call = function(args)
-			local sys = require "luci.sys"
+
 			local _, name, scripts = nil, nil, {}
 			for _, name in ipairs(args.name and { args.name } or sys.init.names()) do
 				local index = sys.init.index(name)
@@ -29,7 +29,7 @@ local methods = {
 	setInitAction = {
 		args = { name = "name", action = "action" },
 		call = function(args)
-			local sys = require "luci.sys"
+
 			if type(sys.init[args.action]) ~= "function" then
 				return { error = "Invalid action" }
 			end
@@ -46,7 +46,7 @@ local methods = {
 	setLocaltime = {
 		args = { localtime = 0 },
 		call = function(args)
-			local sys = require "luci.sys"
+
 			local date = os.date("*t", args.localtime)
 			if date then
 				sys.call("date -s '%04d-%02d-%02d %02d:%02d:%02d' >/dev/null" %{ date.year, date.month, date.day, date.hour, date.min, date.sec })
@@ -599,14 +599,14 @@ local methods = {
 
 	getConntrackList = {
 		call = function()
-			local sys = require "luci.sys"
+
 			return { result = sys.net.conntrack() }
 		end
 	},
 
 	getProcessList = {
 		call = function()
-			local sys = require "luci.sys"
+
 			local res = {}
 			for _, v in pairs(sys.process.list()) do
 				res[#res + 1] = v
@@ -625,26 +625,27 @@ local methods = {
 	getCPUInfo = {
 		call = function()
 
-			local sys = require "luci.sys"
+
 			local cpuinfo = sys.exec("/sbin/sysinfo cpuinfo")
 			if (cpuinfo == nil) or (cpuinfo == "") then
 				cpuinfo = "?"
 			end
+
 			return { cpuinfo = cpuinfo }
 		end
 	},
-
-	getCPUUsage = {
+	
+	getArchInfo = {
 		call = function()
-			local sys = require "luci.sys"
-			local cpuusage = sys.exec("/sbin/sysinfo archinfo")
-			return { cpuusage = cpuusage }
+
+			local archinfo = sys.exec("/sbin/sysinfo archinfo")
+			return { archinfo = archinfo }
 		end
 	},
 
 	getETHInfo = {
 		call = function()
-			local sys = require "luci.sys"
+
 			local ethinfo = json.parse(sys.exec("/sbin/sysinfo ethinfo")) or {}
 			return { ethinfo = ethinfo }
 		end
@@ -652,7 +653,7 @@ local methods = {
 
 	getOnlineUsers = {
 		call = function()
-			local sys = require "luci.sys"
+
 			local onlineusers = sys.exec("/sbin/sysinfo user")
 			return { onlineusers = onlineusers }
 
@@ -662,7 +663,7 @@ local methods = {
 	getTempInfo = {
 		call = function()
 
-			local sys = require "luci.sys"
+
 			local tempinfo = sys.exec("/sbin/sysinfo tempinfo")
 			return { tempinfo = tempinfo }
 		end

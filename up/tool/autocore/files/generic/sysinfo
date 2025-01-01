@@ -7,9 +7,12 @@ user() {
 
 archinfo() {
 . /etc/openwrt_release
-if grep -Eq "x86" "/etc/openwrt_release" ; then
-	[ ! -d /sys/firmware/efi ] &&  echo -n "BIOS" || echo -n "UEFI"
-fi
+case "$DISTRIB_TARGET" in
+"x86"/*)
+	[ -d /sys/firmware/efi ] &&  echo -n 'UEFI' || echo -n 'BIOS' ;;
+*)
+	 echo -n 'Auto' ;;
+esac
 }
 
 memory() {
@@ -166,7 +169,7 @@ fi
 upnpinfo() {
     if [ "$(uci get upnpd.config.enabled)" != 1 ]
     then
-        echo "Not Enabled"
+        echo -n "Not Enabled"
         return
     fi
     upnp_lease=$(uci get upnpd.config.upnp_lease_file)
