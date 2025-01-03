@@ -1,4 +1,4 @@
--- Copyright (C) 2020-2022  sirpdboy  <herboy2008@gmail.com> https://github.com/sirpdboy/netspeedtest
+-- Copyright (C) 2020-2025  sirpdboy  <herboy2008@gmail.com> https://github.com/sirpdboy/netspeedtest
 
 module("luci.controller.netspeedtest", package.seeall)
 local http = require "luci.http"
@@ -16,7 +16,8 @@ function index()
 	
 	entry({"admin", "network", "netspeedtest", "speedtestlan"},cbi("netspeedtest/speedtestlan"),_("Lan Speedtest Web"),20).leaf = true
 	entry({"admin", "network", "netspeedtest", "speedtestiperf3"},cbi("netspeedtest/speedtestiperf3", {hideapplybtn=true, hidesavebtn=true, hideresetbtn=true}),_("Lan Speedtest Iperf3"),30).leaf = true
-        entry({"admin", "network", "netspeedtest", "speedtestwan"},cbi("netspeedtest/speedtestwan", {hideapplybtn=true, hidesavebtn=true, hideresetbtn=true}),_("Broadband speed test"), 40).leaf = true
+        entry({"admin", "network", "netspeedtest", "speedtestwan"},cbi("netspeedtest/speedtestwan", {hideapplybtn=true, hidesavebtn=true, hideresetbtn=true}),_("Broadband speedtest"), 40).leaf = true
+        entry({"admin", "network", "netspeedtest", "speedtestwanweb"},cbi("netspeedtest/speedtestwanweb", {hideapplybtn=true, hidesavebtn=true, hideresetbtn=true}),_("Broadband OpenSpeedtest"), 41).leaf = true
         entry({"admin", "network", "netspeedtest", "speedtestport"},cbi("netspeedtest/speedtestport", {hideapplybtn=true, hidesavebtn=true, hideresetbtn=true}),_("Server Port Latency Test"), 50).leaf = true
         entry({"admin", "network", "netspeedtest", "log"}, form("netspeedtest/log"), _("Log"), 60).leaf = true
 	entry({"admin", "network", "netspeedtest", "test_port"}, call("test_port"))
