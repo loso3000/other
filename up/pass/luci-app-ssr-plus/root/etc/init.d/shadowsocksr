@@ -60,7 +60,7 @@ CRON_FILE=/etc/crontabs/root
 EXTRA_COMMANDS='reset'
 EXTRA_HELP="        reset   Reset to default settings"
 #extra_command "reset" "Reset to default settings"
-PS="busybox ps"
+PS="/bin/busybox ps"
 
 uci_get_by_name() {
 	local ret=$(uci get $NAME.$1.$2 2>/dev/null)
@@ -69,7 +69,7 @@ uci_get_by_name() {
 
 uci_get_by_type() {
 	local ret=$(uci get $NAME.@$1[0].$2 2>/dev/null)
-	echo ${ret:=$3}
+	echo "${ret:=$3}"
 }
 
 uci_set_by_name() {
