@@ -1,7 +1,4 @@
 module("luci.controller.bypass",package.seeall)
-local fs=require"nixio.fs"
-local http=require"luci.http"
-
 function index()
 	if not nixio.fs.access("/etc/config/bypass") then
 		call("act_reset")
@@ -10,7 +7,7 @@ function index()
 	e.dependent=false
 	e.acl_depends={ "luci-app-bypass" }
 	entry({"admin","services","bypass","base"},cbi("bypass/base"),_("Base Setting"),10).leaf=true
-	entry({"admin","services","bypass","servers"},arcombine(cbi("bypass/servers",{autoapply=true}),cbi("bypass/client-config")),_("Severs Nodes"),20).leaf=true
+	entry({"admin","services","bypass","servers"},arcombine(cbi("bypass/servers",{autoapply=true}),cbi("bypass/client-config")),_("Servers Nodes"),20).leaf=true
 	entry({'admin', 'services','bypass','servers-subscribe'}, cbi('bypass/servers-subscribe', {hideapplybtn = true, hidesavebtn = true, hideresetbtn = true}), _('Subscribe'), 30).leaf = true
 	entry({"admin","services","bypass","control"},cbi("bypass/control"),_("Access Control"),40).leaf=true
 	entry({"admin","services","bypass","advanced"},cbi("bypass/advanced"),_("Advanced Settings"),60).leaf=true
@@ -36,8 +33,8 @@ end
 
 function subscribe()
 	luci.sys.call("/usr/bin/lua /usr/share/bypass/subscribe")
-	http.prepare_content("application/json")
-	http.write_json({ret=1})
+	luci.http.prepare_content("application/json")
+	luci.http.write_json({ret=1})
 end
 
 function act_status()
@@ -48,13 +45,13 @@ function act_status()
 	e.sdns = luci.sys.call("busybox ps -w | grep 'smartdns_by' | grep -v grep >/dev/null ")==0
 	e.mdns = luci.sys.call("busybox  ps -w | grep 'mosdns_by'  | grep -v grep   >/dev/null ")==0
 	e.chinadns=luci.sys.call("busybox ps -w | grep 'chinadns-ng -l 5337' | grep -v grep >/dev/null")==0
-	http.prepare_content("application/json")
-	http.write_json(e)
+	luci.http.prepare_content("application/json")
+	luci.http.write_json(e)
 end
 
 function check_net()
 	local r=0
-	local u=http.formvalue("url")
+	local u=luci.http.formvalue("url")
 	local p
 
 	if luci.sys.call("nslookup www."..u..".com >/dev/null 2>&1")==0 then
@@ -66,16 +63,16 @@ function check_net()
 		end
 	end
 
-	http.prepare_content("application/json")
-	http.write_json({ret=r})
+	luci.http.prepare_content("application/json")
+	luci.http.write_json({ret=r})
 end
 
 
 
 function act_ping()
 	local e={}
-	local domain=http.formvalue("domain")
-	local port=http.formvalue("port")
+	local domain=luci.http.formvalue("domain")
+	local port=luci.http.formvalue("port")
 	local dp=luci.sys.exec("netstat -unl | grep 5336 >/dev/null && echo -n 5336 || echo -n 53")
 	local ip=luci.sys.exec("echo "..domain.." | grep -E ^[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}$ || nslookup "..domain.." 2>/dev/null | grep Address | awk -F' ' '{print$NF}' | grep -E ^[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}$ | sed -n 1p")
 	ip=luci.sys.exec("echo -n "..ip)
@@ -124,9 +121,9 @@ function check_port()
 		ret=socket:connect(ip,s.server_port)
 		socket:close()
 		if tostring(ret)=="true" then
-			retstring=retstring.."<font color='green'>["..server_name.."] OK.</font><br/>"
+			retstring = retstring .. "<font><b style='color:green'>[" .. server_name .. "] OK.</b></font><br />"
 		else
-			retstring=retstring.."<font color='red'>["..server_name.."] Error.</font><br/>"
+			retstring = retstring .. "<font><b style='color:red'>[" .. server_name .. "] Error.</b></font><br />"
 		end
 		if  iret==0 then
 			luci.sys.call("ipset del ss_spec_wan_ac "..ip)
@@ -137,8 +134,8 @@ function check_port()
 end
 
 local function http_write_json(content)
-	http.prepare_content("application/json")
-	http.write_json(content or {code = 1})
+	luci.http.prepare_content("application/json")
+	luci.http.write_json(content or {code = 1})
 end
 
 
