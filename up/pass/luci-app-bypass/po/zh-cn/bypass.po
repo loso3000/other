@@ -193,7 +193,7 @@ msgstr "IPV6解析"
 msgid "Use DNS to return IPv6 records"
 msgstr "使DNS返回IPv6记录"
 
-msgid "Severs Nodes"
+msgid "Servers Nodes"
 msgstr "节点列表"
 
 msgid "Subscribe"
@@ -262,10 +262,10 @@ msgstr "通过代理更新"
 msgid "Through proxy update list,Not Recommended"
 msgstr "通过路由器自身代理更新订阅"
 
-msgid "Update All Subscribe Severs"
+msgid "Update All Subscribe Servers"
 msgstr "更新所有订阅服务器节点"
 
-msgid "Delete All Subscribe Severs"
+msgid "Delete All Subscribe Servers"
 msgstr "删除所有订阅服务器节点"
 
 msgid "Server Count"
@@ -376,26 +376,6 @@ msgstr "注意： 如果服务器使用 userpass 验证，格式必须是 userna
 msgid "Enable Port Hopping"
 msgstr "启用端口跃迁"
 
-msgid "Enabled Kernel virtual NIC TUN(optional)"
-msgstr "启用内核的虚拟网卡 TUN（可选）"
-
-msgid "Virtual NIC TUN of Linux kernel can be used only when system supports and have root permission. If used, IPv6 routing table 1023 is occupied."
-msgstr "需要系统支持且有 root 权限才能使用 Linux 内核的虚拟网卡 TUN，使用后会占用 IPv6 的 1023 号路由表。"
-
-msgid "Reserved bytes(optional)"
-msgstr "保留字节（可选）"
-
-msgid "Wireguard reserved bytes."
-msgstr "Wireguard 保留字节。"
-
-msgid "Default value 0 indicatesno heartbeat."
-msgstr "默认为 0 表示无心跳。"
-
-msgid "allowedIPs(optional)"
-msgstr "allowedIPs（可选）"
-
-msgid "Wireguard allows only traffic from specific source IP."
-msgstr "Wireguard 仅允许特定源 IP 的流量。"
 
 msgid "Port Hopping Interval(Unit:Second)"
 msgstr "端口跃迁间隔（单位：秒）"

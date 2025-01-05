@@ -560,11 +560,12 @@ function import_ssr_url(btn, urlname, sid) {
 			if (ssm.net == "tcp") {
 				if (ssm.type && ssm.type != "http") {
 					ssm.type = "none"
+				} else {
+					document.getElementsByName('cbid.bypass.' + sid + '.http_host')[0].value = ssm.host;
+					document.getElementsByName('cbid.bypass.' + sid + '.http_path')[0].value = ssm.path;
 				}
 				document.getElementsByName('cbid.bypass.' + sid + '.tcp_guise')[0].value = ssm.type;
 				document.getElementsByName('cbid.bypass.' + sid + '.tcp_guise')[0].dispatchEvent(event);
-				document.getElementsByName('cbid.bypass.' + sid + '.http_host')[0].value = ssm.host;
-				document.getElementsByName('cbid.bypass.' + sid + '.http_path')[0].value = ssm.path;
 			}
 			if (ssm.net == "ws") {
 				document.getElementsByName('cbid.bypass.' + sid + '.ws_host')[0].value = ssm.host;
@@ -616,16 +617,16 @@ function import_ssr_url(btn, urlname, sid) {
 			document.getElementsByName('cbid.bypass.' + sid + '.server')[0].value = url.hostname;
 			document.getElementsByName('cbid.bypass.' + sid + '.server_port')[0].value = url.port || "80";
 			document.getElementsByName('cbid.bypass.' + sid + '.vmess_id')[0].value = url.username;
-			document.getElementsByName('cbid.bypass.' + sid + '.transport')[0].value = params.get("type") == "http" ? "h2" : params.get("type") || "tcp";
+			document.getElementsByName('cbid.bypass.' + sid + '.transport')[0].value = 
+				params.get("type") == "http" ? "h2" : 
+				(params.get("type") == "raw" ? "raw" : 
+				(params.get("type") || "tcp"));
 			document.getElementsByName('cbid.bypass.' + sid + '.transport')[0].dispatchEvent(event);
 			document.getElementsByName('cbid.bypass.' + sid + '.vless_encryption')[0].value = params.get("encryption") || "none";
 			if ([ "tls", "xtls", "reality" ].includes(params.get("security"))) {
 				document.getElementsByName('cbid.bypass.' + sid + '.' + params.get("security"))[0].checked = true;
 				document.getElementsByName('cbid.bypass.' + sid + '.' + params.get("security"))[0].dispatchEvent(event);
 
-				document.getElementsByName('cbid.bypass.' + sid + '.fingerprint')[0].value = params.get("fp") || "";
-				document.getElementsByName('cbid.bypass.' + sid + '.tls_flow')[0].value = params.get("flow") || "";
-				document.getElementsByName('cbid.bypass.' + sid + '.tls_host')[0].value = params.get("sni") || "";
 
 				if (params.get("security") === "reality") {
 					document.getElementsByName('cbid.bypass.' + sid + '.reality_publickey')[0].value = params.get("pbk") ? decodeURIComponent(params.get("pbk")) : "";
@@ -677,6 +678,13 @@ function import_ssr_url(btn, urlname, sid) {
 			case "tcp":
 				document.getElementsByName('cbid.bypass.' + sid + '.tcp_guise')[0].value = params.get("headerType") || "none";
 				document.getElementsByName('cbid.bypass.' + sid + '.tcp_guise')[0].dispatchEvent(event);
+				if (params.get("headerType") === "http") {
+					document.getElementsByName('cbid.bypass.' + sid + '.http_host')[0].value = params.get("host") ? decodeURIComponent(params.get("host")) : "";
+					document.getElementsByName('cbid.bypass.' + sid + '.http_path')[0].value = params.get("path") ? decodeURIComponent(params.get("path")) : "";
+				}
+			case "raw":
+				document.getElementsByName('cbid.bypass.' + sid + '.raw_guise')[0].value = params.get("headerType") || "none";
+				document.getElementsByName('cbid.bypass.' + sid + '.raw_guise')[0].dispatchEvent(event);
 				if (params.get("headerType") === "http") {
 					document.getElementsByName('cbid.bypass.' + sid + '.http_host')[0].value = params.get("host") ? decodeURIComponent(params.get("host")) : "";
 					document.getElementsByName('cbid.bypass.' + sid + '.http_path')[0].value = params.get("path") ? decodeURIComponent(params.get("path")) : "";

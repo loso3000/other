@@ -66,6 +66,13 @@ o.datatype="uinteger"
 o.default=3
 o:depends("enable_switch",1)
 
+o = s:option(Button, "Reset", translate("Reset to defaults"))
+o.inputstyle = "reload"
+o.write = function()
+	luci.sys.call("/etc/init.d/bypass reset")
+	luci.http.redirect(luci.dispatcher.build_url("admin", "services", "bypass", "servers"))
+end
+
 -- [[ Rule Settings ]]--
 s = m:section(TypedSection, "global_rules", translate("Rule status"))
 s.anonymous = true

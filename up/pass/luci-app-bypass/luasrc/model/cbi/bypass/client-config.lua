@@ -187,7 +187,7 @@ o.description = translate("Redirect traffic to this network interface")
 o = s:option(ListValue, "v2ray_protocol", translate("V2Ray/XRay protocol"))
 o:value("vless", translate("VLESS"))
 o:value("vmess", translate("VMess"))
-o:value("trojan", translate("Trojan-plus"))
+o:value("trojan", translate("Trojan"))
 o:value("shadowsocks", translate("Shadowsocks"))
 if is_finded("xray") then
 	o:value("wireguard", translate("WireGuard"))
@@ -529,7 +529,6 @@ o:depends({type = "v2ray", v2ray_protocol = "vmess"})
 -- VmessId
 o = s:option(Value, "vmess_id", translate("Vmess/VLESS ID (UUID)"))
 o.rmempty = true
-o.password = true
 o.default = uuid
 o:depends({type = "v2ray", v2ray_protocol = "vmess"})
 o:depends({type = "v2ray", v2ray_protocol = "vless"})
@@ -559,7 +558,7 @@ o:depends({type = "v2ray", v2ray_protocol = "socks"})
 
 -- 传输协议
 o = s:option(ListValue, "transport", translate("Transport"))
-o:value("tcp", "TCP")
+o:value("raw", "RAW (TCP)")
 o:value("kcp", "mKCP")
 o:value("ws", "WebSocket")
 o:value("httpupgrade", "HTTPUpgrade")
@@ -575,10 +574,10 @@ o:depends({type = "v2ray", v2ray_protocol = "shadowsocks"})
 o:depends({type = "v2ray", v2ray_protocol = "socks"})
 o:depends({type = "v2ray", v2ray_protocol = "http"})
 
--- [[ TCP部分 ]]--
+-- [[ RAW部分 ]]--
 -- TCP伪装
 o = s:option(ListValue, "tcp_guise", translate("Camouflage Type"))
-o:depends("transport", "tcp")
+o:depends("transport", "raw")
 o:value("none", translate("None"))
 o:value("http", "HTTP")
 o.rmempty = true
@@ -596,7 +595,7 @@ o.rmempty = true
 -- [[ WS部分 ]]--
 -- WS域名
 o = s:option(Value, "ws_host", translate("WebSocket Host"))
-o:depends({transport = "ws"})
+o:depends({transport = "ws", tls = false})
 o.datatype = "hostname"
 o.rmempty = true
 
@@ -860,17 +859,20 @@ if is_finded("xray") then
 	-- [[ XTLS ]]--
 	o = s:option(ListValue, "tls_flow", translate("Flow"))
 	for _, v in ipairs(tls_flows) do
+		if v == "none" then
+		   o.default = "none"
+		   o:value("none", translate("none"))
+		else
 		o:value(v, translate(v))
+		end
 	end
 	o.rmempty = true
-	o:depends("xtls", true)
-	o:depends({type = "v2ray", v2ray_protocol = "vless", transport = "tcp", tls = true})
-
-	o:depends({type = "v2ray", v2ray_protocol = "vless", transport = "tcp", reality = true})
+	o:depends({type = "v2ray", v2ray_protocol = "vless", transport = "raw", tls = true})
+	o:depends({type = "v2ray", v2ray_protocol = "vless", transport = "raw", reality = true})
 
 	-- [[ uTLS ]]--
-	o = s:option(Value, "fingerprint", translate("Finger Print"))
-	o.default = "chrome"
+	o = s:option(ListValue, "fingerprint", translate("Finger Print"))
+	o.default = ""
 	o:value("chrome", translate("chrome"))
 	o:value("firefox", translate("firefox"))
 	o:value("safari", translate("safari"))

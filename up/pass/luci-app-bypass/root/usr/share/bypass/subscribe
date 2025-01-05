@@ -2,7 +2,7 @@
 ------------------------------------------------
 -- This file is part of the luci-app-bypass subscribe.lua
 -- @author William Chan <root@williamchan.me>
--- @sirpdboy 2023 <herboy2008@gmail.com>
+-- @sirpdboy 2025 <herboy2008@gmail.com>
 ------------------------------------------------
 require "luci.model.uci"
 require "nixio"
@@ -141,8 +141,9 @@ local function processData(szType, content)
 		result.obfs_param = base64Decode(params.obfsparam)
 		result.protocol_param = base64Decode(params.protoparam)
 		local group = base64Decode(params.group)
-		result.alias=""
-		if group then result.alias="["..group.."] " end
+		if group then
+			result.alias = "[" .. group .. "] "
+		end
 		result.alias = result.alias .. base64Decode(params.remarks)
 	elseif szType == 'vmess' then
 		local info = jsonParse(content)
@@ -331,6 +332,7 @@ local function processData(szType, content)
 			end
 		end
 	elseif szType == "trojan" then
+
 		local alias = ""
 		if content:find("#") then
 			local idx_sp = content:find("#")
@@ -713,8 +715,8 @@ local execute = function()
 		if next(nodeResult) == nil then
 			log("更新失败，没有可用的节点信息")
 			if proxy == '0' then
-				SYS.init.start(name)
 				log('订阅失败, 恢复服务')
+				SYS.init.start(name)
 			end
 			return
 		end
@@ -760,12 +762,13 @@ local execute = function()
 		if globalServer ~= "nil" then
 			local firstServer = ucic:get_first(name, uciType)
 			if firstServer then
+			        local nowserver=ucic:get(name, globalServer, 'alias', '')
 				if not ucic:get(name, globalServer) then
 					ucic:set(name, ucic:get_first(name, 'global'), 'global_server', ucic:get_first(name, uciType))
 					ucic:commit(name)
 					log('当前主服务器节点为空，自动更换到第一个节点。')
 				else
-					log('维持当前主服务器节点。')
+					log('维持当前主服务器节点： '..ucic:get(name, globalServer, 'alias', ''))
 				end
 			else
 				ucic:delete(name,ucic:get_first(name,'global'),'global_server')
@@ -776,14 +779,10 @@ local execute = function()
 				SYS.exec("/etc/init.d/" .. name .. " stop > /dev/null 2>&1 &")
 			end
 		end
-
 		ucic:commit(name)
 
-		local enabled = ucic:get_first(name, 'global', 'enabled', 0)
-		if  enabled=='0' or globalServer == "nil" then
-			SYS.exec("/etc/init.d/" .. name .. " stop > /dev/null 2>&1 &")
-		else
-	   		SYS.exec("/etc/init.d/" .. name .. " restart > /dev/null 2>&1 &")
+		if  globalServer == "nil" then
+			SYS.init.stop(name)
 	        end
 	end
 end
@@ -800,5 +799,12 @@ if subscribe_url and #subscribe_url > 0 then
 		log(debug.traceback())
 		log('发生错误, 正在恢复服务')
 	end)
+	local enabled = ucic:get_first(name, 'global', 'enabled', 0)
+		if  enabled ==  0   then 
+				log('服务没有启用！')
+				SYS.init.stop(name)
+				--SYS.exec("/etc/init.d/" .. name .. " stop > /dev/null 2>&1 &")
+		end
 	log('--------------------订阅完毕---------------------')
+
 end

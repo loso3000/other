@@ -53,6 +53,13 @@ local_enable=0
 switch_enable=0
 switch_server=$1
 server_count=0
+
+
+enabled=$(uci -q get ${NAME}.@global[0].enabled) 
+
+EXTRA_COMMANDS='reset'
+EXTRA_HELP="        reset   Reset to default settings"
+#extra_command "reset" "Reset to default settings"
 PS="busybox ps -w"
 STATUS=Y
 
@@ -84,8 +91,8 @@ bootstrap_dns=$(uci_get_by_type global bootstrap_dns '114.114.114.114')
 socks5_ip=''
 gen_log()(
 
-	[ -s $LOG ] && echo -e "$(date +'%Y-%m-%d %H:%M:%S') ===程序开始运行===" >> $LOG
-	log "Check network status."
+	[ -s $LOG ] && echo -e "\n$(date +'%Y-%m-%d %H:%M:%S') ===程序开始运行===" >> $LOG
+	log "检查网络状态."
 )
 
 log(){
@@ -94,7 +101,7 @@ log(){
 
 clean_log() {
 	[ `cat $LOG  | wc -l ` -gt 500 ] && {
-		echo "$(date "+%Y-%m-%d %H:%M:%S") LOG long ,clear log!" >$LOG
+		echo "$(date "+%Y-%m-%d %H:%M:%S") LOG long ,clear log" >$LOG
 	}
 }
 f_bin(){
@@ -127,9 +134,9 @@ host_ip() {
 	fi
 	[ -z "$ip" ] || uci_set_by_name $1 ip $ip
 	if [ -n "$ip" ] ;then
-	  log "Rules      : Get $(uci_get_by_name $1 alias) ip:$ip success!" 
+	  log "Rules      : 检查服务器$(uci_get_by_name $1 alias),IP地址:$ip正常" 
 	else
-	  log "Rules      : Unable to get server address.Check domain name!"
+	  log "Rules      : 服务器不正常,请检查服务器地址"
 	  exit 1
 	fi
 	if [ "$ip" != "$host" ]; then
@@ -269,9 +276,9 @@ check_net(){
 get_soip(){
 	if [ $SO_SERVER ];then
 		if [ "$1" = 1 ];then
-			cat $LOG 2>/dev/null | sed -n '$p' | grep -q 'Check network status...' || gen_log
+			cat $LOG 2>/dev/null | sed -n '$p' | grep -q '检查网络状态...' || gen_log
 			check_net
-			cat $LOG 2>/dev/null | sed -n '$p' | grep -q 'Check network status successful!' || log "Rules      : Check network status successful!"
+			cat $LOG 2>/dev/null | sed -n '$p' | grep -q '检查网络连接正常' || log "Rules      : 检查网络连接正常"
 		fi
 		socks5_ip=$(host_ip $SO_SERVER)
 	fi
@@ -283,23 +290,23 @@ rules(){
 		get_soip 1;return 1
 	fi
 	if `busybox ps -w | grep by-retcp | grep -qv grep`;then
-		log "Rules     :Bypass has Started.";/etc/init.d/bypass restart  >/dev/null 2>&1
+		log "Rules     :Bypass启动成功.";/etc/init.d/bypass restart  >/dev/null 2>&1
 	fi
-	cat $LOG 2>/dev/null | sed -n '$p' | grep -q 'Check network status.\|Download IP/GFW files.' || gen_log
+	cat $LOG 2>/dev/null | sed -n '$p' | grep -q '检查网络状态.\|下载IP/GFW文件.' || gen_log
 	check_net
-	cat $LOG 2>/dev/null | sed -n '$p' | grep -q 'Download IP/GFW files...' || (log "Rules      : Check network status successful!";log "Rules      : Check IP/GFW files...")
+	cat $LOG 2>/dev/null | sed -n '$p' | grep -q '下载IP/GFW文件...' || (log "Rules      : 检查网络状态正常";log "Rules      : 检查IP/GFW文件...")
 	[ ! -d $VAR  ] && mkdir -p $VAR
 	[ ! -d /tmp/run ] &&  mkdir -p /tmp/run 
 	if [ ! -s $VAR/china.txt ] || [ ! -s $VAR/china_v6.txt ] || [ ! -s $VAR/gfw.list ] ;then
 		if [ ! -s $T_FILE/china.txt ] || [ ! -s $T_FILE/china_v6.txt ] || [ ! -s $T_FILE/gfw.list ] ;then
-			log "Rules      : Download IP/GFW files."
+			log "Rules      : 下载IP/GFW文件."
 			$BIN_DIR/update --First ;exit 0;
 		else
 			cp -f $T_FILE/*.txt $VAR
 			cp -f $T_FILE/gfw.list $VAR
 		fi
 	fi
-	log "Rules      : Check IP/GFW files success!"
+	log "Rules      : 检查IP/GFW文件正常"
 	#tcp
 	kcp_enable=$(uci_get_by_name $GLOBAL_SERVER kcp_enable 0)
 	server=$(host_ip $GLOBAL_SERVER)
@@ -309,7 +316,7 @@ rules(){
 	[ $UDP_RELAY_SERVER ] || UDP_RELAY_SERVER=
 	[ "$UDP_RELAY_SERVER" = same ] && UDP_RELAY_SERVER=$GLOBAL_SERVER
 	if [ "$(uci_get_by_name $UDP_RELAY_SERVER kcp_enable)" = 1 ];then
-		log "UDP Node: Can't use KCPTUN to start as UDP Relay Server!"
+		log "UDP Node: Can't use KCPTUN to start as UDP Relay Server"
 		UDP_RELAY_SERVER=
 	fi
 	#nf
@@ -377,17 +384,17 @@ rules(){
 	r=1
 	while ! $BIN_DIR/by-rules -s "$server" -l "$local_port" -a "$ac_ips" -b "$(uci_get_by_type access_control wan_bp_ips)" -w "$(uci_get_by_type access_control wan_fw_ips)" \
 		-p "$(uci_get_by_type access_control lan_fp_ips)" -G "$(uci_get_by_type access_control lan_gm_ips)" -D "$proxyport" $mode $UDP $NF $D;do
-		[ $r -ge 20 ] && log "Rules      : Start iptables rules failed!" && return 1
+		[ $r -ge 20 ] && log "Rules      : Start iptables rules failed" && return 1
 		let r++;sleep 1
 	done
-	log "Rules      : Start $run_mode iptables rules successful!"
+	log "Rules      : 启用$run_mode模式"
 }
 
 start_retcp(){
 	rtype=tcp
 	if [ $kcp_enable = 1 ];then
 		cmd=$(which kcptun-client) || cmd=0
-		[ ! $cmd ] && 	log "Main Node: Can't find KCPTUN program, start failed!" && return 1
+		[ ! $cmd ] && 	log "Main Node: Can't find KCPTUN program, start failed" && return 1
 
 		[ $($cmd -v 2>/dev/null | grep kcptun | wc -l) = 0 ] && return 1
 		kcp_port=$(uci_get_by_name $GLOBAL_SERVER kcp_port)
@@ -400,7 +407,7 @@ start_retcp(){
 	threads=$(uci_get_by_type global threads 0)
 	[ $threads = 0 ] && threads=$(cat /proc/cpuinfo | grep 'processor' | wc -l)
 	cmd=$(f_bin $ttype)
-	[ ! $cmd ] && log "Main Node: Can't find $(echo $ttype | tr a-z A-Z) program, start failed!"  && return 1
+	[ ! $cmd ] && log "Main Node: Can't find $(echo $ttype | tr a-z A-Z) program, start failed"  && return 1
 
 	redir_tcp=1
 	case $ttype in
@@ -409,7 +416,7 @@ start_retcp(){
 		redir_tcp=$threads
 			$cmd -c $config_file >/dev/null 2>&1 &
 		[ $ttype = ss ] && name=Shadowsocks || name=ShadowsocksR
-		log "Main Node: $name $threads Threads Started!";;
+		log "Main Node: $name $threads 线程启动成功";;
 	v2ray)
 		if [ x$SO_SERVER = x$GLOBAL_SERVER ];then
 			port=$(uci_get_by_type socks5_proxy local_port 1080)
@@ -419,9 +426,9 @@ start_retcp(){
 		fi
 		gen_config_file $GLOBAL_SERVER $rtype $port $server
 		$cmd run -c $config_file >/dev/null 2>&1 &
-		log "Main Node: $($cmd -version | head -1 | awk '{print$1,$2}') Started!"
+		log "Main Node: $($cmd -version | head -1 | awk '{print$1,$2}') 启动成功"
 		if [ "$socks5_start" = 1 ];then
-			log "Socks5 Node: $($cmd -version | head -1 | awk '{print$1,$2}') $ttype Started!"
+			log "Socks5 Node: $($cmd -version | head -1 | awk '{print$1,$2}') $ttype 启动成功"
 		fi
 		;;
 	hysteria2)
@@ -435,7 +442,7 @@ start_retcp(){
 
 		$cmd -c $config_file >/dev/null 2>&1 &
 
-		log "Main Node: `$cmd version  | grep Version | awk '{print "Hysteria2: " $2}' ` $ttype Started!"
+		log "Main Node: `$cmd version  | grep Version | awk '{print "Hysteria2: " $2}' ` $ttype 启动成功"
 
 		;;
 	trojan)
@@ -444,12 +451,12 @@ start_retcp(){
 		$cmd --config $config_file >/dev/null 2>&1 &
 		name=Trojan-Plus
 		ver="$($cmd --version 2>&1 | head -1 | awk '{print$3}')"
-		log "Main Node: $name (Ver $ver) $threads Threads Started!"
+		log "Main Node: $name (Ver $ver) $threads 线程启动成功"
 		;;
 	naiveproxy)
 		gen_config_file $GLOBAL_SERVER $rtype
 		$cmd --config $config_file >/dev/null 2>&1 &
-		log "Main Node: $($cmd --version | head -1) Threads Started!"
+		log "Main Node: $($cmd --version | head -1) 线程启动成功"
 		;;
 	socks5)
 		redir_tcp=$threads
@@ -458,7 +465,7 @@ start_retcp(){
 
 		$cmd -c $VAR/redsocks-by-retcp.json>/dev/null 2>&1 &
 
-		log "Main Node: Socks5 $threads Threads Started!"
+		log "Main Node: Socks5 $threads 线程启动成功"
 		;;
 	tun)
 		redir_tcp=$threads
@@ -466,16 +473,16 @@ start_retcp(){
 
 		$cmd -c $VAR/redsocks-by-retcp.json >/dev/null 2>&1 &
 
-		log "Main Node: Network Tunnel $threads Threads Started!"
+		log "Main Node: Network Tunnel $threads 线程启动成功"
 		;;
 	esac
-	log "Main Node: Main Server $(uci_get_by_name $GLOBAL_SERVER alias)  Started!"
+	log "Main Node: 主服务器$(uci_get_by_name $GLOBAL_SERVER alias)启动成功"
 }
 
 start_reudp(){
 	rtype=udp
 	cmd=$(f_bin $utype)
-	[ ! $cmd ] && log "UDP Node: Can't find $(echo $utype | tr a-z A-Z) program, start failed!" && return 1
+	[ ! $cmd ] && log "UDP Node: Can't find $(echo $utype | tr a-z A-Z) program, start failed" && return 1
 
 	redir_udp=1
 	case $utype in
@@ -483,68 +490,68 @@ start_reudp(){
 		gen_config_file $UDP_RELAY_SERVER $rtype
 		$cmd -c $config_file -U >/dev/null 2>&1 &
 		[ $utype = ss ] && name=Shadowsocks || name=ShadowsocksR
-		log "UDP Node: $name  $utype Started!"
+		log "UDP Node: $name  $utype 启动成功"
 		;;
 	v2ray)
 		gen_config_file $UDP_RELAY_SERVER $rtype $local_port $server
 		$cmd  run -c $config_file >/dev/null 2>&1 &
-		log "UDP Node: $($cmd -version | head -1 | awk '{print$1,$2}') $utype Started!"	;;
+		log "UDP Node: $($cmd -version | head -1 | awk '{print$1,$2}') $utype 启动成功"	;;
 	trojan)
 		gen_config_file $UDP_RELAY_SERVER $rtype "" $udp_server
 		$cmd --config $config_file >/dev/null 2>&1 &
 		name=Trojan-Plus
 		ver="$($cmd --version 2>&1 | head -1 | awk '{print$3}')"
-		log "UDP Node: $name (Ver $ver) $utype Started!"
+		log "UDP Node: $name (Ver $ver) $utype 启动成功"
 		;;
 	naiveproxy)
 		gen_config_file $UDP_RELAY_SERVER $rtype
 		redir_udp=0
 		$cmd --config $config_file >/dev/null 2>&1 &
-		log "$($cmd --version | head -1) UDP Relay $utype not supported!"
+		log "$($cmd --version | head -1) UDP Relay $utype not supported"
 		;;
 
 	hysteria2)
 	
 		gen_config_file $UDP_RELAY_SERVER $rtype 0 $udp_server
 		$cmd -c $config_file  >/dev/null 2>&1 &
-		log "UDP Node: `$cmd version | grep Version | awk '{print "Hysteria2: " $2}'  `  $utype Started!"
+		log "UDP Node: `$cmd version | grep Version | awk '{print "Hysteria2: " $2}'  `  $utype 启动成功"
 		;;
 	socks5)
 		$BIN_DIR/genred2config $VAR/redsocks-by-reudp.json socks5 udp $udp_local_port $udp_server \
 		$(uci_get_by_name $UDP_RELAY_SERVER server_port) $(uci_get_by_name $UDP_RELAY_SERVER auth_enable 0) $(uci_get_by_name $UDP_RELAY_SERVER username) $(uci_get_by_name $UDP_RELAY_SERVER password)
 		$cmd --config $VAR/redsocks-by-reudp.json >/dev/null 2>&1
-		log "UDP Node: Socks5 Started!"
+		log "UDP Node: Socks5 启动成功"
 		;;
 	tun)
 		redir_udp=0
 		$cmd -c $VAR/redsocks-by-retcp.json >/dev/null 2>&1 &
-		log "Network Tunnel UDP Relay $utype not supported!"
+		log "Network Tunnel UDP Relay $utype not supported"
 		;;
 	esac
-	log "UDP Node: UDP Server $(uci_get_by_name  $UDP_RELAY_SERVER alias)  Started!"
+	log "UDP Node: UDP Server $(uci_get_by_name  $UDP_RELAY_SERVER alias)  启动成功"
 }
 
 start_renf(){
 	rtype=nf
 	cmd=$(f_bin $ntype)
-	[ ! $cmd ] && log "NF Shunt : Can't find $(echo $ntype | tr a-z A-Z) program, start failed!" && return 1
+	[ ! $cmd ] && log "NF Shunt : Can't find $(echo $ntype | tr a-z A-Z) program, start failed" && return 1
 	redir_nf=1
 	case $ntype in
 	ss|ssr)
 		gen_config_file $NF_SERVER $rtype
 		$cmd -c $config_file >/dev/null 2>&1 &
 		[ $ntype = ss ] && name=Shadowsocks || name=ShadowsocksR
-		log "NF  Shunt : $name $ntype Started!"
+		log "NF  Shunt : $name $ntype 启动成功"
 		;;
 	v2ray)
 		gen_config_file $NF_SERVER $rtype 0 $nf_ip
 		$cmd run -c $config_file >/dev/null 2>&1 &
-		log "NF  Shunt : $($cmd -version | head -1 | awk '{print$1,$2}') $ntype Started!"
+		log "NF  Shunt : $($cmd -version | head -1 | awk '{print$1,$2}') $ntype 启动成功"
 		;;
 	hysteria2)
 		gen_config_file $NF_SERVER $rtype 0 $nf_ip
 		$cmd -c $config_file >/dev/null 2>&1 &
-		log "NF  Shunt : `$cmd version  | grep Version | awk '{print "Hysteria2: " $2}'  `  $ntype Started!"
+		log "NF  Shunt : `$cmd version  | grep Version | awk '{print "Hysteria2: " $2}'  `  $ntype 启动成功"
 		;;
 	trojan)
 		gen_config_file $NF_SERVER $rtype "" $nf_ip
@@ -553,26 +560,26 @@ start_renf(){
 			name=Trojan-Plus
 			ver="$($cmd --version 2>&1 | head -1 | awk '{print$3}')"
 		}
-		log "NF  Shunt : $name (Ver $ver) $ntype Started!"
+		log "NF  Shunt : $name (Ver $ver) $ntype 启动成功"
 		;;
 	naiveproxy)
 		gen_config_file $NF_SERVER $rtype
 		$cmd --config $config_file >/dev/null 2>&1 &
-		log "NF  Shunt : $($cmd --version | head -1) $ntype Started!"
+		log "NF  Shunt : $($cmd --version | head -1) $ntype 启动成功"
 		;;
 	socks5)
 		$BIN_DIR/genred2config $VAR/redsocks-by-nf.json socks5 tcp $nf_local_port $nf_ip $(uci_get_by_name $NF_SERVER server_port) \
 		$(uci_get_by_name $NF_SERVER auth_enable 0) $(uci_get_by_name $NF_SERVER username) $(uci_get_by_name $NF_SERVER password)
 		$cmd -c  $config_file  >/dev/null 2>&1 &
-		log "NF  Shunt : $ntype Started!"
+		log "NF  Shunt : $ntype 启动成功"
 		;;
 	tun)
 		$BIN_DIR/genred2config $VAR/redsocks-by-nf.json vpn $(uci_get_by_name $NF_SERVER iface "br-lan") $nf_local_port
 		$cmd -c  $config_file  >/dev/null 2>&1 &
-		log "NF  Shunt : Network Tunnel REDIRECT $ntype Started!"
+		log "NF  Shunt : Network Tunnel REDIRECT $ntype 启动成功"
 		;;
 	esac
-	log "NF  Shunt : NF Server $(uci_get_by_name $NF_SERVER alias) $ntype Started!"
+	log "NF  Shunt : NF Server $(uci_get_by_name $NF_SERVER alias) $ntype 启动成功"
 }
 
 start_local(){
@@ -581,7 +588,7 @@ start_local(){
 	type=$(uci_get_by_name $SO_SERVER type)
 	[ $type = ss -o $type = ssr ] && cmd=$(f_bin $type-local) || cmd=$(f_bin $type)
 	if [ ! -x $cmd ];then
-		log "Socks5 Node: Can't find $(echo $type | tr a-z A-Z) program, start failed!";return 1
+		log "Socks5 Node: Can't find $(echo $type | tr a-z A-Z) program, start failed";return 1
 	fi
 	socks5_port=$(uci_get_by_type socks5_proxy local_port 1080)
 	local_enable=1
@@ -591,17 +598,17 @@ start_local(){
 		gen_config_file $SO_SERVER $rtype
 		$cmd -c $config_file -u >/dev/null 2>&1 &
 		[ $type = ss ] && name=Shadowsocks || name=ShadowsocksR
-		log "Socks5 Node: $name $type Started!"
+		log "Socks5 Node: $name $type 启动成功"
 		;;
 	v2ray)
 		gen_config_file $SO_SERVER $rtype $socks5_port $socks5_ip
 		$cmd run -c $config_file >/dev/null 2>&1 &
-		log "Socks5 Node: $($cmd -version | head -1 | awk '{print$1,$2}') $type Started!"
+		log "Socks5 Node: $($cmd -version | head -1 | awk '{print$1,$2}') $type 启动成功"
 		;;
 	hysteria2)
 		gen_config_file $SO_SERVER $rtype $socks5_port $socks5_ip
 		$cmd -c $config_file >/dev/null 2>&1 &
-		log "Socks5 Node: `$cmd version  | grep Version | awk '{print "Hysteria2: " $2}' `  $type Started!"
+		log "Socks5 Node: `$cmd version  | grep Version | awk '{print "Hysteria2: " $2}' `  $type 启动成功"
 		
 		;;
 	trojan)
@@ -611,16 +618,16 @@ start_local(){
 			name=Trojan-Plus
 			ver="$($cmd --version 2>&1 | head -1 | awk '{print$3}')"
 		}
-		log "Socks5 Node: $name (Ver $ver) $type Started!"
+		log "Socks5 Node: $name (Ver $ver) $type 启动成功"
 		;;
 	naiveproxy)
 		gen_config_file $SO_SERVER $rtype
 		$cmd --config $config_file >/dev/null 2>&1 &
-		log "Socks5 Node: $($cmd --version | head -1) $type Started!"
+		log "Socks5 Node: $($cmd --version | head -1) $type 启动成功"
 		;;
 	esac
 	ipset add ss_spec_wan_ac $socks5_ip >/dev/null 2>&1 &
-	log "Socks5 Node: Socks5 Server $(uci_get_by_name $SO_SERVER alias) Started!"
+	log "Socks5 Node: Socks5 Server $(uci_get_by_name $SO_SERVER alias) 启动成功"
 }
 
 start_dns()
@@ -631,11 +638,11 @@ start_dns()
 	      case $run_mode in
 			gfw)  
 			   #service_start $(which chinadns-ng) -l 5337 -c '127.0.0.1#5336' -t '127.0.0.1#5335' -4 china_v4  -p 3 -6 china_v6 -f -n -m $VAR/gfw.list -M $([ $gfw_mode = 1 ] && echo -g $VAR/gfw.list)  >/dev/null 2>&1 &
-			   #log "ChinaDNS : Start ChinaDNS-NG success!"
+			   #log "ChinaDNS : ChinaDNS-NG启动成功"
 			;;
 			router)  
 			   service_start $(which chinadns-ng) -l 5337 -c '127.0.0.1#5336' -t '127.0.0.1#5335' -4 china_v4  -p 3 -6 china_v6 -f -n $([ $gfw_mode = 1 ] && echo -g $VAR/gfw.list)   >/dev/null 2>&1 &
-			   log "ChinaDNS : Start ChinaDNS-NG success!"	
+			   log "ChinaDNS : ChinaDNS-NG启动成功"	
 			;;
 		esac
 	 else
@@ -645,11 +652,11 @@ start_dns()
 		case $run_mode in
 			gfw)  
 			   #service_start $(which chinadns-ng) -l 5337 -c "${bootstrap_dns}#53" -t '127.0.0.1#5335' -4 china_v4  -p 3 -6 china_v6 -f -n -m $VAR/gfw.list -M $([ $gfw_mode = 1 ] && echo -g $VAR/gfw.list)  >/dev/null 2>&1 &
-			   #log "ChinaDNS : Start ChinaDNS-NG success!"
+			   #log "ChinaDNS : ChinaDNS-NG启动成功"
 			;;
 			router)  
 			   service_start $(which chinadns-ng) -l 5337 -c "127.0.0.1#5335" -t '127.0.0.1#5335' -4 china_v4  -p 3 -6 china_v6 -f -n $([ $gfw_mode = 1 ] && echo -g $VAR/gfw.list)  >/dev/null 2>&1 &
-		           log "ChinaDNS : Start ChinaDNS-NG success!"
+		           log "ChinaDNS : ChinaDNS-NG启动成功"
 			;;
 		esac
 		   if [ "$NF" ] ;then
@@ -730,7 +737,7 @@ get_dns(){  #$1:name/dnslnk  $2:dns/dnsip
 		isp)
 			#isp_dns=$(ifstatus wan | jsonfilter -e '@["dns-server"]' | sed 's/\[//g; s/\]//g' | sed 's/"//g' | sed 's/ //g' | sed 's/,/ /g')
 			isp_dns=$REF
-			[ ! "$isp_dns" ] && log "SmartDNS : Get isp Domestic DNS failed!" && return 1
+			[ ! "$isp_dns" ] && log "SmartDNS : Get isp Domestic DNS failed" && return 1
 			dnsip=$(echo $isp_dns | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+" | grep -v 0.0.0.0 | grep -v 127.0.0.1)
 			dnslnk=$dnsip;;
 		*)
@@ -866,7 +873,7 @@ gen_smartdns(){
 		;;
 	esac
 	# for i in $dns;do smartdns_append "server $i -group b";done
-	log "SmartDNS : $dnsname Remote DNS Resolution!"
+	log "SmartDNS : $dnsname 远程DNS解析"
     done
     echo -e "nameserver /dnsleaktest.com/a\nnameserver /whrq.net/a\nnameserver /speedtest.net/a\nnameserver /ooklaserver.net/a\nnameserver /in-addr.arpa/a\nnameserver /browserleaks.com/a\nnameserver /expressvpn.com/a\nnameserver /ipleak.net/a\nnameserver /whoer.net/a " >> $DNS_T_TMP
     dns_pollution=$(uci_get_by_type global dns_pollution 0)
@@ -902,7 +909,7 @@ gen_smartdns(){
 			for i in $dns;do smartdns_append "server $i -group e ";done;;
 	 esac
 	for i in $dns;do ipset add ss_spec_wan_ac $i 2>/dev/null;done
-	log "SmartDNS : $dnsname Local DNS Resolution!"
+	log "SmartDNS : $dnsname 本地DNS解析"
     done
 
     smartdns_append "nameserver /in-addr.arpa/e"
@@ -935,14 +942,14 @@ gen_smartdns(){
 		*)
 			for i in $dns;do smartdns_append "server $i -group h -exclude-default-group";done;;
 	    esac
-	    log "SmartDNS : $dnsname netflix DNS Resolution!"
+	    log "SmartDNS : $dnsname netflix上级DNS解析"
 	done
     fi
         
 	
 	[ "$bootstrap_dns" ] && {
 	for i in $bootstrap_dns;do smartdns_append "server $i -bootstrap-dns";done 
-	log "SmartDNS : $bootstrap_dns Bootstrap DNS Resolution!"
+	log "SmartDNS : $bootstrap_dns Bootstrap上级DNS解析"
 	}
 
 	if [ $run_mode != oversea ];then
@@ -1053,7 +1060,7 @@ gen_mosdns(){
    dns_remote=`mget_dns "$(uci_get_by_type global dns_remote cloudflare_doh)" `
    remote_dns=$(for i in  $dns_remote; do
                                 add_dns_ipset $i dns
-				log "MosDNS : $i Remote DNS Resolution!"
+				log "MosDNS : $i 远程DNS解析"
 				echo "        - addr: $i"
 				echo "          bootstrap: ${bootstrap_dns}"
 				echo "          enable_pipeline: true"
@@ -1090,17 +1097,17 @@ gen_mosdns(){
     dns_pollution=$(uci_get_by_type global dns_pollution 0)
     if [ x$dns_pollution = 'x1' ] ;then 
           sed -i "s/POLLUTION/query_is_remote/g" $MDNS_T
-	  for i in  $dns_remote; do log "MosDNS : $i Local DNS Resolution!" ;done
+	  for i in  $dns_remote; do log "MosDNS : $i 本地DNS解析" ;done
     else
 	  sed -i "s/POLLUTION/query_is_local_ip/g"  $MDNS_T
-	  for i in  $dns_local; do log "MosDNS : $i Local DNS Resolution!" ;done
+	  for i in  $dns_local; do log "MosDNS : $i 本地DNS解析" ;done
     fi
     [ "x$ipv6mode" == "x1" ] && sed -i "s/IPV6MODE/remote_sequence_IPv6/g" $MDNS_T || sed -i "s/IPV6MODE/remote_sequence/g" $MDNS_T
     if [ "$NF" ];then
 	tmp_port=$nf_local_port
 	dns_nf=`mget_dns $(uci_get_by_type global nf_dns google_dot) `
 	nf_dns=$(for i in  $dns_nf; do
-				log "MosDNS : $i NF DNS Resolution!"
+				log "MosDNS : $i NF上级DNS解析"
 				ipset add netflix ${i%:*} 2>/dev/null
 				echo "        - addr: $i"
 				echo "          socks5: \"127.0.0.1:$tmp_port\""
@@ -1156,7 +1163,7 @@ gen_mosdns(){
 			awk '!/^$/&&!/^#/{printf("server=/%s/'"127.0.0.1#5335"'\n",$0)}' $O >>$DNS_DIR/white.conf
 		fi
 	fi
-	log "MosDNS : $bootstrap_dns Bootstrap DNS Resolution!"
+	log "MosDNS : $bootstrap_dns Bootstrap上级DNS解析"
 	[ $(find $DNS_DIR -name \* -exec cat {} \; 2>/dev/null | wc -l) = 0 ] && rm -rf $DNS_DIR || echo conf-dir=$DNS_DIR >>$DNS_FILE
 	rm -rf $TMPDIR $O
 	[ $run_mode = router ] && chinadns_flag=1
@@ -1227,7 +1234,7 @@ run_server(){
 	[ $server_count = 1 ] && iptables-save -t filter | grep BY-SERVER-RULE >/dev/null || iptables -N BY-SERVER-RULE && iptables -t filter -I INPUT -j BY-SERVER-RULE
 	type=$(uci_get_by_name $1 type ssr)
 	[ $type = ss -o $type = ssr ] && cmd=$(f_bin $type-server) || cmd=$(which microsocks)
-	[ ! $cmd ] && log "By server: Can't find $cmd program, start failed!" && return 1
+	[ ! $cmd ] && log "By server: Can't find $cmd program, start failed" && return 1
 	port=$(uci_get_by_name $1 server_port)
 	pass=$(uci_get_by_name $1 password)
 	name=by-server_$server_count
@@ -1237,7 +1244,7 @@ run_server(){
 		gen_service_file $1 $type $VAR/$name.json
 		$cmd -c $VAR/$name.json -u >/dev/null 2>&1 &
 		[ $type = ss ] && name=Shadowsocks || name=ShadowsocksR
-		log "By server: $name Server$server_count Started!"
+		log "By server: $name Server$server_count 启动成功"
 		;;
 	*)
 		if [ $(uci_get_by_name $1 auth_enable 0) = 1 ];then
@@ -1245,12 +1252,12 @@ run_server(){
 			if [ "$username" ];then
 				param="$([ $(uci_get_by_name $1 auth_once 0) = 1 ] && echo -1) -u $username -P $pass"
 			else
-				log "By server: Socks5 User and pass must be used together!"
+				log "By server: Socks5 User and pass must be used together"
 				return 1
 			fi
 		fi
 		$cmd -p $port $param $name >/dev/null 2>&1 &
-		log "By server: Socks5 Server$server_count Started!"
+		log "By server: Socks5 Server$server_count 启动成功"
 		;;
 	esac
 	iptables -t filter -A BY-SERVER-RULE -p tcp --dport $port -j ACCEPT
@@ -1287,8 +1294,7 @@ start_monitor(){
 	fi
 }
 
-start(){
-        enabled=$(uci -q get ${NAME}.@global[0].enabled) 
+start() {
 	[ $enabled == 0 ] && exit 1
 	[ -f $LOC ] && exit 1
 	touch $LOC
@@ -1338,11 +1344,24 @@ start(){
 				/etc/init.d/AdGuardHome stop >/dev/null 2>&1 &
 		fi
 	elif [ $adguardhome == 1 ]; then
-		log "请确认已经安装好Luci-app-adguardhome和ADG程序在系统中!"
+		log "请确认已经安装好Luci-app-adguardhome和ADG程序在系统中"
 	fi
 	clean_log 
 	rm -f $LOCK $LOC
-	log "===程序运行完成===\n"
+	log "===程序运行完成==="
+}
+
+boot() {
+	[ $enabled == 0 ] && exit 1
+	echo '#!/bin/sh' > $FWI
+	local delay=$(uci -q get ${NAME}.@global[0].start_delay || echo 1)
+	if [ "$delay" -gt 0 ]; then
+		log "执行启动延时 $delay 秒后再启动"
+		sleep $delay
+	fi
+	touch $LOCK
+	start
+	touch ${LOCK_FILE_DIR}/${NAME}_ready.lock
 }
 
 stop(){
@@ -1391,7 +1410,7 @@ stop(){
 		else
 			dns_d_l=$REF
 			if [ -z "$dns_d_l" ];then
-				log "SmartDNS : Get Domestic DNS failed!"
+				log "SmartDNS : Get Domestic DNS failed"
 				exit 1
 			fi
 			dns_d_l=$(echo $dns_d_l | sed -e 's/，/,/g' -e 's/。/./g' -e 's/：/:/g' -e 's/,/\n/g')
@@ -1405,20 +1424,10 @@ stop(){
 			sleep 1
 		done
 	fi
-	log "===清空缓存及关闭相关程序完成==="
+	[ $enabled == 0 ] && exit 1
+	echo -e "\n$(date +'%Y-%m-%d %H:%M:%S') ===清空缓存及关闭相关程序完成===" >> $LOG
 }
 
-boot() {
-	echo '#!/bin/sh' > $FWI
-	local delay=$(uci -q get ${NAME}.@global[0].start_delay || echo 1)
-	if [ "$delay" -gt 0 ]; then
-		log "执行启动延时 $delay 秒后再启动!"
-		sleep $delay
-	fi
-	touch $LOCK
-	start
-	touch ${LOCK_FILE_DIR}/${NAME}_ready.lock
-}
 
 restart() {
 	#touch $LOC
@@ -1426,4 +1435,13 @@ restart() {
 	stop
 	start
 
+}
+
+reset() {
+	stop
+	#set_lock
+	rm -rf /etc/config/bypass $LOCK
+	touch /etc/config/bypass $LOCK
+	cat /usr/share/bypass/bypass_config > /etc/config/bypass
+	#unset_lock
 }
