@@ -1,6 +1,10 @@
 -- Copyright (C) 2017 yushi studio <ywb94@qq.com>
 -- Licensed to the public under the GNU General Public License v3.
 module("luci.controller.shadowsocksr", package.seeall)
+local fs=require"nixio.fs"
+local http=require"luci.http"
+CALL=luci.sys.call
+EXEC=luci.sys.exec
 function index()
 	if not nixio.fs.access("/etc/config/shadowsocksr") then
 		call("act_reset")
@@ -21,50 +25,50 @@ function index()
 	entry({"admin", "services", "shadowsocksr", "subscribe"}, call("subscribe"))
 	entry({"admin", "services", "shadowsocksr", "checkport"}, call("check_port"))
 	entry({"admin", "services", "shadowsocksr", "log"}, cbi("shadowsocksr/log"), _("Log"), 80).leaf = true
-	entry({"admin", "services", "shadowsocksr", "get_log"}, call("get_log")).leaf = true
-	entry({"admin", "services", "shadowsocksr", "clear_log"}, call("clear_log")).leaf = true
 	entry({"admin", "services", "shadowsocksr", "run"}, call("act_status"))
 	entry({"admin", "services", "shadowsocksr", "ping"}, call("act_ping"))
 	entry({"admin", "services", "shadowsocksr", "reset"}, call("act_reset"))
 	entry({"admin", "services", "shadowsocksr", "restart"}, call("act_restart"))
 	entry({"admin", "services", "shadowsocksr", "delete"}, call("act_delete"))
+	 entry({"admin","services","shadowsocksr","getlog"},call("getlog")) 
+         entry({"admin","services","shadowsocksr","dellog"},call("dellog")) 
 	--[[Backup]]
 	entry({"admin", "services", "shadowsocksr", "backup"}, call("create_backup")).leaf = true
 end
 
 function subscribe()
-	luci.sys.call("/usr/bin/lua /usr/share/shadowsocksr/subscribe.lua >>/var/log/ssrplus.log")
+	CALL("/usr/bin/lua /usr/share/shadowsocksr/subscribe.lua >>/var/log/ssrplus.log")
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({ret = 1})
 end
 
 function check_net()
 	local r=0
-	local u=luci.http.formvalue("url")
+	local u=http.formvalue("url")
 	local p
-	if luci.sys.call("nslookup www."..u..".com >/dev/null 2>&1")==0 then
+	if CALL("nslookup www."..u..".com >/dev/null 2>&1")==0 then
 	if u=="google" then p="/generate_204" else p="" end
-		local use_time = luci.sys.exec("curl --connect-timeout 3 -o /dev/null -I -skL -w %{time_starttransfer}  https://www."..u..".com"..p)
+		local use_time = EXEC("curl --connect-timeout 3 -o /dev/null -I -skL -w %{time_starttransfer}  https://www."..u..".com"..p)
 		if use_time~="0" then
      		 	r=string.format("%.1f", use_time * 1000/2)
 			if r=="0" then r="0.1" end
 		end
 	end
-	luci.http.prepare_content("application/json")
-	luci.http.write_json({ret=r})
+	http.prepare_content("application/json")
+	http.write_json({ret=r})
 end
 
 function act_status()
     math.randomseed(os.time())
     local e = {}
 
-    e.global = luci.sys.call('busybox ps -w | grep ssr-xretcp | grep -v grep  >/dev/null ') == 0
+    e.global = CALL('busybox ps -w | grep ssr-xretcp | grep -v grep  >/dev/null ') == 0
 
-    e.pdnsd = luci.sys.call("busybox ps -w | grep dns2tcp |  grep -v grep  >/dev/null   || busybox ps -w  |  grep 'mosdns-config' | grep -v grep  >/dev/null   || busybox ps -w  |  grep dns2socks | grep -v grep  >/dev/null "  ) == 0
+    e.pdnsd = CALL("busybox ps -w | grep dns2tcp |  grep -v grep  >/dev/null   || busybox ps -w  |  grep 'mosdns-config' | grep -v grep  >/dev/null   || busybox ps -w  |  grep dns2socks | grep -v grep  >/dev/null "  ) == 0
 
-    e.udp = luci.sys.call('busybox ps -w | grep ssr-xreudp | grep -v grep  >/dev/null') == 0
+    e.udp = CALL('busybox ps -w | grep ssr-xreudp | grep -v grep  >/dev/null') == 0
 
-    e.server= luci.sys.call('busybox ps -w | grep ssr-server | grep -v grep  >/dev/null') == 0
+    e.server= CALL('busybox ps -w | grep ssr-server | grep -v grep  >/dev/null') == 0
     luci.http.prepare_content('application/json')
     luci.http.write_json(e)
 
@@ -104,10 +108,15 @@ function act_ping()
 end
 
 function check_status()
-	local e = {}
-	e.ret = luci.sys.call("/usr/bin/ssr-check www." .. luci.http.formvalue("set") .. ".com 80 3 1")
+	sret=luci.sys.call("curl -so /dev/null -m 3 www."..luci.http.formvalue("set")..".com")
+	if sret==0 then
+		retstring="0"
+	else
+		retstring="1"
+	end
+	
 	luci.http.prepare_content("application/json")
-	luci.http.write_json(e)
+	luci.http.write_json({ret=retstring})
 end
 
 function refresh_data()
@@ -158,18 +167,31 @@ function act_restart()
 	luci.http.redirect(luci.dispatcher.build_url("admin", "services", "shadowsocksr"))
 end
 
+
 function act_delete()
 	luci.sys.call("/etc/init.d/shadowsocksr restart &")
 	luci.http.redirect(luci.dispatcher.build_url("admin", "services", "shadowsocksr", "servers"))
 end
 
-function get_log()
-	luci.http.write(luci.sys.exec("[ -f '/var/log/ssrplus.log' ] && cat /var/log/ssrplus.log"))
+function getlog()
+	logfile="/var/log/ssrplus.log"
+	if not fs.access(logfile) then
+		http.write("")
+		return
+	end
+	local f=io.open(logfile,"r")
+	local a=f:read("*a") or ""
+	f:close()
+	a=string.gsub(a,"\n$","")
+	http.prepare_content("text/plain; charset=utf-8")
+	http.write(a)
 end
-	
-function clear_log()
-	luci.sys.call("echo '' > /var/log/ssrplus.log")
+function dellog()
+	fs.writefile("/var/log/ssrplus.log","")
+	http.prepare_content("application/json")
+	http.write('')
 end
+
 
 function create_backup()
 	local backup_files = {
