@@ -33,7 +33,7 @@ s.addremove = false
 s.anonymous = true
 
 o = s:option(DynamicList, "update_url", translate('更新特征库地址'))
-
+o:value("https://gh.404delivr.workers.dev/https://raw.githubusercontent.com/destan19/OpenAppFilter/master/open-app-filter/files/feature_cn.cfg", translate("destan19_cn_v24.06.26"))
 o:value("https://gh.404delivr.workers.dev/https://raw.githubusercontent.com/destan19/OpenAppFilter/master/open-app-filter/files/feature_cn.cfg", translate("destan19_cn_v22.3.24"))
 o:value("https://gh.404delivr.workers.dev/https://raw.githubusercontent.com/destan19/OpenAppFilter/master/open-app-filter/files/feature_en.cfg", translate("destan19_en_v22.3.24"))
 o:value("https://gh.404delivr.workers.dev/https://raw.githubusercontent.com/jjm2473/OpenAppFilter/master/open-app-filter/files/feature_cn.cfg", translate("jjm2473_cn_v23.07.29"))

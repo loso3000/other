@@ -3,7 +3,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=appfilter
 PKG_VERSION:=5.0.2
-PKG_RELEASE:=6
+PKG_RELEASE:=1
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
 include $(INCLUDE_DIR)/package.mk
@@ -20,7 +20,6 @@ define Build/Prepare
 	cp -rf ./src/* $(PKG_BUILD_DIR)
 endef
 
-TARGET_CFLAGS += -Wno-implicit-function-declaration -Wno-int-conversion
 define Build/Compile
 	$(MAKE) -C $(PKG_BUILD_DIR)/ \
 	CC="$(TARGET_CROSS)gcc" \
