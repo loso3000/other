@@ -634,14 +634,6 @@ local methods = {
 			return { cpuinfo = cpuinfo }
 		end
 	},
-	
-	getArchInfo = {
-		call = function()
-
-			local archinfo = sys.exec("/sbin/sysinfo archinfo")
-			return { archinfo = archinfo }
-		end
-	},
 
 	getETHInfo = {
 		call = function()
@@ -659,12 +651,18 @@ local methods = {
 
 		end
 	},
+	
+	getPlatInfo = {
+		call = function()
+
+			local platinfo = sys.exec("/sbin/sysinfo tempinfo")
+			return { platinfo = platinfo }
+		end
+	},
 
 	getTempInfo = {
 		call = function()
-
-
-			local tempinfo = sys.exec("/sbin/sysinfo tempinfo")
+			local tempinfo = sys.exec("/sbin/sysinfo archinfo")
 			return { tempinfo = tempinfo }
 		end
 	}

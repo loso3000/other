@@ -18,9 +18,9 @@ var callCPUInfo = rpc.declare({
     object: 'luci',
     method: 'getCPUInfo'
 });
-var callArchInfo = rpc.declare({
+var callPlatInfo = rpc.declare({
     object: 'luci',
-    method: 'getArchInfo'
+    method: 'getPlatInfo'
 });
 var callTempInfo = rpc.declare({
     object: 'luci',
@@ -29,14 +29,14 @@ var callTempInfo = rpc.declare({
 return baseclass.extend({
     title: _('System'),
     load: function() {
-        return Promise.all([L.resolveDefault(callSystemBoard(), {}), L.resolveDefault(callSystemInfo(), {}), L.resolveDefault(callCPUBench(), {}), L.resolveDefault(callCPUInfo(), {}), L.resolveDefault(callArchInfo(), {}), L.resolveDefault(callTempInfo(), {}), fs.lines('/usr/lib/lua/luci/version.lua')]);
+        return Promise.all([L.resolveDefault(callSystemBoard(), {}), L.resolveDefault(callSystemInfo(), {}), L.resolveDefault(callCPUBench(), {}), L.resolveDefault(callCPUInfo(), {}), L.resolveDefault(callPlatInfo(), {}), L.resolveDefault(callTempInfo(), {}), fs.lines('/usr/lib/lua/luci/version.lua')]);
     },
     render: function(data) {
         var boardinfo = data[0],
             systeminfo = data[1],
             cpubench = data[2],
             cpuinfo = data[3],
-            archinfo = data[4],
+            platinfo = data[4],
             tempinfo = data[5],
             luciversion = data[6];
         luciversion = luciversion.filter(function(l) {
@@ -54,7 +54,7 @@ return baseclass.extend({
 			_('Hostname'),         boardinfo.hostname,
 			_('Model'),            boardinfo.model,
 			_('Architecture'),     cpuinfo.cpuinfo,
-			_('Target Platform'),  (L.isObject(boardinfo.release) ? boardinfo.release.target + ' '  : '') + '- ' + (archinfo.archinfo || 'Auto'),
+			_('Target Platform'),  (L.isObject(boardinfo.release) ? boardinfo.release.target : '')  + ( ' - ' + tempinfo.tempinfo || ' '),
 			_('Firmware Version'), boardinfo.release.description,
 			_('Kernel Version'),   boardinfo.kernel,
 			_('Local Time'),       datestr,
@@ -65,9 +65,9 @@ return baseclass.extend({
 				systeminfo.load[2] / 65535.0
 			) : null,
 		];
-        if (tempinfo.tempinfo) {
+        if (platinfo.platinfo) {
             fields.splice(6, 0, _('Temperature'));
-            fields.splice(7, 0, tempinfo.tempinfo);
+            fields.splice(7, 0, platinfo.platinfo);
         }
         var table = E('table', {
             'class': 'table'
