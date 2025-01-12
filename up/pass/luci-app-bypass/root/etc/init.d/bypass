@@ -54,7 +54,6 @@ switch_enable=0
 switch_server=$1
 server_count=0
 
-
 enabled=$(uci -q get ${NAME}.@global[0].enabled) 
 
 EXTRA_COMMANDS='reset'
@@ -92,7 +91,6 @@ socks5_ip=''
 gen_log()(
 
 	[ -s $LOG ] && echo -e "\n$(date +'%Y-%m-%d %H:%M:%S') ===程序开始运行===" >> $LOG
-	log "检查网络状态."
 )
 
 log(){
@@ -276,7 +274,7 @@ check_net(){
 get_soip(){
 	if [ $SO_SERVER ];then
 		if [ "$1" = 1 ];then
-			cat $LOG 2>/dev/null | sed -n '$p' | grep -q '检查网络状态...' || gen_log
+			cat $LOG 2>/dev/null | sed -n '$p' | grep -q '程序开始运行' || gen_log
 			check_net
 			cat $LOG 2>/dev/null | sed -n '$p' | grep -q '检查网络连接正常' || log "Rules      : 检查网络连接正常"
 		fi
@@ -292,7 +290,7 @@ rules(){
 	if `busybox ps -w | grep by-retcp | grep -qv grep`;then
 		log "Rules     :Bypass启动成功.";/etc/init.d/bypass restart  >/dev/null 2>&1
 	fi
-	cat $LOG 2>/dev/null | sed -n '$p' | grep -q '检查网络状态.\|下载IP/GFW文件.' || gen_log
+	cat $LOG 2>/dev/null | sed -n '$p' | grep -q '程序开始运行\|下载IP/GFW文件.' || gen_log
 	check_net
 	cat $LOG 2>/dev/null | sed -n '$p' | grep -q '下载IP/GFW文件...' || (log "Rules      : 检查网络状态正常";log "Rules      : 检查IP/GFW文件...")
 	[ ! -d $VAR  ] && mkdir -p $VAR
@@ -1295,7 +1293,7 @@ start_monitor(){
 }
 
 start() {
-	[ $enabled == 0 ] && exit 1
+	[ $enabled == 0 ] && stop && exit 1
 	[ -f $LOC ] && exit 1
 	touch $LOC
 	[ ! -s $LOG ]  && echo '' > $LOG
@@ -1348,7 +1346,7 @@ start() {
 	fi
 	clean_log 
 	rm -f $LOCK $LOC
-	log "===程序运行完成==="
+	[ $enabled == 0 ] || log "===程序运行完成==="
 }
 
 boot() {
@@ -1424,8 +1422,7 @@ stop(){
 			sleep 1
 		done
 	fi
-	[ $enabled == 0 ] && exit 1
-	echo -e "\n$(date +'%Y-%m-%d %H:%M:%S') ===清空缓存及关闭相关程序完成===" >> $LOG
+	[ $enabled == 0 ] && exit 1 ||	echo -e "$(date +'%Y-%m-%d %H:%M:%S') ===清空缓存及关闭相关程序完成===" >> $LOG
 }
 
 
