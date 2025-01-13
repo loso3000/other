@@ -42,6 +42,5 @@ config interface 'wan'
 	option recovery_interval '5'
 	option down '5'
 	option up '5'
-	list track_ip '114.114.114.114'
 	list track_ip '223.5.5.5'
 
