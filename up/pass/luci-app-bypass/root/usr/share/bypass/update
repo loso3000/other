@@ -23,7 +23,7 @@ echo '------------Update start------------' >> $LOG
 [ ! -d $TMP2 ] && mkdir -p $TMP2 2>/dev/null
 
         echo -e "\e[1;32mDownloading "$proxy${chnroute_url}"\e[0m"
-	curl --connect-timeout 5 -m 60 --ipv4 -kfSLo "/tmp/china.txt" ""$proxy"${chnroute_url}" 
+	curl --connect-timeout 5 -m 60 --ipv4 -kfSLo "/tmp/china.txt" "$proxy${chnroute_url}" 
 	[[ -f /tmp/china.txt && $? == 0 ]] && {
 	if ! cmp -s /tmp/china.txt $TMP/china.txt;then
 			cp -f /tmp/china.txt $TMP/china.txt
@@ -37,7 +37,7 @@ echo '------------Update start------------' >> $LOG
 	}
 
 	echo -e "\e[1;32mDownloading "$proxy${chnroute6_url}"\e[0m"
-	curl --connect-timeout 5 -m 60 --ipv4 -kfSLo "/tmp/china_v6.txt" ""$proxy"${chnroute6_url}" 
+	curl --connect-timeout 5 -m 60 --ipv4 -kfSLo "/tmp/china_v6.txt" "$proxy${chnroute6_url}" 
 	[[ -f /tmp/china_v6.txt && $? == 0 ]] && {
 	if ! cmp -s /tmp/china_v6.txt $TMP/china_v6.txt;then
 			cp -f /tmp/china_v6.txt $TMP/china_v6.txt 
@@ -45,12 +45,12 @@ echo '------------Update start------------' >> $LOG
 			log "By Update  : Updated China IPv6 List Total Number of Items :` cat /etc/bypass/china_v6.txt | wc -l` "
 		[ $A = N ] && ipset list china_v6 >/dev/null 2>&1 && $DIR/chinaipset v6
 	else
-			log "By Update  : China IPv6 List Total Number of Items :`cat /etc/bypass/china_v6.txt | wc -l)` "
+			log "By Update  : China IPv6 List Total Number of Items :`cat /etc/bypass/china_v6.txt | wc -l` "
 	fi
 	}
 
 	echo -e "\e[1;32mDownloading "$proxy${gfwlist_url}"\e[0m"
-	curl --connect-timeout 5 -m 60 --ipv4 -kfSLo "/tmp/gfw.b64" ""$proxy"${gfwlist_url}" 
+	curl --connect-timeout 5 -m 60 --ipv4 -kfSLo "/tmp/gfw.b64" "$proxy${gfwlist_url}" 
 	[[ -f /tmp/gfw.b64 && $? == 0 ]] && {
 	   $DIR/by-gfw  >/dev/null 2>&1
 	   if ! cmp -s /tmp/gfwnew.txt  $TMP/gfw.list ;then
@@ -63,7 +63,7 @@ echo '------------Update start------------' >> $LOG
 	}
 
         echo -e "\e[1;32mDownloading "$proxy${domains_url}"\e[0m"
-	curl --connect-timeout 5 -m 60 --ipv4 -kfSLo "/tmp/domains_cn.txt" ""$proxy"${domains_url}"
+	curl --connect-timeout 5 -m 60 --ipv4 -kfSLo "/tmp/domains_cn.txt" "$proxy${domains_url}"
 		
 	[[ -f /tmp/domains_cn.txt && $? == 0 ]] && {
 	if ! cmp -s /tmp/domains_cn.txt $TMP/domains_cn.txt;then
@@ -71,7 +71,7 @@ echo '------------Update start------------' >> $LOG
 			mv /tmp/domains_cn.txt $TMP2/domains_cn.txt
 			log "By Update  : Updated China Domains List Total Number of Items :` cat /etc/bypass/domains_cn.txt | wc -l` "
 	else
-			log "By Update  : China Domains Total Number of Items :`cat /etc/bypass/domains_cn.txt | wc -l)` "
+			log "By Update  : China Domains Total Number of Items :`cat /etc/bypass/domains_cn.txt | wc -l` "
 	fi
 	}
 
@@ -84,7 +84,7 @@ echo '------------Update start------------' >> $LOG
 			mv /tmp/ad_list.txt $TMP2/ad_list.txt
 			log "By Update  : anti-AD Update List Total Number of Items :` cat /etc/bypass/ad_list.txt | wc -l` "
 	else
-			log "By Update  : anti-AD List Total Number of Items :`cat /etc/bypass/ad_list.txt | wc -l)` "
+			log "By Update  : anti-AD List Total Number of Items :`cat /etc/bypass/ad_list.txt | wc -l` "
 	fi
 	}
 log  "By Update  : Check or update IPV4/IPV6/GFW/AD list complete!  "
