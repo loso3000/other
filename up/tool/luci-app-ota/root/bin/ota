@@ -1,0 +1,314 @@
+#!/bin/sh
+
+. /etc/os-release
+. /lib/functions/uci-defaults.sh
+
+function ECHO() {
+	local Color
+	if [[ ! $1 ]]
+	then
+		echo -ne "\n${Grey}[$(date "+%H:%M:%S")]${White} "
+	else
+		while [[ $1 ]];do
+			case $1 in
+			r | g | b | y | x | w)
+				case $1 in
+				r) Color="${Red}";;
+				g) Color="${Green}";;
+				b) Color="${Blue}";;
+				y) Color="${Yellow}";;
+				x) Color="${Grey}";;
+				w) Color="${White}";;
+				esac
+				shift
+			;;
+			*)
+				Message=$1
+				break
+			;;
+			esac
+		done
+		echo -e "\n${Grey}[$(date "+%H:%M:%S")]${White}${Color} ${Message}${White}"
+		LOGGER "${Message}"
+	fi
+}
+
+WRLOCK=/var/lock/otaez_background.lock
+STLOCK=/var/lock/otaez_status.lock
+# x86_64
+[ $(uname -m) = "x86_64" ] && alias board_name="echo x86_64"
+
+action=${1}
+shift
+
+md5() {
+    md5sum $1 | cut -d' ' -f1
+}
+
+alias fcurl='curl -L --fail --show-error'
+
+function LOGGER() {
+		[[ ! -d ${Log_Path} ]] && mkdir -p ${Log_Path}
+		[[ ! -f ${Log_Full} ]] && touch -f ${Log_Full}
+		echo "[$(date "+%H:%M:%S")] [$0] $*" >> ${Log_Full}
+}
+
+function RM() {
+	for i in $@
+	do
+		rm -r "$i" 2> /dev/null
+		LOGGER "删除文件: [$i]"
+	done
+}
+
+download() {
+    SHOWOTA_API
+    local sum=$1
+    exec 300>$STLOCK
+    flock 300
+    touch /tmp/firmware.img.part
+    echo >/tmp/firmware.img.progress
+    rm -f /tmp/firmware.img.md5
+    flock -u 300
+    if [ -f /tmp/firmware.img ]; then
+        echo "Checking existed firmware.img..." >> /tmp/firmware.img.progress
+        if [ "`md5 /tmp/firmware.img`" = "$sum" ]; then
+            flock 300
+            echo $sum > /tmp/firmware.img.md5;
+            rm -f /tmp/firmware.img.part
+            rm -f /tmp/firmware.img.progress
+            flock -u 300
+            return 0;
+        else
+            echo "Check failed, redownload" >> /tmp/firmware.img.progress
+            rm -f /tmp/firmware.img
+        fi
+    fi
+    local pid url
+        url=$(SHOW_INFO 5)
+        echo "Try $url" >>/tmp/firmware.img.progress
+        flock 300
+        echo "#=#=#" >>/tmp/firmware.img.progress
+        fcurl --connect-timeout 5 --progress-bar -o /tmp/firmware.img.part "$url" 2>>/tmp/firmware.img.progress &
+        pid="$!"
+        echo "$pid" > /var/run/ezota/download.pid
+        flock -u 300
+        if wait $pid; then
+            rm -f /var/run/ezota/download.pid
+            echo "Checking new firmware.img.part..." > /tmp/firmware.img.progress
+            if [ "`md5 /tmp/firmware.img.part`" = "$sum" ]; then
+                flock 300
+                mv /tmp/firmware.img.part /tmp/firmware.img && echo $sum > /tmp/firmware.img.md5
+                rm -f /tmp/firmware.img.progress
+                flock -u 300
+                return 0
+            else
+                echo "Checksum failed!" >>/tmp/firmware.img.progress
+            fi
+        else
+            local ecode=$?
+            echo >>/tmp/firmware.img.progress
+            if [ $ecode -eq 143 ]; then
+                echo "Canceled!" >> /tmp/firmware.img.progress
+                break
+            fi
+        fi
+        flock 300
+        sed -i '/\r/d' /tmp/firmware.img.progress
+        flock -u 300
+    rm -f /var/run/ezota/download.pid
+    rm -f /tmp/firmware.img.part
+    return 1
+}
+
+lock_download() {
+    local lock="$WRLOCK"
+    exec 200>$lock
+    flock -n 200 || return
+    download $1
+    flock -u 200
+}
+
+prepare_check() {
+
+    cat /dev/null > $Log_Full
+    fcurl --connect-timeout 5 -o ${API_File} "${GithubAPI}"
+    ez_version=`cat /etc/ezopenwrt_version | cut -d _ -f 1 `
+    cat ${API_File} | grep "tag_name" | head -n 1 | awk -F ":" '{print $2}' | sed 's/\"//g;s/,//g;s/ //g;s/v//g' > /tmp/cloud_ez_version 
+    cloud_version=`cat /tmp/cloud_ez_version`
+    SHOWOTA_API
+    CLOUD_FW_Name=$(SHOW_INFO 1)
+    CLOUD_FW_Count=$(SHOW_INFO 2)
+    CLOUD_FW_Date=$(SHOW_INFO 3)
+    CLOUD_FW_Size=$(SHOW_INFO 4)
+    CLOUD_FW_Url=$(SHOW_INFO 5)
+    curl --connect-timeout 5 -m 60 --ipv4 -kfSLo "$MD5_File" "$Github/releases/download/$cloud_version/EzOpWrt_dev-efi.md5" 
+    summd5=`head -1 "$MD5_File" | awk -F " " '{print $1}'`
+     if [ "$ez_version" != "$cloud_version" ];then
+         echo "<h3>Model:&nbsp;&nbsp;<font color=\"green\">$(board_name)</font><br/>Current Version:&nbsp;&nbsp;<font color=\"green\">$ez_version</font></h3>"
+         echo "<h3>New Version:&nbsp;&nbsp;<font color=\"green\">$cloud_version</font><br/>Build Date:&nbsp;&nbsp;<font color=\"green\">$CLOUD_FW_Date</font><br/>Download Count:&nbsp;&nbsp;<font color=\"green\">$CLOUD_FW_Count</font><br/>Firmware Size:&nbsp;&nbsp;<font color=\"green\">$CLOUD_FW_Size</font><br/>MD5:&nbsp;&nbsp;<font color=\"green\">$summd5</font></h3>"
+         echo "<br/><br/><h3><font color=\"red\"> About :<a href=\"$Github/\" onclick=\"void(0)\" target=\"_blank\">Sirpdboy Firmware</a></font></h3>"
+         return 0
+      else
+         echo "<h3>Model:&nbsp;&nbsp;<font color=\"green\">$(board_name)</font><br/>Current Version:&nbsp;&nbsp;<font color=\"green\">$ez_version</font></h3>"
+         echo "<br/><br/><h3><font color=\"red\"> About :<a href=\"$Github/\" onclick=\"void(0)\" target=\"_blank\">Firmware</a></font></h3>"
+         return 1
+     fi 
+}
+
+# 0: found newer fw, 1: already newest fw, 2: found running task, *: err
+do_check() {
+    local ret=0
+    local lock="$WRLOCK"
+    exec 200>$lock
+    if flock -n 200; then
+        prepare_check
+        ret=$?
+        flock -u 200 >/dev/null 2>&1
+    elif [ -f /tmp/firmware.img.progress ]; then
+        ret=2
+    else
+        echo "lock failed!" >&2
+        return 255
+    fi
+    return $ret
+}
+
+# async download
+do_download(){
+    local sum=`head -1 "$MD5_File" | awk -F " " '{print $1}'`
+    [ -z "$sum" ] && { echo "do check first" >&2 ; return 254; }
+    lock_download $sum &
+    return 0
+}
+
+# 0: done, 1: downloading, 2: failed, 254: wrong state, *: err
+do_progress() {
+    local sum=`head -1 "$MD5_File"  | awk -F " " '{print $1}'`
+    [ -z "$sum" ] && { echo "do check first" >&2 ; return 254; }
+    [ -f /tmp/firmware.img.md5 ] && [ "`cat /tmp/firmware.img.md5`" = "$sum" ] && return 0
+    [ -f /tmp/firmware.img.progress ] || { echo "download not in progress" >&2 ; return 254; }
+    [ -f /tmp/firmware.img.part ] && { cat /tmp/firmware.img.progress | tr '\r' '\n' | tail -n1; return 1; }
+    tail -1 /tmp/firmware.img.progress | grep -Fq 'Canceled!' && { echo "Canceled"; return 2; }
+    cat /tmp/firmware.img.progress | tr '\r' '\n' | grep -v '^$' | tail -n1 >&2
+    return 3
+}
+
+do_progress_locked() {
+    local ret
+    exec 300>$STLOCK
+    flock -s 300
+    do_progress
+    ret=$?
+    flock -u 300
+    return $ret
+}
+
+do_cancel() {
+    if [ -f /var/run/ezota/download.pid ]; then
+        local pid=`cat /var/run/ezota/download.pid`
+        if [ -n "$pid" ]; then
+            kill -TERM $pid;
+            while kill -0 $pid >/dev/null 2>&1; do
+                if ! sleep 1; then
+                    break
+                fi
+            done
+        fi
+    fi
+    return 0
+}
+
+function SHOWOTA_API() {
+	for i in $(seq 0 $(jq ".assets | length" ${API_File} 2> /dev/null));do
+		eval name=$(jq ".assets[${i}].name" ${API_File} 2> /dev/null)
+		[[ ${name} == null ]] && continue
+		case ${name} in
+		 *img.gz )
+			eval browser_download_url=$(jq ".assets[${i}].browser_download_url" ${API_File} 2> /dev/null)
+			eval size=$(jq ".assets[${i}].size" ${API_File} 2> /dev/null | awk '{a=$1/1048576} {printf("%.2f\n",a)}')
+			eval updated_at=$(jq ".assets[${i}].updated_at" ${API_File} 2> /dev/null | sed 's/[-:TZ]//g')
+			eval download_count=$(jq ".assets[${i}].download_count" ${API_File} 2> /dev/null)
+			[[ ! ${browser_download_url} || ${browser_download_url} == null ]] && continue
+			[[ ! ${size} || ${size} == null || ${size} == 0 ]] && size="-" || size="${size}MB"
+			[[ ! ${updated_at} || ${updated_at} == null ]] && updated_at="-"
+			[[ ! ${download_count} || ${download_count} == null ]] && download_count="-"
+			printf "%-75s %-5s %-10s %-15s %s\n" ${name} ${download_count} ${updated_at} ${size} ${browser_download_url} >> ${API_Info}
+		;;
+		esac
+	done
+	unset i
+}
+
+function SHOW_INFO() {
+	local Info Type Result
+	[[ ! -s ${API_Info} ]] && {
+		ECHO r "未检测到 API 文件!"
+		exit 1
+	}
+	Info=$(grep " " ${API_Info} | awk 'BEGIN {MAX = 0} {if ($4+0 > MAX+0) {MAX=$4 ;content=$0} } END {print content}')
+	Result="$(echo $Info | awk '{print $"'${1}'"}'  2> /dev/null)"
+	case $1 in
+	1) Type="固件名称";;
+	2) Type="下载次数";;
+	3) Type="发布日期";;
+	4) Type="固件体积";;
+	5) Type="固件链接";;
+	*) Type="未定义信息";;
+	esac
+	[[ ! ${Result} == "-" ]] && {
+		LOGGER "${Type}: ${Result}"
+		echo -e "${Result}"
+	} || {
+		LOGGER "${Type}获取失败!"
+		return 1
+	}
+}
+
+
+
+ota_init(){
+    mkdir -p /var/run/ezota >/dev/null 2>&1 || true
+    mkdir -p /tmp/ezota >/dev/null 2>&1 || true
+}
+
+usage() {
+    echo "usage: ota sub-command"
+    echo "where sub-command is one of:"
+    echo "      check                  Check firmware upgrade"
+    echo "      download               Download latest firmware"
+    echo "      progress               Download progress"
+    echo "      cancel                 Cancel download"
+}
+
+
+Log_Path=/tmp
+Log_File=ezota.log
+Tmp_Path=/tmp/ezota
+API_File="${Tmp_Path}/APIFILE"
+API_Info="${Tmp_Path}/APIINFO"
+MD5_File="${Tmp_Path}/MD5EZ"
+Github="https://github.com/sirpdboy/openwrt"
+Firmware_Author="${Github##*com/}"
+GithubAPI="https://api.github.com/repos/${Firmware_Author}/releases/latest"
+Log_Full="${Log_Path}/${Log_File}"
+
+ota_init || exit 255
+
+case $action in
+    "check")
+        do_check
+    ;;
+    "download")
+        do_download
+    ;;
+    "progress")
+        do_progress_locked
+    ;;
+    "cancel")
+        do_cancel
+    ;;
+    *)
+        usage
+    ;;
+esac
