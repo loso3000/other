@@ -12,8 +12,9 @@ chnroute6_url=$(uci -q get bypass.@global_rules[0].chnroute6_url)
 domains_url=$(uci -q get bypass.@global_rules[0].domains_url)
 gfwlist_url="$(uci -q get bypass.@global_rules[0].gfwlist_url)"
 ad_url="$(uci -q get bypass.@global_rules[0].ad_url)"
-google_status=$(curl -I -4 -m 3 -o /dev/null -s -w %{http_code} http://www.google.com/generate_204)
-[ "$google_status" -ne "204" ] && proxy="https://ghproxy.com/"
+proxy=""
+# google_status=$(curl -I -4 -m 3 -o /dev/null -s -w %{http_code} http://www.google.com/generate_204)
+# [ "$google_status" -ne "204" ] && proxy="https://ghproxy.com/"
 log(){
 	echo "$(date +'%Y-%m-%d %H:%M:%S') $*" >> $LOG
 }
