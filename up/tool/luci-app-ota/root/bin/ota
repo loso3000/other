@@ -91,10 +91,10 @@ download() {
         echo "#=#=#" >>/tmp/firmware.img.progress
         fcurl --connect-timeout 5 --progress-bar -o /tmp/firmware.img.part "$url" 2>>/tmp/firmware.img.progress &
         pid="$!"
-        echo "$pid" > /var/run/ezota/download.pid
+        echo "$pid" > ${Tmp_Path}/download.pid
         flock -u 300
         if wait $pid; then
-            rm -f /var/run/ezota/download.pid
+            rm -f ${Tmp_Path}/download.pid
             echo "Checking new firmware.img.part..." > /tmp/firmware.img.progress
             if [ "`md5 /tmp/firmware.img.part`" = "$sum" ]; then
                 flock 300
@@ -116,7 +116,7 @@ download() {
         flock 300
         sed -i '/\r/d' /tmp/firmware.img.progress
         flock -u 300
-    rm -f /var/run/ezota/download.pid
+    rm -f ${Tmp_Path}/download.pid
     rm -f /tmp/firmware.img.part
     return 1
 }
@@ -205,8 +205,8 @@ do_progress_locked() {
 }
 
 do_cancel() {
-    if [ -f /var/run/ezota/download.pid ]; then
-        local pid=`cat /var/run/ezota/download.pid`
+    if [ -f ${Tmp_Path}/download.pid ]; then
+        local pid=`cat ${Tmp_Path}/download.pid`
         if [ -n "$pid" ]; then
             kill -TERM $pid;
             while kill -0 $pid >/dev/null 2>&1; do
@@ -268,8 +268,7 @@ function SHOW_INFO() {
 
 
 ota_init(){
-    mkdir -p /var/run/ezota >/dev/null 2>&1 || true
-    mkdir -p /tmp/ezota >/dev/null 2>&1 || true
+    mkdir -p ${Tmp_Path} >/dev/null 2>&1 || true
 }
 
 usage() {
@@ -293,6 +292,7 @@ Firmware_Author="${Github##*com/}"
 GithubAPI="https://api.github.com/repos/${Firmware_Author}/releases/latest"
 Log_Full="${Log_Path}/${Log_File}"
 
+	
 ota_init || exit 255
 
 case $action in
