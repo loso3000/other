@@ -420,8 +420,8 @@ uci commit && cd /etc/init.d && \
 uci -q set base_config.@base[0].ver=$ver
 uci commit base_config
 ntpd -n -q -p 1.lede.pool.ntp.org
-sed -i '/luciversion/d' /usr/lib/lua/luci/version.lua
-echo "luciversion ='23.05'" >> /usr/lib/lua/luci/version.lua
+# sed -i '/luciversion/d' /usr/lib/lua/luci/version.lua
+# echo "luciversion ='23.05'" >> /usr/lib/lua/luci/version.lua
 sed -i '/log-facility/d' /etc/dnsmasq.conf
 echo "log-facility=/dev/null" >> /etc/dnsmasq.conf
 echo 'hsts=0' > /root/.wgetrc
