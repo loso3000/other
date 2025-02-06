@@ -17,7 +17,7 @@
 				const transport = transports[index];
 				const wsPath = wsPaths[index];
 				const tls = tlss[index];
-				if (!dom) res()
+				if (!dom) res();
 				port.innerHTML = '<font style=\"color:#0072c3\">connect</font>';
 				XHR.get('<%=luci.dispatcher.build_url("admin/services/shadowsocksr/ping")%>', {
 					index,
@@ -34,7 +34,7 @@
 						if (result.ping < 200) col = '#ff7700';
 						if (result.ping < 100) col = '#249400';
 					}
-					dom.innerHTML = `<font style=\"color:${col}\">${(result.ping ? result.ping : "--") + " ms"}</font>`
+					dom.innerHTML = `<font style=\"color:${col}\">${(result.ping ? result.ping : "--") + " ms"}</font>`;
 					if (result.socket) {
 						port.innerHTML = '<font style=\"color:#249400\">ok</font>';
 					} else {
@@ -42,19 +42,19 @@
 					}
 					res();
 				});
-			})
-		}
+			});
+		};
 		let task = -1;
 		const thread = () => {
-			task = task + 1
+			task = task + 1;
 			if (doms[task]) {
 				xhr(task).then(thread);
 			}
-		}
+		};
 		for (let i = 0; i < 20; i++) {
-			thread()
+			thread();
 		}
-	})
+	});
 
 	function cbi_row_drop(fromId, toId, store, isToBottom) {
 		var fromNode = document.getElementById(fromId);
@@ -142,4 +142,5 @@
 		"#cbi-shadowsocksr-servers table",
 		"cbi.sts.shadowsocksr.servers"
 	);
+	//]]>
 </script>
