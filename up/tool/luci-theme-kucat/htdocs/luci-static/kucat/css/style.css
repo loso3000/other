@@ -276,6 +276,7 @@ background-position: right center;
 
 select, .cbi-dropdown {
 	width: inherit;
+	cursor: default
 }
 select option {
 	background-color: rgba(var(--primary-rgbbody), 0.8);
@@ -351,8 +352,9 @@ input[type='radio']:checked {
     background-position: center;
 
 }
+
 select:not([multiple="multiple"]):focus, input:not(.cbi-button):focus, .cbi-dropdown:focus {
-	background-color: rgba(var(--primary-rgbm),0.22);
+	background-color: rgba(var(--primary-rgbm),0.1);
 	box-shadow: 0 0 6px rgba(0, 0, 0, 0.22);
 	-webkit-box-shadow: 0 0 6px rgba(0, 0, 0, 0.22);
 	-moz-box-shadow: 0 0 6px rgba(0, 0, 0, 0.22)
@@ -1174,7 +1176,7 @@ table>tbody>tr:first-child>td, table>tfoot>tr:first-child>td, table>thead>tr:fir
 
 /* button style */
 
-.btn, button, select, input, .cbi-dropdown {
+.float-list, .btn, button, select, input, .cbi-dropdown {
 	height: 2.4rem;
 	outline: 0;
 	background-color: var(--inputbg-color);
