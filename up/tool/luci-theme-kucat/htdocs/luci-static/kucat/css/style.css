@@ -352,7 +352,7 @@ input[type='radio']:checked {
 
 }
 select:not([multiple="multiple"]):focus, input:not(.cbi-button):focus, .cbi-dropdown:focus {
-	background-color: rgba(var(--primary-rgbm),1);
+	background-color: rgba(var(--primary-rgbm),0.22);
 	box-shadow: 0 0 6px rgba(0, 0, 0, 0.22);
 	-webkit-box-shadow: 0 0 6px rgba(0, 0, 0, 0.22);
 	-moz-box-shadow: 0 0 6px rgba(0, 0, 0, 0.22)
@@ -805,7 +805,6 @@ text-decoration: none!important;
 	padding: 1rem 0rem 1rem 3rem;
 	margin-bottom: .1rem;
 	text-decoration: none;
-	font-size: var(--font-d);
 	transition: all .1s;
 	position: relative
 }
@@ -818,7 +817,7 @@ text-decoration: none!important;
 	font-weight: normal;
 	font-variant: normal;
 	text-transform: none;
-	line-height: 1;
+	line-height: 1.4;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 	position: absolute;
@@ -849,7 +848,7 @@ text-decoration: none!important;
 	font-weight: normal;
 	font-variant: normal;
 	text-transform: none;
-	line-height: 1;
+	line-height: 1.4;
 	color: var(--menu-color);
 	content: '\e20b';
 	transition: all .1s ease;
@@ -942,10 +941,10 @@ text-decoration: none!important;
 .main .main-left .nav>li [data-title=Log_out], .main .main-left .nav>li>a[data-title=Log_out] {
 	display: none
 }
-.main .main-left .nav>li  .slide-menu li a {
+.main .main-left .nav>li .slide-menu li a {
 	position: relative;
-	margin: 0rem 0rem .1rem 3rem;
-	padding: .7rem 0;
+	margin: .1rem;
+	padding: .6rem 1.4rem .6rem 2.5rem;
 	text-decoration: none;
 	white-space: nowrap;
 	color: var(--menu-color);
@@ -955,8 +954,8 @@ text-decoration: none!important;
 }
 .main .main-left .nav .slide .slide-menu .active a {
 	color: var(--menu-hover-color);
-	font-size: var(--font-d)
 }
+
 .main .main-left .nav .slide .slide-menu > li.active {
 	color: var(--menu-hover-color);
 	background-color: var(--menu-item-hover-bgcolor);
@@ -970,7 +969,6 @@ text-decoration: none!important;
 }
 .main .main-left .nav .slide .slide-menu li:hover a {
 	color: var(--menu-hover-color);
-	font-size: var(--font-d)
 }
 .main .main-left .sidenav-header .brand {
     color: var(--menu-hover-color);
@@ -1805,7 +1803,6 @@ button:hover, .btn:hover, .cbi-button:hover ,.item:hover{
 
 .cbi-dropdown[open] > ul.dropdown {
   z-index: 1100;
-
   min-width: 100%;
   max-height: 200px !important;
   border: 1px solid var(--inputborder-color);
@@ -1826,6 +1823,7 @@ button:hover, .btn:hover, .cbi-button:hover ,.item:hover{
   right: initial !important;
 }
 
+	
 .cbi-dropdown > ul > li[display], .cbi-dropdown[open] > ul.preview, .cbi-dropdown[open] > ul.dropdown > li, .cbi-dropdown[multiple] > ul > li > label, .cbi-dropdown[multiple][open] > ul.dropdown > li, .cbi-dropdown[multiple][more] > .more, .cbi-dropdown[multiple][empty] > .more {
 	display: flex;
 	align-items: center;
@@ -1849,18 +1847,7 @@ button:hover, .btn:hover, .cbi-button:hover ,.item:hover{
 .cbi-dropdown[open] > ul.dropdown > li .hide-close {
 	display: initial;
 }
-.cbi-dropdown[open]>ul.dropdown>li[selected] {
-    background: rgba(var(--primary-rgbm), 1);
-    color:#f8f8f8;
-    padding-left: 10px;
-}
-.cbi-dropdown[open]>ul.dropdown>li.focus {
-    background: rgba(var(--primary-rgbm), 1);
-    color:#f8f8f8;
-}
-.cbi-dropdown[open] > ul.dropdown > li:last-child {
-    padding-left: 10px;
-}
+
 .cbi-dropdown.btn.cbi-button>ul{
 	overflow-y: hidden;
 }
@@ -1910,6 +1897,33 @@ button:hover, .btn:hover, .cbi-button:hover ,.item:hover{
 	width: auto;
     color: #3b3737;
 }
+
+.cbi-dropdown[open]>ul.dropdown>li[selected] {
+    background: rgba(var(--primary-rgbm), 0.8);
+    color:#f8f8f8;
+    padding-left: 10px;
+}
+
+.cbi-dropdown[open]>ul.dropdown>li.focus {
+    background: rgba(var(--primary-rgbm), 0.5);
+    outline:none;
+    color:#f8f8f8;
+}
+
+.cbi-dropdown[open]>ul.dropdown>li:last-child{
+margin-bottom:0;
+border-bottom:0
+}
+
+.cbi-dropdown[open]>ul.dropdown>li[unselectable]
+{opacity:.7}
+
+.cbi-dropdown[open]>ul.dropdown>li>input.create-item-input:first-child:last-child
+{width:100%}
+
+.cbi-dropdown[disabled]
+{pointer-events:none;opacity:.6}
+
 /* progressbar */
 .cbi-progressbar {
     position: relative;
