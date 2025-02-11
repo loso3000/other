@@ -1,5 +1,5 @@
  <%#
-    Copyright (C) 2019-2024 The Sirpdboy Team <herboy2008@gmail.com> 
+    Copyright (C) 2019-2025 The Sirpdboy Team <herboy2008@gmail.com> 
 	luci-theme-material: 
 	Copyright 2015 Lutty Yang <lutty@wcan.in>
 	luci-theme-bootstrap:
@@ -92,7 +92,7 @@
 					attr = fs.stat(f)
 					if attr then
 						local ext = getExtension(fs.basename(f))
-						if ext == "jpg" or ext == "png" or ext == "gif"  then
+						if ext == "jfif" or ext == "pjp" or ext == "pjpeg" or ext == "jpeg" or ext == "jpg" or ext == "png" or ext == "gif"  then
 								local bg = {}
 								bg.type = ext
 								bg.url = theme_dir .. fs.basename(f)
@@ -122,7 +122,7 @@
 					attr = fs.stat(f)
 					if attr then
 						local ext = getExtension(fs.basename(f))
-						if ext == "jpg" or ext == "png" or ext == "gif"  then
+						if ext == "jfif" or ext == "pjp" or ext == "pjpeg" or ext == "jpeg" or ext == "jpg" or ext == "png" or ext == "gif"  then
 								local bg = {}
 								bg.type = ext
 								bg.url = bk_dir .. fs.basename(f)
