@@ -45,11 +45,8 @@
 	end
 
 	http.prepare_content("text/html; charset=UTF-8")
-
-	local dark_css = fs.readfile('/www/luci-static/kucat/css/dark.css')
 	local bar='/cgi-bin/luci/admin/'
 	local bk_use='background: rgba(var(--primary-rgbbody),1)'
-	local bar_color = '#444950'
     local loginbk_use = 'background: linear-gradient(0deg, rgba(var(--primary-rgbm), 1) 0%, rgba(var(--primary-rgbbody), 1) 100%);display: block;'
     if fs.access('/etc/config/advancedplus') then
       kucat = 'advancedplus'
@@ -69,7 +66,7 @@
 		bgqs,setbar,dayword = '1','1','0'
 	end
 	local ufilter = string.format("blur(%dpx)", tonumber(primary_opacity))
-	bar_color = primary_rgbbody
+	local bar_color = primary_rgbbody
 	if primary_opacity == '0' then
 	    ufilter = 'none'
 	end
@@ -140,8 +137,12 @@
   	   showword = sys.exec("/usr/libexec/kucat/kucat_word")
 	end
 	if bkuse == '1'  then
-	   bk_use="background-image:url("..bg_lock..")"
- 	   loginbk_use = "background-image:url(" .. bg_url .. ")"
+	             bk_use="background-image:url("..bg_lock..")"
+	             loginbk_use = "background-image:url(" .. bg_url .. ")"
+	else
+		if bklock == '0' then
+	             loginbk_use = "background-image:url(" .. bg_url .. ")"
+	    end
 	end
 -%>
 
@@ -165,7 +166,6 @@
 	<link rel="icon" type="image/png" sizes="192x192" href="<%=media%>/logo.png">
 	<link rel="icon" href="<%=media%>/logo.svg" sizes="any">
 	<meta name="msapplication-TileColor" content="<%=bar_color%>">
-
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
 	<meta name="apple-touch-fullscreen" content="yes" /> 
@@ -173,10 +173,7 @@
 	<link rel="apple-touch-icon-precomposed" href="<%=media%>/img/apple-touch-icon.png" sizes="144x144">
 
 	<link rel="stylesheet" href="<%=media%>/css/style.css?v=<%= ver.luciversion %>">
-
 	<link rel="shortcut icon" href="<%=media%>/favicon.ico">
-
-
 	<meta name="theme-color" content="<%=bar_color%>">
     <% if node and node.css then %>
         <link rel="stylesheet" href="<%=resource%>/<%=node.css%>">
