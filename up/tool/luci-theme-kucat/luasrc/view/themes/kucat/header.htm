@@ -75,6 +75,7 @@
 	    bgqs_image = 'none'
 	end
 	local bg_url = media..'/img/bg1.jpg'
+    local bg_lock = bg_url
 	if background == '0' then
 		math.randomseed(os.time())
 
@@ -108,7 +109,6 @@
 	if (picurl and picurl ~= '') then
 	 		  bg_url = picurl
 	end
-	local bg_lock = bg_url
 	if bklock == '0' then
 		math.randomseed(os.time())
 		local bk_dir = media .. "/bg/"
@@ -137,8 +137,13 @@
   	   showword = sys.exec("/usr/libexec/kucat/kucat_word")
 	end
 	if bkuse == '1'  then
-	             bk_use="background-image:url("..bg_lock..")"
+		if bklock == '0' then
+	             bk_use = "background-image:url(" .. bg_lock .. ")"
 	             loginbk_use = "background-image:url(" .. bg_url .. ")"
+		else
+	             bk_use="background-image:url("..bg_url..")"
+	             loginbk_use = "background-image:url(" .. bg_url .. ")"
+		end
 	else
 		if bklock == '0' then
 	             loginbk_use = "background-image:url(" .. bg_url .. ")"
