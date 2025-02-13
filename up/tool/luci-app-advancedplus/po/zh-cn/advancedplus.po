@@ -8,12 +8,11 @@ msgstr "进阶设置"
 msgid "KuCat Theme Config"
 msgstr "KuCat主题设置"
 
-msgid "Argon Config"
+msgid "Argon theme configuration"
 msgstr "Argon主题设置"
 
 msgid "Design Config"
 msgstr "Design主题设置"
-
 
 msgid "Advanced Setting"
 msgstr "高级设置"
