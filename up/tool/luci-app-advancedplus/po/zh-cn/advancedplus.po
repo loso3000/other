@@ -90,6 +90,9 @@ msgstr "壁纸透明度"
 msgid "Follow System"
 msgstr "跟随系统"
 
+msgid "Inital Setup"
+msgstr "设置向导"
+
 msgid "Refreshing mode"
 msgstr "清爽模式"
 
