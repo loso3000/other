@@ -12,8 +12,9 @@ function index()
 	local page
 
 	page = entry({"admin", "services", "upnp"}, cbi("upnp/upnp"), _("UPnP"))
-	page.dependent = true
+	e.dependent = false
 
+	e.acl_depends = { "luci-app-upnp" }
 	entry({"admin", "services", "upnp", "status"}, call("act_status")).leaf = true
 	entry({"admin", "services", "upnp", "delete"}, post("act_delete")).leaf = true
 end
