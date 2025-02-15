@@ -177,13 +177,15 @@
 }
 
 ::-webkit-scrollbar-thumb {
- height: 15px;
- -webkit-border-radius: var(--radius0);
- -moz-border-radius: var(--radius0);
- border-radius:  var(--radius0);
- background-clip: content-box;
- background: #ccc;
+  height: 15px;
+  -webkit-border-radius: var(--radius0);
+  -moz-border-radius: var(--radius0);
+  border-radius: var(--radius0);
+  background-clip: content-box;
+  background: rgba(var(--primary-rgbm), 0.2);
+  border: 5px solid rgba(var(--primary-rgbbody), 0.1);
 }
+
 ::-webkit-scrollbar-thumb:hover {
  background-color: #999
 }
@@ -443,8 +445,7 @@ small {
 	margin: 0;
 	padding: 0;
 	border-radius: var(--radius2);
-	background-color: #51c291;
-	background-color: rgba(var(--primary-rgbm), 0.9);
+	background-color: rgba(var(--primary-rgbm), 1);
 	box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
 	background-image: -webkit-linear-gradient(135deg, rgba(255, 255, 255, 0.2) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.2) 75%, transparent 75%, transparent) !important;
 	transition: all .1s ease;
@@ -466,12 +467,12 @@ small {
     text-decoration:none
 }
 .container-bar-right .labelbar:hover::before, .container-bar-left .labelbar:hover::before {
-    color: #fff;
+      color: var(--menu-color);
 	text-decoration: none
 }
 
 .container-bar-right .labelbar::before,.container-bar-left .labelbar::before {
-    color: #f5f5f5f5;
+      color: var(--menu-color);
     font-size: 2rem !important;
     text-decoration: none
 }
@@ -551,8 +552,11 @@ small {
 }
 .main-right > #maincontent {
 	position: relative;
+	background-color: rgba(var(--primary-rgbbody), var(--primary-rgbm-ts));
+	padding: 1rem 1.25rem 3rem 1.25rem;
 	z-index: 50
 }
+
 .pull-left {
 	float: left;
 }
@@ -1008,10 +1012,7 @@ text-decoration: none!important;
 	align-items: center;
 	justify-content: center;
 }
-#maincontent > .container {
-	background-color: rgba(var(--primary-rgbbody), var(--primary-rgbm-ts));
-	padding: 1rem 1.25rem 3rem 1.25rem;
-}
+
 ul {
 	line-height: normal;
 }
@@ -1048,7 +1049,7 @@ h4 {
 }
 
 h4>span {
-	font-size: 85%;
+	font-size: 90%;
 }
 h5 {
 	font-size: var(--font-z);
@@ -3640,15 +3641,10 @@ table>tbody>tr>td, table>tfoot>tr>td, table>thead>tr>td {
 	display: none
 }
 .mobile-hide {
-	/*display: none; */
+	display: none;
 	font-size: 0;
 }
-footer {
-  font-size: 0;
-}
-footer a {
-  font-size: 0;
-}
+
 .cbi-value-field .cbi-dropdown, .cbi-value-field .cbi-input-select, .cbi-value input[type="text"], .cbi-value input[type="password"] {
 	min-width: 8rem;
 	width: 16rem;
@@ -3675,12 +3671,7 @@ footer a {
 	display: none;
 	font-size: 0;
 }
-footer {
-  font-size: 0;
-}
-footer a {
-  font-size: 0;
-}
+
 .node-main-login footer {
 	display: none
 }
