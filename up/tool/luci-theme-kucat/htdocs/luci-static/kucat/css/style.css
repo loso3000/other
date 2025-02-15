@@ -1509,7 +1509,7 @@ button:hover, .btn:hover, .cbi-button:hover ,.item:hover{
     word-wrap: break-word;
 }
 .cbi-value {
-    display: flex;
+    display: inline-block;
     width: 100%;
     padding: 0;
     line-height: 2.4rem;
@@ -1518,13 +1518,7 @@ button:hover, .btn:hover, .cbi-button:hover ,.item:hover{
     padding: 0 0.8rem;
 }
 .cbi-value:first-child {
-    display: flex;
-    align-items: center;
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: flex-start;
     padding-top: 1rem;
-    align-items: center;
 }
 .cbi-value:last-child {
 	border-bottom: 1rem;
