@@ -182,8 +182,8 @@
   -moz-border-radius: var(--radius0);
   border-radius: var(--radius0);
   background-clip: content-box;
-  background: rgba(var(--primary-rgbm), 0.2);
-  border: 5px solid rgba(var(--primary-rgbbody), 0.1);
+  background: rgba(var(--primary-rgbm), 0.7);
+  border: 5px solid rgba(var(--primary-rgbbody), 0.2);
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -244,22 +244,14 @@ em {
 button, input {
 	overflow: visible;
 }
-button, input, select, option, textarea {
-	font-size: 100%;
-    box-sizing: border-box;
-    vertical-align: baseline;
-    line-height: 2em;
-	border-radius:  var(--radius2);
-	margin: 0;
-}
-label, input, button, select, textarea {
+
+label, input, button, select,option, textarea {
     font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
-    font-size: var(--font-x);
+    font-size: var(--font-z);
     font-weight: 400;
-}
-select, input {
-	padding: 0 20px 0 10px;
-        margin: 0.2rem 0.2rem 0.2rem 0;
+    box-sizing: border-box;
+  vertical-align: baseline;
+ /* line-height: 2em; */
 }
 
 [type=button],
@@ -322,7 +314,6 @@ input[type="checkbox"] {
     padding: 5px!important;
     -webkit-appearance: none;
     outline: none;
-    border-radius:  var(--radius2);
     transition: 0.1s
 }
 
@@ -407,10 +398,9 @@ hr {
 }
 footer {
 	text-align: right;
-	padding: 1rem 1rem 2rem 0;
+	padding: 3rem 0rem 2rem 0;
 	color: var(--primary-title-color);
 	font-size: var(--font-x);
-	background-color: rgba(var(--primary-rgbbody), var(--primary-rgbm-ts));
 }
 footer > a {
 	color: var(--primary-title-color);
@@ -793,24 +783,23 @@ text-decoration: none!important;
 /*   menu */
 
 .main .main-left .nav {
-	font-size: var(--font-d);
 	margin-top: .5rem
 }
 .slide-menu {
 	overflow: hidden
 }
-.main .main-left .nav>li a {
-	display: block;
-	font-size: var(--font-d);
-	color: var(--menu-color)
-}
+.main .main-left .nav>li a,
 .main .main-left .nav>li>a:first-child {
     display: block;
     font-size: var(--font-d);
     color: var(--menu-color);
-    padding: 1rem 0rem 1rem 3rem;
+    padding: .8rem 0rem .8rem 3rem;
     margin-bottom: 0.1rem;
+    font-weight: 500;
+    display: flex;
+    width: 100%;
     text-decoration: none;
+    white-space: nowrap;
     cursor: default;
     transition: all .2s;
     position: relative;
@@ -826,17 +815,11 @@ text-decoration: none!important;
 .main .main-left .nav .slide.active ul {
 	display: block;
 }
-.main .main-left .nav>li>a {
-	display: block;
-	padding: 1rem 0rem 1rem 3rem;
-	margin-bottom: .1rem;
-	text-decoration: none;
-	transition: all .1s;
-	position: relative
-}
+.main .main-left .nav>li>a.active::before,
 .main .main-left .nav>li>a:first-child.active::before {
 	color: var(--menu-hover-color);
 }
+.main .main-left .nav>.slide>a::before, .main .main-left .nav>li>a::before ,
 .main .main-left .nav>li>a:first-child::before {
 	font-family: 'kucat' !important;
 	font-style: normal;
@@ -851,20 +834,7 @@ text-decoration: none!important;
 	content: "\e91a";
 	color: var(--menu-color)
 }
-.main .main-left .nav>.slide>a::before, .main .main-left .nav>li>a::before {
-	font-family: 'kucat' !important;
-	font-style: normal;
-	font-weight: normal;
-	font-variant: normal;
-	text-transform: none;
-	line-height: 1;
-	-webkit-font-smoothing: antialiased;
-	-moz-osx-font-smoothing: grayscale;
-	position: absolute;
-	left: .8rem;
-	content: "\e909";
-	color: var(--menu-color)
-}
+
 .main .main-left .nav>.slide>a::after, .main .main-left>.nav>li>a::after {
 	position: absolute;
 	right: .6rem;
@@ -874,7 +844,6 @@ text-decoration: none!important;
 	font-weight: normal;
 	font-variant: normal;
 	text-transform: none;
-	line-height: 1.4;
 	color: var(--menu-color);
 	content: '\e20b';
 	transition: all .1s ease;
@@ -968,20 +937,19 @@ text-decoration: none!important;
 	display: none
 }
 .main .main-left .nav>li .slide-menu li a {
-	position: relative;
-	margin: .1rem;
-	padding: .6rem 1.4rem .6rem 2.5rem;
-	text-decoration: none;
-	white-space: nowrap;
-	color: var(--menu-color);
-	transition: all .1s;
-	border-left: 4px solid rgba(255, 255, 255, 0);
-	font-size: var(--font-z);
-}
-.main .main-left .nav .slide .slide-menu .active a {
-	color: var(--menu-hover-color);
+  padding: .6rem 1.4rem .6rem 3rem;
+  text-decoration: none;
+  white-space: nowrap;
+  font-size: var(--font-z);
 }
 
+.main .main-left .nav .slide .slide-menu .active a {
+	color: var(--menu-hover-color);
+	font-size: var(--font-z)
+}
+.main .main-left .nav .slide .slide-menu > li {
+	border-left: 4px solid rgba(255, 255, 255, 0);
+}
 .main .main-left .nav .slide .slide-menu > li.active {
 	color: var(--menu-hover-color);
 	background-color: var(--menu-item-hover-bgcolor);
@@ -1033,7 +1001,7 @@ h2 {
 h3 {
 	font-size: var(--font-d);
 	display: block;
-	margin: 1rem 0;
+	margin: 0.5rem 0;
 	color: var(--primary-title-color);
 	font-weight: bold;
 	letter-spacing: .1rem;
@@ -1541,16 +1509,22 @@ button:hover, .btn:hover, .cbi-button:hover ,.item:hover{
     word-wrap: break-word;
 }
 .cbi-value {
-    display: inline-block;
+    display: flex;
     width: 100%;
-    padding: .35rem 1rem .2rem 1rem;
+    padding: 0;
     line-height: 2.4rem;
 }
 .cbi-value.cbi-value-last {
     padding: 0 0.8rem;
 }
 .cbi-value:first-child {
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
     padding-top: 1rem;
+    align-items: center;
 }
 .cbi-value:last-child {
 	border-bottom: 1rem;
@@ -2104,22 +2078,12 @@ select[multiple="multiple"] {
 	background-color: #f0ad4e !important;
 }
 
-[data-page="admin-system-flash"] .cbi-value {
+[data-page="admin-system-flash"] .cbi-value,
+[data-page="admin-system-flash"] .cbi-section-node,
+[data-page="admin-system-flash"] .cbi-section .cbi-section {
     padding: 0
 }
 
-[data-page="admin-system-flash"] .cbi-section .cbi-section {
-    margin-top: 0
-}
-
-[data-page="admin-system-flash"] .cbi-map-tabbed {
-    border-radius: 0.375rem
-}
-
-[data-page="admin-system-flash"] .cbi-section-node {
-    padding-top: 0;
-    padding-bottom: .5rem
-}
 
 [data-page="admin-system-flash"] legend {
     display: block !important;
@@ -2138,8 +2102,6 @@ select[multiple="multiple"] {
 
 [data-page="admin-system-flash"] .cbi-section-descr {
     font-weight: 600;
-    padding: 1rem 0 1rem 1.5rem;
-    color: var(--inputtext-color);
 }
 
 [data-page="admin-system-flash"] .modal .btn {
@@ -2687,11 +2649,14 @@ body.lang_pl.node-main-login .cbi-value-title {
 	text-align: center;
 	overflow: hidden
 }
-.node-main-login>.main #maincontent {
+.node-main-login>.main .main-right > #maincontent {
     display: flex;
     height: 100%;
+    position: unset;
     text-align: center;
     align-items: center;
+    padding:0;
+    margin: 0;
     align-content: center;
     justify-content: center;
     flex-wrap: wrap;
@@ -2703,6 +2668,7 @@ body.lang_pl.node-main-login .cbi-value-title {
     position: relative;
     text-align: center;
     margin: 0;
+    padding: 1rem 1.25rem 3rem 1.25rem;
     border-radius:  var(--radius0);
     -webkit-backdrop-filter: blur(6px)!important;
     backdrop-filter: blur(6px)!important;
@@ -2745,8 +2711,7 @@ body.lang_pl.node-main-login .cbi-value-title {
 	text-align: center
 }
 .node-main-login>.main .container .cbi-value-field input:focus {
-	color: #f8f8f8;
-	text-shadow: 0px 1px 3px #222;
+	color: var(--body-color);
 	outline: 0;
 	background-color: rgba(255, 255, 255, 0.2) !important;
 	box-shadow: 0 3px 9px rgba(50, 50, 9, 0), 3px 4px 8px rgba(94, 114, 228, .1)
@@ -2776,13 +2741,9 @@ body.lang_pl.node-main-login .cbi-value-title {
 	display: none;
 }
 .node-main-login>.main .cbi-value.cbi-value .cbi-value-field .cbi-input-text, .node-main-login>.main .cbi-value.cbi-value .cbi-input-user, .node-main-login>.main .cbi-value.cbi-value-last .cbi-input-password, .node-main-login>.main .cbi-value.cbi-value-last .cbi-input-text[type="password"] {
-
 	box-shadow: none;
 	border-radius:  var(--radius1);
-	padding: 0;
-	color: #fff;
-	text-shadow: 0px 2px 4px #222;
-	background-image: none;
+	padding: 0; 
 	text-align: center;
 	-webkit-box-align: center;
 	-ms-flex-align: center;
@@ -2791,7 +2752,7 @@ body.lang_pl.node-main-login .cbi-value-title {
 	-ms-flex-pack: center;
 	justify-content: center;
 	text-indent: 0rem;
-    background-color: rgba(255,255,255,0.3);
+	background-color: rgba(255,255,255,0.3);
 	width: 14rem;
 	min-width: 100% !important;
 	margin: 0
@@ -3514,6 +3475,12 @@ pre.command-output {
 
 @media screen and (max-width: 992px) {
 
+.main .main-left .nav .slide .slide-menu .active a {
+	font-size: var(--font-z)
+}
+label, input, button, select,option, textarea {
+    font-size: var(--font-x);
+}
 header>.fill>.container>.flex1>.brand {
     display: inline-block;
 }
