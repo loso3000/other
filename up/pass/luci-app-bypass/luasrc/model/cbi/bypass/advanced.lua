@@ -4,16 +4,6 @@ local uci=luci.model.uci.cursor()
 local server_count=0
 local SYS=require"luci.sys"
 
-function url(...)
-    local url = string.format("admin/services/%s", bypass)
-    local args = { ... }
-    for i, v in pairs(args) do
-        if v ~= "" then
-            url = url .. "/" .. v
-        end
-    end
-    return require "luci.dispatcher".build_url(url)
-end
 local server_table={}
 luci.model.uci.cursor():foreach("bypass","servers",function(s)
 	if (s.type=="ss" and not nixio.fs.access("/usr/bin/ss-local")) or (s.type=="ssr" and not nixio.fs.access("/usr/bin/ssr-local")) or s.type=="socks5" or s.type=="tun" then
@@ -82,7 +72,7 @@ o = s:option(Value, "ad_url", translate("anti-AD Update URL"))
 o:value("https://raw.githubusercontent.com/privacy-protection-tools/anti-AD/master/anti-ad-domains.txt", translate("privacy-protection-tools/anti-ad-github"))
 o:value("https://anti-ad.net/domains.txt", translate("privacy-protection-tools/anti-AD"))
 o:value("https://github.com/sirpdboy/iplist/releases/latest/download/ad_list.txt", translate("sirpdboy/ad_list"))
-o.default = "https://github.com/sirpdboy/iplist/releases/latest/download/ad_list.txt"
+o.default = "https://raw.githubusercontent.com/privacy-protection-tools/anti-AD/master/anti-ad-domains.txt"
 
 ---- gfwlist URL
 o = s:option(Value, "gfwlist_url", translate("GFW domains Update URL"))
@@ -91,8 +81,7 @@ o:value("https://fastly.jsdelivr.net/gh/Loukky/gfwlist-by-loukky/gfwlist.txt", t
 o:value("https://fastly.jsdelivr.net/gh/gfwlist/gfwlist/gfwlist.txt", translate("gfwlist/gfwlist"))
 o:value("https://github.com/sirpdboy/iplist/releases/latest/download/gfwlist.txt", translate("sirpdboy/gfwlist"))
 o:value("https://openwrt.ai/bypass/gfwlist.txt", translate("supes/gfwlist"))
-o.default = "https://github.com/sirpdboy/iplist/releases/latest/download/gfwlist.txt"
-
+o.default = "https://fastly.jsdelivr.net/gh/YW5vbnltb3Vz/domain-list-community@release/gfwlist.txt"
 
 ----chnroute  URL
 o = s:option(Value, "chnroute_url", translate("China IPv4 Update URL"))
@@ -104,26 +93,26 @@ o:value("https://fastly.jsdelivr.net/gh/soffchen/GeoIP2-CN@release/CN-ip-cidr.tx
 o:value("https://fastly.jsdelivr.net/gh/Hackl0us/GeoIP2-CN@release/CN-ip-cidr.txt", translate("Hackl0us/GeoIP2-CN"))
 o:value("https://github.com/sirpdboy/iplist/releases/latest/download/all_cn.txt", translate("sirpdboy/all_cn"))
 o:value("https://openwrt.ai/bypass/all_cn.txt", translate("supes/all_cn"))
-o.default = "https://github.com/sirpdboy/iplist/releases/latest/download/all_cn.txt"
+o.default = "https://ispip.clang.cn/all_cn.txt"
 
 ----chnroute6 URL
 o = s:option(Value, "chnroute6_url", translate("China IPv6 Update URL"))
 o:value("https://ispip.clang.cn/all_cn_ipv6.txt", translate("Clang.CN.IPv6"))
 o:value("https://fastly.jsdelivr.net/gh/gaoyifan/china-operator-ip@ip-lists/china6.txt", translate("gaoyifan/china-ipv6"))
 o:value("https://github.com/sirpdboy/iplist/releases/latest/download/all_cn_ipv6.txt", translate("sirpdboy/all_cn_ipv6"))
-o.default = "https://github.com/sirpdboy/iplist/releases/latest/download/all_cn_ipv6.txt"
+o.default = "https://ispip.clang.cn/all_cn_ipv6.txt"
 
 ----domains URL
 o = s:option(Value, "domains_url", translate("China Domains Update URL"))
 o:value("https://fastly.jsdelivr.net/gh/yubanmeiqin9048/domain@release/accelerated-domains.china.txt", translate("yubanmeiqin9048/domains.china"))
 o:value("https://github.com/sirpdboy/iplist/releases/latest/download/domains_cn.txt", translate("sirpdboy/domains_cn"))
-o.default = "https://github.com/sirpdboy/iplist/releases/latest/download/domains_cn.txt"
+o.default = "https://fastly.jsdelivr.net/gh/yubanmeiqin9048/domain@release/accelerated-domains.china.txt"
 
 o = s:option(Button, "UpdateRule", translate("Update All Rule List"))
 o.inputstyle = "apply"
-function o.write(t, n)
-    luci.sys.call("/usr/share/bypass/update")
-    luci.http.redirect(url("log"))
+o.write = function()
+    luci.sys.call("bash /usr/share/bypass/update")
+    luci.http.redirect(luci.dispatcher.build_url("admin", "services", "bypass", "log"))
 end
 
 s=m:section(TypedSection,"socks5_proxy",translate("Global SOCKS5 Server"))

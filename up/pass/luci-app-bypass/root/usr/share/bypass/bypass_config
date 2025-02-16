@@ -32,11 +32,11 @@ config access_control
 config server_global
 
 config global_rules
-	option ad_url 'https://github.com/sirpdboy/iplist/releases/latest/download/ad_list.txt'
-	option gfwlist_url 'https://github.com/sirpdboy/iplist/releases/latest/download/gfwlist.txt'
-	option chnroute_url 'https://github.com/sirpdboy/iplist/releases/latest/download/all_cn.txt'
-	option chnroute6_url 'https://github.com/sirpdboy/iplist/releases/latest/download/all_cn_ipv6.txt'
-	option domains_url 'https://github.com/sirpdboy/iplist/releases/latest/download/domains_cn.txt'
+	option ad_url 'https://raw.githubusercontent.com/privacy-protection-tools/anti-AD/master/anti-ad-domains.txt'
+	option gfwlist_url 'https://fastly.jsdelivr.net/gh/gfwlist/gfwlist/gfwlist.txt'
+	option chnroute_url 'https://ispip.clang.cn/all_cn.txt'
+	option chnroute6_url 'https://ispip.clang.cn/all_cn_ipv6.txt'
+	option domains_url 'https://fastly.jsdelivr.net/gh/yubanmeiqin9048/domain@release/accelerated-domains.china.txt'
 
 config server_subscribe
 	option proxy '0'
