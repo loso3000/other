@@ -35,8 +35,7 @@ function ECHO() {
 
 WRLOCK=/var/lock/otaez_background.lock
 STLOCK=/var/lock/otaez_status.lock
-# x86_64
-[ $(uname -m) = "x86_64" ] && alias board_name="echo x86_64"
+
 
 action=${1}
 shift
@@ -88,7 +87,7 @@ download() {
         url=$(SHOW_INFO 5)
         echo "Try $url" >>/tmp/firmware.img.progress
         flock 300
-        echo "#=#=#" >>/tmp/firmware.img.progress
+        echo "start download." >>/tmp/firmware.img.progress
         fcurl --connect-timeout 5 --progress-bar -o /tmp/firmware.img.part "$url" 2>>/tmp/firmware.img.progress &
         pid="$!"
         echo "$pid" > ${Tmp_Path}/download.pid
@@ -134,23 +133,24 @@ prepare_check() {
     cat /dev/null > $Log_Full
     fcurl --connect-timeout 5 -o ${API_File} "${GithubAPI}"
     ez_version=`cat /etc/ezopenwrt_version | cut -d _ -f 1 `
-    cat ${API_File} | grep "tag_name" | head -n 1 | awk -F ":" '{print $2}' | sed 's/\"//g;s/,//g;s/ //g;s/v//g' > /tmp/cloud_ez_version 
-    cloud_version=`cat /tmp/cloud_ez_version`
+     
     SHOWOTA_API
-    CLOUD_FW_Name=$(SHOW_INFO 1)
-    CLOUD_FW_Count=$(SHOW_INFO 2)
-    CLOUD_FW_Date=$(SHOW_INFO 3)
-    CLOUD_FW_Size=$(SHOW_INFO 4)
-    CLOUD_FW_Url=$(SHOW_INFO 5)
-    curl --connect-timeout 5 -m 60 --ipv4 -kfSLo "$MD5_File" "$Github/releases/download/$cloud_version/EzOpWrt_dev-efi.md5" 
+    CloudName=$(SHOW_INFO 1)
+    CloudCount=$(SHOW_INFO 2)
+    CloudDate=$(SHOW_INFO 3)
+    CloudSize=$(SHOW_INFO 4)
+    CloudUrl=$(SHOW_INFO 5)
+    CloudVersion=`echo ${CloudUrl##*download/} | awk -F '/' '{print $1}'`
+    curl --connect-timeout 5 -m 60 --ipv4 -kfSLo "$MD5_File" "$Github/releases/download/$Cloudversion/EzOpWrt_dev-efi.md5" 
     summd5=`head -1 "$MD5_File" | awk -F " " '{print $1}'`
-     if [ "$ez_version" != "$cloud_version" ];then
-         echo "<h3>Model:&nbsp;&nbsp;<font color=\"green\">$(board_name)</font><br/>Current Version:&nbsp;&nbsp;<font color=\"green\">$ez_version</font></h3>"
-         echo "<h3>New Version:&nbsp;&nbsp;<font color=\"green\">$cloud_version</font><br/>Build Date:&nbsp;&nbsp;<font color=\"green\">$CLOUD_FW_Date</font><br/>Download Count:&nbsp;&nbsp;<font color=\"green\">$CLOUD_FW_Count</font><br/>Firmware Size:&nbsp;&nbsp;<font color=\"green\">$CLOUD_FW_Size</font><br/>MD5:&nbsp;&nbsp;<font color=\"green\">$summd5</font></h3>"
+    CloudIPADDR=`head -2 "$MD5_File" | awk -F "=" '{print $2}'`
+     if [ "$ez_version" != "$Cloudversion" ];then
+         echo "<h3>机器型号:&nbsp;&nbsp;<font color=\"green\">$OSARCH</font><br/>当前版本:&nbsp;&nbsp;<font color=\"green\">$ez_version</font></h3>"
+         echo "<h3>云端版本:&nbsp;&nbsp;<font color=\"green\">$Cloudversion</font><br/>编译时间:&nbsp;&nbsp;<font color=\"green\">$CloudDate</font><br/>固件大小:&nbsp;&nbsp;<font color=\"green\">$CloudSize</font><br/>下载次数:&nbsp;&nbsp;<font color=\"green\">$CloudCount</font><br/>固件IP:&nbsp;&nbsp;<font color=\"green\">$CloudIPADDR</font><br/>MD5值:&nbsp;&nbsp;<font color=\"green\">$summd5</font></h3>"
          echo "<br/><br/><h3><font color=\"red\"> About :<a href=\"$Github/\" onclick=\"void(0)\" target=\"_blank\">Sirpdboy Firmware</a></font></h3>"
          return 0
       else
-         echo "<h3>Model:&nbsp;&nbsp;<font color=\"green\">$(board_name)</font><br/>Current Version:&nbsp;&nbsp;<font color=\"green\">$ez_version</font></h3>"
+         echo "<h3>Model:&nbsp;&nbsp;<font color=\"green\">$OSARCH</font><br/>Current Version:&nbsp;&nbsp;<font color=\"green\">$ez_version</font></h3>"
          echo "<br/><br/><h3><font color=\"red\"> About :<a href=\"$Github/\" onclick=\"void(0)\" target=\"_blank\">Firmware</a></font></h3>"
          return 1
      fi 
@@ -220,20 +220,21 @@ do_cancel() {
 }
 
 function SHOWOTA_API() {
-	for i in $(seq 0 $(jq ".assets | length" ${API_File} 2> /dev/null));do
-		eval name=$(jq ".assets[${i}].name" ${API_File} 2> /dev/null)
-		[[ ${name} == null ]] && continue
+        
+	for i in $(seq 0 $(jq ".[]|length" ${API_File} | wc -l 2> /dev/null));do
+		eval name=$(jq ".[${i}].assets[0].name" ${API_File} 2> /dev/null)
+		[[ `echo $name | grep $OSARCH | grep $AUTHVER ` ]] || continue
 		case ${name} in
 		 *img.gz )
-			eval browser_download_url=$(jq ".assets[${i}].browser_download_url" ${API_File} 2> /dev/null)
-			eval size=$(jq ".assets[${i}].size" ${API_File} 2> /dev/null | awk '{a=$1/1048576} {printf("%.2f\n",a)}')
-			eval updated_at=$(jq ".assets[${i}].updated_at" ${API_File} 2> /dev/null | sed 's/[-:TZ]//g')
-			eval download_count=$(jq ".assets[${i}].download_count" ${API_File} 2> /dev/null)
+			eval browser_download_url=$(jq ".[${i}].assets[0].browser_download_url" ${API_File} 2> /dev/null)
+			eval size=$(jq ".[${i}].assets[0].size" ${API_File} 2> /dev/null | awk '{a=$1/1048576} {printf("%.2f\n",a)}')
+			eval created_at=$(jq ".[${i}].assets[0].created_at" ${API_File} 2> /dev/null | sed 's/[-:TZ]//g')
+			eval download_count=$(jq ".[${i}].assets[0].download_count" ${API_File} 2> /dev/null)
 			[[ ! ${browser_download_url} || ${browser_download_url} == null ]] && continue
 			[[ ! ${size} || ${size} == null || ${size} == 0 ]] && size="-" || size="${size}MB"
-			[[ ! ${updated_at} || ${updated_at} == null ]] && updated_at="-"
+			[[ ! ${created_at} || ${created_at} == null ]] && created_at="-"
 			[[ ! ${download_count} || ${download_count} == null ]] && download_count="-"
-			printf "%-75s %-5s %-10s %-15s %s\n" ${name} ${download_count} ${updated_at} ${size} ${browser_download_url} >> ${API_Info}
+			printf "%-75s %-5s %-10s %-15s %s\n" ${name} ${download_count} ${created_at} ${size} ${browser_download_url} >> ${API_Info}
 		;;
 		esac
 	done
@@ -251,7 +252,7 @@ function SHOW_INFO() {
 	case $1 in
 	1) Type="固件名称";;
 	2) Type="下载次数";;
-	3) Type="发布日期";;
+	3) Type="发布日期"; Result=`echo $Result | sed 's/\(....\)\(..\)\(..\)\(..\)\(..\)\(..\)/\1-\2-\3 \4:\5:\6/' ` ;;
 	4) Type="固件体积";;
 	5) Type="固件链接";;
 	*) Type="未定义信息";;
@@ -289,10 +290,10 @@ API_Info="${Tmp_Path}/APIINFO"
 MD5_File="${Tmp_Path}/MD5EZ"
 Github="https://github.com/sirpdboy/openwrt"
 Firmware_Author="${Github##*com/}"
-GithubAPI="https://api.github.com/repos/${Firmware_Author}/releases/latest"
+GithubAPI="https://api.github.com/repos/${Firmware_Author}/releases"
 Log_Full="${Log_Path}/${Log_File}"
-
-	
+AUTHVER=`cat /etc/ezopenwrt_version | cut -d - -f 1-2`
+eval OSARCH=`cat /etc/os-release |grep OPENWRT_ARCH | cut -d = -f 2`
 ota_init || exit 255
 
 case $action in
