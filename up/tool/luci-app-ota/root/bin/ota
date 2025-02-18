@@ -47,9 +47,9 @@ md5() {
 alias fcurl='curl -L --fail --show-error'
 
 function LOGGER() {
-		[[ ! -d ${Log_Path} ]] && mkdir -p ${Log_Path}
-		[[ ! -f ${Log_Full} ]] && touch -f ${Log_Full}
-		echo "[$(date "+%H:%M:%S")] [$0] $*" >> ${Log_Full}
+		[[ ! -d ${LogPath} ]] && mkdir -p ${LogPath}
+		[[ ! -f ${LogFull} ]] && touch -f ${LogFull}
+		echo "[$(date "+%H:%M:%S")] [$0] $*" >> ${LogFull}
 }
 
 function RM() {
@@ -87,13 +87,13 @@ download() {
         url=$(SHOW_INFO 5)
         echo "Try $url" >>/tmp/firmware.img.progress
         flock 300
-        echo "start download." >>/tmp/firmware.img.progress
+        echo "#=#=#" >>/tmp/firmware.img.progress
         fcurl --connect-timeout 5 --progress-bar -o /tmp/firmware.img.part "$url" 2>>/tmp/firmware.img.progress &
         pid="$!"
-        echo "$pid" > ${Tmp_Path}/download.pid
+        echo "$pid" > ${TmpPath}/download.pid
         flock -u 300
         if wait $pid; then
-            rm -f ${Tmp_Path}/download.pid
+            rm -f ${TmpPath}/download.pid
             echo "Checking new firmware.img.part..." > /tmp/firmware.img.progress
             if [ "`md5 /tmp/firmware.img.part`" = "$sum" ]; then
                 flock 300
@@ -115,8 +115,7 @@ download() {
         flock 300
         sed -i '/\r/d' /tmp/firmware.img.progress
         flock -u 300
-    rm -f ${Tmp_Path}/download.pid
-    rm -f /tmp/firmware.img.part
+    RM $TmpPath /tmp/firmware.img.part ${TmpPath}/download.pid
     return 1
 }
 
@@ -130,28 +129,30 @@ lock_download() {
 
 prepare_check() {
 
-    cat /dev/null > $Log_Full
-    fcurl --connect-timeout 5 -o ${API_File} "${GithubAPI}"
+    cat /dev/null > $LogFull
+    fcurl --connect-timeout 5 -o ${ApiFile} "${GithubAPI}"
     ez_version=`cat /etc/ezopenwrt_version | cut -d _ -f 1 `
-     
     SHOWOTA_API
-    CloudName=$(SHOW_INFO 1)
-    CloudCount=$(SHOW_INFO 2)
-    CloudDate=$(SHOW_INFO 3)
-    CloudSize=$(SHOW_INFO 4)
-    CloudUrl=$(SHOW_INFO 5)
-    CloudVersion=`echo ${CloudUrl##*download/} | awk -F '/' '{print $1}'`
-    curl --connect-timeout 5 -m 60 --ipv4 -kfSLo "$MD5_File" "$Github/releases/download/$Cloudversion/EzOpWrt_dev-efi.md5" 
-    summd5=`head -1 "$MD5_File" | awk -F " " '{print $1}'`
-    CloudIPADDR=`head -2 "$MD5_File" | awk -F "=" '{print $2}'`
+    CLOUD_FW_Name=$(SHOW_INFO 1)
+    CLOUD_FW_Count=$(SHOW_INFO 2)
+    CLOUD_FW_Date=$(SHOW_INFO 3)
+    CLOUD_FW_Size=$(SHOW_INFO 4)
+    CLOUD_FW_Url=$(SHOW_INFO 5)
+    eval cloud_version=`echo ${CLOUD_FW_Url##*download/} | cut -d / -f 1`
+    fcurl --connect-timeout 5 -o "$MD5File"  $Github/releases/download/$(echo ${CLOUD_FW_Url##*download/} | cut -d / -f 1)/EzOpWrt_dev-efi.md5
+    summd5=`head -1 "$MD5File" | awk -F " " '{print $1}'`
+    CLOUD_FW_IP=`head -2 "$MD5File" | awk -F "=" '{print $2}'` || 192.168.1.1
+    [ -z "$CLOUD_FW_IP" ]  && CLOUD_FW_IP=192.168.10.1
      if [ "$ez_version" != "$Cloudversion" ];then
-         echo "<h3>机器型号:&nbsp;&nbsp;<font color=\"green\">$OSARCH</font><br/>当前版本:&nbsp;&nbsp;<font color=\"green\">$ez_version</font></h3>"
-         echo "<h3>云端版本:&nbsp;&nbsp;<font color=\"green\">$Cloudversion</font><br/>编译时间:&nbsp;&nbsp;<font color=\"green\">$CloudDate</font><br/>固件大小:&nbsp;&nbsp;<font color=\"green\">$CloudSize</font><br/>下载次数:&nbsp;&nbsp;<font color=\"green\">$CloudCount</font><br/>固件IP:&nbsp;&nbsp;<font color=\"green\">$CloudIPADDR</font><br/>MD5值:&nbsp;&nbsp;<font color=\"green\">$summd5</font></h3>"
+         echo "<h3>机器型号:&nbsp;&nbsp;<font color=\"green\">$OS_ARCH</font><br/>当前版本:&nbsp;&nbsp;<font color=\"green\">$ez_version</font></h3>"
+         echo "<h3>云端版本:&nbsp;&nbsp;<font color=\"green\">$cloud_version</font><br/>固件日期:&nbsp;&nbsp;<font color=\"green\">$(echo $CLOUD_FW_Date | sed 's/\(....\)\(..\)\(..\)\(..\)\(..\)\(..\)/\1-\2-\3 \4:\5:\6/')</font><br/>固件大小:&nbsp;&nbsp;<font color=\"green\">$CLOUD_FW_Size</font><br/>下载次数:&nbsp;&nbsp;<font color=\"green\">$CLOUD_FW_Count</font><br/>固件 IP :&nbsp;&nbsp;<font color='green'>$CLOUD_FW_IP</font><br/>MD5 值:&nbsp;&nbsp;<font color=\"green\">$summd5</font></h3>"
          echo "<br/><br/><h3><font color=\"red\"> About :<a href=\"$Github/\" onclick=\"void(0)\" target=\"_blank\">Sirpdboy Firmware</a></font></h3>"
+
+
          return 0
       else
-         echo "<h3>Model:&nbsp;&nbsp;<font color=\"green\">$OSARCH</font><br/>Current Version:&nbsp;&nbsp;<font color=\"green\">$ez_version</font></h3>"
-         echo "<br/><br/><h3><font color=\"red\"> About :<a href=\"$Github/\" onclick=\"void(0)\" target=\"_blank\">Firmware</a></font></h3>"
+         echo "<h3>机器型号:&nbsp;&nbsp;<font color='green'>$OS_ARCH</font><br/>当前版本:&nbsp;&nbsp;<font color='green'>$ez_version</font></h3>"
+         echo "<br/><br/><h3><font color='red'> About :<a href='$Github/' onclick='void(0)' target='_blank'>Firmware</a></font></h3>"
          return 1
      fi 
 }
@@ -176,7 +177,7 @@ do_check() {
 
 # async download
 do_download(){
-    local sum=`head -1 "$MD5_File" | awk -F " " '{print $1}'`
+    local sum=`head -1 "$MD5File" | awk -F " " '{print $1}'`
     [ -z "$sum" ] && { echo "do check first" >&2 ; return 254; }
     lock_download $sum &
     return 0
@@ -184,7 +185,7 @@ do_download(){
 
 # 0: done, 1: downloading, 2: failed, 254: wrong state, *: err
 do_progress() {
-    local sum=`head -1 "$MD5_File"  | awk -F " " '{print $1}'`
+    local sum=`head -1 "$MD5File"  | awk -F " " '{print $1}'`
     [ -z "$sum" ] && { echo "do check first" >&2 ; return 254; }
     [ -f /tmp/firmware.img.md5 ] && [ "`cat /tmp/firmware.img.md5`" = "$sum" ] && return 0
     [ -f /tmp/firmware.img.progress ] || { echo "download not in progress" >&2 ; return 254; }
@@ -205,8 +206,8 @@ do_progress_locked() {
 }
 
 do_cancel() {
-    if [ -f ${Tmp_Path}/download.pid ]; then
-        local pid=`cat ${Tmp_Path}/download.pid`
+    if [ -f ${TmpPath}/download.pid ]; then
+        local pid=`cat ${TmpPath}/download.pid`
         if [ -n "$pid" ]; then
             kill -TERM $pid;
             while kill -0 $pid >/dev/null 2>&1; do
@@ -216,25 +217,26 @@ do_cancel() {
             done
         fi
     fi
+    RM $TmpPath
     return 0
 }
 
 function SHOWOTA_API() {
-        
-	for i in $(seq 0 $(jq ".[]|length" ${API_File} | wc -l 2> /dev/null));do
-		eval name=$(jq ".[${i}].assets[0].name" ${API_File} 2> /dev/null)
-		[[ `echo $name | grep $OSARCH | grep $AUTHVER ` ]] || continue
+	for i in $(seq 0 $(jq ".[]|length" ${ApiFile} | wc -l));do
+		eval name=$(jq ".[${i}].assets[0].name" ${ApiFile} 2> /dev/null)
+		[[ `echo $name | grep $OS_ARCH | grep $AUTHVER ` ]] || continue
 		case ${name} in
 		 *img.gz )
-			eval browser_download_url=$(jq ".[${i}].assets[0].browser_download_url" ${API_File} 2> /dev/null)
-			eval size=$(jq ".[${i}].assets[0].size" ${API_File} 2> /dev/null | awk '{a=$1/1048576} {printf("%.2f\n",a)}')
-			eval created_at=$(jq ".[${i}].assets[0].created_at" ${API_File} 2> /dev/null | sed 's/[-:TZ]//g')
-			eval download_count=$(jq ".[${i}].assets[0].download_count" ${API_File} 2> /dev/null)
+			eval browser_download_url=$(jq ".[${i}].assets[0].browser_download_url" ${ApiFile} 2> /dev/null)
+			eval size=$(jq ".[${i}].assets[0].size" ${ApiFile} 2> /dev/null | awk '{a=$1/1048576} {printf("%.2f\n",a)}')
+			eval updated_at=$(jq ".[${i}].assets[0].updated_at" ${ApiFile} 2> /dev/null | sed 's/[-:TZ]//g')
+			eval download_count=$(jq ".[${i}].assets[0].download_count" ${ApiFile} 2> /dev/null)
 			[[ ! ${browser_download_url} || ${browser_download_url} == null ]] && continue
 			[[ ! ${size} || ${size} == null || ${size} == 0 ]] && size="-" || size="${size}MB"
-			[[ ! ${created_at} || ${created_at} == null ]] && created_at="-"
+			[[ ! ${updated_at} || ${updated_at} == null ]] && updated_at="-"
 			[[ ! ${download_count} || ${download_count} == null ]] && download_count="-"
-			printf "%-75s %-5s %-10s %-15s %s\n" ${name} ${download_count} ${created_at} ${size} ${browser_download_url} >> ${API_Info}
+			printf "%-75s %-5s %-10s %-15s %s\n" ${name} ${download_count} ${updated_at} ${size} ${browser_download_url} >> ${ApiInfo}
+			return
 		;;
 		esac
 	done
@@ -243,16 +245,16 @@ function SHOWOTA_API() {
 
 function SHOW_INFO() {
 	local Info Type Result
-	[[ ! -s ${API_Info} ]] && {
+	[[ ! -s ${ApiInfo} ]] && {
 		ECHO r "未检测到 API 文件!"
 		exit 1
 	}
-	Info=$(grep " " ${API_Info} | awk 'BEGIN {MAX = 0} {if ($4+0 > MAX+0) {MAX=$4 ;content=$0} } END {print content}')
+	Info=$(grep " " ${ApiInfo} | awk 'BEGIN {MAX = 0} {if ($4+0 > MAX+0) {MAX=$4 ;content=$0} } END {print content}')
 	Result="$(echo $Info | awk '{print $"'${1}'"}'  2> /dev/null)"
 	case $1 in
 	1) Type="固件名称";;
 	2) Type="下载次数";;
-	3) Type="发布日期"; Result=`echo $Result | sed 's/\(....\)\(..\)\(..\)\(..\)\(..\)\(..\)/\1-\2-\3 \4:\5:\6/' ` ;;
+	3) Type="发布日期" ;;
 	4) Type="固件体积";;
 	5) Type="固件链接";;
 	*) Type="未定义信息";;
@@ -269,7 +271,7 @@ function SHOW_INFO() {
 
 
 ota_init(){
-    mkdir -p ${Tmp_Path} >/dev/null 2>&1 || true
+    mkdir -p ${TmpPath} >/dev/null 2>&1 || true
 }
 
 usage() {
@@ -282,18 +284,20 @@ usage() {
 }
 
 
-Log_Path=/tmp
-Log_File=ezota.log
-Tmp_Path=/tmp/ezota
-API_File="${Tmp_Path}/APIFILE"
-API_Info="${Tmp_Path}/APIINFO"
-MD5_File="${Tmp_Path}/MD5EZ"
-Github="https://github.com/sirpdboy/openwrt"
-Firmware_Author="${Github##*com/}"
-GithubAPI="https://api.github.com/repos/${Firmware_Author}/releases"
-Log_Full="${Log_Path}/${Log_File}"
+LogPath=/tmp
+LogFile=ezota.log
+TmpPath=/tmp/ezota
+# RM $TmpPath && mkdir -p ${TmpPath}
+[[ ! -d ${TmpPath} ]] && mkdir -p ${TmpPath}
+ApiFile="${TmpPath}/Api_File"
+ApiInfo="${TmpPath}/Api_Info"
+MD5File="${TmpPath}/MD5_File"
+FirmwareAuthor="sirpdboy/openwrt"
+Github="https://github.com/${FirmwareAuthor}"
+GithubAPI="https://api.github.com/repos/${FirmwareAuthor}/releases"
+LogFull="${LogPath}/${LogFile}"
 AUTHVER=`cat /etc/ezopenwrt_version | cut -d - -f 1-2`
-eval OSARCH=`cat /etc/os-release |grep OPENWRT_ARCH | cut -d = -f 2`
+eval OS_ARCH=`cat /etc/os-release |grep OPENWRT_ARCH | cut -d = -f 2`
 ota_init || exit 255
 
 case $action in
