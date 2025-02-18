@@ -251,7 +251,6 @@ label, button, input, select, option, textarea {
     font-weight: 400;
     box-sizing: border-box;
     vertical-align: baseline;
-    line-height: 2.4rem;
     border-radius:  var(--radius2);
     margin: 0;
 }
@@ -1176,7 +1175,7 @@ table>tbody>tr:first-child>td, table>tfoot>tr:first-child>td, table>thead>tr:fir
 
 /* button style */
 
-.btn, button, select, input, .cbi-dropdown {
+.btn, button, .cbi-button, select, input, .cbi-dropdown {
 	height: 2.8rem;
 	line-height: 1;
 	outline: 0;
@@ -1206,7 +1205,7 @@ table>tbody>tr:first-child>td, table>tfoot>tr:first-child>td, table>thead>tr:fir
     text-align: center;
     white-space: nowrap;
     font-size: var(--font-z);
-    color: #f8f8f8;
+    color: var(--menu-hover-color);
     background-color: #008b89;
     background-image: var(--bgqs-image);
     box-shadow: 0 0.3rem 0.8rem var(--input-boxcolor);
@@ -1386,9 +1385,6 @@ button:hover, .btn:hover, .cbi-button:hover ,.item:hover{
 	border: thin solid #4cae4c;
 	background-color: #5cb85c;
 }
-.btn, .cbi-button, .item::after {
-    color: var(--menu-hover-color);
-}
 
 .cbi-page-actions .cbi-button-link:first-child {
 	float: left;
@@ -1401,7 +1397,6 @@ button:hover, .btn:hover, .cbi-button:hover ,.item:hover{
 	margin: 9px 0 4px 3px;
 	padding: 1px 6px;
 }
-
 .tabs li[class~="active"] {
 	border-right: 0.18751rem solid var(--primary-solid)!important;
 	border-left: 0.18751rem solid var(--primary-solid)!important;
@@ -1518,6 +1513,20 @@ button:hover, .btn:hover, .cbi-button:hover ,.item:hover{
     width: 100%;
     padding: 0 0.8rem;
     line-height: 2.4rem;
+}
+
+
+.cbi-value  .cbi-filebrowser  {
+	line-height: 2;
+	width: 15rem;
+}
+
+.cbi-filebrowser .right {
+    margin-bottom:20px;
+}
+
+.cbi-filebrowser.open .upload {
+    display: inline-flex;
 }
 .cbi-value.cbi-value-last {
     padding: 0 0.8rem;
@@ -1719,10 +1728,6 @@ button:hover, .btn:hover, .cbi-button:hover ,.item:hover{
     border: 1px solid rgba(var(--primary-rgbm), 1);
 }
 
-
-.cbi-dropdown {
-  padding: .2rem .2rem;
-}
 
 .cbi-dropdown[placeholder*="select"] {
 	max-width: 25rem;
@@ -2022,6 +2027,16 @@ select, input {
 	margin-bottom: .5em;
 	max-width: 100%;
 }
+
+.modal > .button-row {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.modal > .button-row .btn{
+  line-height: 1.8;
+}
+
 .modal > pre, .modal > textarea {
 	font-size: var(--font-z);
 	font-size-adjust: .35;
@@ -3057,14 +3072,7 @@ body.lang_pl.node-main-login .cbi-value-title {
 .node-admin-status-realtime-connections #view table[id*=connections] {
 	white-space: nowrap;
 }
-/* fix node-admin-status-processe */
-.node-admin-status-processe button.btn.cbi-button-action {
-	background-color: rgba(var(--primary-rgbm), 0.9);
-}
-/* fix node-admin-system-opkg cbi-button-positive */
-.node-admin-system-opkg button.btn.cbi-button-positive {
-	background-color: rgba(var(--primary-rgbm), 0.9);
-}
+
 /* fix node-admin-status-realtime-load */
 .node-admin-status-channel_analysis #view > div > div > div > div,
 .node-admin-status-channel_analysis #view > div > div > div > div > div,
@@ -3085,17 +3093,16 @@ body.lang_pl.node-main-login .cbi-value-title {
 .cbi-page-actions.control-group .cbi-dropdown.btn.cbi-button.cbi-button-apply.important > ul {
 overflow-y: hidden;
 }
-.cbi-dropdown.btn.cbi-button.cbi-button-action {
+.cbi-dropdown.btn  {
 	padding-right: 5px;
 }
-/* luci-app-ttyd */
-.node-admin-system-ttyd-ttyd #view>iframe {
+
+[data-page="admin-system-ttyd-ttyd"]  #view>iframe {
 	border-radius:  var(--radius2)!important;
 	  min-height:600px!important;
 }
 
-/* fix node-admin-status-overview color */
-.node-admin-status-overview h3 {
+[data-page="admin-status-overview"] h3 {
 	color: unset !important;
 }
 
@@ -3139,10 +3146,11 @@ padding: 0.5rem!important;
 .node-admin-nas-usb_printer em {
 	display: block
 }
-.node-admin-system-flashops .cbi-section ul {
+[data-page="admin-system-flashops"] .cbi-section ul {
 	padding: .875rem 1.5rem;
 	font-size: var(--font-x);
 }
+
 #cbi-netspeedtest-homebox>.cbi-section-node>.cbi-value {
 	display: inline-block;
 }
@@ -3155,17 +3163,17 @@ background-color: rgba(255,255,255,0.12)!important;
 #chatlog .response {
     background-color: rgba(255,255,255,0.1)!important;
 }
-
-/* fix luci-app-wrtbwmon
-.main #view .cbi-value-title  {
+[data-page="admin-status-usage-details"] .cbi-value-title  {
    width: 15rem;
 }
- */
- 
-/* fix node-admin-status-overview
-.node-admin-network-network > .main #view td:nth-child(3),  */
+
+[data-page="admin-network-network "] .main #view td:nth-child(3),
 .cbi-map>.cbi-section .cbi-value:nth-of-type(4) td:nth-child(2), .Interfaces > .main #view td:nth-child(3), .node-admin-network-network > .main #view td:nth-child(3), .Processes > .main #view td:nth-child(3), .node-admin-status-processes > .main #view td:nth-child(3), .node-admin-status-overview > .main #view td:nth-child(2) {
 	white-space: normal !important;
+}
+
+[data-page="admin-status-processes"]  #view td:nth-child(3)>span {
+	word-break: unset!important;
 }
 .node-admin-status-overview #view .cbi-section>div>div {
     justify-items: center !important
