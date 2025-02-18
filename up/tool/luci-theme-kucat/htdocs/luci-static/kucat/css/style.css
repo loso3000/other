@@ -1192,7 +1192,7 @@ table>tbody>tr:first-child>td, table>tfoot>tr:first-child>td, table>thead>tr:fir
 }
 .btn, button, .cbi-button, .item::after {
 	height: 2.8rem;
-	line-height: 1;
+	line-height: 1.8;
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
@@ -3155,10 +3155,12 @@ background-color: rgba(255,255,255,0.12)!important;
     background-color: rgba(255,255,255,0.1)!important;
 }
 
-/* fix luci-app-wrtbwmon */
+/* fix luci-app-wrtbwmon
 .main #view .cbi-value-title  {
    width: 15rem;
 }
+ */
+ 
 /* fix node-admin-status-overview
 .node-admin-network-network > .main #view td:nth-child(3),  */
 .cbi-map>.cbi-section .cbi-value:nth-of-type(4) td:nth-child(2), .Interfaces > .main #view td:nth-child(3), .node-admin-network-network > .main #view td:nth-child(3), .Processes > .main #view td:nth-child(3), .node-admin-status-processes > .main #view td:nth-child(3), .node-admin-status-overview > .main #view td:nth-child(2) {
