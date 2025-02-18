@@ -130,30 +130,41 @@ lock_download() {
 prepare_check() {
 
     cat /dev/null > $LogFull
-    fcurl --connect-timeout 5 -o ${ApiFile} "${GithubAPI}"
+    fcurl --connect-timeout 5 -o ${ApiFile} "${GithubAPI}"  >/dev/null 2>&1 
     ez_version=`cat /etc/ezopenwrt_version | cut -d _ -f 1 `
+    [ -z "$ez_version" ]  && {
+         echo "$ez_version 检查错误:非sirpdboy固件,不支持在线升级！"
+	 return 3
+     }
+    [[ -s ${ApiFile} ]] || {
+         echo "检查错误: 网络不通，请检查网络!"
+	 return 4
+     }
     SHOWOTA_API
     CLOUD_FW_Name=$(SHOW_INFO 1)
     CLOUD_FW_Count=$(SHOW_INFO 2)
     CLOUD_FW_Date=$(SHOW_INFO 3)
     CLOUD_FW_Size=$(SHOW_INFO 4)
     CLOUD_FW_Url=$(SHOW_INFO 5)
+
     eval cloud_version=`echo ${CLOUD_FW_Url##*download/} | cut -d / -f 1`
-    fcurl --connect-timeout 5 -o "$MD5File"  $Github/releases/download/$(echo ${CLOUD_FW_Url##*download/} | cut -d / -f 1)/EzOpWrt_dev-efi.md5
+    [ -z  ${cloud_version} ] && {
+         echo "检查错误:网络不通，请检查网络连接状态!"
+	 return 3
+     }
+    fcurl --connect-timeout 5 -o "$MD5File"  $Github/releases/download/$(echo ${CLOUD_FW_Url##*download/} | cut -d / -f 1)/EzOpWrt_dev-efi.md5  >/dev/null 2>&1 
     summd5=`head -1 "$MD5File" | awk -F " " '{print $1}'`
+    [ -z  ${summd5} ] && {
+         echo "检查错误:MD5校验错误!"
+	 return 5
+     }
     CLOUD_FW_IP=`head -2 "$MD5File" | awk -F "=" '{print $2}'` || 192.168.1.1
     [ -z "$CLOUD_FW_IP" ]  && CLOUD_FW_IP=192.168.10.1
      if [ "$ez_version" != "$Cloudversion" ];then
          echo "<h3>机器型号:&nbsp;&nbsp;<font color=\"green\">$OS_ARCH</font><br/>当前版本:&nbsp;&nbsp;<font color=\"green\">$ez_version</font></h3>"
          echo "<h3>云端版本:&nbsp;&nbsp;<font color=\"green\">$cloud_version</font><br/>固件日期:&nbsp;&nbsp;<font color=\"green\">$(echo $CLOUD_FW_Date | sed 's/\(....\)\(..\)\(..\)\(..\)\(..\)\(..\)/\1-\2-\3 \4:\5:\6/')</font><br/>固件大小:&nbsp;&nbsp;<font color=\"green\">$CLOUD_FW_Size</font><br/>下载次数:&nbsp;&nbsp;<font color=\"green\">$CLOUD_FW_Count</font><br/>固件 IP :&nbsp;&nbsp;<font color='green'>$CLOUD_FW_IP</font><br/>MD5 值:&nbsp;&nbsp;<font color=\"green\">$summd5</font></h3>"
          echo "<br/><br/><h3><font color=\"red\"> About :<a href=\"$Github/\" onclick=\"void(0)\" target=\"_blank\">Sirpdboy Firmware</a></font></h3>"
-
-
          return 0
-      else
-         echo "<h3>机器型号:&nbsp;&nbsp;<font color='green'>$OS_ARCH</font><br/>当前版本:&nbsp;&nbsp;<font color='green'>$ez_version</font></h3>"
-         echo "<br/><br/><h3><font color='red'> About :<a href='$Github/' onclick='void(0)' target='_blank'>Firmware</a></font></h3>"
-         return 1
      fi 
 }
 
@@ -271,6 +282,7 @@ function SHOW_INFO() {
 
 
 ota_init(){
+    [[ ! -d ${TmpPath} ]] || RM $TmpPath
     mkdir -p ${TmpPath} >/dev/null 2>&1 || true
 }
 
@@ -287,8 +299,6 @@ usage() {
 LogPath=/tmp
 LogFile=ezota.log
 TmpPath=/tmp/ezota
-# RM $TmpPath && mkdir -p ${TmpPath}
-[[ ! -d ${TmpPath} ]] && mkdir -p ${TmpPath}
 ApiFile="${TmpPath}/Api_File"
 ApiInfo="${TmpPath}/Api_Info"
 MD5File="${TmpPath}/MD5_File"

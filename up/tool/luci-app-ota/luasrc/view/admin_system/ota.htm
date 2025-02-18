@@ -155,9 +155,17 @@
 					case 1:
 						check_result.innerText = "<%:Already the latest firmware%>";
 						break;
+					case 3:
+						check_result.innerText = "<%:Check failed%> Error:"+d.code;
+						break;
+					case 4:
+						check_result.innerText = "<%:Check failed%> Error:"+d.code;
+						break;
+					case 5:
+						check_result.innerText = "<%:Check failed%> Error:"+d.code;
+						break;
 					default:
-						check_result.innerText = "<%:Check failed%>";
-						alert("<%:Check failed%>:\n"+d.msg);
+						check_result.innerText = "<%:Check failed%> Error:"+d.code;
 					}
 				});
 			};
