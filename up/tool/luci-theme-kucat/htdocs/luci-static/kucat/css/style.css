@@ -1188,17 +1188,18 @@ table>tbody>tr:first-child>td, table>tfoot>tr:first-child>td, table>thead>tr:fir
 	border-radius:  var(--radius2);
 	transition: box-shadow .25s ease;
 	border-radius: 0.25rem;
+	cursor: pointer;
 	box-shadow: 0 0.3rem 0.8rem var(--input-boxcolor);
 }
 .btn, button, .cbi-button, .item::after {
-	height: 2.8rem;
-	line-height: 1.8;
+    height: 2.8rem;
+    line-height: 1;
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
     text-transform: uppercase;
-    display: inline-block;
+    cursor: pointer;
     -ms-touch-action: manipulation;
     touch-action: manipulation;
     vertical-align: middle;
