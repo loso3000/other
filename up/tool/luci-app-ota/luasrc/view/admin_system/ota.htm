@@ -15,7 +15,9 @@
 	margin: 0 !important;
 	border: 0 !important;
 }
-
+ 	#upgrade_log {
+  	  padding: 0.5rem 1.5rem 0.2rem;
+	}
 	#cbi-ota .state-ctl.state-ctl-unchecked .state.state-unchecked,
 	#cbi-ota .state-ctl.state-ctl-checked .state.state-checked,
 	#cbi-ota .state-ctl.state-ctl-downloading .state.state-downloading,
@@ -166,6 +168,7 @@
 						break;
 					default:
 						check_result.innerText = "<%:Check failed%> Error:"+d.code;
+						alert("<%:Check failed%>:\n"+d.msg);
 					}
 				});
 			};
