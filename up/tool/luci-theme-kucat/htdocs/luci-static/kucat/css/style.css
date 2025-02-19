@@ -1173,7 +1173,7 @@ table>tbody>tr:first-child>td, table>tfoot>tr:first-child>td, table>thead>tr:fir
 
 .btn, button, .cbi-button, select, input, .cbi-dropdown {
 	height: 2.8rem;
-	line-height: 2.8rem;
+	line-height: 1;
 	outline: 0;
 	padding: 0.5rem 0.75rem;
 	margin: 0.25rem 0.1rem;
@@ -1521,7 +1521,8 @@ button:hover, .btn:hover, .cbi-button:hover ,.item:hover{
     margin-bottom:20px;
 }
 
-.cbi-filebrowser.open .upload {
+.cbi-filebrowser .upload,
+.cbi-filebrowser>.right>.upload {
     display: inline-flex;
 }
 .cbi-value.cbi-value-last {
@@ -1765,7 +1766,7 @@ button:hover, .btn:hover, .cbi-button:hover ,.item:hover{
 .cbi-dropdown > .open {
 	padding: 0.2rem;
 	font-size: 1.5rem;
-	/*border-left: 0.1rem solid #ccc; */
+	border-left: 0.1rem solid #ccc;
 	font-size: 1.5rem;
 	margin: 0;
 }
@@ -1834,7 +1835,7 @@ button:hover, .btn:hover, .cbi-button:hover ,.item:hover{
 	display: initial;
 }
 .cbi-dropdown.btn>ul:not(.dropdown), .cbi-dropdown.cbi-button>ul:not(.dropdown) {
-  margin: 0 .15rem 0 .85rem !important;
+  margin: 0 .85rem 0 .85rem !important;
 }
 
 .cbi-dropdown.btn.cbi-button>ul{
@@ -2001,17 +2002,13 @@ select, input {
 	background-color: rgba(var(--primary-rgbbody), 1);
     box-shadow: 0 2px 10px 0px rgba(255, 255, 255, .16), 0 0 10px 0 rgba(255, 255, 255, .12);
 }
+
 #modal_overlay .cbi-section,
 .modal .cbi-section{
     overflow: visible;
 }
-/*
-.modal .right>.btn {
-	padding: 0 0.8rem
-}
-*/
 .modal .right>.primary {
-	padding: .3rem .6rem;
+    min-width: 8rem;
 }
 
 .modal [data-tab-active="true"] {
@@ -2035,6 +2032,12 @@ select, input {
 
 .modal > .button-row .btn{
   line-height: 1.8;
+}
+
+#modal_overlay .modal>div {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
 }
 
 .modal > pre, .modal > textarea {
@@ -3167,14 +3170,12 @@ background-color: rgba(255,255,255,0.12)!important;
    width: 15rem;
 }
 
-[data-page="admin-network-network "] .main #view td:nth-child(3),
+[data-page="admin-status-processes"]  #view td:nth-child(3)>span,
 .cbi-map>.cbi-section .cbi-value:nth-of-type(4) td:nth-child(2), .Interfaces > .main #view td:nth-child(3), .node-admin-network-network > .main #view td:nth-child(3), .Processes > .main #view td:nth-child(3), .node-admin-status-processes > .main #view td:nth-child(3), .node-admin-status-overview > .main #view td:nth-child(2) {
 	white-space: normal !important;
-}
-
-[data-page="admin-status-processes"]  #view td:nth-child(3)>span {
 	word-break: unset!important;
 }
+
 .node-admin-status-overview #view .cbi-section>div>div {
     justify-items: center !important
 }
