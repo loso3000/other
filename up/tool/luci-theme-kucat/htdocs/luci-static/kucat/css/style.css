@@ -1940,6 +1940,7 @@ select[multiple="multiple"] {
 
 select, input {
 	padding: 0 20px 0 10px;
+	line-height: 2rem;
         margin: 0.2rem 0.2rem 0.2rem 0;
 }
 
