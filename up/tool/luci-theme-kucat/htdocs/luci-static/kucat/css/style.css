@@ -2160,7 +2160,7 @@ body.modal-overlay-active #modal_overlay {
 .spinning {
     position: relative;
     font-size: var(--font-z);
-    padding-left: 32px !important;
+    padding: 2rem 0rem 2rem 3rem !important;
 }
 .spinning::before {
     position: absolute;
@@ -2185,7 +2185,10 @@ body.modal-overlay-active #modal_overlay {
 	text-align: left !important;
 	margin-left: 5px;
 }
-
+.right .cbi-button {
+	line-height: 1;
+	margin: 0.2rem;
+}
 .right, .right::before {
     text-align: right !important;
     margin-right: 5px;
