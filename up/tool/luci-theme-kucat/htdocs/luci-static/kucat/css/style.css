@@ -525,7 +525,6 @@ small {
 .main .main-left .sidenav-header {
 	text-align: center;
 	height: 4.8rem;
-	margin: 0 10px;
 	background-color: rgba(255, 255, 255, 0);
 	padding: 2rem;
 	background-clip: padding-box;
@@ -778,9 +777,6 @@ text-decoration: none!important;
 }
 /*   menu */
 
-.main .main-left .nav {
-	margin-top: .5rem
-}
 .slide-menu {
 	overflow: hidden
 }
@@ -790,7 +786,7 @@ text-decoration: none!important;
     font-size: var(--font-d);
     color: var(--menu-color);
     padding: .8rem 0rem .8rem 3rem;
-    margin-bottom: 0.1rem;
+    margin-bottom: 1px;
     font-weight: 500;
     display: flex;
     width: 100%;
@@ -1998,7 +1994,7 @@ select, input {
 	max-width: 800px;
 	min-height: 32px;
 	margin: 5em auto;
-	padding: 1em;
+	padding: 0.2rem;
 	border-radius:  var(--radius2)!important;
 	background-color: rgba(var(--primary-rgbbody), 1);
     box-shadow: 0 2px 10px 0px rgba(255, 255, 255, .16), 0 0 10px 0 rgba(255, 255, 255, .12);
@@ -2164,7 +2160,7 @@ body.modal-overlay-active #modal_overlay {
 }
 .spinning {
     position: relative;
-    font-size: 1rem;
+    font-size: var(--font-z);
     padding-left: 32px !important;
 }
 .spinning::before {
@@ -2190,10 +2186,7 @@ body.modal-overlay-active #modal_overlay {
 	text-align: left !important;
 	margin-left: 5px;
 }
-.right .cbi-button {
-	line-height: 1;
-	margin: 0;
-}
+
 .right, .right::before {
     text-align: right !important;
     margin-right: 5px;
@@ -2946,6 +2939,20 @@ body.lang_pl.node-main-login .cbi-value-title {
 	margin: 0;
 }
 
+.cbi-tab-disabled[data-errors]::after {
+  content: attr(data-errors);
+  background: #c43c35;
+  color: #fff;
+  height: 16px;
+  min-width: 16px;
+  border-radius: 8px;
+  text-align: center;
+  margin: 0 5px 0 0;
+  padding: 2px 2px 2px 2px;
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+}
 #cbi-firewall-redirect table *, #cbi-network-switch_vlan table *, #cbi-firewall-zone table * {
 	font-size: small;
 	white-space: nowrap;
