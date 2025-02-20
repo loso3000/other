@@ -504,6 +504,7 @@ small {
 }
 .main > .loading {
 	position: fixed;
+	display: none;
 	top: 0;
 	opacity: 1;
 	visibility: visible;
@@ -527,8 +528,9 @@ small {
 	height: 4.8rem;
 	background-color: rgba(255, 255, 255, 0);
 	padding: 2rem;
+	margin: 0rem 1rem 0rem 1rem;
 	background-clip: padding-box;
-	border-bottom: 1px solid #ddd
+	border-bottom: 1px solid #ddd;
 }
 .main-right {
 	width: calc(100% - 17rem);
@@ -961,16 +963,13 @@ text-decoration: none!important;
     font-family: var(--font-sans);
     font-weight: bold;
     font-size: 1.5rem;
-	padding-left: 0px;
-	text-decoration: none;
-	/*letter-spacing: 3px;*/
-	font-weight: bolder;
-	cursor: default;
-	vertical-align: text-bottom;
-	white-space: nowrap;
-	text-align: center;
-	align-items: center;
-	justify-content: center;
+    text-decoration: none;
+    letter-spacing: 3px;
+    font-weight: bolder;
+    cursor: default;
+    vertical-align: text-bottom;
+    white-space: nowrap;
+    text-align: center;
 }
 
 ul {
