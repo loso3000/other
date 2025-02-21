@@ -54,9 +54,6 @@ EOF
 			set network.wan6.delegate='0'
 			delete network.wan6.reqaddress='try'
 			set network.wan6.reqprefix='auto'
-			delete firewall.@zone[1].network
-			add_list firewall.@zone[1].network='wan'
-			add_list firewall.@zone[1].network='wan6'
 			set firewall.@defaults[0].disable_ipv6='0'
 
 EOF
@@ -103,9 +100,6 @@ EOF
 			set network.wan6.$ifname="${wan_interface}"
 			set network.wan6.reqaddress=try
 			set network.wan6.reqprefix=auto
-			delete firewall.@zone[1].network
-			add_list firewall.@zone[1].network='wan'
-			add_list firewall.@zone[1].network='wan6'
 EOF
 		;;
 	esac
@@ -123,7 +117,6 @@ add_netwizard() {
 	config_get wan_interface "$cfg" wan_interface 'eth1'
 	config_get lan_dhcp "$cfg" lan_dhcp '0'
 	config_get synflood "$cfg" synflood '0'
-	config_get redirectdns "$cfg" redirectdns '0'
 	config_get lan_ipaddr "$cfg" lan_ipaddr `uci -q get network.lan.ipaddr`
 	config_get lan_netmask "$cfg" lan_netmask '255.255.255.0'
 	config_get dns_tables "$cfg" dns_tables 'iptables -t nat -I POSTROUTING -o br-lan -j MASQUERADE'
@@ -167,6 +160,9 @@ add_netwizard() {
 	}
 	$UCISET network.wan.$ifname="${wan_interface}"
 	$UCISET network.wan6.$ifname="${wan_interface}"
+	[ "x$ifname" = "xdevice" ] && {
+	uci -q add_list firewall.@zone[1].network='wan6'
+	uci -q add_list firewall.@zone[1].network='wan' } || uci -q set firewall.@zone[1].network='wan wan6'
  	case "${wan_proto}" in
 		dhcp)
 			$UCISET network.wan.proto='dhcp'
@@ -203,7 +199,7 @@ add_netwizard() {
 				$UCISET network.wan.username="${wan_pppoe_user}"
 				$UCISET network.wan.password="${wan_pppoe_pass}"
 				$UCISET network.wan.keepalive='60 20'
-				$UCISET network.wan.mtu='1420'
+				$UCISET network.wan.mtu='1480'
 				$UCISET network.wan.persist='1'
 				$UCISET network.wan.holdoff='5'
 				$UCISET network.wan.pppd_options='debug noipdefault'
@@ -217,9 +213,8 @@ add_netwizard() {
 		siderouter)
 			config_get lan_gateway "$cfg" lan_gateway
 			config_get lan_dns "$cfg" lan_dns
-			config_get lan_snat "$cfg" lan_snat
 			config_get masq "$cfg" masq
-			config_get snat_tables "$cfg" snat_tables
+			
 			test -n "${lan_gateway}" && {
 				$UCISET network.lan.gateway="${lan_gateway}"
 				[ -n "$lan_dns" ] || lan_dns='223.5.5.5'
@@ -229,12 +224,6 @@ add_netwizard() {
 					fi
 				[ "x$masq" = "x1" ] && $UCISET firewall.@zone[0].masq='1' || $UCIDEL firewall.@zone[0].masq
 
-			 if [ -n "$(command -v fw4)" ] && [ -n "$(command -v nft)" ] && [ -n "$(dnsmasq --version | grep 'Compile time options:.* nftset')" ]; then
-				   sed -i '/j MASQUERADE/d' /etc/firewall.user
-				else
-				   [ "x$lan_snat" = "x1" ] && echo "${snat_tables}" >> /etc/firewall.user 
-				fi
-}
 			$UCIDEL firewall.@zone[0].network
 			uci add_list firewall.@zone[0].network='lan'
 			[  `uci show network  | grep utun | wc -l ` -gt 1 ] && uci add_list firewall.@zone[0].network='utun'
@@ -258,20 +247,7 @@ add_netwizard() {
 		$UCISET network.lan.ipaddr="${lan_ipaddr}"
 		$UCISET network.lan.netmask="${lan_netmask}"
 	}
-	if  [ "x$redirectdns" = "x1" ] ;then
-                      if [ -n "$(command -v fw4)" ] && [ -n "$(command -v nft)" ] && [ -n "$(dnsmasq --version | grep 'Compile time options:.* nftset')" ]; then
-                     		echo "nft  add rule inet fw4 dstnat ip protocol udp ip dport 53 redirect to 53" >> /etc/firewall.user
-                     		echo "nft  add rule inet fw4 dstnat meta l4proto udp ip dport 53 redirect to 53" >> /etc/firewall.user
-			else
-        			echo "iptables -t nat -A PREROUTING -p udp --dport 53 -j REDIRECT --to-ports 53" >> /etc/firewall.user
-        			echo "iptables -t nat -A PREROUTING -p tcp --dport 53 -j REDIRECT --to-ports 53" >> /etc/firewall.user
-        			echo "[ -n "$(command -v ip6tables)" ] && ip6tables -t nat -A PREROUTING -p udp --dport 53 -j REDIRECT --to-ports 53" >> /etc/firewall.user
-        			echo "[ -n "$(command -v ip6tables)" ] && ip6tables -t nat -A PREROUTING -p tcp --dport 53 -j REDIRECT --to-ports 53" >> /etc/firewall.user
-			fi
-	else
-                sed -i '/--dport 53 -j REDIRECT --to-ports 53/d' /etc/firewall.user
-                sed -i '/53 redirect to 53/d' /etc/firewall.user
-        fi
+
 	[ "x$synflood" = "x1" ] && $UCISET firewall.@defaults[0].syn_flood='1' || $UCIDEL firewall.@defaults[0].syn_flood
 	sed -i "/dhcp_option '6/d" /etc/config/dhcp
 	sed -i "/list dns/d" /etc/config/dhcp
