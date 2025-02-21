@@ -98,9 +98,6 @@ msgstr "清爽模式"
 msgid "Enable Daily Word"
 msgstr "启用每日一言"
 
-msgid "Cancel background glass fence special effects"
-msgstr "取消背景玻璃栅栏特效"
-
 msgid "Care mode (large font)"
 msgstr "关怀模式(大字体)"
 
