@@ -131,15 +131,10 @@ lock_download() {
 prepare_check() {
 
     cat /dev/null > $LogFull
-    fcurl --connect-timeout 5 -o ${ApiFile} "${GithubAPI}"  >/dev/null 2>&1 
     ez_version=`cat /etc/ezopenwrt_version | cut -d _ -f 1 `
     [ -z "$ez_version" ]  && {
          echo "$ez_version 检查错误:非sirpdboy固件,不支持在线升级！"
 	 return 3
-     }
-    [[ -s ${ApiFile} ]] || {
-         echo "检查错误: 网络不通，请检查网络!"
-	 return 4
      }
     SHOWOTA_API
     CLOUD_FW_Name=$(SHOW_INFO 1)
@@ -174,6 +169,8 @@ do_check() {
     local lock="$WRLOCK"
     exec 200>$lock
     if flock -n 200; then
+        [[ ! -d ${TmpPath} ]] && RM $TmpPath
+        mkdir -p ${TmpPath} >/dev/null 2>&1 || true
         prepare_check
         ret=$?
         flock -u 200 >/dev/null 2>&1
@@ -233,6 +230,12 @@ do_cancel() {
 }
 
 function SHOWOTA_API() {
+        [[ ! -s ${ApiFile} ]] &&fcurl --connect-timeout 5 -o ${ApiFile} "${GithubAPI}"  >/dev/null 2>&1 
+	[[ ! -s ${ApiFile} ]] && {
+		ECHO r "未检测到 API 文件!"
+		return 1
+	}
+
 	for i in $(seq 0 $(jq ".[]|length" ${ApiFile} | wc -l));do
 		eval name=$(jq ".[${i}].assets[0].name" ${ApiFile} 2> /dev/null)
 		[[ `echo $name | grep $OS_ARCH | grep $AUTHVER ` ]] || continue
@@ -258,7 +261,7 @@ function SHOW_INFO() {
 	local Info Type Result
 	[[ ! -s ${ApiInfo} ]] && {
 		ECHO r "未检测到 API 文件!"
-		exit 1
+		return 1
 	}
 	Info=$(grep " " ${ApiInfo} | awk 'BEGIN {MAX = 0} {if ($4+0 > MAX+0) {MAX=$4 ;content=$0} } END {print content}')
 	Result="$(echo $Info | awk '{print $"'${1}'"}'  2> /dev/null)"
@@ -308,7 +311,6 @@ GithubAPI="https://api.github.com/repos/${FirmwareAuthor}/releases"
 LogFull="${LogPath}/${LogFile}"
 AUTHVER=`cat /etc/ezopenwrt_version | cut -d - -f 1-2`
 eval OS_ARCH=`cat /etc/os-release |grep OPENWRT_ARCH | cut -d = -f 2`
-ota_init || exit 255
 
 case $action in
     "check")
