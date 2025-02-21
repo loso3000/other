@@ -39,12 +39,12 @@ STLOCK=/var/lock/otaez_status.lock
 
 action=${1}
 shift
+alias fcurl='curl -L --fail --show-error'
 
 md5() {
     md5sum $1 | cut -d' ' -f1
 }
 
-alias fcurl='curl -L --fail --show-error'
 
 function LOGGER() {
 		[[ ! -d ${LogPath} ]] && mkdir -p ${LogPath}
@@ -155,9 +155,9 @@ prepare_check() {
      }
     CLOUD_FW_IP=`head -2 "$MD5File" | awk -F "=" '{print $2}'` 
     [ -z "$CLOUD_FW_IP" ]  && CLOUD_FW_IP="I don't know"
-     if [ "$ez_version" != "$Cloudversion" ];then
+     if [ "$ez_version" != "$cloud_version" ];then
          echo "<h3>机器型号:&nbsp;&nbsp;<font color=\"green\">$OS_ARCH</font><br/>当前版本:&nbsp;&nbsp;<font color=\"green\">$ez_version</font></h3>"
-         echo "<h3>云端版本:&nbsp;&nbsp;<font color=\"green\">$cloud_version</font><br/>固件日期:&nbsp;&nbsp;<font color=\"green\">$(echo $CLOUD_FW_Date | sed 's/\(....\)\(..\)\(..\)\(..\)\(..\)\(..\)/\1-\2-\3 \4:\5:\6/')</font><br/>固件大小:&nbsp;&nbsp;<font color=\"green\">$CLOUD_FW_Size</font><br/>下载次数:&nbsp;&nbsp;<font color=\"green\">$CLOUD_FW_Count</font><br/>固件 IP :&nbsp;&nbsp;<font color='green'>$CLOUD_FW_IP</font><br/>MD5 值:&nbsp;&nbsp;<font color=\"green\">$summd5</font></h3>"
+         echo "<br/><h3>云端版本:&nbsp;&nbsp;<font color=\"green\">$cloud_version</font><br/>固件日期:&nbsp;&nbsp;<font color=\"green\">$(echo $CLOUD_FW_Date | sed 's/\(....\)\(..\)\(..\)\(..\)\(..\)\(..\)/\1-\2-\3 \4:\5:\6/')</font><br/>固件大小:&nbsp;&nbsp;<font color=\"green\">$CLOUD_FW_Size</font><br/>下载次数:&nbsp;&nbsp;<font color=\"green\">$CLOUD_FW_Count</font><br/>固件 IP :&nbsp;&nbsp;<font color='green'>$CLOUD_FW_IP</font><br/>MD5 值:&nbsp;&nbsp;<font color=\"green\">$summd5</font></h3>"
          echo "<br/><br/><h3><font color=\"red\"> About :<a href=\"$Github/\" onclick=\"void(0)\" target=\"_blank\">Sirpdboy Firmware</a></font></h3>"
          return 0
      fi 
