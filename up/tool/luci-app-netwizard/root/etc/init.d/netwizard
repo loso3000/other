@@ -161,8 +161,9 @@ add_netwizard() {
 	$UCISET network.wan.$ifname="${wan_interface}"
 	$UCISET network.wan6.$ifname="${wan_interface}"
 	[ "x$ifname" = "xdevice" ] && {
-	uci -q add_list firewall.@zone[1].network='wan6'
-	uci -q add_list firewall.@zone[1].network='wan' } || uci -q set firewall.@zone[1].network='wan wan6'
+		uci -q add_list firewall.@zone[1].network='wan6'
+		uci -q add_list firewall.@zone[1].network='wan' 
+		} || uci -q set firewall.@zone[1].network='wan wan6'
  	case "${wan_proto}" in
 		dhcp)
 			$UCISET network.wan.proto='dhcp'
@@ -224,6 +225,7 @@ add_netwizard() {
 					fi
 				[ "x$masq" = "x1" ] && $UCISET firewall.@zone[0].masq='1' || $UCIDEL firewall.@zone[0].masq
 
+				}
 			$UCIDEL firewall.@zone[0].network
 			uci add_list firewall.@zone[0].network='lan'
 			[  `uci show network  | grep utun | wc -l ` -gt 1 ] && uci add_list firewall.@zone[0].network='utun'
@@ -234,7 +236,7 @@ add_netwizard() {
 			      	$UCISET network.lan6.delegate='1'
 				$UCISET network.lan6.$ifname="@lan"
 				# $UCISET firewall.@zone[0].network='lan lan6'
-				uci add_list firewall.@zone[0].network='lan6'
+				uci -q add_list firewall.@zone[0].network='lan6'
 			} || {
 				setipv6 0
 			}
