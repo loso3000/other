@@ -1,8 +1,5 @@
 #!/bin/sh
 
-. /etc/os-release
-. /lib/functions/uci-defaults.sh
-
 function ECHO() {
 	local Color
 	if [[ ! $1 ]]
@@ -44,6 +41,7 @@ md5() {
     md5sum $1 | cut -d' ' -f1
 }
 
+alias fcurl='curl -L --fail --show-error'
 
 function LOGGER() {
 		[[ ! -d ${LogPath} ]] && mkdir -p ${LogPath}
@@ -60,12 +58,6 @@ function RM() {
 }
 
 download() {
-        [[ ! -s ${ApiFile} ]] &&fcurl --connect-timeout 5 -o ${ApiFile} "${GithubAPI}"  >/dev/null 2>&1 
-	[[ ! -s ${ApiFile} ]] && {
-		ECHO r "未检测到 API 文件!"
-		return 1
-	}
-
     SHOWOTA_API
     local sum=$1
     exec 300>$STLOCK
@@ -134,17 +126,11 @@ lock_download() {
 }
 
 prepare_check() {
-
     cat /dev/null > $LogFull
-    fcurl --connect-timeout 5 -o ${ApiFile} "${GithubAPI}"  >/dev/null 2>&1 
     ez_version=`cat /etc/ezopenwrt_version | cut -d _ -f 1 `
     [ -z "$ez_version" ]  && {
          echo "$ez_version 检查错误:非sirpdboy固件,不支持在线升级！"
 	 return 3
-     }
-    [[ -s ${ApiFile} ]] || {
-         echo "检查错误: 网络不通，请检查网络!"
-	 return 4
      }
     SHOWOTA_API
     CLOUD_FW_Name=$(SHOW_INFO 1)
@@ -152,25 +138,36 @@ prepare_check() {
     CLOUD_FW_Date=$(SHOW_INFO 3)
     CLOUD_FW_Size=$(SHOW_INFO 4)
     CLOUD_FW_Url=$(SHOW_INFO 5)
-    
+    eval cloud_version=`echo ${CLOUD_FW_Url##*download/} | cut -d / -f 1`
     [ -z  ${cloud_version} ] && {
          echo "检查错误:网络不通，请检查网络连接状态!"
 	 return 3
      }
-    url=`echo $Github/releases/download/$(echo ${CLOUD_FW_Url##*download/} | cut -d / -f 1)/EzOpWrt_dev-efi.md5 `
-    fcurl --connect-timeout 5 -o "$MD5File"  $url  >/dev/null 2>&1 
+    eval md5url=`echo $Github/releases/download/$(echo ${CLOUD_FW_Url##*download/} | cut -d / -f 1)/EzOpWrt_dev-efi.md5`
+    fcurl --connect-timeout 5 -o "$MD5File"  $Github/releases/download/$(echo ${CLOUD_FW_Url##*download/} | cut -d / -f 1)/EzOpWrt_dev-efi.md5  >/dev/null 2>&1 
+    [[ ! -s "$MD5File"  ]] &&{
+        eval md5url=$(jq ".[0].assets[1].browser_download_url" ${ApiFile} 2> /dev/null)
+        fcurl --connect-timeout 5 -o $MD5File  $md5url  >/dev/null 2>&1 
+    }
+    [[ ! -s ${MD5File} ]] && {
+		echo "未检测到 MD5 文件!"
+		return 1
+    }
+
     summd5=`head -1 "$MD5File" | awk -F " " '{print $1}'`
     [ -z  ${summd5} ] && {
          echo "检查错误:MD5校验错误!"
 	 return 5
      }
     CLOUD_FW_IP=`head -2 "$MD5File" | awk -F "=" '{print $2}'` 
-    [ -z "$CLOUD_FW_IP" ]  && CLOUD_FW_IP="I don't know"
+    [ -z "$CLOUD_FW_IP" ]  && CLOUD_FW_IP="192.168.1.1"
      if [ "$ez_version" != "$cloud_version" ];then
          echo "<h3>机器型号:&nbsp;&nbsp;<font color=\"green\">$OS_ARCH</font><br/>当前版本:&nbsp;&nbsp;<font color=\"green\">$ez_version</font></h3>"
          echo "<br/><h3>云端版本:&nbsp;&nbsp;<font color=\"green\">$cloud_version</font><br/>固件日期:&nbsp;&nbsp;<font color=\"green\">$(echo $CLOUD_FW_Date | sed 's/\(....\)\(..\)\(..\)\(..\)\(..\)\(..\)/\1-\2-\3 \4:\5:\6/')</font><br/>固件大小:&nbsp;&nbsp;<font color=\"green\">$CLOUD_FW_Size</font><br/>下载次数:&nbsp;&nbsp;<font color=\"green\">$CLOUD_FW_Count</font><br/>固件 IP :&nbsp;&nbsp;<font color='green'>$CLOUD_FW_IP</font><br/>MD5 值:&nbsp;&nbsp;<font color=\"green\">$summd5</font></h3>"
          echo "<br/><br/><h3><font color=\"red\"> About :<a href=\"$Github/\" onclick=\"void(0)\" target=\"_blank\">Sirpdboy Firmware</a></font></h3>"
          return 0
+     else
+         return 1
      fi 
 }
 
@@ -183,7 +180,7 @@ do_check() {
         prepare_check
         ret=$?
         flock -u 200 >/dev/null 2>&1
-    elif [ -f /tmp/firmware.img.progress ]; then
+    elif [ -f /tmp/firmware.img.progress -o -f /tmp/firmware.img.md5 ]; then
         ret=2
     else
         echo "lock failed!" >&2
@@ -234,11 +231,15 @@ do_cancel() {
             done
         fi
     fi
-    RM $TmpPath
     return 0
 }
 
 function SHOWOTA_API() {
+    [[ ! -s ${ApiFile} ]] &&fcurl --connect-timeout 5 -o ${ApiFile} "${GithubAPI}"  >/dev/null 2>&1 
+    [[ ! -s ${ApiFile} ]] && {
+		ECHO r "未检测到 API 文件!"
+		return 1
+    }
 
 	for i in $(seq 0 $(jq ".[]|length" ${ApiFile} | wc -l));do
 		eval name=$(jq ".[${i}].assets[0].name" ${ApiFile} 2> /dev/null)
@@ -247,7 +248,6 @@ function SHOWOTA_API() {
 		 *img.gz )
 			eval browser_download_url=$(jq ".[${i}].assets[0].browser_download_url" ${ApiFile} 2> /dev/null)
 			eval size=$(jq ".[${i}].assets[0].size" ${ApiFile} 2> /dev/null | awk '{a=$1/1048576} {printf("%.2f\n",a)}')
-			# eval updated_at=$(jq ".[${i}].assets[0].updated_at" ${ApiFile} 2> /dev/null | sed 's/[TZ]/ /g')
 			eval updated_at=$(jq ".[${i}].assets[0].updated_at" ${ApiFile} 2> /dev/null | sed 's/[-:TZ]//g')
 			eval download_count=$(jq ".[${i}].assets[0].download_count" ${ApiFile} 2> /dev/null)
 			[[ ! ${browser_download_url} || ${browser_download_url} == null ]] && continue
@@ -290,8 +290,7 @@ function SHOW_INFO() {
 
 
 ota_init(){
-    [[ ! -d ${TmpPath} ]] || RM $TmpPath
-    mkdir -p ${TmpPath} >/dev/null 2>&1 || true
+    mkdir -p $TmpPath >/dev/null 2>&1 || true
 }
 
 usage() {
@@ -304,10 +303,9 @@ usage() {
 }
 
 
-alias fcurl='curl -L --fail --show-error'
 LogPath=/tmp
 LogFile=ezota.log
-TmpPath=/tmp/ezota
+TmpPath=/var/run/ota
 ApiFile="${TmpPath}/Api_File"
 ApiInfo="${TmpPath}/Api_Info"
 MD5File="${TmpPath}/MD5_File"
