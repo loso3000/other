@@ -39,7 +39,6 @@ STLOCK=/var/lock/otaez_status.lock
 
 action=${1}
 shift
-alias fcurl='curl -L --fail --show-error'
 
 md5() {
     md5sum $1 | cut -d' ' -f1
@@ -61,6 +60,12 @@ function RM() {
 }
 
 download() {
+        [[ ! -s ${ApiFile} ]] &&fcurl --connect-timeout 5 -o ${ApiFile} "${GithubAPI}"  >/dev/null 2>&1 
+	[[ ! -s ${ApiFile} ]] && {
+		ECHO r "未检测到 API 文件!"
+		return 1
+	}
+
     SHOWOTA_API
     local sum=$1
     exec 300>$STLOCK
@@ -131,10 +136,15 @@ lock_download() {
 prepare_check() {
 
     cat /dev/null > $LogFull
+    fcurl --connect-timeout 5 -o ${ApiFile} "${GithubAPI}"  >/dev/null 2>&1 
     ez_version=`cat /etc/ezopenwrt_version | cut -d _ -f 1 `
     [ -z "$ez_version" ]  && {
          echo "$ez_version 检查错误:非sirpdboy固件,不支持在线升级！"
 	 return 3
+     }
+    [[ -s ${ApiFile} ]] || {
+         echo "检查错误: 网络不通，请检查网络!"
+	 return 4
      }
     SHOWOTA_API
     CLOUD_FW_Name=$(SHOW_INFO 1)
@@ -142,12 +152,13 @@ prepare_check() {
     CLOUD_FW_Date=$(SHOW_INFO 3)
     CLOUD_FW_Size=$(SHOW_INFO 4)
     CLOUD_FW_Url=$(SHOW_INFO 5)
-    eval cloud_version=`echo ${CLOUD_FW_Url##*download/} | cut -d / -f 1`
+    
     [ -z  ${cloud_version} ] && {
          echo "检查错误:网络不通，请检查网络连接状态!"
 	 return 3
      }
-    fcurl --connect-timeout 5 -o "$MD5File"  $Github/releases/download/$(echo ${CLOUD_FW_Url##*download/} | cut -d / -f 1)/EzOpWrt_dev-efi.md5  >/dev/null 2>&1 
+    url=`echo $Github/releases/download/$(echo ${CLOUD_FW_Url##*download/} | cut -d / -f 1)/EzOpWrt_dev-efi.md5 `
+    fcurl --connect-timeout 5 -o "$MD5File"  $url  >/dev/null 2>&1 
     summd5=`head -1 "$MD5File" | awk -F " " '{print $1}'`
     [ -z  ${summd5} ] && {
          echo "检查错误:MD5校验错误!"
@@ -228,11 +239,6 @@ do_cancel() {
 }
 
 function SHOWOTA_API() {
-        [[ ! -s ${ApiFile} ]] &&fcurl --connect-timeout 5 -o ${ApiFile} "${GithubAPI}"  >/dev/null 2>&1 
-	[[ ! -s ${ApiFile} ]] && {
-		ECHO r "未检测到 API 文件!"
-		return 1
-	}
 
 	for i in $(seq 0 $(jq ".[]|length" ${ApiFile} | wc -l));do
 		eval name=$(jq ".[${i}].assets[0].name" ${ApiFile} 2> /dev/null)
@@ -241,6 +247,7 @@ function SHOWOTA_API() {
 		 *img.gz )
 			eval browser_download_url=$(jq ".[${i}].assets[0].browser_download_url" ${ApiFile} 2> /dev/null)
 			eval size=$(jq ".[${i}].assets[0].size" ${ApiFile} 2> /dev/null | awk '{a=$1/1048576} {printf("%.2f\n",a)}')
+			# eval updated_at=$(jq ".[${i}].assets[0].updated_at" ${ApiFile} 2> /dev/null | sed 's/[TZ]/ /g')
 			eval updated_at=$(jq ".[${i}].assets[0].updated_at" ${ApiFile} 2> /dev/null | sed 's/[-:TZ]//g')
 			eval download_count=$(jq ".[${i}].assets[0].download_count" ${ApiFile} 2> /dev/null)
 			[[ ! ${browser_download_url} || ${browser_download_url} == null ]] && continue
@@ -297,6 +304,7 @@ usage() {
 }
 
 
+alias fcurl='curl -L --fail --show-error'
 LogPath=/tmp
 LogFile=ezota.log
 TmpPath=/tmp/ezota
