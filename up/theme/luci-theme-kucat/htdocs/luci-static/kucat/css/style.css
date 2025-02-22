@@ -1,3 +1,25 @@
+/*
+ *  luci-theme-kucat
+ *  Copyright (C) 2019-2025 The Sirpdboy Team <herboy2008@gmail.com> 
+ *
+ *  Have a bug? Please create an issue here on GitHub!
+ *      https://github.com/sirpdboy/luci-theme-kucat/issues
+ *
+ *  luci-theme-bootstrap:
+ *      Copyright 2008 Steven Barth <steven@midlink.org>
+ *      Copyright 2008 Jo-Philipp Wich <jow@openwrt.org>
+ *      Copyright 2012 David Menting <david@nut-bolt.nl>
+ *
+ *  luci-theme-material:
+ *      https://github.com/LuttyYang/luci-theme-material/
+ *  luci-theme-argon:
+ *      https://github.com/jerrykuku/luci-theme-argon
+ *  luci-theme-opentopd:
+ *      https://github.com/sirpdboy/luci-theme-opentopd
+ *
+ *  Licensed to the public under the Apache License 2.0
+ */
+
 @import url("fonts.css?v=3");
 
 :root {
@@ -42,7 +64,7 @@
     --inputbg-color: rgba(255, 255, 255, 0.11);
     --inputtext-color: #bbb;
     --inputborder-color: rgba(255, 255, 255, 0.2);
-    --input-bgcolor: rgba(0, 0, 0, 0.2);
+    --input-bgcolor: rgba(50, 50, 50, 0.2);
     --input-boxcolor: rgba(255, 255, 255, 0.15);
     --input-boxhovercolor: rgba(255, 255, 255, 0.22);
     --input-checkcolor: rgba(255, 255, 255, 0.7);
@@ -66,8 +88,7 @@
     display: table-footer-group
 }
 
-.td,
-.th {
+.td, .th {
     line-height: normal;
     display: table-cell;
     padding: 0.5em;
@@ -93,21 +114,14 @@
     background: inherit
 }
 
-.td[width="33%"],
-.td[width="33%"]~.td {
-    padding: 14px
+.td[width="33%"], .td[width="33%"]~.td {
+	padding: 14px;
 }
-
-.table[width="33%"],
-.th[width="33%"],
-.td[width="33%"] {
-    width: 33%
+.table[width="33%"], .th[width="33%"], .td[width="33%"] {
+	width: 33%;
 }
-
-.table[width="100%"],
-.th[width="100%"],
-.td[width="100%"] {
-    width: 100%
+.table[width="100%"], .th[width="100%"], .td[width="100%"] {
+	width: 100%;
 }
 
 .col-1 {
@@ -259,17 +273,11 @@ em {
     -webkit-tap-highlight-color: transparent
 }
 
-button,
-input {
+button, input {
     overflow: visible
 }
 
-label,
-button,
-input,
-select,
-option,
-textarea {
+label, button, input, select, option,.cbi-dropdown, textarea {
     font-family: var(--font-sans);
     font-size: var(--font-z);
     font-weight: 400;
@@ -314,8 +322,7 @@ select {
     background-position: right center
 }
 
-select,
-.cbi-dropdown {
+select, .cbi-dropdown {
     width: inherit
 }
 
@@ -397,7 +404,7 @@ input[type='radio']:checked {
 select:not([multiple="multiple"]):focus,
 input:not(.cbi-button):focus,
 .cbi-dropdown:focus {
-    border: 1px solid rgba(var(--primary-rgbm), 0.7);
+    border: 1px solid rgba(var(--primary-rgbm), 1);
     box-shadow: 0 0 6px rgba(0, 0, 0, 0.22);
     -webkit-box-shadow: 0 0 6px rgba(0, 0, 0, 0.22);
     -moz-box-shadow: 0 0 6px rgba(0, 0, 0, 0.22)
@@ -1209,12 +1216,10 @@ h5 {
 .cbi-modal .cbi-tabmenu {
     margin-left: 0
 }
-
-.cbi-map-descr,
-.cbi-section-descr {
-    font-size: small;
-    line-height: 1.42857143;
-    margin: 0.5rem 1.5rem 1rem 1.5rem
+.cbi-map-descr, .cbi-section-descr {
+	font-size: small;
+	line-height: 1.42857143;
+	margin: 0.5rem 1.5rem 1rem 1.5rem;
 }
 
 .cbi-section-table-descr {
@@ -1252,8 +1257,7 @@ fieldset>fieldset {
     padding: 1rem 1.5rem
 }
 
-.cbi-section>h3:first-child,
-.panel-title {
+.cbi-section > h3:first-child, .panel-title {
     width: 100%;
     display: block;
     padding: 20px;
@@ -1263,12 +1267,7 @@ fieldset>fieldset {
     margin: 0rem;
     letter-spacing: .1rem
 }
-
-.cbi-section>h4:first-child,
-.cbi-section>p:first-child,
-[data-tab-title]>h3:first-child,
-[data-tab-title]>h4:first-child,
-[data-tab-title]>p:first-child {
+.cbi-section > h4:first-child, .cbi-section > p:first-child, [data-tab-title] > h3:first-child, [data-tab-title] > h4:first-child, [data-tab-title] > p:first-child {
     padding-top: 1rem
 }
 
@@ -1277,8 +1276,7 @@ fieldset>fieldset {
     display: table
 }
 
-table,
-.table {
+table, .table {
     border-spacing: 0;
     border-collapse: collapse;
     border: 0px solid #eee;
@@ -1294,18 +1292,8 @@ table,
     background-color: rgba(var(--primary-rgbbody), var(--primary-rgbm-ts))
 }
 
-table>tbody>tr>td,
-table>tbody>tr>th,
-table>tfoot>tr>td,
-table>tfoot>tr>th,
-table>thead>tr>td,
-table>thead>tr>th,
-.table>.tbody>.tr>.td,
-.table>.tbody>.tr>.th,
-.table>.tfoot>.tr>.td,
-.table>.tfoot>.tr>.th,
-.table>.thead>.tr>.td,
-.table>.thead>.tr>.th {
+
+table > tbody > tr > td, table > tbody > tr > th, table > tfoot > tr > td, table > tfoot > tr > th, table > thead > tr > td, table > thead > tr > th, .table > .tbody > .tr > .td, .table > .tbody > .tr > .th, .table > .tfoot > .tr > .td, .table > .tfoot > .tr > .th, .table > .thead > .tr > .td, .table > .thead > .tr > .th {
     font-size: var(--font-x);
     padding: 1.2rem 1.5rem;
     line-height: 1.2rem;
@@ -1332,10 +1320,7 @@ table .tr>.td.cbi-value-field>[id*="ifc-description"] {
     text-align: left;
     font-weight: normal !important
 }
-
-table>tbody>tr:first-child>td,
-table>tfoot>tr:first-child>td,
-table>thead>tr:first-child>td {
+table>tbody>tr:first-child>td, table>tfoot>tr:first-child>td, table>thead>tr:first-child>td {
     border-top: 0px solid #eee
 }
 
@@ -1375,17 +1360,15 @@ table>thead>tr:first-child>td {
     text-align: center !important
 }
 
-.btn,
-button,
-select,
-input,
-.cbi-dropdown {
-    height: 2.8rem;
+/* button style */
+
+.btn, button, select, input, .cbi-dropdown {
+    height: 2.4rem;
     line-height: 1;
     outline: 0;
     padding: 0.5rem 0.75rem;
     margin: 0.25rem 0.1rem;
-    background-color: var(--inputbg-color);
+    background-color: var(--input-bgcolor);
     color: var(--inputtext-color);
     border: 1px solid var(--inputborder-color);
     border-radius: var(--radius2);
@@ -1394,12 +1377,8 @@ input,
     cursor: pointer;
     box-shadow: 0 0.3rem 0.8rem var(--input-boxcolor)
 }
-
-.btn,
-button,
-.cbi-button,
-.item::after {
-    height: 2.8rem;
+.btn, button, .cbi-button, .item::after {
+    height: 2.4rem;
     line-height: 1;
     -webkit-user-select: none;
     -moz-user-select: none;
@@ -1441,15 +1420,9 @@ button,
 .cbi-value input[type="password"] {
     padding: 0 10px 0 10px
 }
-
-.cbi-section-table-row>.cbi-value-field .cbi-dropdown,
-.cbi-section-table-row>.cbi-value-field .cbi-input-select,
-.cbi-section-table-row>.cbi-value-field .cbi-input-text,
-.cbi-section-table-row>.cbi-value-field .cbi-input-password {
+.cbi-section-table-row > .cbi-value-field .cbi-dropdown, .cbi-section-table-row > .cbi-value-field .cbi-input-select, .cbi-section-table-row > .cbi-value-field .cbi-input-text, .cbi-section-table-row > .cbi-value-field .cbi-input-password {
     width: 8rem
 }
-
-.cbi-section-table-row>.cbi-value-field [data-dynlist]>input,
 .cbi-section-table-row>.cbi-value-field input.cbi-input-password {
     width: calc(100% - 1.5rem)
 }
@@ -1531,11 +1504,7 @@ td>table>tbody>tr>td,
     background-size: 25px 30px
 }
 
-.cbi-button-up,
-.cbi-button-down,
-.cbi-value-helpicon,
-.showSide,
-.main>.loading>span {
+.cbi-button-up, .cbi-button-down, .cbi-value-helpicon, .showSide, .main > .loading > span {
     font-family: 'kucat' !important;
     font-style: normal !important;
     font-weight: normal !important;
@@ -1568,51 +1537,30 @@ body:not(.Interfaces) .cbi-rowstyle-2:first-child {
     background-color: rgba(var(--primary-rgbs), 0.3) !important
 }
 
-.btn:hover,
-.btn:focus,
-.btn:active,
-.cbi-button:hover,
-.cbi-button:focus,
-.cbi-button:active,
-.item:hover::after,
-.item:focus::after,
-.item:active::after {
+.btn:hover, .btn:focus, .btn:active, .cbi-button:hover, .cbi-button:focus, .cbi-button:active, .item:hover::after, .item:focus::after, .item:active::after {
     outline: 0;
     text-decoration: none
 }
-
-.btn:focus,
-.cbi-button:focus,
-.item:hover::after,
-.item:focus::after {
+.btn:focus, .cbi-button:focus, .item:hover::after, .item:focus::after {
     color: var(--menu-hover-color);
     box-shadow: 0 0.5rem 1rem var(--input-boxhovercolor);
     -webkit-box-shadow: 0 0.5rem 1rem var(--input-boxhovercolor);
     -moz-box-shadow: 0 0.5rem 1rem var(--input-boxhovercolor)
 }
-
-button:hover,
-.btn:hover,
-.cbi-button:hover,
-.item:hover {
+button:hover, .btn:hover, .cbi-button:hover ,.item:hover{
     transform: scale(1.05) translate(0, -0.15rem);
     box-shadow: 0 0.5rem 1rem var(--input-boxhovercolor);
     -webkit-box-shadow: 0 0.5rem 1rem var(--input-boxhovercolor);
     -moz-box-shadow: 0 0.5rem 1rem var(--input-boxhovercolor)
 }
-
-.btn:active,
-.cbi-button:active,
-button:active,
-.item:active {
+.btn:active, .cbi-button:active, button:active,.item:active {
     transform: scale(1) translate(0, 0.15rem);
     box-shadow: 0 0 6px var(--input-boxhovercolor);
     -webkit-box-shadow: 0 0 6px var(--input-boxhovercolor);
     -moz-box-shadow: 0 0 6px var(--input-boxhovercolor)
 }
 
-.btn:disabled,
-.cbi-button:disabled {
+.btn:disabled, .cbi-button:disabled {
     cursor: not-allowed;
     pointer-events: none;
     opacity: .5;
@@ -2058,7 +2006,6 @@ button:active,
     box-shadow: none;
     font-family: var(--font-sans);
     border: 1px solid var(--inputborder-color);
-    background-color: var(--inputbg-color);
     margin: 0;
     padding: 0.5rem 0.75rem;
     box-sizing: border-box;
@@ -2141,7 +2088,7 @@ button:active,
 .cbi-dropdown>.open {
     padding: 0.2rem;
     font-size: 1.5rem;
-    border-left: 0.1rem solid #ccc;
+    border-left: 0.1rem solid #bbb;
     font-size: 1.5rem;
     margin: 0
 }
@@ -2255,7 +2202,7 @@ button:active,
 
 .cbi-dropdown[open]>ul.dropdown>li {
     border-bottom: thin solid #ccc;
-    padding: .5rem .8rem;
+    padding: .2rem .4rem;
     color: var(--inputtext-color)
 }
 
@@ -2283,7 +2230,7 @@ button:active,
 }
 
 .cbi-dropdown[open]>ul.dropdown>li.focus {
-    border: 1px solid rgba(var(--primary-rgbm), 0.7);
+    border: 1px solid rgba(var(--primary-rgbm), 1);
     outline: none
 }
 
@@ -2309,35 +2256,26 @@ select[multiple="multiple"] {
     height: auto
 }
 
-.cbi-dropdown>ul>li[display],
-.cbi-dropdown[open]>ul.preview,
-.cbi-dropdown[open]>ul.dropdown>li,
-.cbi-dropdown[multiple]>ul>li>label,
-.cbi-dropdown[multiple][open]>ul.dropdown>li,
-.cbi-dropdown[multiple][more]>.more,
-.cbi-dropdown[multiple][empty]>.more {
+.cbi-dropdown>ul>li[display], .cbi-dropdown[open]>ul.preview, .cbi-dropdown[open]>ul.dropdown>li, .cbi-dropdown[multiple]>ul>li>label, .cbi-dropdown[multiple][open]>ul.dropdown>li, .cbi-dropdown[multiple][more]>.more, .cbi-dropdown[multiple][empty]>.more
     display: flex;
     align-items: center;
     flex-grow: 1
 }
 
-.cbi-dropdown>.more,
-.cbi-dropdown>ul>li[placeholder] {
+.cbi-dropdown>.more, .cbi-dropdown>ul>li[placeholder] {
     font-weight: bold;
     display: none;
     color: var(--inputtext-color)
 }
 
-.cbi-dynlist,
-.cbi-dropdown {
+.cbi-dynlist, .cbi-dropdown {
     position: relative;
     display: inline-flex;
     align-items: center;
-    min-height: 2.1875rem
+    min-height: 1.8rem
 }
 
-select,
-input {
+select, input {
     padding: 0 20px 0 10px;
     line-height: 2rem;
     margin: 0.2rem 0.2rem 0.2rem 0
@@ -2690,13 +2628,6 @@ body.modal-overlay-active #modal_overlay {
     text-align: center
 }
 
-.network-status-table {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    flex-wrap: wrap
-}
-
 .network-status-table .ifacebox {
     flex-grow: 1;
     margin: .5em
@@ -2867,9 +2798,9 @@ textarea:focus {
 }
 
 .zonebadge {
-    padding: .2rem .5rem !important;
+    padding: .2rem !important;
     display: inline-block;
-    min-width: 20rem
+    min-width: 18rem
 }
 
 .zonebadge strong {
@@ -2880,7 +2811,6 @@ textarea:focus {
 .zonebadge .ifacebadge {
     margin: .1rem .2rem;
     background-color: #ccc;
-    padding: .2rem 1rem;
     border: 1px solid #bbb
 }
 
@@ -2914,7 +2844,8 @@ textarea:focus {
 .cbi-value-field>ul>li .ifacebadge {
     margin-top: -.5rem;
     margin-left: .4rem;
-    color: var(--body-color) background-color:#eee
+    color: var(--body-color) ;
+    background-color:#eee
 }
 
 .cbi-section-table-row>.cbi-value-field .cbi-input-text,
@@ -3234,7 +3165,7 @@ body.lang_pl.node-main-login .cbi-value-title {
 .node-main-login>.main .container .cbi-value-field input:focus {
     color: var(--body-color);
     outline: 0;
-    background-color: rgba(255, 255, 255, 0.2) !important;
+    background-color: rgba(248, 248, 248, 0.2) !important;
     box-shadow: 0 3px 9px rgba(50, 50, 9, 0), 3px 4px 8px rgba(94, 114, 228, .1)
 }
 
@@ -4190,15 +4121,6 @@ header.pd-primary,
         font-size: var(--font-z)
     }
 
-    label,
-    input,
-    button,
-    select,
-    option,
-    textarea {
-        font-size: var(--font-x)
-    }
-
     header>.fill>.container>.flex1>.brand {
         display: inline-block
     }
@@ -4373,18 +4295,15 @@ header.pd-primary,
         font-size: 0
     }
 
-    .cbi-value-field .cbi-dropdown,
-    .cbi-value-field .cbi-input-select,
-    .cbi-value input[type="text"],
-    .cbi-value input[type="password"] {
-        min-width: 8rem;
+.cbi-value-field .cbi-dropdown, .cbi-value-field .cbi-input-select, .cbi-value input[type="text"], .cbi-value input[type="password"] {
+	min-width: 8rem;
         width: 16rem
     }
 
     .cbi-input-textarea,
     textarea {
         width: 100%;
-        min-width: 16rem
+        min-width: 20rem
     }
 
     .modal {
@@ -4397,6 +4316,10 @@ header.pd-primary,
 @media screen and (max-width:600px) {
     .main-left {
         width: calc(0% + 17rem)
+    }
+    label, button, input, select, option,.cbi-dropdown, textarea {
+
+        font-size: var(--font-x)
     }
 
     .table {
@@ -4434,7 +4357,11 @@ header.pd-primary,
     .cbi-section {
         padding-bottom: 0.5rem
     }
+    select, input, .cbi-dropdown,
+    .btn, button, .cbi-button, .item::after {
+        height:2.4rem;
 
+    }
     .td,
     .th {
         padding: 2px;
