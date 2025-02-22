@@ -169,8 +169,8 @@ do_check() {
     local lock="$WRLOCK"
     exec 200>$lock
     if flock -n 200; then
-        [[ ! -d ${TmpPath} ]] && RM $TmpPath
-        mkdir -p ${TmpPath} >/dev/null 2>&1 || true
+        #[[ ! -d ${TmpPath} ]] && RM $TmpPath
+        #mkdir -p ${TmpPath} >/dev/null 2>&1 || true
         prepare_check
         ret=$?
         flock -u 200 >/dev/null 2>&1
