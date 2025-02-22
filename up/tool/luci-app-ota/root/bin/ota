@@ -169,8 +169,6 @@ do_check() {
     local lock="$WRLOCK"
     exec 200>$lock
     if flock -n 200; then
-        #[[ ! -d ${TmpPath} ]] && RM $TmpPath
-        #mkdir -p ${TmpPath} >/dev/null 2>&1 || true
         prepare_check
         ret=$?
         flock -u 200 >/dev/null 2>&1
@@ -311,6 +309,7 @@ GithubAPI="https://api.github.com/repos/${FirmwareAuthor}/releases"
 LogFull="${LogPath}/${LogFile}"
 AUTHVER=`cat /etc/ezopenwrt_version | cut -d - -f 1-2`
 eval OS_ARCH=`cat /etc/os-release |grep OPENWRT_ARCH | cut -d = -f 2`
+ota_init || exit 255
 
 case $action in
     "check")
