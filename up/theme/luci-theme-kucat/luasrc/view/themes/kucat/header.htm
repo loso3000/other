@@ -308,10 +308,11 @@
 						<div class="flex1">
 							<a class="showSide"  title="<%:Menu%>" ></a>
 							<a class="brand" href="/"><%=striptags(boardinfo.hostname or "OpenWrt")%></a>
+							<% if dayword == '1' then %>
+							<a class="showWord" href="#"><%=showword%></a>
+							<% end -%>
 						</div>
-						<% if dayword == '1' then %>
-						<a class="showWord" href="#"><%=showword%></a>
-						<% end -%>
+
 						<div class="status" id="indicators"></div>
 
                         <span > <a class="pdboy-qlogout" href="<%=url("admin/logout")%>" title="<%:Log_out%>" > </a></span>

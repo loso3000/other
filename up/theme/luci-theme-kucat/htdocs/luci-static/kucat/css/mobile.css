@@ -1,5 +1,5 @@
 @media screen and (max-device-width: 600px) {
-	#maincontent.container {
+	#maincontent .container {
 		margin-top: 30px;
 	}
 
@@ -301,7 +301,7 @@
 }
 
 @media screen and (max-device-width: 375px) {
-	#maincontent.container {
+	#maincontent .container {
 		margin-top: 55px;
 	}
 
@@ -353,7 +353,7 @@
 }
 
 @media screen and (max-device-width: 200px) {
-	#maincontent.container {
+	#maincontent .container {
 		margin-top: 230px;
 	}
 }
