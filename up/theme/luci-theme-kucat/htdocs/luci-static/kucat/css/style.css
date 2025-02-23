@@ -180,6 +180,7 @@
 .col-10 {
     flex: 10 10 300px !important;
     -webkit-flex: 10 10 300px !important;
+    min-width: 5rem;
     white-space: inherit
 }
 
@@ -1310,10 +1311,6 @@ table,
     overflow-y: visible
 }
 
-.table .table-titles th {
-    background-color: rgba(var(--primary-rgbbody), var(--primary-rgbm-ts))
-}
-
 table>tbody>tr>td,
 table>tbody>tr>th,
 table>tfoot>tr>td,
@@ -1447,10 +1444,10 @@ button,
     margin-bottom: 0
 }
 
-    .cbi-input-textarea,
-    textarea {
+.cbi-input-textarea,
+textarea {
         min-width: 20rem;
-    }
+}
 
 .cbi-value-field .cbi-dropdown,
 .cbi-value-field .cbi-input-select,
@@ -1459,6 +1456,7 @@ button,
     min-width: 8rem;
     width: 20rem
 }
+
 
 .cbi-value input[type="text"],
 .cbi-value input[type="password"] {
@@ -1582,7 +1580,7 @@ td>table>tbody>tr>td,
 .cbi-rowstyle-2 .cbi-button-up,
 .cbi-rowstyle-2 .cbi-button-down,
 body:not(.Interfaces) .cbi-rowstyle-2:first-child {
-    background-color: rgba(var(--primary-rgbm), 0.3) !important
+    background-color: rgba(var(--primary-rgbm), 0.2) !important
 }
 
 .cbi-rowstyle-1 .cbi-button-up,
@@ -1969,6 +1967,11 @@ button:active,
     word-wrap: break-word
 }
 
+.table .table-titles th ,
+.table-titles,
+.cbi-section-table-titles {
+  background-color: var(--menu-item-titlebg-color);
+}
 .cbi-section-table .cbi-section-table-titles .cbi-section-table-cell {
     width: auto !important
 }
@@ -2463,16 +2466,13 @@ input {
 .modal>pre,
 .modal>textarea {
     font-size: var(--font-z);
-    font-size-adjust: .35;
     overflow: auto;
     margin-bottom: .5em;
     padding: 8.5px;
     cursor: auto;
     white-space: pre-wrap;
-    color: #eee;
     outline: 0;
-    background-color: #101010;
-    box-shadow: 0 2px 2px 0 rgba(0, 0, 0, .16), 0 0 2px 0 rgba(0, 0, 0, .12)
+
 }
 
 .modal>h4 {
@@ -2656,6 +2656,12 @@ body.modal-overlay-active #modal_overlay {
 
 [data-page="admin-system-system"] .control-group {
     margin-top: 0.5rem
+}
+
+
+[data-page="admin-control-autotimeset-startuptask"] .cbi-input-textarea,
+[data-page="admin-control-autotimeset-scheduledtask"] .cbi-input-textarea {
+        min-width: 30rem;
 }
 
 .cbi-page-actions {
@@ -4368,7 +4374,8 @@ div#add_link_div {
         display: block;
         flex: 1 1 100%;
         border-bottom: thin solid rgba(0, 0, 0, .26);
-        background: #90c0e0
+        background-color: rgba(var(--primary-rgbm), 0.2);
+  
     }
 
     .td[data-title],
