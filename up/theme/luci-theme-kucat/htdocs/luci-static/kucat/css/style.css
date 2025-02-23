@@ -1572,8 +1572,8 @@ td>table>tbody>tr>td,
     align-items: center
 }
 
-.node-admin-network-network #view .td.cbi-section-actions>*,
-.node-admin-network-network #view .td.cbi-section-actions>*>* {
+[data-page="admin-network-network"] #view .td.cbi-section-actions>*,
+[data-page="admin-network-network"] #view .td.cbi-section-actions>*>* {
     display: unset
 }
 
@@ -3651,7 +3651,7 @@ body.lang_pl.node-main-login .cbi-value-title {
     margin: 0 1.5rem 1rem 1.5rem
 }
 
-.node-admin-status-routes #view h3 {
+[data-page="admin-status-routes"] #view h3 {
     font-size: var(--font-d);
     line-height: 1;
     display: block;
@@ -3665,8 +3665,8 @@ body.lang_pl.node-main-login .cbi-value-title {
     font-weight: bold
 }
 
-.node-admin-status-routes #view table,
-.node-admin-status-processes #view table,
+[data-page="admin-status-routes"] #view table,
+[data-page="admin-status-processes"] #view table,
 .node-admin-status-realtime-connections #view table[id*=connections] {
     padding: 10px;
     border: 1px;
@@ -3720,6 +3720,10 @@ body.lang_pl.node-main-login .cbi-value-title {
 
 [data-page="admin-status-overview"] h3 {
     color: unset !important
+}
+
+[data-page="admin-network-dhcp"] h3 {
+    margin: -2rem 1.5rem 0.2rem;
 }
 
 [data-page="admin-status-iptables"] .right {
@@ -3798,15 +3802,14 @@ body.lang_pl.node-main-login .cbi-value-title {
 [data-page="admin-status-processes"] #view td:nth-child(3)>span,
 .cbi-map>.cbi-section .cbi-value:nth-of-type(4) td:nth-child(2),
 .Interfaces>.main #view td:nth-child(3),
-.node-admin-network-network>.main #view td:nth-child(3),
-.Processes>.main #view td:nth-child(3),
-.node-admin-status-processes>.main #view td:nth-child(3),
-.node-admin-status-overview>.main #view td:nth-child(2) {
+[data-page="admin-network-network"]>.main #view td:nth-child(3),
+[data-page="admin-status-processes"]>.main #view td:nth-child(3),
+[data-page="admin-status-overview"] >.main #view td:nth-child(2) {
     white-space: normal !important;
     word-break: unset !important
 }
 
-.node-admin-status-overview #view .cbi-section>div>div {
+[data-page="admin-status-overview"]  #view .cbi-section>div>div {
     justify-items: center !important
 }
 
@@ -3818,66 +3821,63 @@ body.lang_pl.node-main-login .cbi-value-title {
     width: 4rem !important
 }
 
-.node-admin-nlbw-usage>.main .tr.table-totals,
-.node-admin-nlbw-usage>.main .cbi-progressbar {
+[data-page="admin-nlbw-usage"]>.main .tr.table-totals,
+[data-page="admin-nlbw-usage"]>.main .cbi-progressbar {
     background-color: rgba(255, 255, 255, 0.1) !important
 }
 
-.node-admin-services-vssr .ssr-button {
+[data-page="admin-services-vssr"] .ssr-button {
     margin-left: .3rem
 }
 
-.node-admin-services-vssr .block h4 {
+[data-page="admin-services-vssr"] .block h4 {
     color: #ccc !important;
     color: var(--body-color)
 }
 
-.node-admin-services-vssr .status-bar {
+[data-page="admin-services-vssr"] .status-bar {
     color: var(--body-color);
     box-shadow: 0 0 .5rem 0 rgba(0, 0, 0, 0.35);
     background-color: var(--input-bgcolor) !important
 }
 
-.node-admin-services-vssr .block,
-.node-admin-services-shadowsocksr>.block,
-.node-admin-services-ssrpro>.block,
+[data-page="admin-services-vssr"] .block,
+[data-page="admin-services-shadowsocksr"]>.block,
 .block,
-.node-admin-services-bypass>.main .block,
-.node-admin-services-vssr>.main .block,
+[data-page="admin-services-bypass"]>.main .block,
+[data-page="admin-services-vssr"]>.main .block,
 .main .block {
     color: var(--body-color);
     background-color: var(--input-bgcolor) !important;
     box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.32), 0 1px 5px 0 rgba(0, 0, 0, 0.2)
 }
 
-.node-admin-services-shadowsocksr>.block:active,
-.node-admin-services-ssrpro>.block:active,
+[data-page="admin-services-shadowsocksr"]>.block:active,
 .block:active,
-.node-admin-services-bypass>.main .block:active,
+[data-page="admin-services-bypass"]>.main .block:active,
 .main .block:active,
-.node-admin-services-shadowsocksr>.block:hover,
-.node-admin-services-ssrpro>.block:hover,
+[data-page="admin-services-shadowsocksr"]>.block:hover,
 .block:hover,
-.node-admin-services-bypass>.main .block:hover,
+[data-page="admin-services-bypass"]>.main .block:hover,
 .main .block:hover {
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 4px 6px rgba(0, 0, 0, 0.35);
     background-color: rgba(250, 250, 250, 0.7)
 }
 
-.node-admin-services-samba>.main .cbi-tabcontainer:nth-child(3) .cbi-value-title {
+[data-page="admin-services-samba"]>.main .cbi-tabcontainer:nth-child(3) .cbi-value-title {
     margin-bottom: 1rem;
     width: auto
 }
 
-.node-admin-services-samba>.main .cbi-tabcontainer:nth-child(3) .cbi-value-field {
+[data-page="admin-services-samba"]>.main .cbi-tabcontainer:nth-child(3) .cbi-value-field {
     display: list-item
 }
 
-.node-admin-services-samba>.main .cbi-tabcontainer:nth-child(3) .cbi-value-description {
+[data-page="admin-services-samba"]>.main .cbi-tabcontainer:nth-child(3) .cbi-value-description {
     padding-top: 1rem
 }
 
-.node-admin-services-adguardhome>.main .cbi-value-field {
+[data-page="admin-services-adguardhome"]>.main .cbi-value-field {
     width: 27% !important
 }
 
@@ -4014,16 +4014,16 @@ pre.command-output {
     border-right: 1px solid #777 !important
 }
 
-.node-admin-services-adguardhome>.main .cbi-value .cbi-input-textarea {
+[data-page="admin-services-adguardhome"]>.main .cbi-value .cbi-input-textarea {
     width: 100% !important;
     box-shadow: 0 0 1px rgba(0, 0, 0, 0.12) !important
 }
 
-.node-admin-system-packages>.main .cbi-page-actions {
+[data-page="admin-system-packages"]>.main .cbi-page-actions {
     padding: 1rem 0
 }
 
-.node-admin-system-leds .cbi-section em {
+[data-page="admin-system-leds"] .cbi-section em {
     display: block
 }
 
@@ -4050,9 +4050,9 @@ header.pd-primary,
 }
 
 #maincontent>.container>#view,
-.node-admin-status-routes #view,
-.node-admin-network-diagnostics #view,
-.node-admin-status-processes #view {
+[data-page="admin-status-routes"] #view,
+[data-page="admin-network-diagnostics"] #view,
+[data-page="admin-status-processes"] #view {
     min-width: inherit;
     overflow-x: auto;
     overflow-y: hidden
@@ -4063,7 +4063,7 @@ header.pd-primary,
     padding: 0 1rem 3rem 1rem
 }
 
-.node-admin-network-diagnostics #view .table {
+[data-page="admin-network-diagnostics"] #view .table {
     margin-top: 2rem
 }
 label, button, input, select, option,.cbi-dropdown, textarea {
@@ -4218,25 +4218,25 @@ div#add_link_div {
         width: 32% !important
     }
 
-    .node-admin-network-network .cbi-section-table tr,
-    .node-admin-network-network .cbi-section-table td {
+    [data-page="admin-network-network"] .cbi-section-table tr,
+    [data-page="admin-network-network"] .cbi-section-table td {
         font-size: var(--font-x) !important
     }
 
-    .node-admin-network-network .cbi-section-node table td:nth-of-type(1) {
+    [data-page="admin-network-network"] .cbi-section-node table td:nth-of-type(1) {
         padding: 5px !important
     }
 
-    .node-admin-network-network .cbi-section-node table td,
-    .node-admin-network-wireless fieldset .cbi-section-node table td {
+    [data-page="admin-network-network"] .cbi-section-node table td,
+    [data-page="admin-network-wireless"] fieldset .cbi-section-node table td {
         padding: 10px !important
     }
 
-    .node-admin-network-network .cbi-section-table br {
+    [data-page="admin-network-network"] .cbi-section-table br {
         display: initial
     }
 
-    .node-admin-status-overview .main #view td:nth-child(1) {
+    [data-page="admin-status-overview"]  .main #view td:nth-child(1) {
         width: 8rem;
         padding-right: 0.6rem
     }
@@ -4313,7 +4313,7 @@ div#add_link_div {
         display: none !important
     }
 
-    .node-admin-status-overview .main #view td:nth-child(1) {
+    [data-page="admin-status-overview"]  .main #view td:nth-child(1) {
         width: 6rem;
         padding-right: 0.6rem
     }
@@ -4332,7 +4332,7 @@ div#add_link_div {
         overflow-x: hidden
     }
 
-    .node-admin-status-overview .table[width="100%"]>.tr {
+    [data-page="admin-status-overview"]  .table[width="100%"]>.tr {
         flex-wrap: nowrap
     }
 
@@ -4347,7 +4347,7 @@ div#add_link_div {
         border-top: 0
     }
 
-    .node-admin-admin-status.Overview .tr {
+    .node-admin-status.Overview .tr {
         display: flex;
         flex-direction: row;
         flex-wrap: wrap
@@ -4406,15 +4406,15 @@ div#add_link_div {
         padding: 1rem 0.5rem
     }
 
-    .node-admin-services-vssr .status-info {
+    [data-page="admin-services-vssr"] .status-info {
         font-size: var(--font-x)
     }
 
-    .node-admin-services-vssr .icon-con {
+    [data-page="admin-services-vssr"] .icon-con {
         margin-top: 0.4rem
     }
 
-    .node-admin-services-vssr .icon-con img {
+    [data-page="admin-services-vssr"] .icon-con img {
         width: 2.3rem !important;
         height: auto
     }
@@ -4545,12 +4545,12 @@ div#add_link_div {
         display: none
     }
 
-    .node-admin-status-overview>.main #view td:nth-child(1),
+    [data-page="admin-status-overview"] >.main #view td:nth-child(1),
     .cbi-value-title {
         text-align: left
     }
 
-    .node-admin-status-overview .main #view td:nth-child(1) {
+    [data-page="admin-status-overview"]  .main #view td:nth-child(1) {
         width: 5rem;
         padding-right: 0.4rem
     }
@@ -4598,7 +4598,8 @@ div#add_link_div {
 }
 
 @media screen and (max-width:480px) {
-    .node-admin-status-overview .main #view td:nth-child(1) {
+
+    [data-page="admin-status-overview"] .main #view td:nth-child(1) {
         width: 4rem;
         padding-right: 0.2rem
     }
