@@ -4,6 +4,17 @@
  Licensed to the public under the Apache License 2.0.
 -%>
 
+
+<%
+
+	local sys  = require "luci.sys"
+	local fs = require "nixio.fs"
+	if  fs.access('/var/run/ota/MD5_File') then
+	     ip = sys.exec("head -2 "/var/run/ota/MD5_File" | awk -F "=" '{print $2}'")
+	end
+
+-%>
+
 <html>
 	<head>
 		<title><%=luci.sys.hostname()%> - <%= title or translate("Rebooting...") %></title>
@@ -92,6 +103,7 @@
 		<script type="text/javascript">//<![CDATA[
 			var interval = window.setInterval(function() {
 				var img = new Image();
+				
 				var target = ('https:' == document.location.protocol ? 'https://' : 'http://') + <%=addr and "'%s'" % addr or "window.location.host"%>;
 
 				img.onload = function() {

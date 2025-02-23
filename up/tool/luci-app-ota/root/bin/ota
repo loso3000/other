@@ -214,12 +214,12 @@ prepare_check() {
     }
     [[ ! -s ${MD5File} ]] && {
 		echo "未检测到 MD5 文件!"
-		return 1
+		return 4
     }
 
     eval summd5=`head -1 "$MD5File" | awk -F " " '{print $1}'`
     [ -z  ${summd5} ] && {
-         echo "检查错误:MD5校验错误!"
+         echo "检查错误:无MD5校验码!"
 	 return 5
      }
     eval CLOUD_FW_IP=`head -2 "$MD5File" | awk -F "=" '{print $2}'` 
@@ -229,6 +229,9 @@ prepare_check() {
          echo "<br/><h3>云端版本:&nbsp;&nbsp;<font color=\"green\">$cloud_version</font><br/>固件日期:&nbsp;&nbsp;<font color=\"green\">$(echo $CLOUD_FW_Date | sed 's/\(....\)\(..\)\(..\)\(..\)\(..\)\(..\)/\1-\2-\3 \4:\5:\6/')</font><br/>固件大小:&nbsp;&nbsp;<font color=\"green\">$CLOUD_FW_Size</font><br/>下载次数:&nbsp;&nbsp;<font color=\"green\">$CLOUD_FW_Count</font><br/>固件 IP :&nbsp;&nbsp;<font color='green'>$CLOUD_FW_IP</font><br/>MD5 值:&nbsp;&nbsp;<font color=\"green\">$summd5</font></h3>"
          echo "<br/><br/><h3><font color=\"red\"> About :<a href=\"$Github/\" onclick=\"void(0)\" target=\"_blank\">Sirpdboy Firmware</a></font></h3>"
          return 0
+      else
+         echo "最新版本，无须更新!"
+         return 1
      fi 
 }
 
