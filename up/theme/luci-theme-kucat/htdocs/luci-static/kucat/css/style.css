@@ -466,7 +466,7 @@ footer>a {
 small {
     font-size: 90%;
     line-height: 1.42857143;
-    white-space: normal
+    white-space: nowrap
 }
 
 .main {
@@ -1956,6 +1956,7 @@ button:active,
 .tr[data-title]::before,
 .tr.cbi-section-table-titles.named::before {
     font-weight: bold;
+    font-size: var(--font-x);
     display: table-cell;
     align-self: center;
     flex: 1 1 5%;
@@ -1963,7 +1964,7 @@ button:active,
     content: attr(data-title) "\20";
     text-align: center;
     vertical-align: middle;
-    white-space: normal;
+    white-space: nowrap;
     word-wrap: break-word
 }
 
@@ -2365,7 +2366,7 @@ select,
 input {
     padding: 0 20px 0 10px;
     line-height: 2rem;
-    margin: 0.2rem 0.2rem 0.2rem 0
+    margin: 0.2em auto;
 }
 
 .cbi-progressbar {
@@ -2712,7 +2713,6 @@ body.modal-overlay-active #modal_overlay {
 }
 
 .cbi-section em {
-    font-size: var(--font-x);
     font-weight: 600;
     color: var(--body-color);
     text-align: center
@@ -4119,6 +4119,13 @@ div#add_link_div {
     padding: 4px
 }
 
+.tr.cbi-section-table-row[id*="wolplus"],
+.tr.cbi-section-table-row[id*="firewall"] {
+        flex-wrap: wrap;
+	border-bottom: 1px solid rgba(var(--primary-rgbm), 0.1);
+        min-width: unset
+}
+
 @keyframes anim-fade-in {
     100% {
         opacity: 1
@@ -4241,11 +4248,6 @@ div#add_link_div {
 
 
 
-    .tr.cbi-section-table-row[id*="wolplus"],
-    .tr.cbi-section-table-row[id*="firewall"] {
-        flex-wrap: wrap;
-        min-width: unset
-    }
 }
 
 @media screen and (max-width:992px) {
@@ -4370,11 +4372,8 @@ div#add_link_div {
 
     .tr[data-title]::before,
     .tr.cbi-section-table-titles.named::before {
-        font-size: var(--font-z);
-        display: block;
         flex: 1 1 100%;
-        border-bottom: thin solid rgba(0, 0, 0, .26);
-        background-color: rgba(var(--primary-rgbm), 0.2);
+
   
     }
 
@@ -4498,8 +4497,9 @@ div#add_link_div {
 
     .modal .cbi-value-title,
     .cbi-value-title {
-        width: 12rem;
-        padding-right: 0.2rem
+        padding-left: 0.3rem;
+        padding-top: 0.8rem;
+        font-weight: 700;
     }
     .cbi-section {
         padding-bottom: 0.5rem
