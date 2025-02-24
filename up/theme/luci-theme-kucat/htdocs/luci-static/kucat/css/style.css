@@ -2287,8 +2287,9 @@ button:active,
 
 .cbi-dropdown[open]>ul.dropdown>li {
     border-bottom: thin solid #ccc;
-    padding: .2rem .4rem;
-    color: var(--inputtext-color)
+    padding: 0.2em 0.5em;
+    margin: 0.1rem auto;
+    color: var(--inputtext-color);
 }
 
 .cbi-dropdown[open]>ul.dropdown>li>input.create-item-input:first-child:last-child {
@@ -2305,7 +2306,7 @@ button:active,
 }
 
 .cbi-dropdown[open] .zonebadge {
-    width: auto;
+    width: 100%;
     color: #3b3737
 }
 
@@ -2440,9 +2441,15 @@ input {
 .modal .cbi-section {
     overflow: visible
 }
+.modal>.right>.btn.primary {
+    min-width: 8rem;
+    width: 8rem;
+    line-height: 1.5;
+}
 
-.modal .right>.primary {
-    min-width: 8rem
+.modal>.right{
+    display: flex;
+    justify-content: flex-end;
 }
 
 .modal [data-tab-active="true"] {
@@ -2631,7 +2638,7 @@ body.modal-overlay-active #modal_overlay {
 
 .right .cbi-button {
     line-height: 1;
-    margin: 0
+    margin: 0.2rem
 }
 
 .right,
@@ -3472,9 +3479,8 @@ body.lang_pl.node-main-login .cbi-value-title {
 }
 
 [data-page="admin-system-opkg"] div.btn {
-    line-height: 3;
+    line-height: 1.6;
     display: inline;
-    padding: .3rem .6rem
 }
 
 [data-page^="admin-system-admin"]:not(.node-main-login) .cbi-map:not(#cbi-dropbear) {
@@ -4035,19 +4041,16 @@ pre.command-output {
 
 .main>.main-left,
 .cbi-section,
-.cbi-section-error,
-#iptables,
-.Firewall form,
-#cbi-network>.cbi-section-node,
-#cbi-wireless>.cbi-section-node,
-#cbi-wireless>#wifi_assoclist_table,
 [data-tab-title],
 [data-page^="admin-system-admin"]:not(.node-main-login) .cbi-map:not(#cbi-dropbear),
-[data-page="admin-system-opkg"] #maincontent>.container,
+#maincontent>.container>form,
+#maincontent>.container>form>div,
+.tabs,
+.cbi-tabmenu,
 .cbi-tooltip,
-#syslog,
-#view div,
-#view table {
+#view>p,
+#view>div,
+#view>table {
     backdrop-filter: var(--ufilter);
     -webkit-backdrop-filter: var(--ufilter)
 }
