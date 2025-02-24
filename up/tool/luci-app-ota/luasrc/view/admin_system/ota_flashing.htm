@@ -5,15 +5,6 @@
 -%>
 
 
-<%
-
-	local sys  = require "luci.sys"
-	local fs = require "nixio.fs"
-	if  fs.access('/var/run/ota/MD5_File') then
-	     ip = sys.exec("head -2 "/var/run/ota/MD5_File" | awk -F "=" '{print $2}'")
-	end
-
--%>
 
 <html>
 	<head>
