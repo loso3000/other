@@ -231,10 +231,9 @@ prepare_check() {
          echo "<br/><h3>云端版本:&nbsp;&nbsp;<font color=\"green\">$cloud_version</font><br/>固件日期:&nbsp;&nbsp;<font color=\"green\">$(echo $CLOUD_FW_Date | sed 's/\(....\)\(..\)\(..\)\(..\)\(..\)\(..\)/\1-\2-\3 \4:\5:\6/')</font><br/>固件大小:&nbsp;&nbsp;<font color=\"green\">$CLOUD_FW_Size</font><br/>下载次数:&nbsp;&nbsp;<font color=\"green\">$CLOUD_FW_Count</font><br/>固件 IP :&nbsp;&nbsp;<font color='green'>$CLOUD_FW_IP</font><br/>MD5 值:&nbsp;&nbsp;<font color=\"green\">$summd5</font></h3>"
          latest=0
       else
-         echo "最新版本，无须更新!"
          latest=1
      fi 
-    [ "`wc -l ${MD5File} | cut -d' ' -f1`" -eq 0 ] && return 255
+    [ "`wc -l ${verFile} | cut -d' ' -f1`" -eq 0 ] && return 255
     return $latest
 }
 
@@ -259,7 +258,14 @@ do_check() {
         sed -E '1 s/^\[.*\]\((.+)\)\s*$/\1/'  ${verFile} 
         echo "</pre>"
     fi
-    [ "$ret" -eq 0 -o "$ret" -eq 1 -o "$ret" -eq 2 ] && echo "<h3><font color=\"red\"> About :<a href=\"$Github/\" onclick=\"void(0)\" target=\"_blank\">Firmware</a></font></h3>"
+    [ "$ret" -eq 0 -o "$ret" -eq 1 -o "$ret" -eq 2 ] && {
+    
+    echo "<pre>" 
+    echo "<ul><li><br/><a href=\"https://github.com/sirpdboy/openwrt/discussions/\" onclick=\"void(0)\" target=\"_blank\">点击这里</a>查看历史更新日志</li></ul>"
+    echo "</pre>"
+    echo "<h3><font color=\"red\"> About :<a href=\"$Github/\" onclick=\"void(0)\" target=\"_blank\">Sirpdboy Firmware</a></font></h3>"
+    
+    }
     return $ret
 }
 
