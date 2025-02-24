@@ -204,35 +204,38 @@ prepare_check() {
     [ -z  ${cloud_version} ] && eval cloud_version=$(jq ".[0].assets[0].browser_download_url" ${ApiFile} 2> /dev/null)
     [ -z  ${cloud_version} ] && {
          echo "检查错误:网络不通，请检查网络连接状态!"
-	 return 3
+	 return 255
      }
     eval md5url=`echo $Github/releases/download/$(echo ${CLOUD_FW_Url##*download/} | cut -d / -f 1)/EzOpWrt_dev-efi.md5`
     fcurl --connect-timeout 5 -o ${MD5File}   $Github/releases/download/$(echo ${CLOUD_FW_Url##*download/} | cut -d / -f 1)/EzOpWrt_dev-efi.md5  >/dev/null 2>&1 
+    fcurl --connect-timeout 5 -o ${verFile}   $Github/releases/download/$(echo ${CLOUD_FW_Url##*download/} | cut -d / -f 1)/ver.latest  >/dev/null 2>&1 || { rm -f /var/run/ota/ota.latest ; return 255; }
+
     [[ ! -s "$MD5File"  ]] &&{
         eval md5url=$(jq ".[0].assets[1].browser_download_url" ${ApiFile} 2> /dev/null)
         fcurl --connect-timeout 5 -o ${MD5File}  $md5url  >/dev/null 2>&1 
     }
     [[ ! -s ${MD5File} ]] && {
 		echo "未检测到 MD5 文件!"
-		return 4
+		return 255
     }
 
     eval summd5=`head -1 "$MD5File" | awk -F " " '{print $1}'`
     [ -z  ${summd5} ] && {
          echo "检查错误:无MD5校验码!"
-	 return 5
+	 return 255
      }
     eval CLOUD_FW_IP=`head -2 "$MD5File" | awk -F "=" '{print $2}'` 
     [ -z "$CLOUD_FW_IP" ]  && CLOUD_FW_IP="192.168.1.1"
      if [ "$ez_version" != "$cloud_version" ];then
          echo "<h3>机器型号:&nbsp;&nbsp;<font color=\"green\">$OS_ARCH</font><br/>当前版本:&nbsp;&nbsp;<font color=\"green\">$ez_version</font></h3>"
          echo "<br/><h3>云端版本:&nbsp;&nbsp;<font color=\"green\">$cloud_version</font><br/>固件日期:&nbsp;&nbsp;<font color=\"green\">$(echo $CLOUD_FW_Date | sed 's/\(....\)\(..\)\(..\)\(..\)\(..\)\(..\)/\1-\2-\3 \4:\5:\6/')</font><br/>固件大小:&nbsp;&nbsp;<font color=\"green\">$CLOUD_FW_Size</font><br/>下载次数:&nbsp;&nbsp;<font color=\"green\">$CLOUD_FW_Count</font><br/>固件 IP :&nbsp;&nbsp;<font color='green'>$CLOUD_FW_IP</font><br/>MD5 值:&nbsp;&nbsp;<font color=\"green\">$summd5</font></h3>"
-         echo "<br/><br/><h3><font color=\"red\"> About :<a href=\"$Github/\" onclick=\"void(0)\" target=\"_blank\">Sirpdboy Firmware</a></font></h3>"
-         return 0
+         latest=0
       else
          echo "最新版本，无须更新!"
-         return 1
+         latest=1
      fi 
+    [ "`wc -l ${MD5File} | cut -d' ' -f1`" -eq 0 ] && return 255
+    return $latest
 }
 
 # 0: found newer fw, 1: already newest fw, 2: found running task, *: err
@@ -250,6 +253,13 @@ do_check() {
         echo "lock failed!" >&2
         return 255
     fi
+    if [ "$ret" -eq 0 -o "$ret" -eq 2 ]; then
+        # output
+        echo "<pre>"
+        sed -E '1 s/^\[.*\]\((.+)\)\s*$/\1/'  ${verFile} 
+        echo "</pre>"
+    fi
+    [ "$ret" -eq 0 -o "$ret" -eq 1 -o "$ret" -eq 2 ] && echo "<h3><font color=\"red\"> About :<a href=\"$Github/\" onclick=\"void(0)\" target=\"_blank\">Firmware</a></font></h3>"
     return $ret
 }
 
@@ -310,10 +320,11 @@ usage() {
 
 LogPath=/tmp
 LogFile=ezota.log
-TmpPath=/var/run/ota
+TmpPath=/var/run/ezota
 ApiFile="${TmpPath}/Api_File"
 ApiInfo="${TmpPath}/Api_Info"
 MD5File="${TmpPath}/MD5_File"
+verFile="${TmpPath}/ver_File"
 FirmwareAuthor="sirpdboy/openwrt"
 Github="https://github.com/${FirmwareAuthor}"
 GithubAPI="https://api.github.com/repos/${FirmwareAuthor}/releases"
