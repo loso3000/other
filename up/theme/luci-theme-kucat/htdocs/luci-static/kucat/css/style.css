@@ -4044,11 +4044,8 @@ pre.command-output {
 [data-tab-title],
 [data-page^="admin-system-admin"]:not(.node-main-login) .cbi-map:not(#cbi-dropbear),
 [data-page="admin-system-opkg"] #maincontent>.container,
-.tabs,
-.cbi-tabmenu,
 .cbi-tooltip,
 #syslog,
-header.pd-primary,
 #view div,
 #view table {
     backdrop-filter: var(--ufilter);
