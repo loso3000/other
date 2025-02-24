@@ -1677,7 +1677,7 @@ button:active,
 .cbi-button[value="Scan"],
 .cbi-button[value^="Back"],
 .cbi-button-neutral[onclick="handleConfig(event)"] {
-    background-color: #39afd1
+    background-color: #2e869f
 }
 
 .cbi-page-actions .cbi-button-apply,
@@ -1692,7 +1692,7 @@ button:active,
 .cbi-button[onclick="addKey(event)"] {
     font-weight: normal;
     border-color: rgba(var(--primary-rgbm), 1);
-    color: var(--menu-color);
+    color: var(--menu-hover-color);
     border: thin solid rgba(var(--primary-rgbm), 1);
     background-color: rgba(var(--primary-rgbm), 0.9)
 }
@@ -1707,7 +1707,7 @@ button:active,
 .cbi-button[onclick="reboot(this)"],
 .cbi-button-neutral[value="Restart"] {
     font-weight: normal;
-    background-color: #d9534f
+    background-color: #ab3632
 }
 
 .btn[value="Dismiss"],
