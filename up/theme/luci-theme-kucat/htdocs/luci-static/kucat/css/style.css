@@ -2501,20 +2501,17 @@ input {
     list-style-type: square
 }
 
-.modal p {
-    padding-left: .25rem;
-    word-break: break-word
-}
-
 .notice {
     background-color: #b98413 !important;
     background-color: rgba(var(--primary-rgbm), 1) !important;
     color: #eee
 }
 
-#modal_overlay .modal>p,
+#modal_overlay,
 .modal>p {
-    font-size: var(--font-x)
+    font-size: var(--font-x);
+    padding-left: .25rem;
+    word-break: break-word
 }
 
 .modal .label {
@@ -2555,12 +2552,8 @@ input {
     font-weight: 600
 }
 
-[data-page="admin-system-flash"] .modal .btn {
-    white-space: normal !important
-}
-
 [data-page="admin-system-flash"] .modal label.btn {
-    background-color: rgba(var(--primary-rgbbody), 1)
+    background-color: rgba(255,255,255, 0)
 }
 
 .cbi-dropdown.cbi-button-apply,
@@ -2572,15 +2565,16 @@ input {
 .cbi-button:first-child {
     margin-left: 0 !important
 }
-
 [data-page="admin-system-flash"] .modal>p>.btn {
-    white-space: normal !important;
-    font-size: var(--font-x);
-    margin: 0;
-    line-height: 1;
-    color: var(--inputtext-color);
-    padding: 0.3rem 1rem;
-    text-align: left
+  white-space: normal !important;
+  font-size: var(--font-x);
+  margin: 0;
+  line-height: 1;
+  color: var(--inputtext-color);
+  padding: 0.3rem 1rem;
+  text-align: left;
+  border: none;
+  box-shadow: none;
 }
 
 [data-page="admin-system-flash"] .modal>.right,
@@ -3221,8 +3215,6 @@ body.lang_pl.node-main-login .cbi-value-title {
     margin: 0;
     padding: 1rem 1.25rem 3rem 1.25rem;
     border-radius: var(--radius0);
-    -webkit-backdrop-filter: blur(6px) !important;
-    backdrop-filter: blur(6px) !important;
     background-color: rgba(var(--primary-rgbbody), 0.5) !important;
     border: none;
     -webkit-box-shadow: 3px 7px 12px rgba(0, 0, 0, 0.22);
@@ -3236,6 +3228,11 @@ body.lang_pl.node-main-login .cbi-value-title {
     font-weight: bolder;
     overflow-x: hidden;
     overflow-y: hidden
+}
+
+.node-main-login>.main>.main-right #maincontent>.container>form {
+    -webkit-backdrop-filter: blur(6px) !important;
+    backdrop-filter: blur(6px) !important;
 }
 
 .node-main-login>.main .container:active {
@@ -4472,10 +4469,6 @@ div#add_link_div {
 @media screen and (max-width:600px) {
     .main-left {
         width: calc(0% + 15rem)
-    }
-
-    .table {
-        display: block
     }
 
     .cbi-section>div>table.table {
