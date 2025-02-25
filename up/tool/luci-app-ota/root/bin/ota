@@ -208,7 +208,8 @@ prepare_check() {
      }
     eval md5url=`echo $Github/releases/download/$(echo ${CLOUD_FW_Url##*download/} | cut -d / -f 1)/EzOpWrt_dev-efi.md5`
     fcurl --connect-timeout 5 -o ${MD5File}   $Github/releases/download/$(echo ${CLOUD_FW_Url##*download/} | cut -d / -f 1)/EzOpWrt_dev-efi.md5  >/dev/null 2>&1 
-    fcurl --connect-timeout 5 -o ${verFile}   $Github/releases/download/$(echo ${CLOUD_FW_Url##*download/} | cut -d / -f 1)/ver.latest  >/dev/null 2>&1 || { rm -f /var/run/ota/ota.latest ; return 255; }
+    fcurl --connect-timeout 5 -o ${verFile}   $Github/releases/download/$(echo ${CLOUD_FW_Url##*download/} | cut -d / -f 1)/ver.latest  >/dev/null 2>&1 || { rm -f ${verFile} ; return 255; }
+    fcurl --connect-timeout 5 -o ${footFile}   $Github/releases/download/$(echo ${CLOUD_FW_Url##*download/} | cut -d / -f 1)/ota.footer  >/dev/null 2>&1 || { rm -f ${footFile} ; return 255; }
 
     [[ ! -s "$MD5File"  ]] &&{
         eval md5url=$(jq ".[0].assets[1].browser_download_url" ${ApiFile} 2> /dev/null)
@@ -259,13 +260,15 @@ do_check() {
         echo "</pre>"
     fi
     [ "$ret" -eq 0 -o "$ret" -eq 1 -o "$ret" -eq 2 ] && {
-    
-    echo "<pre>" 
-    echo "<ul><li><br/><a href=\"https://github.com/sirpdboy/openwrt/discussions/\" onclick=\"void(0)\" target=\"_blank\">点击这里</a>查看历史更新日志</li></ul>"
-    echo "</pre>"
-    echo "<h3><font color=\"red\"> About :<a href=\"$Github/\" onclick=\"void(0)\" target=\"_blank\">Sirpdboy Firmware</a></font></h3>"
-    
+         [[ -s ${footFile} ]] &&  {
+            # output
+        echo "<pre>"
+        sed -E '1 s/^\[.*\]\((.+)\)\s*$/\1/'  ${footFile} 
+        echo "</pre>"
+        } 
+        echo "<h3><font color=\"red\"> About :<a href=\"$Github/\" onclick=\"void(0)\" target=\"_blank\">Sirpdboy Firmware</a></font></h3>"
     }
+
     return $ret
 }
 
@@ -330,7 +333,8 @@ TmpPath=/var/run/ezota
 ApiFile="${TmpPath}/Api_File"
 ApiInfo="${TmpPath}/Api_Info"
 MD5File="${TmpPath}/MD5_File"
-verFile="${TmpPath}/ver_File"
+verFile="${TmpPath}/ver.latest"
+footFile="${TmpPath}/ota.footer"
 FirmwareAuthor="sirpdboy/openwrt"
 Github="https://github.com/${FirmwareAuthor}"
 GithubAPI="https://api.github.com/repos/${FirmwareAuthor}/releases"
