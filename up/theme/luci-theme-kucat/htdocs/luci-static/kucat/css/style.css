@@ -53,12 +53,12 @@
 
 [data-theme="dark"] {
     --primarytextcolor: #bbb;
-    --primary-title-color: #bbb;
-    --menu-color: #ddd;
-    --menu-hover-color: #e9eff3;
+    --primary-title-color: #ddd;
+    --menu-color: #d3d3d3;
+    --menu-hover-color: #eee;
     --menu-item-titlebg-color: rgba(var(--primary-rgbm), 0.4);
     --menu-barbgcolor: rgba(var(--primary-rgbm), var(--primary-rgbm-ts));
-    --body-text-color: #bbb;
+    --body-text-color: #ccc;
     --body-color: #bbb;
     --body-hover-bgcolor: rgba(255, 255, 255, 0.05);
     --inputbg-color: rgba(255, 255, 255, 0.11);
@@ -1340,15 +1340,11 @@ table>thead>tr>th,
 table .tr>.td.cbi-value-field,
 table .tr>.th.cbi-section-table-cell {
     font-size: var(--font-x);
-    padding: 0.3rem 0.8rem;
+    padding: 0.2rem 0.4rem;
     letter-spacing: 1px;
     display: table-cell !important;
     color: var(--body-color);
     white-space: nowrap
-}
-
-.cbi-section-table-row .td {
-    text-align: center
 }
 
 table .tr>.td.cbi-value-field>[id*="ifc-description"] {
@@ -1379,7 +1375,7 @@ table>thead>tr:first-child>td {
 .tr.table-titles>.th,
 .tr.cbi-section-table-titles>.th {
     border-top: 0 !important;
-    line-height: 1
+    line-height: 1.2
 }
 
 [data-page="admin-network-diagnostics"] .tr>.td {
@@ -1473,7 +1469,8 @@ textarea {
 .cbi-section-table-row>.cbi-value-field .cbi-input-select,
 .cbi-section-table-row>.cbi-value-field .cbi-input-text,
 .cbi-section-table-row>.cbi-value-field .cbi-input-password {
-    width: 8rem
+    min-width: 7rem;
+    max-width: 12rem
 }
 .cbi-section-table-row>.cbi-value-field [data-dynlist]>input,
 .cbi-section-table-row>.cbi-value-field input.cbi-input-password {
@@ -1853,13 +1850,15 @@ button:active,
 
 .cbi-value-field,
 .cbi-value-description {
-    line-height: 1.25;
     display: table-cell
+}
+[data-page="admin-network-network"] .cbi-value>.cbi-value-field{
+    line-height: 1.25;
 }
 
 .cbi-value-description {
     font-size: small;
-    padding: 0 0 1rem 0;
+    padding: 0 0 0.6rem 0;
     opacity: .7
 }
 
@@ -1876,7 +1875,7 @@ button:active,
     display: inline-block;
     width: 100%;
     padding: 0 0.8rem;
-    line-height: 2.8rem
+    line-height: 2rem
 }
 
 .cbi-value .cbi-filebrowser {
@@ -2152,12 +2151,6 @@ button:active,
 .cbi-dropdown>ul.preview {
     display: none
 }
-
-.cbi-dropdown>.open {
-    flex-basis: 0px;
-    font-size: 1.5rem
-}
-
 .cbi-dropdown>.open,
 .cbi-dropdown>.more {
     background-color: rgba(255, 255, 255, 0) !important;
@@ -2166,15 +2159,17 @@ button:active,
     flex-direction: column;
     justify-content: center;
     text-align: center;
-    margin-left: .5rem;
+    margin-left: .2rem;
     outline: 0
 }
 
 .cbi-dropdown>.open {
     padding: 0.2rem;
-    font-size: 1.5rem;
-    border-left: 0.1rem solid #ccc;
-    font-size: 1.5rem;
+
+    flex-basis: 0px;
+
+    border-left: 0.1rem solid var(--input-boxhovercolor);
+    font-size: 1.3rem;
     margin: 0
 }
 
@@ -2191,7 +2186,7 @@ button:active,
 }
 
 .cbi-dropdown>ul>li[display]:not([display="0"]) {
-    border-left: thin solid #ccc
+    border-left: thin solid var(--input-boxhovercolor);
 }
 
 .cbi-dropdown[empty]>ul {
@@ -2218,7 +2213,6 @@ button:active,
 .cbi-dropdown>ul>li input[type="text"] {
     height: 30px;
     border: 1px solid var(--inputborder-color);
-    background: rgba(var(--primary-rgbbody), 1);
     color: var(--inputtext-color)
 }
 
@@ -2275,18 +2269,8 @@ button:active,
     text-overflow: ellipsis
 }
 
-.cbi-dropdown[empty]>ul>li,
-.cbi-dropdown[optional][open]>ul.dropdown>li[placeholder],
-.cbi-dropdown[multiple][open]>ul.dropdown>li>form {
-    display: block
-}
-
-.cbi-dropdown[open]>ul.dropdown li {
-    color: var(--inputtext-color)
-}
-
 .cbi-dropdown[open]>ul.dropdown>li {
-    border-bottom: thin solid #ccc;
+    border-bottom: thin solid var(--input-boxhovercolor);
     padding: 0.2em 0.5em;
     margin: 0.1rem auto;
     color: var(--inputtext-color);
@@ -2296,10 +2280,6 @@ button:active,
     width: 100%
 }
 
-.cbi-dropdown[disabled] {
-    pointer-events: none;
-    opacity: .6
-}
 
 .cbi-dropdown .zonebadge {
     width: 100%
@@ -2327,10 +2307,6 @@ button:active,
 
 .cbi-dropdown[open]>ul.dropdown>li[unselectable] {
     opacity: .7
-}
-
-.cbi-dropdown[open]>ul.dropdown>li>input.create-item-input:first-child:last-child {
-    width: 100%
 }
 
 .cbi-dropdown[disabled] {
@@ -2474,7 +2450,7 @@ input {
 }
 
 .modal>.button-row .btn {
-    line-height: 1.8
+    line-height: 1.3
 }
 
 .modal>pre,
@@ -2905,9 +2881,10 @@ textarea:focus {
 }
 
 .zonebadge .ifacebadge {
-    margin: .1rem .2rem;
-    background-color: #ccc;
-    border: 1px solid #bbb
+  margin: .1rem .2rem;
+  background-color: #bbb;
+  color: var(--menu-color);
+  border: 1px solid var(--input-boxhovercolor);
 }
 
 .zonebadge>input[type="text"] {
@@ -2944,12 +2921,6 @@ textarea:focus {
     background: rgba(var(--primary-rgbbody), 1);
 }
 
-.cbi-section-table-row>.cbi-value-field .cbi-input-text,
-.cbi-section-table-row>.cbi-value-field .cbi-input-password,
-.cbi-section-table-row>.cbi-value-field .cbi-dropdown {
-    min-width: 7rem
-}
-
 .cbi-section-create>* {
     margin: .5rem
 }
@@ -2973,7 +2944,7 @@ td.cbi-value-field var,
 
 .cbi-optionals {
     padding: 1rem 1rem 0 1rem;
-    border-top: thin solid #ccc
+    border-top: thin solid  var(--input-boxhovercolor);
 }
 
 .cbi-dropdown-container {
@@ -3315,7 +3286,7 @@ body.lang_pl.node-main-login .cbi-value-title {
     -ms-flex-pack: center;
     justify-content: center;
     text-indent: 0rem;
-    background-color: rgba(255, 255, 255, 0.3);
+    background-color: var(--inputbg-color);
     width: 14rem;
     min-width: 100% !important;
     margin: 0
@@ -3803,8 +3774,7 @@ body.lang_pl.node-main-login .cbi-value-title {
     background-color: rgba(255, 255, 255, 0.1) !important
 }
 
-[data-page="admin-status-usage-details"] .cbi-value-title,
-.main #view .cbi-value-title {
+[data-page="admin-status-usage-details"] .cbi-value-title {
     width: 16rem
 }
 
@@ -3832,24 +3802,26 @@ body.lang_pl.node-main-login .cbi-value-title {
 
 [data-page="admin-nlbw-usage"]>.main .tr.table-totals,
 [data-page="admin-nlbw-usage"]>.main .cbi-progressbar {
-    background-color: rgba(255, 255, 255, 0.1) !important
+    background-color: var(--inputbg-color) !important
 }
 
 [data-page="admin-services-vssr"] .ssr-button {
     margin-left: .3rem
 }
 
+.pure-g .block h4,
 [data-page="admin-services-vssr"] .block h4 {
-    color: #ccc !important;
-    color: var(--body-color)
+    color: var(--body-color);
+    background-image:none;
 }
 
 [data-page="admin-services-vssr"] .status-bar {
     color: var(--body-color);
-    box-shadow: 0 0 .5rem 0 rgba(0, 0, 0, 0.35);
-    background-color: var(--input-bgcolor) !important
+    box-shadow: 0 0 .5rem 0 var(--inputbg-color);
+    background-color: var(--inputbg-color) !important;
 }
 
+.pure-g .block,
 [data-page="admin-services-vssr"] .block,
 [data-page="admin-services-shadowsocksr"]>.block,
 .block,
@@ -3857,8 +3829,8 @@ body.lang_pl.node-main-login .cbi-value-title {
 [data-page="admin-services-vssr"]>.main .block,
 .main .block {
     color: var(--body-color);
-    background-color: var(--input-bgcolor) !important;
-    box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.32), 0 1px 5px 0 rgba(0, 0, 0, 0.2)
+    background-color: var(--inputbg-color) !important;
+    box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.32), 0 1px 5px 0 var(--inputbg-color)
 }
 
 [data-page="admin-services-shadowsocksr"]>.block:active,
@@ -3869,8 +3841,8 @@ body.lang_pl.node-main-login .cbi-value-title {
 .block:hover,
 [data-page="admin-services-bypass"]>.main .block:hover,
 .main .block:hover {
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 4px 6px rgba(0, 0, 0, 0.35);
-    background-color: rgba(250, 250, 250, 0.7)
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 4px 6px var(--input-boxhovercolor);
+    background-color: var(--input-boxhovercolor) !important;
 }
 
 [data-page="admin-services-samba"]>.main .cbi-tabcontainer:nth-child(3) .cbi-value-title {
@@ -4498,8 +4470,10 @@ div#add_link_div {
     .cbi-value-title {
         padding-left: 0.3rem;
         padding-top: 0.8rem;
+        width: 100%;
         font-weight: 700;
     }
+
     .cbi-section {
         padding-bottom: 0.5rem
     }
@@ -4588,11 +4562,8 @@ div#add_link_div {
     }
 
     .cbi-value {
-        display: flex;
+        display: inline-table
         padding: 0 0.5rem;
-        line-height: 1;
-        flex-direction: column;
-        flex-wrap: nowrap
     }
 }
 
@@ -4603,12 +4574,6 @@ div#add_link_div {
         padding-right: 0.2rem
     }
 
-    .modal .cbi-value-title,
-    .cbi-value-title {
-        width: 18rem;
-        white-space: nowarp;
-        word-wrap: break-word
-    }
 
     .cbi-value-description {
         width: 100%;
