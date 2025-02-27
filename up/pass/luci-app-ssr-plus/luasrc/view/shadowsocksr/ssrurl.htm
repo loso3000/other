@@ -236,8 +236,8 @@ function import_ssr_url(btn, urlname, sid) {
 			document.getElementsByName('cbid.shadowsocksr.' + sid + '.fingerprint')[0].value = params.get("fp") || "";
 			document.getElementsByName('cbid.shadowsocksr.' + sid + '.tls_host')[0].value = params.get("sni");
 			if (params.get("allowInsecure") === "1") {
-				document.getElementsByName('cbid.shadowsocksr.' + sid + '.insecure')[0].checked = true; // …Ë÷√ insecure Œ™ true
-				document.getElementsByName('cbid.shadowsocksr.' + sid + '.insecure')[0].dispatchEvent(event); // ¥•∑¢ ¬º˛
+				document.getElementsByName('cbid.shadowsocksr.' + sid + '.insecure')[0].checked = true; // ËÆæÁΩÆ insecure ‰∏∫ true
+				document.getElementsByName('cbid.shadowsocksr.' + sid + '.insecure')[0].dispatchEvent(event); // Ëß¶Âèë‰∫ã‰ª∂
 			}
 			document.getElementsByName('cbid.shadowsocksr.' + sid + '.transport')[0].value = 
 				params.get("type") == "http" ? "h2" : 
@@ -270,8 +270,8 @@ function import_ssr_url(btn, urlname, sid) {
 				document.getElementsByName('cbid.shadowsocksr.' + sid + '.xhttp_mode')[0].value = params.get("mode") || "auto";
 				document.getElementsByName('cbid.shadowsocksr.' + sid + '.xhttp_path')[0].value = params.get("path") ? decodeURIComponent(params.get("path")) : "/";
 				if (params.get("extra") && params.get("extra").trim() !== "") {
-					document.getElementsByName('cbid.shadowsocksr.' + sid + '.enable_xhttp_extra')[0].checked = true; // …Ë÷√ enable_xhttp_extra Œ™ true
-					document.getElementsByName('cbid.shadowsocksr.' + sid + '.enable_xhttp_extra')[0].dispatchEvent(event); // ¥•∑¢ ¬º˛
+					document.getElementsByName('cbid.shadowsocksr.' + sid + '.enable_xhttp_extra')[0].checked = true; // ËÆæÁΩÆ enable_xhttp_extra ‰∏∫ true
+					document.getElementsByName('cbid.shadowsocksr.' + sid + '.enable_xhttp_extra')[0].dispatchEvent(event); // Ëß¶Âèë‰∫ã‰ª∂
 					document.getElementsByName('cbid.shadowsocksr.' + sid + '.xhttp_extra')[0].value = params.get("extra") || "";
 				}
 				break;
@@ -355,8 +355,8 @@ function import_ssr_url(btn, urlname, sid) {
 				document.getElementsByName('cbid.shadowsocksr.' + sid + '.xhttp_host')[0].value = ssm.host;
 				document.getElementsByName('cbid.shadowsocksr.' + sid + '.xhttp_path')[0].value = ssm.path;
 				if (params.get("extra") && params.get("extra").trim() !== "") {
-					document.getElementsByName('cbid.shadowsocksr.' + sid + '.enable_xhttp_extra')[0].checked = true; // …Ë÷√ enable_xhttp_extra Œ™ true
-					document.getElementsByName('cbid.shadowsocksr.' + sid + '.enable_xhttp_extra')[0].dispatchEvent(event); // ¥•∑¢ ¬º˛
+					document.getElementsByName('cbid.shadowsocksr.' + sid + '.enable_xhttp_extra')[0].checked = true; // ËÆæÁΩÆ enable_xhttp_extra ‰∏∫ true
+					document.getElementsByName('cbid.shadowsocksr.' + sid + '.enable_xhttp_extra')[0].dispatchEvent(event); // Ëß¶Âèë‰∫ã‰ª∂
 					document.getElementsByName('cbid.shadowsocksr.' + sid + '.xhttp_extra')[0].value = ssm.extra;
 				}
 			}
@@ -381,8 +381,8 @@ function import_ssr_url(btn, urlname, sid) {
 				document.getElementsByName('cbid.shadowsocksr.' + sid + '.tls_host')[0].value = ssm.sni || ssm.host;
 			}
 			if (ssm.mux !== undefined) {
-			document.getElementsByName('cbid.shadowsocksr.' + sid + '.mux')[0].checked = true;
-			document.getElementsByName('cbid.shadowsocksr.' + sid + '.mux')[0].dispatchEvent(event);
+				document.getElementsByName('cbid.shadowsocksr.' + sid + '.mux')[0].checked = true;
+				document.getElementsByName('cbid.shadowsocksr.' + sid + '.mux')[0].dispatchEvent(event);
 			}
 			if (ssm.xmux !== undefined) {
 				document.getElementsByName('cbid.shadowsocksr.' + sid + '.xmux')[0].checked = true;
@@ -434,7 +434,6 @@ function import_ssr_url(btn, urlname, sid) {
 				setElementValue('cbid.shadowsocksr.' + sid + '.' + params.get("security"), true);
 				dispatchEventIfExists('cbid.shadowsocksr.' + sid + '.' + params.get("security"), event);
 
-
 				if (params.get("security") === "reality") {
 					setElementValue('cbid.shadowsocksr.' + sid + '.reality_publickey', params.get("pbk") ? decodeURIComponent(params.get("pbk")) : "");
 					setElementValue('cbid.shadowsocksr.' + sid + '.reality_shortid', params.get("sid") || "");
@@ -473,8 +472,8 @@ function import_ssr_url(btn, urlname, sid) {
 				setElementValue('cbid.shadowsocksr.' + sid + '.xhttp_mode', params.get("mode") || "auto");
 				setElementValue('cbid.shadowsocksr.' + sid + '.xhttp_path', params.get("path") ? decodeURIComponent(params.get("path")) : "/");
 				if (params.get("extra") && params.get("extra").trim() !== "") {
-					setElementValue('cbid.shadowsocksr.' + sid + '.enable_xhttp_extra', true); // …Ë÷√ enable_xhttp_extra Œ™ true
-					dispatchEventIfExists('cbid.shadowsocksr.' + sid + '.enable_xhttp_extra', event); // ¥•∑¢ ¬º˛
+					setElementValue('cbid.shadowsocksr.' + sid + '.enable_xhttp_extra', true); // ËÆæÁΩÆ enable_xhttp_extra ‰∏∫ true
+					dispatchEventIfExists('cbid.shadowsocksr.' + sid + '.enable_xhttp_extra', event); // Ëß¶Âèë‰∫ã‰ª∂
 					setElementValue('cbid.shadowsocksr.' + sid + '.xhttp_extra', params.get("extra") || "");
 				}
 				break;

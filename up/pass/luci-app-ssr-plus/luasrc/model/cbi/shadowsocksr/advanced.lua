@@ -158,7 +158,6 @@ o.rmempty = false
 
 -- Server Selection
 o = s:option(ListValue, "server", translate("Server"))
-o:value("nil", translate("Disable"))
 o:value("same", translate("Same as Global Server"))
 for _, key in pairs(key_table) do
     o:value(key, server_table[key])
@@ -170,15 +169,15 @@ o.rmempty = false
 o.cfgvalue = function(self, section)
     local enabled = m:get(section, "enabled")
     if enabled == "0" then
-        return m:get(section, "old_server") or "same"
+        return m:get(section, "old_server")
     end
-    return Value.cfgvalue(self, section) or "same" -- Default to `same` when enabled
+    return Value.cfgvalue(self, section) -- Default to `same` when enabled
 end
 
 o.write = function(self, section, value)
     local enabled = m:get(section, "enabled")
     if enabled == "0" then
-        local old_server = Value.cfgvalue(self, section) or "same"
+        local old_server = Value.cfgvalue(self, section)
         if old_server ~= "nil" then
             m:set(section, "old_server", old_server)
         end
@@ -205,12 +204,12 @@ for key, server_type in pairs(type_table) do
 end
 
 -- Socks User
-o = s:option(Value, "socks5_user", translate("Socks5 User"), translate("Only when auth is password valid, Mandatory."))
+o = s:option(Value, "socks5_user", translate("Socks5 User"), translate("Only when Socks5 Auth Mode is password valid, Mandatory."))
 o.rmempty = true
 o:depends("socks5_auth", "password")
 
 -- Socks Password
-o = s:option(Value, "socks5_pass", translate("Socks5 Password"), translate("Only when auth is password valid, Not mandatory."))
+o = s:option(Value, "socks5_pass", translate("Socks5 Password"), translate("Only when Socks5 Auth Mode is password valid, Not mandatory."))
 o.password = true
 o.rmempty = true
 o:depends("socks5_auth", "password")
