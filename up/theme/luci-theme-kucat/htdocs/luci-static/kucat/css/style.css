@@ -1204,7 +1204,7 @@ h4>span {
 h5 {
     font-size: var(--font-z);
     color: var(--primary-title-color);
-    margin: 2rem 0 0 0;
+    margin: 1rem 0 0 0;
     padding-bottom: 10px
 }
 
@@ -1317,7 +1317,7 @@ fieldset>fieldset {
 [data-tab-title]>h3:first-child,
 [data-tab-title]>h4:first-child,
 [data-tab-title]>p:first-child {
-    padding-top: 1rem
+    padding: 0 1rem 0 1rem
 }
 
 .table {
@@ -2214,7 +2214,7 @@ button:active,
     flex-shrink: 0;
     justify-content: center;
     padding: 0.2rem;
-    cursor: default;
+    color:var(--inputtext-color);
     text-align: center;
     margin-left: .5rem;
     outline: 0;
@@ -2355,13 +2355,12 @@ button:active,
     margin: 0.1rem auto;
     color: var(--inputtext-color);
 }
-
+/*
 .cbi-dropdown.btn>ul:not(.dropdown),
 .cbi-dropdown.cbi-button>ul:not(.dropdown) {
     margin: 0 .85rem 0 .85rem !important
 }
-
-
+*/
 
 .cbi-dropdown[open] > ul.dropdown > li[selected] {
     background: rgba(var(--primary-rgbm), 0.8);
@@ -2533,7 +2532,6 @@ input {
     margin-bottom: .5em;
     padding: 8.5px;
     cursor: auto;
-    white-space: pre-wrap;
     outline: 0;
 
 }
@@ -2818,10 +2816,9 @@ td > .ifacebadge,
 /* textarea */
 .cbi-input-textarea,
 textarea {
-
     font-family: monospace;
     width: 100%;
-    min-height: 14rem;
+    min-height: 10rem;
     padding: 10px;
     outline-style: none;
     line-height: normal;
@@ -2834,8 +2831,8 @@ textarea {
     border: 1px solid var(--inputborder-color);
     border-radius: var(--radius2);
     word-wrap: break-word;
-    white-space: pre-wrap;
-    margin: 0rem
+    white-space: nowrap;
+    margin: 0.5rem
 }
 
 .cbi-input-textarea:focus,
