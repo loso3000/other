@@ -48,7 +48,7 @@
     --input-boxhovercolor: rgba(0, 0, 0, 0.22);
     --input-checkcolor: rgba(var(--primary-rgbm), 1);
     --font-apple: -apple-system, "Google Sans", "Microsoft Yahei", "WenQuanYi Micro Hei", "sans-serif";
-    --font-sans: "Microsoft Yahei", "Google Sans", "WenQuanYi Micro Hei", "sans-serif", "Helvetica Neue", "Helvetica", "Hiragino Sans GB"
+    --font-sans: "Microsoft Yahei", "WenQuanYi Micro Hei", "sans-serif", "Helvetica Neue", "Helvetica", "Hiragino Sans GB"
 }
 
 [data-theme="dark"] {
@@ -69,7 +69,7 @@
     --input-boxhovercolor: rgba(255, 255, 255, 0.22);
     --input-checkcolor: rgba(255, 255, 255, 0.7);
     --font-apple: -apple-system, "Google Sans", "Microsoft Yahei", "WenQuanYi Micro Hei", "sans-serif";
-    --font-sans: "Microsoft Yahei", "Google Sans", "WenQuanYi Micro Hei", "sans-serif", "Helvetica Neue", "Helvetica", "Hiragino Sans GB"
+    --font-sans: "Microsoft Yahei", "WenQuanYi Micro Hei", "sans-serif", "Helvetica Neue", "Helvetica", "Hiragino Sans GB"
 }
 
 .tr {
@@ -92,7 +92,7 @@
 .th {
     line-height: normal;
     display: table-cell;
-    padding: 0.5em;
+    padding: .5em;
     text-align: center;
     vertical-align: middle;
     white-space: nowrap
@@ -424,6 +424,10 @@ input:not(.cbi-button):focus,
     box-shadow: 0 0 6px rgba(0, 0, 0, 0.22);
     -webkit-box-shadow: 0 0 6px rgba(0, 0, 0, 0.22);
     -moz-box-shadow: 0 0 6px rgba(0, 0, 0, 0.22)
+}
+.cbi-dropdown,
+select[multiple="multiple"] {
+	height: auto;
 }
 
 pre {
@@ -991,6 +995,14 @@ span[data-indicator="poll-status"],
     color: var(--menu-hover-color)
 }
 
+body[class*="node-"] > .main > .main-left > .nav > .slide > .menu::before {
+	transition: transform .1s ease-in-out;
+}
+
+body[class*="node-"] > .main > .main-left > .nav > .slide > .menu.active::before {
+	transition: transform .2s ease-in-out;
+}
+
 .main .main-left .nav>li>a.active::after {
     -ms-transform: rotate(180deg);
     -webkit-transform: rotate(180deg);
@@ -1352,12 +1364,6 @@ table .tr>.td.cbi-value-field>[id*="ifc-description"] {
     font-weight: normal !important
 }
 
-table>tbody>tr:first-child>td,
-table>tfoot>tr:first-child>td,
-table>thead>tr:first-child>td {
-    border-top: 0px solid #eee
-}
-
 .container>.cbi-section:first-of-type>.table[width="100%"]>.tr>.td {
     padding: .6rem
 }
@@ -1366,6 +1372,12 @@ table>thead>tr:first-child>td {
     line-height: 1.1;
     align-self: flex-end;
     flex: 1 1 auto
+}
+
+table>tbody>tr:first-child>td,
+table>tfoot>tr:first-child>td,
+table>thead>tr:first-child>td {
+    border-top: 0px solid #eee
 }
 
 #cbi-wireless .td,
@@ -1532,12 +1544,8 @@ td>table>tbody>tr>td,
     font-size: 1.2rem;
     display: inline-block;
     cursor: pointer;
-    background-image: url("data:image/svg+xml;base64,PCEtLSBHZW5lcmF0ZWQgYnkgSWNvTW9vbi5pbyAtLT4KPHN2ZyB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9Ijc2OCIgaGVpZ2h0PSI3NjgiIHZpZXdCb3g9IjAgMCA3NjggNzY4Ij4KPHRpdGxlPjwvdGl0bGU+CjxnIGlkPSJpY29tb29uLWlnbm9yZSI+CjwvZz4KPHBhdGggZD0iTTU5OC42MyA0NTcuMzc1bC0xOTItMTkyYy0xMi41MTItMTIuNTEyLTMyLjc2OC0xMi41MTItNDUuMjQ4IDBsLTE5MiAxOTJjLTEyLjUxMiAxMi41MTItMTIuNTEyIDMyLjc2OCAwIDQ1LjI0OHMzMi43NjggMTIuNTEyIDQ1LjI0OCAwbDE2OS4zNzYtMTY5LjM3NiAxNjkuMzc2IDE2OS4zNzZjMTIuNTEyIDEyLjUxMiAzMi43NjggMTIuNTEyIDQ1LjI0OCAwczEyLjUxMi0zMi43NjggMC00NS4yNDh6Ij48L3BhdGg+Cjwvc3ZnPgo=");
-    background-repeat: no-repeat;
-    background-position: center;
     color: transparent !important;
-    -webkit-appearance: none;
-    -moz-appearance: none;
+    background:  url("data:image/svg+xml;base64,PCEtLSBHZW5lcmF0ZWQgYnkgSWNvTW9vbi5pbyAtLT4KPHN2ZyB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9Ijc2OCIgaGVpZ2h0PSI3NjgiIHZpZXdCb3g9IjAgMCA3NjggNzY4Ij4KPHRpdGxlPjwvdGl0bGU+CjxnIGlkPSJpY29tb29uLWlnbm9yZSI+CjwvZz4KPHBhdGggZD0iTTU5OC42MyA0NTcuMzc1bC0xOTItMTkyYy0xMi41MTItMTIuNTEyLTMyLjc2OC0xMi41MTItNDUuMjQ4IDBsLTE5MiAxOTJjLTEyLjUxMiAxMi41MTItMTIuNTEyIDMyLjc2OCAwIDQ1LjI0OHMzMi43NjggMTIuNTEyIDQ1LjI0OCAwbDE2OS4zNzYtMTY5LjM3NiAxNjkuMzc2IDE2OS4zNzZjMTIuNTEyIDEyLjUxMiAzMi43NjggMTIuNTEyIDQ1LjI0OCAwczEyLjUxMi0zMi43NjggMC00NS4yNDh6Ij48L3BhdGg+Cjwvc3ZnPgo=")no-repeat center;
     background-size: 25px 30px
 }
 
@@ -1545,12 +1553,8 @@ td>table>tbody>tr>td,
     font-size: 1.2rem;
     display: inline-block;
     cursor: pointer;
-    background-image: url("data:image/svg+xml;base64,PCEtLSBHZW5lcmF0ZWQgYnkgSWNvTW9vbi5pbyAtLT4KPHN2ZyB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9Ijc2OCIgaGVpZ2h0PSI3NjgiIHZpZXdCb3g9IjAgMCA3NjggNzY4Ij4KPHRpdGxlPjwvdGl0bGU+CjxnIGlkPSJpY29tb29uLWlnbm9yZSI+CjwvZz4KPHBhdGggZD0iTTE2OS4zNyAzMTAuNjI0bDE5MiAxOTJjMTIuNTEyIDEyLjUxMiAzMi43NjggMTIuNTEyIDQ1LjI0OCAwbDE5Mi0xOTJjMTIuNTEyLTEyLjUxMiAxMi41MTItMzIuNzY4IDAtNDUuMjQ4cy0zMi43NjgtMTIuNTEyLTQ1LjI0OCAwbC0xNjkuMzc2IDE2OS4zNzYtMTY5LjM3Ni0xNjkuMzc2Yy0xMi41MTItMTIuNTEyLTMyLjc2OC0xMi41MTItNDUuMjQ4IDBzLTEyLjUxMiAzMi43NjggMCA0NS4yNDh6Ij48L3BhdGg+Cjwvc3ZnPgo=");
-    background-repeat: no-repeat;
-    background-position: center;
     color: transparent !important;
-    -webkit-appearance: none;
-    -moz-appearance: none;
+    background: url("data:image/svg+xml;base64,PCEtLSBHZW5lcmF0ZWQgYnkgSWNvTW9vbi5pbyAtLT4KPHN2ZyB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9Ijc2OCIgaGVpZ2h0PSI3NjgiIHZpZXdCb3g9IjAgMCA3NjggNzY4Ij4KPHRpdGxlPjwvdGl0bGU+CjxnIGlkPSJpY29tb29uLWlnbm9yZSI+CjwvZz4KPHBhdGggZD0iTTE2OS4zNyAzMTAuNjI0bDE5MiAxOTJjMTIuNTEyIDEyLjUxMiAzMi43NjggMTIuNTEyIDQ1LjI0OCAwbDE5Mi0xOTJjMTIuNTEyLTEyLjUxMiAxMi41MTItMzIuNzY4IDAtNDUuMjQ4cy0zMi43NjgtMTIuNTEyLTQ1LjI0OCAwbC0xNjkuMzc2IDE2OS4zNzYtMTY5LjM3Ni0xNjkuMzc2Yy0xMi41MTItMTIuNTEyLTMyLjc2OC0xMi41MTItNDUuMjQ4IDBzLTEyLjUxMiAzMi43NjggMCA0NS4yNDh6Ij48L3BhdGg+Cjwvc3ZnPgo=")no-repeat center;
     background-size: 25px 30px
 }
 
@@ -1599,9 +1603,12 @@ body:not(.Interfaces) .cbi-rowstyle-2:first-child {
 .cbi-button:active,
 .item:hover::after,
 .item:focus::after,
-.item:active::after {
-    outline: 0;
-    text-decoration: none
+.item:active::after,
+.cbi-page-actions .cbi-button-apply + .cbi-button-save:hover,
+.cbi-page-actions .cbi-button-apply + .cbi-button-save:focus,
+.cbi-page-actions .cbi-button-apply + .cbi-button-save:active {
+	text-decoration: none;
+	outline: 0;
 }
 
 .btn:focus,
@@ -1627,7 +1634,8 @@ button:hover,
 .btn:active,
 .cbi-button:active,
 button:active,
-.item:active {
+.item:active ,
+.item:active::after {
     transform: scale(1) translate(0, 0.15rem);
     box-shadow: 0 0 6px var(--input-boxhovercolor);
     -webkit-box-shadow: 0 0 6px var(--input-boxhovercolor);
@@ -1654,6 +1662,8 @@ button:active,
 .modal div[class="btn"],
 .cbi-button-find,
 .cbi-button-link,
+.cbi-button-up,
+.cbi-button-down,
 .cbi-button-neutral,
 .cbi-button[name="zero"],
 .cbi-button[name="restart"],
@@ -2080,6 +2090,16 @@ button:active,
     flex-wrap: nowrap
 }
 
+/* indication line for drag-and-drop in UIDynamicList*/
+.cbi-dynlist > .add-item > .cbi-input-text.drag-over {
+	border-top: 1px solid black;
+}
+
+/* indication line for drag-and-drop in UIDynamicList*/
+.cbi-dynlist > .add-item > .cbi-button-add.drag-over {
+	border-top: 1px solid black;
+}
+
 .cbi-dynlist>.add-item input {
     min-width: 17.5rem;
     width: 17.5rem;
@@ -2109,7 +2129,7 @@ button:active,
     min-width: 17.5rem;
     width: 17.5rem;
     white-space: nowrap;
-    text-overflow: ellipsis
+	text-overflow: ellipsis;
 }
 
 .cbi-dynlist>.add-item[ondrop]>input {
@@ -2151,13 +2171,22 @@ button:active,
 .cbi-dropdown>ul.preview {
     display: none
 }
+
+.cbi-dropdown > .open {
+	flex-basis: 15px;
+}
+
 .cbi-dropdown>.open,
 .cbi-dropdown>.more {
     background-color: rgba(255, 255, 255, 0) !important;
     font-weight: bolder;
     display: flex;
     flex-direction: column;
+	flex-grow: 0;
+	flex-shrink: 0;
     justify-content: center;
+	padding: 0 .25em;
+	cursor: default;
     text-align: center;
     margin-left: .2rem;
     outline: 0
@@ -2220,9 +2249,7 @@ button:active,
     position: absolute;
     z-index: 1100;
     display: block;
-    width: auto;
     min-width: 100%;
-    max-width: none;
     max-height: 200px;
     box-shadow: 0 0 4px #918e8c;
     border-radius: var(--radius2);
@@ -2314,9 +2341,6 @@ button:active,
     opacity: .6
 }
 
-select[multiple="multiple"] {
-    height: auto
-}
 
 .cbi-dropdown>ul>li[display],
 .cbi-dropdown[open]>ul.preview,
@@ -2333,7 +2357,7 @@ select[multiple="multiple"] {
 .cbi-dropdown>.more,
 .cbi-dropdown>ul>li[placeholder] {
     font-weight: bold;
-    display: none;
+    display: none!important;
     color: var(--inputtext-color)
 }
 
@@ -2352,6 +2376,7 @@ input {
     margin: 0.2em auto;
 }
 
+/* progressbar */
 .cbi-progressbar {
     position: relative;
     height: 26px;
@@ -2372,6 +2397,8 @@ input {
 
 .cbi-progressbar::after {
     font-size: var(--font-x);
+
+    font-family: monospace;
     font-size-adjust: .5;
     line-height: normal;
     position: absolute;
@@ -2456,6 +2483,7 @@ input {
 .modal>pre,
 .modal>textarea {
     font-size: var(--font-z);
+    font-size-adjust: .35;
     overflow: auto;
     margin-bottom: .5em;
     padding: 8.5px;
@@ -2596,6 +2624,7 @@ body.modal-overlay-active #modal_overlay {
     -ms-flex-pack: center
 }
 
+/* luci */
 .hidden {
     display: none
 }
@@ -2676,6 +2705,13 @@ body.modal-overlay-active #modal_overlay {
     border-radius: var(--radius2)
 }
 
+td > .ifacebadge,
+.td > .ifacebadge {
+    font-size: .8rem;
+    background-color: rgba(var(--primary-rgbm), 0.1);
+}
+
+
 .ifacebadge>em,
 .ifacebadge>img {
     display: inline-block;
@@ -2729,8 +2765,16 @@ body.modal-overlay-active #modal_overlay {
     padding: .5em
 }
 
-.cbi-input-textarea,
-textarea {
+#dsl_status_table .ifacebox-body span > strong {
+	display: inline-block;
+	min-width: 50%;
+}
+
+/* textarea */
+.cbi-input-textarea {
+    font-family: monospace;
+    width: 100%;
+    min-height: 14rem;
     padding: 10px;
     outline-style: none;
     line-height: normal;
@@ -2751,9 +2795,30 @@ textarea {
 textarea:focus {
     border: 1px solid var(rgba(var(--primary-rgbm), 1))
 }
+#syslog {
+	font-size: small;
+	overflow-y: hidden;
+	font-family: monospace;
+	width: 100%;
+	min-height: 15rem;
+	padding: 10px;
+	resize: none;
+	margin: 0rem
+	border-radius: var(--radius2);
+	word-wrap: break-word;
+	white-space: pre-wrap;
+	background-color: var(--inputbg-color);
+	color: var(--inputtext-color);
+	border: 1px solid var(--inputborder-color);
+}
 
+#syslog:focus {
+	outline: 0;
+}
+
+/* config changes */
 .uci-change-list {
-    font-family: var(--font-apple)
+	font-family: monospace;
 }
 
 .uci-change-list ins,
@@ -2821,6 +2886,7 @@ textarea:focus {
     padding: .5rem
 }
 
+/* other fix */
 #iwsvg,
 #iwsvg2,
 #bwsvg {
@@ -2890,9 +2956,9 @@ textarea:focus {
 .zonebadge>input[type="text"] {
     background-color: rgba(var(--primary-rgbbody), 1);
     border: 1px solid #6c6c6c;
-    min-width: 8rem;
+    min-width: 10rem;
     margin-top: .3rem;
-    padding: .16rem 1rem
+	padding: .16rem 1rem;
 }
 
 .zonebadge>em,
