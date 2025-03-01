@@ -294,7 +294,6 @@ select,
 option,
 textarea {
     font-family: var(--font-sans);
-    font-size: var(--font-z);
     font-weight: 400;
     box-sizing: border-box;
     vertical-align: baseline;
@@ -343,7 +342,7 @@ select,
 }
 
 select option {
-    background-color: rgba(var(--primary-rgbbody), 0.8);
+    background-color: rgba(var(--primary-rgbbody), 1);
     width: 100% !important;
     overflow: hidden
 }
@@ -422,8 +421,6 @@ input:not(.cbi-button):focus,
 .cbi-dropdown:focus {
     border: 1px solid rgba(var(--primary-rgbm), 0.7);
     box-shadow: 0 0 6px rgba(0, 0, 0, 0.22);
-    -webkit-box-shadow: 0 0 6px rgba(0, 0, 0, 0.22);
-    -moz-box-shadow: 0 0 6px rgba(0, 0, 0, 0.22)
 }
 .cbi-dropdown,
 select[multiple="multiple"] {
@@ -587,6 +584,18 @@ small {
     height: 100%;
     transition: 0.1s;
     float: left
+}
+@keyframes anim-rotate {
+	0% {
+		-webkit-transform: rotate(0);
+		-ms-transform: rotate(0);
+		transform: rotate(0);
+	}
+	100% {
+		-webkit-transform: rotate(360deg);
+		-ms-transform: rotate(360deg);
+		transform: rotate(360deg);
+	}
 }
 
 .main>.loading {
@@ -1463,20 +1472,6 @@ textarea {
         min-width: 20rem;
 }
 
-.cbi-value-field .cbi-dropdown,
-.cbi-value-field .cbi-input-select,
-.cbi-value input[type="text"],
-.cbi-value input[type="password"] {
-    min-width: 8rem;
-    width: 20rem
-}
-
-
-.cbi-value input[type="text"],
-.cbi-value input[type="password"] {
-    padding: 0 10px 0 10px
-}
-
 .cbi-section-table-row>.cbi-value-field .cbi-dropdown,
 .cbi-section-table-row>.cbi-value-field .cbi-input-select,
 .cbi-section-table-row>.cbi-value-field .cbi-input-text,
@@ -1922,6 +1917,20 @@ button:active,
     line-height: 1.25
 }
 
+
+.cbi-value-field .cbi-dropdown,
+.cbi-value-field .cbi-input-select,
+.cbi-value input[type="text"],
+.cbi-value input[type="password"] {
+    min-width: 8rem;
+    width: 20rem
+}
+
+
+.cbi-value input[type="text"],
+.cbi-value input[type="password"] {
+    padding: 0 10px 0 10px
+}
 .cbi-value strong {
     font-weight: normal
 }
@@ -2056,6 +2065,18 @@ button:active,
     box-sizing: border-box
 }
 
+
+/* indication line for drag-and-drop in UIDynamicList*/
+.cbi-dynlist > .item.drag-over {
+	border-top: 1px solid var(--inputborder-color);
+}
+
+/* Make item being dragged in UIDynamicList partially transparent*/
+.cbi-dynlist > .item.dragging {
+	opacity: 0.5;
+}
+
+/* prevent pointer changing when over the span element in UIDynamicList */
 .cbi-dynlist>.item>span {
     display: block;
     padding: 0.5rem 0.75rem;
@@ -2097,7 +2118,17 @@ button:active,
 
 /* indication line for drag-and-drop in UIDynamicList*/
 .cbi-dynlist > .add-item > .cbi-button-add.drag-over {
-	border-top: 1px solid black;
+	border-top: 1px solid var(--inputborder-color);
+}
+
+/* indication line for drag-and-drop in UIDynamicList*/
+.cbi-dynlist > .add-item > .cbi-input-text.drag-over {
+	border-top: 1px solid var(--inputborder-color);
+}
+
+/* indication line for drag-and-drop in UIDynamicList*/
+.cbi-dynlist > .add-item > .cbi-button-add.drag-over {
+	border-top: 1px solid var(--inputborder-color);
 }
 
 .cbi-dynlist>.add-item input {
@@ -2127,6 +2158,7 @@ button:active,
 .cbi-dynlist>.add-item:not([ondrop])>input {
     overflow: hidden;
     min-width: 17.5rem;
+    width: 100%;
     width: 17.5rem;
     white-space: nowrap;
 	text-overflow: ellipsis;
@@ -2147,11 +2179,6 @@ button:active,
     background-color: rgba(var(--primary-rgbm), 0.9);
     border: 1px solid rgba(var(--primary-rgbm), 1)
 }
-
-.cbi-dropdown {
-    padding: .2rem .2rem
-}
-
 .cbi-dropdown[placeholder*="select"] {
     max-width: 25rem;
     height: auto;
@@ -2165,45 +2192,79 @@ button:active,
     width: 100%;
     margin: 0 !important;
     list-style: none;
-    outline: 0
+	outline: 0;
 }
 
 .cbi-dropdown>ul.preview {
-    display: none
+	display: none;
 }
 
 .cbi-dropdown > .open {
-	flex-basis: 15px;
+    flex-basis: 0px;
+    font-size: 1.5rem;
+    border-left: 0.1rem solid var(--input-boxhovercolor);
 }
 
 .cbi-dropdown>.open,
 .cbi-dropdown>.more {
-    background-color: rgba(255, 255, 255, 0) !important;
-    font-weight: bolder;
+    font-weight: 900;
     display: flex;
     flex-direction: column;
-	flex-grow: 0;
-	flex-shrink: 0;
+    flex-grow: 0;
+    flex-shrink: 0;
     justify-content: center;
-	padding: 0 .25em;
-	cursor: default;
+    padding: 0.2rem;
+    cursor: default;
     text-align: center;
-    margin-left: .2rem;
-    outline: 0
+    margin-left: .5rem;
+    outline: 0;
+    background-color: rgba(255, 255, 255, 0) !important;
 }
 
-.cbi-dropdown>.open {
+
+.cbi-dropdown.btn {
+	min-height: 1.8rem;
+	padding-top: 0px;
+	padding-bottom: 0px;
+	padding-right: 0px;
+}
+
+.cbi-dropdown.btn > .open {
+
     padding: 0.2rem;
 
     flex-basis: 0px;
 
-    border-left: 0.1rem solid var(--input-boxhovercolor);
-    font-size: 1.3rem;
+    font-size: 1.5rem;
     margin: 0
 }
 
 .cbi-dropdown.btn>div {
     margin: 0px
+}
+.cbi-dropdown>.more,
+.cbi-dropdown[multiple][more]>.more,
+.cbi-dropdown>ul>li[placeholder] {
+    display: none!important;
+}
+
+
+.cbi-dropdown.btn.cbi-button>ul {
+    overflow-y: hidden
+}
+
+.cbi-dropdown>ul>li {
+    display: none;
+    overflow: hidden;
+    align-items: center;
+    align-self: center;
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-height: 30px;
+    margin: 0 0.2rem;
+    padding: 0 0.5rem 0 0.6rem;
+    white-space: nowrap;
+    text-overflow: ellipsis
 }
 
 .cbi-dropdown>ul>li .hide-open {
@@ -2246,99 +2307,21 @@ button:active,
 }
 
 .cbi-dropdown[open]>ul.dropdown {
-    position: absolute;
-    z-index: 1100;
-    display: block;
-    min-width: 100%;
-    max-height: 200px;
-    box-shadow: 0 0 4px #918e8c;
-    border-radius: var(--radius2);
-    border: 0px solid var(--inputborder-color);
-    background: rgba(var(--primary-rgbbody), 1);
-    color: var(--inputtext-color);
-    margin-left: 0 !important;
-    left: 0
-}
+  position: absolute;
+  z-index: 1100;
+  display: block;
+  width: auto;
+  min-width: 100%;
+  max-width: 30rem;
+  box-shadow: 0 0 4px var(--inputborder-color);
+  border-radius: var(--radius2);
+  border: 0px solid var(--inputborder-color);
+  background: rgba(var(--primary-rgbbody), 1);
+  color: var(--inputtext-color);
+  /* box-shadow: 0 2px 10px 0px rgba(255, 255, 255, .16), 0 0 10px 0 rgba(255, 255, 255, .12); */
+  margin-left: 0 !important;
+  left: 0;
 
-.cbi-dropdown[empty]>ul>li,
-.cbi-dropdown[optional][open]>ul.dropdown>li[placeholder],
-.cbi-dropdown[multiple][open]>ul.dropdown>li>form {
-    display: block
-}
-
-.cbi-dropdown[open]>ul.dropdown>li .hide-open {
-    display: none
-}
-
-.cbi-dropdown[open]>ul.dropdown>li .hide-close {
-    display: initial
-}
-
-.cbi-dropdown.btn>ul:not(.dropdown),
-.cbi-dropdown.cbi-button>ul:not(.dropdown) {
-    margin: 0 .85rem 0 .85rem !important
-}
-
-.cbi-dropdown.btn.cbi-button>ul {
-    overflow-y: hidden
-}
-
-.cbi-dropdown>ul>li {
-    display: none;
-    overflow: hidden;
-    align-items: center;
-    align-self: center;
-    flex-grow: 1;
-    flex-shrink: 1;
-    min-height: 30px;
-    padding: .125rem .25em;
-    white-space: nowrap;
-    text-overflow: ellipsis
-}
-
-.cbi-dropdown[open]>ul.dropdown>li {
-    border-bottom: thin solid var(--input-boxhovercolor);
-    padding: 0.2em 0.5em;
-    margin: 0.1rem auto;
-    color: var(--inputtext-color);
-}
-
-.cbi-dropdown[open]>ul.dropdown>li>input.create-item-input:first-child:last-child {
-    width: 100%
-}
-
-
-.cbi-dropdown .zonebadge {
-    width: 100%
-}
-
-.cbi-dropdown[open] .zonebadge {
-    width: 100%;
-    color: #3b3737
-}
-
-.cbi-dropdown[open]>ul.dropdown>li[selected] {
-    background: rgba(var(--primary-rgbm), 0.22);
-    color: var(--inputtext-color)
-}
-
-.cbi-dropdown[open]>ul.dropdown>li.focus {
-    border: 1px solid rgba(var(--primary-rgbm), 0.7);
-    outline: none
-}
-
-.cbi-dropdown[open]>ul.dropdown>li:last-child {
-    margin-bottom: 0;
-    border-bottom: 0
-}
-
-.cbi-dropdown[open]>ul.dropdown>li[unselectable] {
-    opacity: .7
-}
-
-.cbi-dropdown[disabled] {
-    pointer-events: none;
-    opacity: .6
 }
 
 
@@ -2354,13 +2337,54 @@ button:active,
     flex-grow: 1
 }
 
-.cbi-dropdown>.more,
-.cbi-dropdown>ul>li[placeholder] {
-    font-weight: bold;
-    display: none!important;
-    color: var(--inputtext-color)
+.cbi-dropdown[empty] > ul > li,
+.cbi-dropdown[optional][open] > ul.dropdown > li[placeholder],
+.cbi-dropdown[multiple][open] > ul.dropdown > li > form {
+	display: block;
+}
+.cbi-dropdown[open] > ul.dropdown > li .hide-open {
+	display: none;
 }
 
+.cbi-dropdown[open] > ul.dropdown > li .hide-close {
+	display: initial;
+}
+
+.cbi-dropdown[open] > ul.dropdown > li {
+    padding: 0.2em 0.5em;
+    margin: 0.1rem auto;
+    color: var(--inputtext-color);
+}
+
+.cbi-dropdown.btn>ul:not(.dropdown),
+.cbi-dropdown.cbi-button>ul:not(.dropdown) {
+    margin: 0 .85rem 0 .85rem !important
+}
+
+
+
+.cbi-dropdown[open] > ul.dropdown > li[selected] {
+    background: rgba(var(--primary-rgbm), 0.8);
+    color: var(--menu-hover-color)
+}
+
+.cbi-dropdown[open] > ul.dropdown > li.focus,
+.cbi-dropdown[open] > ul.dropdown > li:hover {
+    background: rgba(var(--primary-rgbm), 0.5);
+    color: var(--menu-hover-color);
+    outline: none
+}
+
+.cbi-dropdown[open]>ul.dropdown>li:last-child {
+    margin-bottom: 0;
+    border-bottom: 0
+}
+
+.cbi-dropdown[open]>ul.dropdown>li[unselectable] {
+    opacity: .7
+}
+
+.cbi-dropdown>.more,
 .cbi-dynlist,
 .cbi-dropdown {
     position: relative;
@@ -2369,6 +2393,27 @@ button:active,
     min-height: 1.8rem
 }
 
+.cbi-dropdown {
+    padding: .2rem
+}
+
+.cbi-dropdown[open] > ul.dropdown > li > input.create-item-input:first-child:last-child {
+	width: 100%;
+}
+.cbi-dropdown[disabled] {
+    pointer-events: none;
+    opacity: .6
+}
+/*
+.cbi-dropdown .zonebadge {
+    width: 100%
+}
+
+.cbi-dropdown[open] .zonebadge {
+    width: 100%;
+    color: #3b3737
+}
+*/
 select,
 input {
     padding: 0 20px 0 10px;
@@ -2699,8 +2744,8 @@ body.modal-overlay-active #modal_overlay {
     display: inline-flex;
     align-items: center;
     gap: 0.2rem;
-    padding: 0 0.8rem;
-    box-shadow: inset 0 1px 0px rgba(255, 255, 255, .4), 0 1px 1px rgba(0, 0, 0, .2);
+    padding: 0.1rem 0.8rem;
+    border: 1px solid var(--inputborder-color);
     background-color: rgba(var(--primary-rgbm), 0.1);
     border-radius: var(--radius2)
 }
@@ -2771,7 +2816,9 @@ td > .ifacebadge,
 }
 
 /* textarea */
-.cbi-input-textarea {
+.cbi-input-textarea,
+textarea {
+
     font-family: monospace;
     width: 100%;
     min-height: 14rem;
@@ -2948,9 +2995,9 @@ textarea:focus {
 
 .zonebadge .ifacebadge {
   margin: .1rem .2rem;
-  background-color: #bbb;
   color: var(--menu-color);
-  border: 1px solid var(--input-boxhovercolor);
+/*  background-color: #bbb;
+  border: 1px solid var(--input-boxhovercolor); */
 }
 
 .zonebadge>input[type="text"] {
@@ -3556,8 +3603,15 @@ body.lang_pl.node-main-login .cbi-value-title {
     width: 23rem
 }
 
+/* firewall */
 #iptables {
     margin: 0
+}
+
+.Firewall form {
+	margin: 2rem 2rem 0 0;
+	padding: 0;
+	box-shadow: none;
 }
 
 .cbi-tab-disabled[data-errors]::after {
@@ -3896,7 +3950,7 @@ body.lang_pl.node-main-login .cbi-value-title {
 .main .block {
     color: var(--body-color);
     background-color: var(--inputbg-color) !important;
-    box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.32), 0 1px 5px 0 var(--inputbg-color)
+    box-shadow: 0 0 4px var(--inputborder-color);
 }
 
 [data-page="admin-services-shadowsocksr"]>.block:active,
@@ -4433,6 +4487,28 @@ div#add_link_div {
         font-size: var(--font-d);
         padding-bottom: 0.5rem
     }
+    
+    .cbi-dropdown[open]>ul.dropdown {  
+	  max-width: 15rem;
+	}
+
+	.Firewall form {
+		position: static !important;
+		margin: 0 0 2rem 0;
+		padding: 2rem;
+		box-shadow: 0 2px 2px 0 rgba(0, 0, 0, .16), 0 0 2px 0 rgba(0, 0, 0, .12);
+	}
+
+	.Firewall form input {
+		width: 100% !important;
+		margin: 0;
+		margin-top: 1rem;
+	}
+
+	.Firewall .center,
+	.Firewall .center::before {
+		text-align: left !important;
+	}
 
     .commandbox {
         width: 100% !important;
@@ -4586,9 +4662,19 @@ div#add_link_div {
 
     [data-page="admin-status-overview"] >.main #view td:nth-child(1),
     .cbi-value-title {
+		display: block;
+		min-width: 0 !important;
         text-align: left
     }
 
+	.cbi-value-title,
+	.cbi-value-description,
+	.cbi-value-field,
+	.cbi-value-field .cbi-dropdown,
+	.cbi-value-field .cbi-input-select,
+	.cbi-value input[type="text"] {
+		width: 100%;
+	}
     [data-page="admin-status-overview"]  .main #view td:nth-child(1) {
         width: 5rem;
         padding-right: 0.4rem
@@ -4603,6 +4689,12 @@ div#add_link_div {
         line-height: 1
     }
 
+	#syslog,
+	#diag-rc-output > pre,
+	#command-rc-output > pre,
+	[data-page="admin-services-wol"] .notice code {
+		font-size: .8rem !important;
+	}
     .cbi-value-description {
         display: none !important
     }
