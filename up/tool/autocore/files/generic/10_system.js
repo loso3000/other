@@ -54,7 +54,7 @@ return baseclass.extend({
 			_('Hostname'),         boardinfo.hostname,
 			_('Model'),            boardinfo.model,
 			_('Architecture'),     cpuinfo.cpuinfo,
-			_('Target Platform'),  (L.isObject(boardinfo.release) ? boardinfo.release.target : '')  + ( ' - ' + tempinfo.tempinfo || ' '),
+			_('Target Platform'),  (L.isObject(boardinfo.release) ? boardinfo.release.target : '')  + ( ' - ' + platinfo.platinfo || ' '),
 			_('Firmware Version'), boardinfo.release.description,
 			_('Kernel Version'),   boardinfo.kernel,
 			_('Local Time'),       datestr,
@@ -65,9 +65,9 @@ return baseclass.extend({
 				systeminfo.load[2] / 65535.0
 			) : null,
 		];
-        if (platinfo.platinfo) {
+        if (tempinfo.tempinfo) {
             fields.splice(6, 0, _('Temperature'));
-            fields.splice(7, 0, platinfo.platinfo);
+            fields.splice(7, 0, tempinfo.tempinfo);
         }
         var table = E('table', {
             'class': 'table'

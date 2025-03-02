@@ -652,7 +652,7 @@ local methods = {
 		end
 	},
 	
-	getPlatInfo = {
+	getTempInfo = {
 		call = function()
 
 			local platinfo = sys.exec("/sbin/sysinfo tempinfo")
@@ -660,7 +660,7 @@ local methods = {
 		end
 	},
 
-	getTempInfo = {
+	getPlatInfo = {
 		call = function()
 			local tempinfo = sys.exec("/sbin/sysinfo archinfo")
 			return { tempinfo = tempinfo }
