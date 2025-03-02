@@ -27,7 +27,7 @@
     --radius1: 0.375rem;
     --radius2: 0.25rem;
     --primary-solid: #fd8c73;
-    --menu-hover-barbgcolor: rgba(255, 255, 255, 0.3)
+    --menu-hover-barbgcolor: rgba(255, 255, 255, 0.3);
 }
 
 [data-theme='light'] {
@@ -37,6 +37,7 @@
     --menu-hover-color: #fff;
     --menu-item-titlebg-color: rgba(var(--primary-rgbm), 0.22);
     --menu-barbgcolor: rgba(var(--primary-rgbm), var(--primary-rgbm-ts));
+    --title-color: #65656b;
     --body-text-color: #3c4655;
     --body-color: #65656b;
     --body-hover-bgcolor: rgba(50, 50, 50, 0.05);
@@ -48,28 +49,29 @@
     --input-boxhovercolor: rgba(0, 0, 0, 0.22);
     --input-checkcolor: rgba(var(--primary-rgbm), 1);
     --font-apple: -apple-system, "Google Sans", "Microsoft Yahei", "WenQuanYi Micro Hei", "sans-serif";
-    --font-sans: "Microsoft Yahei", "WenQuanYi Micro Hei", "sans-serif", "Helvetica Neue", "Helvetica", "Hiragino Sans GB"
+    --font-sans: "Microsoft Yahei", "WenQuanYi Micro Hei", "sans-serif", "Helvetica Neue", "Helvetica", "Hiragino Sans GB";
 }
 
 [data-theme="dark"] {
     --primarytextcolor: #bbb;
     --primary-title-color: #ddd;
-    --menu-color: #d3d3d3;
+    --menu-color: #ccc;
     --menu-hover-color: #eee;
     --menu-item-titlebg-color: rgba(var(--primary-rgbm), 0.4);
     --menu-barbgcolor: rgba(var(--primary-rgbm), var(--primary-rgbm-ts));
-    --body-text-color: #ccc;
+    --title-color: #f5f5f5;
+    --body-text-color: #bbb;
     --body-color: #bbb;
     --body-hover-bgcolor: rgba(255, 255, 255, 0.05);
     --inputbg-color: rgba(255, 255, 255, 0.11);
-    --inputtext-color: #bbb;
+    --inputtext-color: #ccc;
     --inputborder-color: rgba(255, 255, 255, 0.2);
     --input-bgcolor: rgba(50, 50, 50, 0.2);
     --input-boxcolor: rgba(255, 255, 255, 0.15);
     --input-boxhovercolor: rgba(255, 255, 255, 0.22);
     --input-checkcolor: rgba(255, 255, 255, 0.7);
     --font-apple: -apple-system, "Google Sans", "Microsoft Yahei", "WenQuanYi Micro Hei", "sans-serif";
-    --font-sans: "Microsoft Yahei", "WenQuanYi Micro Hei", "sans-serif", "Helvetica Neue", "Helvetica", "Hiragino Sans GB"
+    --font-sans: "Microsoft Yahei", "WenQuanYi Micro Hei", "sans-serif", "Helvetica Neue", "Helvetica", "Hiragino Sans GB";
 }
 
 .tr {
@@ -840,7 +842,7 @@ span[data-indicator="poll-status"],
 .success {
     background-color: #1a8361 !important;
     color: #eee;
-    width: 12rem !important
+    width: 14rem !important
 }
 
 #log_textarea {
@@ -925,7 +927,7 @@ span[data-indicator="poll-status"],
     white-space: nowrap;
     cursor: pointer;
     transition: all .2s;
-    position: relative
+    position: relative;
     font-size: var(--font-z)
 }
 
@@ -2563,12 +2565,12 @@ input {
 
 .modal>pre,
 .modal>textarea {
-    font-size: var(--font-z);
-    font-size-adjust: .35;
+    font-size: var(--font-x);
     overflow: auto;
     margin-bottom: .5em;
     padding: 8.5px;
     cursor: auto;
+    white-space: pre-wrap;
     outline: 0;
 
 }
@@ -2813,7 +2815,7 @@ td > .ifacebadge,
 
 .cbi-section em {
     font-weight: 600;
-    color: var(--body-color);
+    color: var(--title-color);
     text-align: center
 }
 
@@ -2905,6 +2907,7 @@ textarea:focus {
     display: block;
     padding: 2px;
     text-decoration: none;
+    color:#666;
     background-color: #cfc
 }
 
@@ -2922,8 +2925,9 @@ textarea:focus {
     font-style: normal;
     display: block;
     padding: 2px;
+    
+    background-color: rgba(255, 255, 255, 0.1) ;
     text-decoration: none;
-    background-color: #eee
 }
 
 .uci-change-list var ins,
@@ -2998,7 +3002,8 @@ textarea:focus {
     min-width: 7rem;
     background-color: rgba(var(--primary-rgbm), 0.2);
     transform: translate(-50, -50%);
-    color: var(--body-color) text-align:center !important
+    color: var(--title-color);
+    text-align:center !important
 }
 
 .ifacebox-head.active {
@@ -3017,19 +3022,15 @@ textarea:focus {
 .zonebadge {
     padding: .2rem !important;
     display: inline-block;
+ 
     min-width: 13rem
-}
-
-.zonebadge strong {
-    font-size: var(--font-x);
-    color: var(--body-color)
 }
 
 .zonebadge .ifacebadge {
   margin: .1rem .2rem;
-  color: var(--menu-color);
-/*  background-color: #bbb;
-  border: 1px solid var(--input-boxhovercolor); */
+  color: var(--title-color);
+   background-color: #bbb;
+  border: 1px solid var(--input-boxhovercolor);  
 }
 
 .zonebadge>input[type="text"] {
@@ -3040,10 +3041,17 @@ textarea:focus {
 	padding: .16rem 1rem;
 }
 
+.zonebadge>span,
 .zonebadge>em,
 .zonebadge>strong {
+    color: #777;
+    font-size: var(--font-x);
     display: inline-block;
     margin: 0 .2rem
+}
+
+.zonebadge-empty>strong {
+    color: var(--title-color) ;
 }
 
 .cbi-value-field .cbi-input-checkbox,
@@ -3968,8 +3976,9 @@ body.lang_pl.node-main-login .cbi-value-title {
 [data-page="admin-services-vssr"]>.main .block,
 .main .block {
     color: var(--body-color);
-    background-color: var(--inputbg-color) !important;
-    box-shadow: 0 0 4px var(--inputborder-color);
+    background-color: var(--input-bgcolor) !important;
+    box-shadow: 0 0 1px var(--inputborder-color);
+    box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.32), 0 1px 5px 0 rgba(0, 0, 0, 0.2)
 }
 
 [data-page="admin-services-shadowsocksr"]>.block:active,
@@ -3980,7 +3989,7 @@ body.lang_pl.node-main-login .cbi-value-title {
 .block:hover,
 [data-page="admin-services-bypass"]>.main .block:hover,
 .main .block:hover {
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 4px 6px var(--input-boxhovercolor);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 4px 6px rgba(0, 0, 0, 0.35);
     background-color: var(--input-boxhovercolor) !important;
 }
 
@@ -4147,6 +4156,21 @@ pre.command-output {
     display: block
 }
 
+[data-page="admin-store-pages"] .cbi-section>.tags-container>.tags-value,
+[data-page="admin-store-pages"] .cbi-section>.sort-container>.sort-value {
+        flex: none;
+}
+
+[data-page="admin-store-pages"]  .app-container .app-btns .app-btn {
+    padding: 0.5rem;
+    line-height: 1.4;
+}
+
+
+[data-page="admin-system-package-manager"]  .modal>textarea {
+white-space: nowrap;
+}
+
 .main>.main-left,
 .cbi-section,
 [data-tab-title],
@@ -4219,7 +4243,7 @@ div#service_status {
 div#add_link_div {
     position: fixed;
     transform: translate(-50%, -50%);
-    background-color: #fff;
+    background-color: rgba(var(--primary-rgbbody), 1);
     padding: 0px;
     box-shadow: darkgrey 1px 5px 20px 0px;
     border-radius: 9px
