@@ -2077,11 +2077,11 @@ button:active{
     line-height: 1;
     width: 2.5rem !important;
     padding: 5px !important;
-  color: var(--inputtext-color);
+    color:#E91E63;
     border: 0px solid var(--inputborder-color);
-  border-right: 1px solid var(--inputborder-color);
-  border-top: 1px solid var(--inputborder-color);
-  border-bottom: 1px solid var(--inputborder-color);
+    border-right: 1px solid var(--inputborder-color);
+    border-top: 1px solid var(--inputborder-color);
+    border-bottom: 1px solid var(--inputborder-color);
     border-radius:  0 var(--radius2) var(--radius2) 0;
     outline: 0;
     background-color: var(--inputbg-color);
@@ -4892,4 +4892,39 @@ div#add_link_div {
     div#cbi-appfilter-time-days {
         margin-left: 16rem
     }
+}
+
+/* luci-mod-dashboard */
+.Dashboard .dashboard-bg {
+ 
+    background-color: rgba(var(--primary-rgbm), var(--primary-rgbs-ts));
+    background-color: rgba(var(--primary-rgbbody), 1)important;
+}
+
+.Dashboard h3 {
+  color: var(--primary-title-color)important;
+  border-radius: 0 0 16px 16px;
+}
+
+.Dashboard:not(.some-other-class) {
+  color: #666a88 !important;
+}
+
+.Dashboard .title {
+  background-color: rgba(var(--primary-rgbm), 0.1) !important;
+  border-radius: 16px;
+}
+
+.Dashboard span.label.label-success {
+  background-color: #55bb55;
+}
+
+.Dashboard .devices-list .devices-info, .Dashboard .router-status-wifi .wifi-info > hr:last-child {
+  margin-top: 0.575rem;
+}
+
+@media screen and (max-width: 600px) {
+  div#content-filemanager {
+    overflow-x: auto;
+  }
 }
