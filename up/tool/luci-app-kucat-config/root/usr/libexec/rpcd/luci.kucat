@@ -5,7 +5,7 @@
 
 readonly dkbg_path="/www/luci-static/kucat/bg"
 readonly bg_path="/www/luci-static/resources/background"
-readonly tmp_path="/tmp/argon_background.tmp"
+readonly tmp_path="/tmp/kucat_background.tmp"
 
 case "$1" in
 "list")
