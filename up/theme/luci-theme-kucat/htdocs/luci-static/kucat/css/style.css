@@ -2869,7 +2869,6 @@ textarea {
     border-radius: var(--radius2);
     word-wrap: break-word;
     white-space: pre-wrap;
-    margin: 0.5rem
 }
 
 .cbi-input-textarea:focus,
@@ -4394,7 +4393,7 @@ div#add_link_div {
 
 @media screen and (max-width:992px) {
     .main .main-left .nav .slide .slide-menu .active a {
-        font-size: var(--font-z)
+        font-size: var(--font-x)
     }
 
 
@@ -4419,7 +4418,7 @@ div#add_link_div {
     #diag-rc-output>pre,
     #command-rc-output>pre,
     [data-page="admin-services-wol"] .notice code {
-        font-size: var(--font-z)
+        font-size: var(--font-x)
     }
 
     .main-left {
@@ -4532,7 +4531,7 @@ div#add_link_div {
 
     .cbi-section>h3:first-child,
     .panel-title {
-        font-size: var(--font-d);
+        font-size: var(--font-z);
         padding-bottom: 0.5rem
     }
     
@@ -4661,7 +4660,8 @@ div#add_link_div {
         padding-left: 0.3rem;
         padding-top: 0.8rem;
         width: 100%;
-        font-weight: 700;
+	margin-bottom: 0.2rem;
+        font-weight: 600;
     }
 
     .cbi-section {
@@ -4685,7 +4685,7 @@ div#add_link_div {
 
     h3 {
         margin: 0;
-        font-size: var(--font-x);
+        font-size: var(--font-z);
         line-height: 1.2rem !important;
         letter-spacing: 0.02rem
     }
@@ -4707,30 +4707,38 @@ div#add_link_div {
     .hide-xs:not([data-title="MAC-Address"]) {
         display: none
     }
-
-    [data-page="admin-status-overview"] >.main #view td:nth-child(1),
-    .cbi-value-title {
-		display: block;
-		min-width: 0 !important;
-        text-align: left
+    
+    [data-page="admin-system-admin-password"] .control-group{
+        flex-wrap: nowrap;
     }
-
-	.cbi-value-title,
-	.cbi-value-description,
-	.cbi-value-field,
-	.cbi-value-field .cbi-dropdown,
-	.cbi-value-field .cbi-input-select,
-	.cbi-value input[type="text"] {
-		width: 100%;
-	}
+    .cbi-input-textarea,
+    textarea,
+    .cbi-value-description,
+    .cbi-value-field,
+    .cbi-value-field .cbi-dropdown,
+    .cbi-value-field .cbi-input-select,
+    .cbi-value input[type="text"],
+    .cbi-value input[type="password"] {
+		width:16rem;
+		text-align: left;
+		min-width: 8rem;
+		margin: 0;
+    }
+    
     [data-page="admin-status-overview"]  .main #view td:nth-child(1) {
         width: 5rem;
         padding-right: 0.4rem
     }
 
+
+    .cbi-value-title,
     .cbi-value-field {
-        padding: 0 !important;
-        line-height: 1
+        display: inline-block;
+        line-height: 1;
+        text-align: left;
+    }
+    .cbi-value-description {
+        display: none !important
     }
 
     .cbi-value-field>div {
@@ -4741,11 +4749,8 @@ div#add_link_div {
 	#diag-rc-output > pre,
 	#command-rc-output > pre,
 	[data-page="admin-services-wol"] .notice code {
-		font-size: .8rem !important;
+		font-size: var(--font-x) !important;
 	}
-    .cbi-value-description {
-        display: none !important
-    }
 
     .cbi-dynlist p {
         padding: 0.5rem 1rem
@@ -4780,12 +4785,6 @@ div#add_link_div {
         padding-right: 0.2rem
     }
 
-
-    .cbi-value-description {
-        width: 100%;
-        display: block
-    }
-
     .Diagnostics form .cbi-map .cbi-section div {
         width: 100% !important
     }
@@ -4800,7 +4799,7 @@ div#add_link_div {
 
     select,
     input {
-        font-size: var(--font-z);
+        font-size: var(--font-x);
         box-sizing: border-box;
         min-width: unset
     }
