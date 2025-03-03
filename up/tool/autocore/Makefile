@@ -11,7 +11,8 @@ PKG_RELEASE:=$(COMMITCOUNT)
 
 PKG_CONFIG_DEPENDS:= \
 	CONFIG_TARGET_bcm27xx \
-	CONFIG_TARGET_bcm53xx
+	CONFIG_TARGET_bcm53xx \
+	CONFIG_TARGET_mvebu
 
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/target.mk
