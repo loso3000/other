@@ -1,7 +1,7 @@
 {
 	"admin/system/kucat-config": {
 		"title": "KuCat Theme Config",
-		"order": 91,
+		"order": 88,
 		"action": {
 			"type": "view",
 			"path": "kucat-config"
