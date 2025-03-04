@@ -2,9 +2,9 @@
 'require baseclass';
 'require rpc';
 
-var callLuciETHInfo = rpc.declare({
+var callLuciETHList = rpc.declare({
 	object: 'luci',
-	method: 'getETHInfo',
+	method: 'getETHList',
 	expect: { '': {} }
 });
 
@@ -13,12 +13,12 @@ return L.Class.extend({
 
 	load: function() {
 		return Promise.all([
-			L.resolveDefault(callLuciETHInfo(), {})
+			L.resolveDefault(callLuciETHList(), {})
 		]);
 	},
 
 	render: function(data) {
-		var ethinfo = Array.isArray(data[0].ethinfo) ? data[0].ethinfo : [];
+		var ethlist = Array.isArray(data[0].ethlist) ? data[0].ethlist : [];
 		var table = E('table', { 'class': 'table' }, [
 			E('tr', { 'class': 'tr table-titles' }, [
 				E('th', { 'class': 'th' }, _('Ethernet Name')),
@@ -29,7 +29,7 @@ return L.Class.extend({
 			])
 		]);
 
-		cbi_update_table(table, ethinfo.map(function(info) {
+		cbi_update_table(table, ethlist.map(function(info) {
 			var exp1;
 			var exp2;
 

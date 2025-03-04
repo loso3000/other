@@ -200,4 +200,27 @@ ethinfo() {
     cat /tmp/state/ethinfo
 }
 
+ethlist() {
+    [ ! -d /tmp/state ] && mkdir -p /tmp/state 2>/dev/null
+    sed -i '/_orig_ifname/d' /etc/config/network
+    {
+    echo -n "["
+    for i in $(ip address | awk -F ': ' '/eth[0-9]+/ {print $2}' | awk -F '@' {'print $1'} | awk '{ if ( length($0) <=7 ) print $0}' | xargs)
+    do
+	h=$(echo '{"name":' )
+	d=$(ethtool $i)
+	name=$(uci show network | grep "$i" | head -n1 |awk -F '.'  '{print $2}' | awk -F '_'  '{print $1}')
+	[ $name == '@device[0]' ] && name=$(uci get network.$name.name | awk -F '-' '{print $2}')
+	m=$(ifconfig | grep "$i" | head -n1 | awk -F 'HWaddr ' '{print $2}')
+	e=$(echo "$d" | grep "Link detected" | awk -F: '{printf $2}' | sed 's/^[ \t]*//g')
+	f=$(echo "$d" |grep Speed | awk '{print $2/1000 " Gb/s"}' | sed 's/^[ \t]*//g' | tr -d "Unknown!")
+	[ -z "$f" -o "$f" = "0 Gb/s" ] && f="- Gb/s"
+	[ $i == "eth0" -a "$f" = "- Gb/s"  ]  && f="10 Gb/s"  
+	g=$(echo "$d" | grep "Duplex" | awk -F: '{printf $2}' | sed 's/^[ \t]*//g')
+	echo -n "$h \"$name[$i]\", \"status\": \"$e\", \"duplex\": \"$g\", \"speed\": \"$f\", \"mac\": \"$m\"},"
+    done
+    echo -n "]" 
+    } > /tmp/state/ethlist
+    cat /tmp/state/ethlist
+}
 $*

@@ -635,10 +635,18 @@ local methods = {
 		end
 	},
 
+	getETHList = {
+		call = function()
+
+			local ethlist = json.parse(sys.exec("sysinfo ethlist")) or {}
+			return { ethlist = ethlist }
+		end
+	},
+
 	getETHInfo = {
 		call = function()
 
-			local ethinfo = json.parse(sys.exec("/sbin/sysinfo ethinfo")) or {}
+			local ethinfo = json.parse(sys.exec("sysinfo ethinfo")) or {}
 			return { ethinfo = ethinfo }
 		end
 	},
@@ -646,23 +654,23 @@ local methods = {
 	getOnlineUsers = {
 		call = function()
 
-			local onlineusers = sys.exec("/sbin/sysinfo user")
+			local onlineusers = sys.exec("sysinfo user")
 			return { onlineusers = onlineusers }
 
 		end
 	},
 	
-	getTempInfo = {
+	getPlatInfo = {
 		call = function()
 
-			local platinfo = sys.exec("/sbin/sysinfo tempinfo")
+			local platinfo = sys.exec("/sbin/sysinfo archinfo")
 			return { platinfo = platinfo }
 		end
 	},
 
-	getPlatInfo = {
+	getTempInfo = {
 		call = function()
-			local tempinfo = sys.exec("/sbin/sysinfo archinfo")
+			local tempinfo = sys.exec("/sbin/sysinfo tempinfo")
 			return { tempinfo = tempinfo }
 		end
 	}
