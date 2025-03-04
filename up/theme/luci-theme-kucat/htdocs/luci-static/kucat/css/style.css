@@ -1601,12 +1601,9 @@ body:not(.Interfaces) .cbi-rowstyle-2:first-child {
 .cbi-button:active,
 .item:hover::after,
 .item:focus::after,
-.item:active::after,
-.cbi-page-actions .cbi-button-apply + .cbi-button-save:hover,
-.cbi-page-actions .cbi-button-apply + .cbi-button-save:focus,
-.cbi-page-actions .cbi-button-apply + .cbi-button-save:active {
-	text-decoration: none;
-	outline: 0;
+.item:active::after {
+    outline: 0;
+    text-decoration: none
 }
 
 .btn:focus,
@@ -4251,8 +4248,9 @@ div#add_link_div {
     cursor: pointer
 }
 
-#file-manager-container .file-manager-header {
-    padding: 4px
+#file-manager-container .file-manager-header input{
+  max-width: none;
+  min-width: 20rem;
 }
 
 #content-filemanager>#file-list-container  #file-table tr>th .sort-button{
