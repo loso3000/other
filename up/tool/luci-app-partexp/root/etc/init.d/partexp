@@ -50,9 +50,10 @@ get_config() {
 	config_get_bool auto_format $1 auto_format 1
 }
 
-nfdiskold(){
+nfdisk(){
+
 #Start partition
-		fdisk /dev/$a << EOF >/dev/null 2> /dev/null
+fdisk $1 << EOF >/dev/null 2> /dev/null
 n
 p
 
@@ -61,20 +62,6 @@ p
 wq
 EOF
 
-}
-# 创建分区
-nfdisk() {
-    {
-        echo o # 创建一个新的空DOS分区表
-        echo n # 添加一个新分区
-        echo p # 主分区
-        echo 1 # 分区号1
-        echo   # 第一个可用扇区（默认）
-        echo   # 最后一个扇区（默认，使用剩余空间）
-        echo w # 写入并退出
-    } | fdisk $1 >/dev/null 2>&1
-
-    sleep 1
 }
 usamba(){
 s=$1
@@ -103,7 +90,7 @@ fdiskB(){
 	sleep 2
 	isfdisk=0
 	if [ ! "$isP" ];then
-		nfdisk
+		nfdisk /dev/$a
 		sleep 2
 		isfdisk=1
 		
@@ -111,10 +98,10 @@ fdiskB(){
 		isfdisk=2
 	fi
 
-	isP=`fdisk -l /dev/$a |grep -v "bytes" | grep "/dev/$b"`
-	if [ "$isP" -a "$isfdisk" = 1 ] ;then
+	isP=`fdisk -l /dev/$a |grep -v "bytes" | grep "/dev/$b"| wc -l`
+	if [ "$isP" == 1 -a "$isfdisk" = 1 ] ;then
 	   log "分区$b建立成功！"
-	elif  [ "$isP" -a "$isfdisk" = 2 ] ;then
+	elif  [ "$isP" == 1  -a "$isfdisk" = 2 ] ;then
 	    log "检测目标分区$b已存在."
 	else
 	   log "分区$b建立失败，没有足够的空间操作失败！"
