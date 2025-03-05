@@ -4272,13 +4272,16 @@ div#add_link_div {
     border-radius: 9px
 }
 
+/* filemanager */
 #file-manager-container button#go-button {
     cursor: pointer
 }
-
+#file-manager-container .file-manager-header {
+  white-space: nowrap;
+}
 #file-manager-container .file-manager-header input{
   max-width: none;
-  min-width: 20rem;
+  min-width: 10rem;
 }
 
 #content-filemanager>#file-list-container  #file-table tr>th .sort-button{
@@ -4859,6 +4862,9 @@ div#file-manager-container #status-bar #status-info{
     .cbi-value {
         display: inline-table
         padding: 0 0.5rem;
+    }
+    #file-manager-container .file-manager-header {
+      flex-wrap: wrap;
     }
 }
 
