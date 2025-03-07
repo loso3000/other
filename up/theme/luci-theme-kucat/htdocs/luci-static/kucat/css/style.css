@@ -57,7 +57,7 @@
     --primary-title-color: #ddd;
     --menu-color: #ccc;
     --menu-hover-color: #eee;
-    --menu-item-titlebg-color: rgba(var(--primary-rgbm), 0.6);
+    --menu-item-titlebg-color: rgba(var(--primary-rgbm), 0.5);
     --menu-barbgcolor: rgba(var(--primary-rgbm), var(--primary-rgbm-ts));
     --title-color: #f5f5f5;
     --body-text-color: #bbb;
@@ -4514,7 +4514,7 @@ div#file-manager-container #status-bar #status-info{
         box-shadow: rgba(0, 0, 0, 0.75) 0 0 20px -5px;
         -webkit-box-shadow: rgba(0, 0, 0, 0.75) 0 0 20px -5px;
         position: fixed;
-	background-color:rgba(var(--primary-rgbbody), 1);
+	background-image: var(--bgqs-image);
         visibility: hidden;
         z-index: 100
     }
