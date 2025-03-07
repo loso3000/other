@@ -374,6 +374,9 @@ src/gz ezopwrt_packages https://downloads.immortalwrt.org/releases/24.10-SNAPSHO
 src/gz ezopwrt_routing https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/x86_64/routing
 src/gz ezopwrt_telephony https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/x86_64/telephony
 EOF
+
+sed -i '/luciversion/d' /usr/lib/lua/luci/version.lua
+echo "luciversion ='24.10'" >> /usr/lib/lua/luci/version.lua
 else
 cat <<-EOF > "/etc/opkg/distfeeds.conf"
 src/gz ezopwrt_core https://downloads.immortalwrt.org/releases/23.05-SNAPSHOT/targets/x86/64/packages
@@ -383,6 +386,9 @@ src/gz ezopwrt_packages https://downloads.immortalwrt.org/releases/23.05-SNAPSHO
 src/gz ezopwrt_routing https://downloads.immortalwrt.org/releases/23.05-SNAPSHOT/packages/x86_64/routing
 src/gz ezopwrt_telephony https://downloads.immortalwrt.org/releases/23.05-SNAPSHOT/packages/x86_64/telephony
 EOF
+
+sed -i '/luciversion/d' /usr/lib/lua/luci/version.lua
+echo "luciversion ='23.05'" >> /usr/lib/lua/luci/version.lua
 fi
 [ x$debug = x1 ] && uci -q set base_config.@base[0].base$ver=$? ; echo $ver
 }
@@ -412,8 +418,6 @@ uci commit && cd /etc/init.d && \
 uci -q set base_config.@base[0].ver=$ver
 uci commit base_config
 ntpd -n -q -p 1.lede.pool.ntp.org
-sed -i '/luciversion/d' /usr/lib/lua/luci/version.lua
-echo "luciversion ='24.10'" >> /usr/lib/lua/luci/version.lua
 sed -i '/log-facility/d' /etc/dnsmasq.conf
 echo "log-facility=/dev/null" >> /etc/dnsmasq.conf
 echo 'hsts=0' > /root/.wgetrc
