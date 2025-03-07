@@ -1,0 +1,11 @@
+<script>
+    var helpDiv = document.createElement('div');
+    helpDiv.innerHTML = '<div class="table"><div class="tr"><div class="td right" style="width: 33%;">帮助</div><div class="td left"><a href="https://github.com/sirpdboy/openwrt/issues" class="btn cbi-button-reset" target="_blank">更新建议</a> <a href="https://t.me/joinchat/RV6mxIxZJVDByibQ" target="_blank" class="btn cbi-button-save">TG聊天群</a></div></div></div>';
+
+    window.onload = function() {
+        var gitSection = document.querySelector(".cbi-section");
+        if (gitSection) {
+            gitSection.appendChild(helpDiv);
+        }
+    };
+</script>
