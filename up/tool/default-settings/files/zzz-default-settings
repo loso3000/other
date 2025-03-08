@@ -375,8 +375,8 @@ src/gz ezopwrt_routing https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT
 src/gz ezopwrt_telephony https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/x86_64/telephony
 EOF
 
-sed -i '/luciversion/d' /usr/lib/lua/luci/version.lua
-echo "luciversion ='24.10'" >> /usr/lib/lua/luci/version.lua
+# sed -i '/luciversion/d' /usr/lib/lua/luci/version.lua
+# echo "luciversion ='24.10'" >> /usr/lib/lua/luci/version.lua
 else
 cat <<-EOF > "/etc/opkg/distfeeds.conf"
 src/gz ezopwrt_core https://downloads.immortalwrt.org/releases/23.05-SNAPSHOT/targets/x86/64/packages
@@ -387,8 +387,8 @@ src/gz ezopwrt_routing https://downloads.immortalwrt.org/releases/23.05-SNAPSHOT
 src/gz ezopwrt_telephony https://downloads.immortalwrt.org/releases/23.05-SNAPSHOT/packages/x86_64/telephony
 EOF
 
-sed -i '/luciversion/d' /usr/lib/lua/luci/version.lua
-echo "luciversion ='23.05'" >> /usr/lib/lua/luci/version.lua
+# sed -i '/luciversion/d' /usr/lib/lua/luci/version.lua
+# echo "luciversion ='23.05'" >> /usr/lib/lua/luci/version.lua
 fi
 [ x$debug = x1 ] && uci -q set base_config.@base[0].base$ver=$? ; echo $ver
 }
