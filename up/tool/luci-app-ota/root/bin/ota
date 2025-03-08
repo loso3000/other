@@ -201,7 +201,7 @@ prepare_check() {
     CLOUD_FW_Size=$(SHOW_INFO 4)
     CLOUD_FW_Url=$(SHOW_INFO 5)
     eval cloud_version=`echo ${CLOUD_FW_Url##*download/} | cut -d / -f 1`
-    [ -z  ${cloud_version} ] && eval cloud_version=$(jq ".[0].assets[0].browser_download_url" ${ApiFile} 2> /dev/null)
+    [ -z  ${cloud_version} ] && eval cloud_version=$(jq ".[0].assets[0].browser_download_url" ${ApiFile} 2> /dev/null) && eval cloud_version=`echo ${cloud_version##*download/} | cut -d / -f 1`
     [ -z  ${cloud_version} ] && {
          echo "检查错误:网络不通，请检查网络连接状态!"
 	 return 255
@@ -220,12 +220,12 @@ prepare_check() {
 		return 255
     }
 
-    eval summd5=`head -1 "$MD5File" | awk -F " " '{print $1}'`
+    eval summd5=`head -1 "$MD5File" | awk -F " " '{print $1}' |sed '/^$/d'`
     [ -z  ${summd5} ] && {
          echo "检查错误:无MD5校验码!"
 	 return 255
      }
-    eval CLOUD_FW_IP=`head -2 "$MD5File" | awk -F "=" '{print $2}'` 
+    eval CLOUD_FW_IP=`head -2 "$MD5File" | awk -F "=" '{print $2}'  |sed '/^$/d'` 
     [ -z "$CLOUD_FW_IP" ]  && CLOUD_FW_IP="192.168.1.1"
      if [ "$ez_version" != "$cloud_version" ];then
          echo "<h3>机器型号:&nbsp;&nbsp;<font color=\"green\">$OS_ARCH</font><br/>当前版本:&nbsp;&nbsp;<font color=\"green\">$ez_version</font></h3>"
@@ -274,7 +274,7 @@ do_check() {
 
 # async download
 do_download(){
-    eval sum=`head -1 "$MD5File" | awk -F " " '{print $1}'`
+    eval sum=`head -1 "$MD5File" | awk -F " " '{print $1}'  |sed '/^$/d'`
     [ -z "$sum" ] && { echo "do check first" >&2 ; return 254; }
     lock_download $sum &
     return 0
@@ -282,7 +282,7 @@ do_download(){
 
 # 0: done, 1: downloading, 2: failed, 254: wrong state, *: err
 do_progress() {
-    eval sum=`head -1 "$MD5File" | awk -F " " '{print $1}'`
+    eval sum=`head -1 "$MD5File" | awk -F " " '{print $1}' |sed '/^$/d'`
     [ -z "$sum" ] && { echo "do check first" >&2 ; return 254; }
     [ -f /tmp/firmware.img.md5 ] && [ "`cat /tmp/firmware.img.md5`" = "$sum" ] && return 0
     [ -f /tmp/firmware.img.progress ] || { echo "download not in progress" >&2 ; return 254; }
