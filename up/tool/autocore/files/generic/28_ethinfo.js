@@ -1,6 +1,7 @@
 'use strict';
 'require baseclass';
 'require rpc';
+'require ui';
 
 var callLuciETHList = rpc.declare({
 	object: 'luci',
@@ -8,7 +9,7 @@ var callLuciETHList = rpc.declare({
 	expect: { '': {} }
 });
 
-return L.Class.extend({
+return baseclass.extend({
 	title: _('Ethernet Information'),
 
 	load: function() {
@@ -29,35 +30,39 @@ return L.Class.extend({
 			])
 		]);
 
-		cbi_update_table(table, ethlist.map(function(info) {
-			var exp1;
-			var exp2;
+        ethlist.forEach(function(info) {
+            var exp1 = _('-');
+            var exp2 = _('-'); 
 
-			if (info.status == "yes")
-				exp1 = _('Link Up');
-			else if (info.status == "no")
-				exp1 = _('Link Down');
+            if (info.status === "yes") {
+                exp1 = _('Link Up');
+            } else if (info.status === "no") {
+                exp1 = _('Link Down');
+            }
 
-			if (info.duplex == "Full")
-				exp2 = _('Full Duplex');
-			else if (info.duplex == "Half")
-				exp2 = _('Half Duplex');
-			else
-				exp2 = _('-');
+            if (info.duplex === "Full") {
+                exp2 = _('Full Duplex');
+            } else if (info.duplex === "Half") {
+                exp2 = _('Half Duplex');
+            }
 
-			if (info.name == "lan[eth0]"  &&  info.duplex == "Half")
-			       info.speed='10 G/s';
-			return [
-				info.name,
-				exp1,
-				info.speed,
-				exp2,
-				info.mac
-			];
-		}));
+            var speed = info.speed;
+            if (info.name === "LAN[eth0]" && info.duplex === "Half") {
+                speed = '10 G/s';
+            }
 
-		return E([
-			table
-		]);
+            var row = E('tr', { 'class': 'tr' }, [
+                E('td', { 'class': 'td' }, info.name),
+                E('td', { 'class': 'td' }, exp1),
+                E('td', { 'class': 'td' }, speed),
+                E('td', { 'class': 'td' }, exp2),
+                E('td', { 'class': 'td' }, info.mac)
+            ]);
+            table.appendChild(row);
+        });
+
+        return E([
+            table
+        ]);
 	}
 });

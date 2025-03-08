@@ -2,6 +2,12 @@
 'require baseclass';
 'require fs';
 'require rpc';
+
+var callLuciDescription = rpc.declare({
+	object: 'luci',
+	method: 'getDescription'
+});
+
 var callSystemBoard = rpc.declare({
     object: 'system',
     method: 'board'
@@ -29,7 +35,15 @@ var callTempInfo = rpc.declare({
 return baseclass.extend({
     title: _('System'),
     load: function() {
-        return Promise.all([L.resolveDefault(callSystemBoard(), {}), L.resolveDefault(callSystemInfo(), {}), L.resolveDefault(callCPUBench(), {}), L.resolveDefault(callCPUInfo(), {}), L.resolveDefault(callPlatInfo(), {}), L.resolveDefault(callTempInfo(), {}), fs.lines('/usr/lib/lua/luci/version.lua')]);
+		return Promise.all([
+			L.resolveDefault(callSystemBoard(), {}),
+			L.resolveDefault(callSystemInfo(), {}),
+			L.resolveDefault(callCPUBench(), {}),
+			L.resolveDefault(callCPUInfo(), {}),
+			L.resolveDefault(callPlatInfo(), {}),
+			L.resolveDefault(callTempInfo(), {}),
+			L.resolveDefault(callLuciDescription(), {})
+		]);
     },
     render: function(data) {
         var boardinfo = data[0],
@@ -39,11 +53,6 @@ return baseclass.extend({
             platinfo = data[4],
             tempinfo = data[5],
             luciversion = data[6];
-        luciversion = luciversion.filter(function(l) {
-            return l.match(/^\s*(luciname|luciversion)\s*=/);
-        }).map(function(l) {
-            return l.replace(/^\s*\w+\s*=\s*['"]([^'"]+)['"].*$/, '$1');
-        }).join(' ');
         var datestr = null;
         if (systeminfo.localtime) {
             var date = new Date(systeminfo.localtime * 1000);
@@ -52,10 +61,10 @@ return baseclass.extend({
 
 		var fields = [
 			_('Hostname'),         boardinfo.hostname,
-			_('Model'),            boardinfo.model,
+			_('Model'),            boardinfo.model + cpubench.cpubench,
 			_('Architecture'),     cpuinfo.cpuinfo,
 			_('Target Platform'),  (L.isObject(boardinfo.release) ? boardinfo.release.target : '')  + ( ' - ' + platinfo.platinfo || ' '),
-			_('Firmware Version'), boardinfo.release.description,
+			_('Firmware Version'), luciversion.description,
 			_('Kernel Version'),   boardinfo.kernel,
 			_('Local Time'),       datestr,
 			_('Uptime'),           systeminfo.uptime ? '%t'.format(systeminfo.uptime) : null,

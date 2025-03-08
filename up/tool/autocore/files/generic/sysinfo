@@ -2,7 +2,7 @@
 # Author=sirpdboy
 
 user() {
-    wans=$(ip route 2>/dev/null |grep -c '^default') && arps=$(cat /proc/net/arp 2>/dev/null | grep -c '0x2') && echo "$((arps-wans))"
+    wans=$(ip route 2>/dev/null |grep -c '^default') && arps=$(cat /proc/net/arp 2>/dev/null | grep -c '0x2') && echo -n "$((arps-wans))"
 }
 
 platinfo() {
@@ -25,6 +25,12 @@ cntime() {
 
 time() {
 date "+%A [%W] | [%j] %Y/%m/%d-%X %Z"
+}
+
+description() {
+
+. /etc/openwrt_release
+echo -n ${DISTRIB_DESCRIPTION}
 }
 
 cpuinfo() {
@@ -226,4 +232,40 @@ done
 outputjson+="]"
 echo "$outputjson"
 }
+
+userlist() {
+wanip=$(ip route 2>/dev/null | grep '^default' | awk -F ' ' '{print $3}')
+awk -v wanip="$wanip" 'BEGIN {
+    while ((getline < "/tmp/dhcp.leases") > 0) { a[$2]=$4; }
+    while ((getline < "/proc/net/arp") > 0) {
+        if (!a[$4]) { a[$4]="?"; }
+        if (match($3, "0x[26]")) {
+            system("ping -q -c 1 " $1 " >/dev/null 2>&1 &");
+            if (b[$4]) { b[$4]=b[$4] "/" $1; }
+            else { b[$4]=$1; }
+            c[$4]=$6;
+        }
+    }
+    while (("ip -6 neighbor show | grep -v fe80" | getline) > 0) {
+        if (b[$5]) {
+            system("ping -q -c 1 " $1 " >/dev/null 2>&1 &");
+            b[$5]=b[$5] "/" $1;
+        }
+    }
+    outputjson = "[";
+    first = 1;
+
+    for (mac in b) {
+        if (index(b[mac], wanip) > 0) continue;
+        if (!first) { outputjson = outputjson ","; }
+        outputjson = outputjson "{ \"hostname\":\"" a[mac] "\",\"ipaddr\":\"" b[mac] "\", \"macaddr\":\"" mac "\", \"device\":\"" c[mac] "\"}";
+        first = 0;
+    }
+    outputjson = outputjson "]";
+    print(outputjson);
+}'
+
+}
+
+
 $*

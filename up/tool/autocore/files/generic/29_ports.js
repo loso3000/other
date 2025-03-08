@@ -355,7 +355,6 @@ return baseclass.extend({
 			    carrier = port.netdev.getCarrier(),
 			    pmap = port_map[port.netdev.getName()],
 			    pzones = (pmap && pmap.zones.length) ? pmap.zones.sort(function(a, b) { return L.naturalCompare(a.getName(), b.getName()) }) : [ null ];
-
 			return E('div', { 'class': 'ifacebox', 'style': 'margin:.25em;min-width:70px;max-width:100px' }, [
 				E('div', { 'class': 'ifacebox-head', 'style': 'font-weight:bold' }, [ port.netdev.getName() ]),
 				E('div', { 'class': 'ifacebox-body' }, [

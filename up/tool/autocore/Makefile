@@ -42,6 +42,7 @@ define Package/autocore/install/Default
 	$(CP) ./files/generic/19_cpu.js $(1)/etc/rpcd_19_cpu.js
 	$(CP) ./files/generic/28_ethinfo.js $(1)/etc/rpcd_28_ethinfo.js
 	$(CP) ./files/generic/29_ports.js $(1)/etc/rpcd_29_ports.js
+	$(CP) ./files/generic/31_user.js $(1)/etc/rpcd_31_user.js
 	$(CP) ./files/generic/luci $(1)/etc/rpcd_luci
 	$(INSTALL_DIR) $(1)/etc/uci-defaults
 	$(INSTALL_BIN) ./files/generic/090-cover-index_files $(1)/etc/uci-defaults/
@@ -58,6 +59,7 @@ define Package/autocore/install/Default
 	$(INSTALL_DIR) $(1)/www/luci-static/resources/view/status/include
 	$(INSTALL_DATA) ./files/generic/19_cpu.js $(1)/www/luci-static/resources/view/status/include/
 	$(INSTALL_DATA) ./files/generic/28_ethinfo.js $(1)/www/luci-static/resources/view/status/include/
+	$(INSTALL_DATA) ./files/generic/31_user.js $(1)/www/luci-static/resources/view/status/include/
 endef
 
 define Package/autocore-arm/install
