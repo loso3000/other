@@ -113,9 +113,10 @@ setup_network()
      wan_interface=`uci -q get network.wan.$ifname` 
      a=$(ip address | awk -F ': ' '/eth[0-9]+/ {print $2}' )
      b=$(echo "$a" | wc -l)
+     lannet=""
      [[ ${b} -gt 1 ]] && {
-	  lannet=""
 	  for i in $(seq 1 $b) ; do [ "${wan_interface}" = "$(echo "$a" | sed -n ${i}p)" ] || lannet="${lannet} $(echo "$a" | sed -n ${i}p)" ;done
+	  lannet=$(echo "$lannet" | sed 's/^ *//')
  	  [ "x$ifname" = "xdevice" ] &&  uci -q set network.@$ifname[0].ports="${lannet}"  || uci -q set network.lan.$ifname="${lannet}"
  	  uci -q set network.@$ifname[0].ports="${lannet}"
  	  [ `uci -q get network.wan6` ] && uci -q set network.wan6.$ifname="@wan"

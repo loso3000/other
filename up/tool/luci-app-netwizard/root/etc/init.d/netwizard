@@ -46,21 +46,21 @@ EOF
 			set dhcp.lan.ra_default='1'
 			set dhcp.lan.force='1'
 			delete dhcp.lan.ra_flags
-			delete dhcp.lan.ra_slaac
-			delete dhcp.wan.master
-			delete dhcp.wan.ra_flags
 			set dhcp.lan.ra_slaac='1'
 			set dhcp.wan.master='1'
 			set network.wan.ipv6='auto'
 			set network.lan.delegate='0'
 			set network.wan.delegate='0'
 			set network.wan6.delegate='0'
+			delete dhcp.lan.ra_slaac
+			delete dhcp.wan.master
+			delete dhcp.wan.ra_flags
 			delete network.wan.delegate
 			delete network.wan6.delegate
 			delete network.lan.delegate
+			set network.lan.ip6ifaceid='eui64'
 			delete network.wan6.reqaddress='try'
 			set network.wan6.reqprefix='auto'
-			set network.lan.ip6ifaceid='eui64'
 			set firewall.@defaults[0].disable_ipv6='0'
 
 EOF
@@ -163,6 +163,7 @@ add_netwizard() {
 	[ ${b} -gt 1 ] && {
 	  lannet=""
 	  for i in $(seq 1 $b) ; do [ "${wan_interface}" = "$(echo "$a" | sed -n ${i}p)" ] || lannet="${lannet} $(echo "$a" | sed -n ${i}p)" ;done
+	  lannet=$(echo "$lannet" | sed 's/^ *//')
  	  [ "x$ifname" = "xdevice" ] &&  $UCISET network.@$ifname[0].ports="${lannet}"  || $UCISET network.lan.$ifname="${lannet}"
 	}
 	$UCISET network.wan.$ifname="${wan_interface}"
