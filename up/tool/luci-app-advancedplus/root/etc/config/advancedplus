@@ -1,10 +1,10 @@
 config basic
-	option gouser 'admin'
+	option gouser 'advancedplus'
 	option gohome 'overview'
-	option setbar '1'
+	option setbar '0'
 	option wizard '0'
 	option bgqs '1'
-	option gossr 'openclash'
+	option gossr 'passwall'
 	option dayword '0'
 	option background '0'
 	option bklock '0'
