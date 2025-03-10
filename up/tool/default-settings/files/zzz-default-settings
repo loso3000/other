@@ -31,7 +31,6 @@ is_vip() {
  if is_x86_64; then
 	if is_vip; then
 	        	echo "src/gz is_store https://istore.linkease.com/repo/all/store" >/etc/opkg/customfeeds.conf
-	        	echo "src/gz dllkids https://op.dllkids.xyz/packages/x86_64" >>/etc/opkg/customfeeds.conf
 	fi
 else
 	if is_vip; then
@@ -339,11 +338,6 @@ rm -f /usr/lib/lua/luci/view/admin_status/index/upnp.htm
 [ x$debug = x1 ] && uci -q set base_config.@base[0].base$ver=$?;echo $ver
 }
 
-
-#update /etc/hosts
-#grep -q services.googleapis.cn /etc/hosts || echo 142.250.204.35 services.googleapis.cn >>/etc/hosts
-#grep -q google.cn /etc/hosts || echo 142.250.66.131 google.cn >>/etc/hosts
-
 test $ver -lt 4 && {
 	ver=4
 	uci -q set ucitrack.@fstab[0].exec='/sbin/block mount'
@@ -364,36 +358,6 @@ sed -i 's/immortalwrt/openwrt/g' /etc/config/luci
 
 test $ver -lt 5 && {
 ver=5
-eval $(cat /etc/os-release | grep -o -e "VERSION=\S*")
-if [ "$(echo $VERSION | cut -d . -f 1)" = "24" ]; then
-cat <<-EOF > "/etc/opkg/distfeeds.conf"
-src/gz ezopwrt_core https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/targets/x86/64/packages
-src/gz ezopwrt_base https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/x86_64/base
-src/gz ezopwrt_luci https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/x86_64/luci
-src/gz ezopwrt_packages https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/x86_64/packages
-src/gz ezopwrt_routing https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/x86_64/routing
-src/gz ezopwrt_telephony https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/x86_64/telephony
-EOF
-
-# sed -i '/luciversion/d' /usr/lib/lua/luci/version.lua
-# echo "luciversion ='24.10'" >> /usr/lib/lua/luci/version.lua
-else
-cat <<-EOF > "/etc/opkg/distfeeds.conf"
-src/gz ezopwrt_core https://downloads.immortalwrt.org/releases/23.05-SNAPSHOT/targets/x86/64/packages
-src/gz ezopwrt_base https://downloads.immortalwrt.org/releases/23.05-SNAPSHOT/packages/x86_64/base
-src/gz ezopwrt_luci https://downloads.immortalwrt.org/releases/23.05-SNAPSHOT/packages/x86_64/luci
-src/gz ezopwrt_packages https://downloads.immortalwrt.org/releases/23.05-SNAPSHOT/packages/x86_64/packages
-src/gz ezopwrt_routing https://downloads.immortalwrt.org/releases/23.05-SNAPSHOT/packages/x86_64/routing
-src/gz ezopwrt_telephony https://downloads.immortalwrt.org/releases/23.05-SNAPSHOT/packages/x86_64/telephony
-EOF
-
-# sed -i '/luciversion/d' /usr/lib/lua/luci/version.lua
-# echo "luciversion ='23.05'" >> /usr/lib/lua/luci/version.lua
-fi
-[ x$debug = x1 ] && uci -q set base_config.@base[0].base$ver=$? ; echo $ver
-}
-test $ver -lt 6 && {
-ver=6
 HOSTNAME="samsungTV"
 TAG="googleDNS"
 MAC=""
