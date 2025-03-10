@@ -657,7 +657,7 @@ local methods = {
 	getETHInfo = {
 		call = function()
 			local ethinfo = json.parse(sys.exec("/sbin/ethinfo")) or {}
-			return { result = ethinfo }
+			return { ethinfo = ethinfo }
 		end
 	},
 

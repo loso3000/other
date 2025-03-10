@@ -9,7 +9,8 @@ var callOnlineUsers = rpc.declare({
 
 var callOnlineUserlist = rpc.declare({
     object: 'luci',
-    method: 'getOnlineUserlist'
+    method: 'getOnlineUserlist',
+    expect: { userlist: [] }
 });
 
 
@@ -23,7 +24,7 @@ return baseclass.extend({
     },
 
     render: function(data) {
-        var onlineuserlist = data[0].userlist,
+        var onlineuserlist = Array.isArray(data[0]) ? data[0] : [],
          fields = [_('Online Users'), data[1].onlineusers || '0'];
 
         var usestatus = E('table', { 'class': 'table' });
