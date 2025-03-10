@@ -46,14 +46,21 @@ EOF
 			set dhcp.lan.ra_default='1'
 			set dhcp.lan.force='1'
 			delete dhcp.lan.ra_flags
+			delete dhcp.lan.ra_slaac
+			delete dhcp.wan.master
+			delete dhcp.wan.ra_flags
 			set dhcp.lan.ra_slaac='1'
 			set dhcp.wan.master='1'
 			set network.wan.ipv6='auto'
 			set network.lan.delegate='0'
 			set network.wan.delegate='0'
 			set network.wan6.delegate='0'
+			delete network.wan.delegate
+			delete network.wan6.delegate
+			delete network.lan.delegate
 			delete network.wan6.reqaddress='try'
 			set network.wan6.reqprefix='auto'
+			set network.lan.ip6ifaceid='eui64'
 			set firewall.@defaults[0].disable_ipv6='0'
 
 EOF
