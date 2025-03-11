@@ -163,7 +163,7 @@ add_netwizard() {
 	[ ${b} -gt 1 ] && {
 	  lannet=""
 	  for i in $(seq 1 $b) ; do [ "${wan_interface}" = "$(echo "$a" | sed -n ${i}p)" ] || lannet="${lannet} $(echo "$a" | sed -n ${i}p)" ;done
-	  lannet=$(echo "$lannet" | sed 's/^ *//')
+	  lannet=$(echo "$lannet"  | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')  
  	  [ "x$ifname" = "xdevice" ] &&  $UCISET network.@$ifname[0].ports="${lannet}"  || $UCISET network.lan.$ifname="${lannet}"
 	}
 	$UCISET network.wan.$ifname="${wan_interface}"
