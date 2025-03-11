@@ -2999,9 +2999,9 @@ textarea:focus {
 .ifacebox-head {
     padding: 1rem;
     min-width: 7rem;
-    background-color: rgba(var(--primary-rgbm), 0.4);
+    background-color: rgba(var(--primary-rgbm), 0.3);
     transform: translate(-50, -50%);
-    color: var(--menu-color);
+    color: var(--menu-fontcolor);
     text-align:center !important
 }
 
