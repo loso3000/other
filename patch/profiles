@@ -60,7 +60,7 @@ EOF
 pwait() {
 for i in '-' '\' '|' '/'; do
 echo -ne " 请稍等( please wait)... $i)\r"
-python -c 'import time; time.sleep(0.2)'
+sleep 1
 done
 }
 
@@ -554,6 +554,8 @@ function goreboot() {
 }
 
 function free_memory() {
+
+    EY " 清除缓存记录成功!(Clear cache records successfully!) \n"
     rm -rf /tmp/luci*
     pwait
     . /etc/profiles 
@@ -693,7 +695,7 @@ function otherpro() {
     while :; do
         read -p " 输入功能编号(Enter the function number): " CHOOSEO
         case $CHOOSEO in
-            1) stop_parentcontrol
+            1) 
 	        EY " 停卡家长控制插件成功!(Stop Parentcontrol completed!) \n"
 	        /etc/init.d/parentcontrol stop
 	        pwait
@@ -707,6 +709,19 @@ function otherpro() {
     done
 }
 
+function check_network() {
+	ping 223.5.5.5 -c 1 -W 2 > /dev/null 2>&1 && \
+	EY  " 基础aliyu网络连接正常!(Basic aliyu network connection is OK!)" || EG  " 基础aliyu网络连接错误!(Basic aliyu network connection error!)"
+	nslookup -type=a baidu.com > /dev/null 2>&1 &&\
+	EY  " 基础 IPv4 DNS 解析正常!(Basic IPv4 DNS resolution is OK!)" || EG  " 基础 IPv4 DNS 解析错误!(Basic IPv4 DNS resolution error!)"
+	Google_Check=$(curl -I -s --connect-timeout 3 http://www.google.com/generate_204 -w %{http_code} | tail -n1)
+	case ${Google_Check} in
+	204)
+		EY " Google 连接正常!(Google connection is OK!)"
+	
+	 pwait
+          . /etc/profiles ;;	
+}
 
 goexit() {
 
