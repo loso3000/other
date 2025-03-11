@@ -68,8 +68,7 @@ function show_network_interfaces() {
 eth_info=()
 echo -e "${Green}\n 当前网卡状态(Network Interfaces Status):${White}"
 for i in $(ls /sys/class/net/ | grep -E '^(eth[0-9]+|usb[0-9]+|lan[0-9]+|wan)$'); do
- 
-    d=$(ethtool $i)
+     d=$(ethtool $i)
     name=$(uci show network | grep "$i" | head -n1 |awk -F '.'  '{print $2}' | awk -F '_'  '{print $1}')
     if [ x$name == x'@device[0]' ] ;then
          iftype=$(uci get network.$name.name | awk -F '-' '{print $2}') 
@@ -82,17 +81,24 @@ for i in $(ls /sys/class/net/ | grep -E '^(eth[0-9]+|usb[0-9]+|lan[0-9]+|wan)$')
     fi
     carrier=$(cat /sys/class/net/"$i"/carrier 2>/dev/null)
     [ "$carrier" = "1" ] && status="已连接up"|| status="未连接down"
-    speed=$(cat /sys/class/net/"$i"/speed 2>/dev/null)
-    if [ -z "$speed" ] || [ "$speed" = "-" ]; then
-        speed="-"
-    fi
+	speed=$(cat /sys/class/net/"$i"/speed 2>/dev/null)
+  	if [ -z "$speed" ] || [ "$speed" = "-" ]; then
+ 	       speed="-"
+  	else
+  	      if [ "$speed" -ge 1000 ]; then
+  	          speed=`echo $speed | awk '{print $1/1000 " Gb/s"}'`
+  	      else
+   	         speed="${speed}Mb/s"
+  	      fi
+ 	fi
+
     eth_info+=("$iftype|$i|$status|$speed")
 done
 
-printf "%-12s %-16s %-16s %-16s\n" " 接口(type) 网卡(Interface)" "状态(Status)" "速度(Speed)Mb"
+printf "%-12s %-16s %-16s %-16s\n" " 接口(type) 网卡(Interface)" "状态(Status)" "速度(Speed)"
 for entry in "${eth_info[@]}"; do
     IFS='|' read -r iftype i status speed <<< "$entry"
-    printf "%-12s %-16s %-16s %-16s\n" " $iftype" "$i" "$status" "${speed}Mb"
+    printf "%-12s %-16s %-16s %-16s\n" " $iftype" "$i" "$status" "${speed}"
 done
 
 echo -e "${Green} 当前IPv4 地址: ${IP_Address} ${White}\n"
@@ -110,34 +116,43 @@ case ${YN} in
 [Yy]) 
     if [[ "x$ifname" == "xdevice" ]]; then
 
-uci batch <<EOF
-set network.loopback=interface
-set network.loopback.device='lo'
-set network.loopback.proto='static'
-set network.loopback.ipaddr='127.0.0.1'
-set network.loopback.netmask='255.0.0.0'
-set network.globals=globals
-set network.globals.ula_prefix='fdf3:0ad0:380c::/48'
-set network.globals.packet_steering='1'
-set network.@device[0]=device
-set network.@device[0].name='br-lan'
-set network.@device[0].type='bridge'
-set network.@device[0].ports='eth0'
-set network.lan=interface
-set network.lan.device='br-lan'
-set network.lan.proto='static'
-set network.lan.netmask='255.255.255.0'
-set network.lan.ip6assign='60'
-set network.lan.delegate='0'
-set network.lan.ipaddr='192.168.10.1'
-set network.wan=interface
-set network.wan.device='eth1'
-set network.wan.proto='dhcp'
-set network.wan.delegate='0'
-set network.wan.ipv6='auto'
-add_list firewall.@zone[1].network='wan' 
+cat >/etc/config/network <<-EOF
+config interface 'loopback'
+	option ifname 'lo'
+	option proto 'static'
+	option ipaddr '127.0.0.1'
+	option netmask '255.0.0.0'
+	option device 'lo'
+
+config globals 'globals'
+	option packet_steering '1'
+	option ula_prefix 'fdf3:0ad0:380c::/48'
+
+config interface 'lan'
+	option proto 'static'
+	option ipaddr '192.168.10.1'
+	option netmask '255.255.255.0'
+	option ip6assign '60'
+	option delegate '0'
+	option device 'br-lan'
+
+config interface 'wan'
+	option ifname 'eth1'
+	option proto 'dhcp'
+	option mtu '1420'
+	option metric '41'
+	option delegate '0'
+	option ipv6 'auto'
+	option device 'eth1'
+
+config device
+	option name 'br-lan'
+	option type 'bridge'
+	list ports 'eth0'
+
 EOF
 
+else
     
 cat >/etc/config/network <<-EOF
 
@@ -526,7 +541,7 @@ function CHECK_PKG() {
 	[[ $? == 0 ]] && echo true || echo false
 }
 
-goreboot() {
+function goreboot() {
   if [[ 0 -eq $? ]]; then
     ER " $1 完成,正在为您重启系统(Done, restarting the system for you)"
     reboot -f
@@ -538,7 +553,14 @@ goreboot() {
   fi
 }
 
-k_bindwan() {
+function free_memory() {
+    rm -rf /tmp/luci*
+    pwait
+    . /etc/profiles 
+}
+
+
+function k_bindwan() {
   local prompt_wan="请输入需要绑定WAN口网卡名字(eg: eth0): "
   local invalid_input="输入格式不正确，请输入类似 eth0 的格式。"
   local empty_input="输入不能为空(Input cannot be empty)！"
@@ -584,7 +606,7 @@ k_bindwan() {
     return
   done
 }
-validate_interfaces() {
+function validate_interfaces() {
   local interfaces=("$@")
   for interface in "${interfaces[@]}"; do
     if ! [[ "$interface" =~ ^(eth|usb|wlan)(0?[0-9]|1[0-9]|20)$ ]]; then
@@ -595,7 +617,7 @@ validate_interfaces() {
   return 0
 }
  
-k_bindlan() {
+function k_bindlan() {
   local prompt_lan="请输入需要绑定的网卡名字(用空格分隔, eg: eth0 eth1): "
   local return_to_menu="q. 返回上级菜单(return)"
   local empty_input="输入不能为空！"
@@ -630,7 +652,7 @@ k_bindlan() {
   done
 }
 
-k_bindlanwan() {
+function k_bindlanwan() {
     EY " 1. 绑定LAN口(Bind LAN port network card) "
     EY " 2. 绑定WAN口(Bind WAN port network card)"
     EW " 0/q. 返回主菜单(return main menu) \n"
@@ -646,7 +668,7 @@ k_bindlanwan() {
     done
 }
     
-k_rebootpoweroff() {
+function k_rebootpoweroff() {
     EY " 1. 重启系统(Reboot) "
     EY " 2. 关闭系统(Shutdown)"
     EW " 0/q. 返回主菜单(return main menu) \n"
@@ -663,7 +685,7 @@ k_rebootpoweroff() {
 
 }
 
-otherpro() {
+function otherpro() {
     EY " 1. 停止家长控制(Stop Parentcontrol)"
     EY " 2. 装载全部网卡驱动(Load all network card drivers)"
     EY " 3. 装载 Docker 服务(Loading Docker Service)"
@@ -671,7 +693,11 @@ otherpro() {
     while :; do
         read -p " 输入功能编号(Enter the function number): " CHOOSEO
         case $CHOOSEO in
-            1) stop_parentcontrol ;;
+            1) stop_parentcontrol
+	        EY " 停卡家长控制插件成功!(Stop Parentcontrol completed!) \n"
+	        /etc/init.d/parentcontrol stop
+	        pwait
+	        . /etc/profiles  ;;
             2) k_kmodregdrv ;;
             3) k_kmodregdocker ;;
             0|Q|q) 
