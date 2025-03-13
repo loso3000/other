@@ -21,6 +21,9 @@ src/gz ezopwrt_packages https://downloads.immortalwrt.org/releases/24.10-SNAPSHO
 src/gz ezopwrt_routing https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/x86_64/routing
 src/gz ezopwrt_telephony https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/x86_64/telephony
 EOF
+else
+
+curl -fsSL  https://raw.githubusercontent.com/sirpdboy/other/master/patch/distfeeds2.conf > /etc/opkg/distfeeds.conf
 }
     DISTRIB_ARCH=$(cat /etc/openwrt_release | grep "DISTRIB_ARCH" | cut -d "'" -f 2)
     if [ "$DISTRIB_ARCH" = "x86_64" ]; then
