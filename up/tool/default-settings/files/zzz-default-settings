@@ -11,7 +11,6 @@ uci -q set luci.main.lang='auto'
 uci -q set luci.main.mediaurlbase='/luci-static/kucat'
 
 is_x86_64() {
-
     DISTRIB_ARCH=$(cat /etc/openwrt_release | grep "DISTRIB_ARCH" | cut -d "'" -f 2)
     if [ "$DISTRIB_ARCH" = "x86_64" ]; then
         return 0
@@ -29,41 +28,6 @@ is_vip() {
     fi
 }
 
- if is_x86_64; then
-curl -fsSL  https://raw.githubusercontent.com/sirpdboy/other/master/patch/distfeeds.conf > /etc/opkg/distfeeds.conf
-[ -f ./files/etc/opkg/distfeeds.conf ] || {
-cat <<-EOF > /etc/opkgdistfeeds.conf
-src/gz ezopwrt_core https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/targets/x86/64/packages
-src/gz ezopwrt_base https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/x86_64/base
-src/gz ezopwrt_luci https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/x86_64/luci
-src/gz ezopwrt_packages https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/x86_64/packages
-src/gz ezopwrt_routing https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/x86_64/routing
-src/gz ezopwrt_telephony https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/x86_64/telephony
-EOF
-}
-	if is_vip; then
-	        	echo "src/gz is_store https://istore.linkease.com/repo/all/store" >/etc/opkg/customfeeds.conf
-	fi
-else
-curl -fsSL  https://raw.githubusercontent.com/sirpdboy/other/master/patch/distfeeds2.conf > /etc/opkg/distfeeds.conf
-	if is_vip; then
-                echo "src/gz is_store https://istore.linkease.com/repo/all/store" >/etc/opkg/customfeeds.conf
-                local total_lines=$(opkg print-architecture | wc -l)
-                local architecture=""
-                local source="https://op.dllkids.xyz/packages/"
-                if [ "$total_lines" -eq 4 ]; then
-                     architecture=$(opkg print-architecture | awk 'NR==4{print $2}')
-                     echo "No.4 architecture info===="${architecture}
-                     echo "src/gz custom_dllkids "${source}${architecture} >>/etc/opkg/customfeeds.conf
-                elif [ "$total_lines" -eq 3 ]; then
-                     architecture=$(opkg print-architecture | awk 'NR==3{print $2}')
-                     echo "No.3 architecture info===="${architecture}
-                     echo "src/gz custom_dllkids "${source}${architecture} >>/etc/opkg/customfeeds.conf
-                else
-                      echo "未知的返回结果行数: $total_lines"
-                fi
-	fi
-fi
 # stop avahi cups
 # /etc/init.d/avahi-daemon disable  && /etc/init.d/avahi-daemon stop  
 debug=0
@@ -76,7 +40,6 @@ HWMODE50='11a'
 HWMODE24='11b'
 HTMODE50='VHT80'
 HTMODE24='HT20'
-# lan zone
 NETWORKID=lan
 local r="$1"
 uci -q delete wireless.default_${r}
@@ -155,6 +118,7 @@ sed -i '/option disabled/d' /etc/config/wireless  >/dev/null 2>&1
 sed -i '/set wireless.radio${devidx}.disabled/d' /lib/wifi/mac80211.sh   >/dev/null 2>&1
 wifi up
 
+#wifi net
 test $ver -lt 1 && {
     ver=1
     if [ `find /sys/class/net/ -name wlan* | wc -l` -gt 0 ]; then
@@ -169,13 +133,17 @@ test $ver -lt 1 && {
     uci -q set network.@device[0].ports="eth0"
     uci -q set network.wan.device="eth1"
     uci -q set network.wan6.device="eth1"
+    uci -q set network.lan.ipaddr='192.168.10.1'
     uci commit network
     setup_network $ifname
     sed -i '/lcp-echo/d' /etc/ppp/options
     echo "lcp-echo-failure 10" >>  /etc/ppp/options 
     echo "lcp-echo-interval 200" >>  /etc/ppp/options
+    /etc/init.d/network restart
 	[ x$debug = x1 ] && uci -q set base_config.@base[0].base$ver=$?;echo $ver
 }
+
+#ssh link
 test $ver -lt 2 && {
 frmware=`cat /etc/ezopenwrt_version | awk -F '-' '{printf $2}'`
 
@@ -353,12 +321,6 @@ rm -f /usr/lib/lua/luci/view/admin_status/index/upnp.htm
 [ x$debug = x1 ] && uci -q set base_config.@base[0].base$ver=$?;echo $ver
 }
 
-test $ver -lt 4 && {
-	ver=4
-	uci -q set ucitrack.@fstab[0].exec='/sbin/block mount'
-	uci commit ucitrack
-	[ x$debug = x1 ] && uci -q set base_config.@base[0].base$ver=$? ; echo $ver
-}
 sed -i '/coremark/d' /etc/crontabs/root
 ln -sf /sbin/ip /usr/bin/ip
 # Disable opkg signature check
@@ -366,13 +328,14 @@ sed -i 's/option check_signature/# option check_signature/g' /etc/opkg.conf
 new_DISTRIB_REVISION=`cat  /etc/ezopenwrt_version`
 sed -i '/DISTRIB_DESCRIPTION/d' /etc/openwrt_release
 sed -i '/DISTRIB_REVISION/d' /etc/openwrt_release
-echo "DISTRIB_DESCRIPTION='EzOpWrt "${new_DISTRIB_REVISION}"'" >> /etc/openwrt_release
+echo "DISTRIB_DESCRIPTION='"${new_DISTRIB_REVISION}"'" >> /etc/openwrt_release
 sed -i '/OPENWRT_RELEASE/d' /etc/os-release
-echo "OPENWRT_RELEASE='EzOpWrt "${new_DISTRIB_REVISION}"'" >> /etc/os-release
+echo "OPENWRT_RELEASE='"${new_DISTRIB_REVISION}"'" >> /etc/os-release
 sed -i 's/immortalwrt/openwrt/g' /etc/config/luci
 
-test $ver -lt 5 && {
-ver=5
+#tv
+test $ver -lt 4 && {
+ver=4
 HOSTNAME="samsungTV"
 TAG="googleDNS"
 MAC=""
@@ -393,6 +356,34 @@ EOF
 uci commit && cd /etc/init.d && \
 ./dnsmasq restart
 [ x$debug = x1 ] && uci -q set base_config.@base[0].base$ver=$? ; echo $ver
+}
+
+
+#distfeeds
+test $ver -lt 5 && { 
+ver=5
+
+echo "src/gz is_store https://istore.linkease.com/repo/all/store" >/etc/opkg/customfeeds.conf
+if is_x86_64; then
+cat <<-EOF > /etc/opkg/distfeeds.conf
+src/gz ezopwrt_core https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/targets/x86/64/packages
+src/gz ezopwrt_base https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/x86_64/base
+src/gz ezopwrt_luci https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/x86_64/luci
+src/gz ezopwrt_packages https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/x86_64/packages
+src/gz ezopwrt_routing https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/x86_64/routing
+src/gz ezopwrt_telephony https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/x86_64/telephony
+EOF
+else
+cat <<-EOF > /etc/opkg/distfeeds.conf
+src/gz ezopwrt_core https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/targets/rockchip/armv8/packages
+src/gz ezopwrt_base https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/aarch64_generic/base
+src/gz ezopwrt_luci https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/aarch64_generic/luci
+src/gz ezopwrt_packages https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/aarch64_generic/packages
+src/gz ezopwrt_routing https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/aarch64_generic/routing
+src/gz ezopwrt_telephony https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/aarch64_generic/telephony
+EOF
+
+fi
 }
 uci -q set base_config.@base[0].ver=$ver
 uci commit base_config
