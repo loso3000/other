@@ -14,7 +14,7 @@ PKG_LICENSE:=Apache-2.0
 PKG_MAINTAINER:=Sirpdboy <herboy2008@gmail.com>
 
 LUCI_TITLE:=LuCI Support for Automatic Partition Mount
-LUCI_DEPENDS:=+fdisk +block-mount +bc +lsblk +parted 
+LUCI_DEPENDS:=+fdisk +bc
 LUCI_PKGARCH:=all
 
 
