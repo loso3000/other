@@ -2,6 +2,9 @@
 ver=$(uci -q get base_config.@base[0].ver 2>/dev/null)
 test -n "$ver" || {
 touch /etc/config/base_config
+
+[ `mount | grep /boot |wc -l` -gt 1 ] && umount /boot
+
 uci add base_config base >/dev/null 2>&1
 ver=0
 }
