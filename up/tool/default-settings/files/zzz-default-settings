@@ -11,6 +11,17 @@ uci -q set luci.main.lang='auto'
 uci -q set luci.main.mediaurlbase='/luci-static/kucat'
 
 is_x86_64() {
+curl -fsSL  https://raw.githubusercontent.com/sirpdboy/other/master/patch/distfeeds.conf > /etc/opkg/distfeeds.conf
+[ -f ./files/etc/opkg/distfeeds.conf ] || {
+cat <<-EOF > /etc/opkgdistfeeds.conf
+src/gz ezopwrt_core https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/targets/x86/64/packages
+src/gz ezopwrt_base https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/x86_64/base
+src/gz ezopwrt_luci https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/x86_64/luci
+src/gz ezopwrt_packages https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/x86_64/packages
+src/gz ezopwrt_routing https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/x86_64/routing
+src/gz ezopwrt_telephony https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/x86_64/telephony
+EOF
+}
     DISTRIB_ARCH=$(cat /etc/openwrt_release | grep "DISTRIB_ARCH" | cut -d "'" -f 2)
     if [ "$DISTRIB_ARCH" = "x86_64" ]; then
         return 0
