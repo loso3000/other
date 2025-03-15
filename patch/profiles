@@ -688,7 +688,7 @@ function k_rebootpoweroff() {
 }
 
 function otherpro() {
-    EY " 1. 停止家长控制(Stop Parentcontrol)"
+    EY " 1. 停止家长控制/时间控制(Stop Parentcontrol/Timecontrol)"
     EY " 2. 装载全部网卡驱动(Load all network card drivers)"
     EY " 3. 装载 Docker 服务(Loading Docker Service)"
     EW " 0/q. 返回主菜单(return main menu) \n"
@@ -697,6 +697,8 @@ function otherpro() {
         case $CHOOSEO in
             1) 
 	        EY " 停卡家长控制插件成功!(Stop Parentcontrol completed!) \n"
+		
+	        /etc/init.d/timecontrol stop    2 > /dev/null 2>&1 
 	        /etc/init.d/parentcontrol stop    2 > /dev/null 2>&1 
 	        pwait
 	        . /etc/profiles  ;;
