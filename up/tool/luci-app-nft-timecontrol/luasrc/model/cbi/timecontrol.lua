@@ -34,6 +34,11 @@ e:value("blacklist", translate("blacklist"))
 e:value("whitelist", translate("whitelist"))
 e.default = "blacklist"
 
+e = t:option(ListValue, "chain",translate("Control intensity"), translate("Pay attention to strong control: machines under control will not be able to connect to the software router backend!"))
+e.rmempty = false
+e:value("forward", "Ordinary forwarding control")
+e:value("input", "Strong inbound control")
+e.default = "forward"
 
 t = a:section(TypedSection, "device")
 t.template = "cbi/tblsection"

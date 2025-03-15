@@ -85,4 +85,18 @@ msgstr "工作日"
 msgid "Automatic settings"
 msgstr "自动设置"
 
+msgid "Ordinary forwarding control"
+msgstr "普通转发管控"
+
+msgid "Strong inbound control"
+msgstr "强力入站管控"
+
+msgid "Control intensity"
+msgstr "管控强度"
+
+msgid "Pay attention to strong control: machines under control will not be able to connect to the software router backend!"
+msgstr "注意强力管控：被管控的机器将无法连接上软路由后台！"
+
+
+
 
