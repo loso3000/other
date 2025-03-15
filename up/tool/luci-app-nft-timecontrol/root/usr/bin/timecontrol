@@ -21,7 +21,7 @@ else
 fi
 CHAIN=$(uci -q get $NAME.@$NAME[0].chain)
 bin_nft=$(which nft)
-DEBUG=1
+DEBUG=0
 
 dbg_nft() {
     [ "${DEBUG:-0}" -eq 0 ] || echo "DEBUG: nft $*"
