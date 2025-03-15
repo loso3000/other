@@ -7,20 +7,8 @@ msgstr "时间控制"
 msgid "Internet time control"
 msgstr "上网时间控制"
 
-msgid "Running state"
-msgstr "运行状态"
-
 msgid "Enabled"
 msgstr "启用"
-
-msgid "Client Settings"
-msgstr "客户端设置"
-
-msgid "No Internet start time"
-msgstr "禁止上网开始时间"
-
-msgid "No Internet end time"
-msgstr "取消禁止上网时间"
 
 msgid "Monday"
 msgstr "周一"
@@ -49,8 +37,8 @@ msgstr "未运行"
 msgid "Running"
 msgstr "运行中"
 
-msgid "Users can limit their internet usage time through MAC and IP."
-msgstr "可以通过MAC，IP限制用户上网时间。"
+msgid "Users can limit their internet usage time through MAC and IP, with available IP ranges such as 192.168.110.00 to 192.168.10.200"
+msgstr "可以通过MAC，IP限制用户上网时间，可用IP范围如：192.168.10.100-192.168.10.200"
 
 msgid "MAC/IP"
 msgstr "MAC/IP"
@@ -88,12 +76,13 @@ msgstr "黑名单模式"
 msgid "whitelist"
 msgstr "白名单模式"
 
-msgid ""
-msgstr ""
+msgid "Rest Day"
+msgstr "休息日"
 
-msgid ""
-msgstr ""
+msgid "Workday"
+msgstr "工作日"
 
-msgid ""
-msgstr ""
+msgid "Automatic settings"
+msgstr "自动设置"
+
 

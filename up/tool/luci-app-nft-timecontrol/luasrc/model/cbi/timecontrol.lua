@@ -7,7 +7,7 @@ local ipc = require "luci.ip"
 local a, t, e
 
 a = Map("timecontrol", translate("Internet time control"))
-a.description = translate("Users can limit their internet usage time through MAC and IP.")..translate("Suggested feedback:")..translate("<a href=\'https://github.com/sirpdboy/luci-app-timecontrol.git' target=\'_blank\'>GitHub @sirpdboy/luci-app-timecontrol </a>")
+a.description = translate("Users can limit their internet usage time through MAC and IP, with available IP ranges such as 192.168.110.00 to 192.168.10.200")..translate("Suggested feedback:")..translate("<a href=\'https://github.com/sirpdboy/luci-app-timecontrol.git' target=\'_blank\'>GitHub @sirpdboy/luci-app-timecontrol </a>")
 a.template = "timecontrol/index"
 
 t = a:section(TypedSection, "timecontrol")
@@ -30,8 +30,8 @@ for _, v in pairs(ifaces) do
 end
 e = t:option(ListValue, "list_type",translate("Control mode"), translate("blacklist:Block the networking of the target address,whitelist:Only allow networking for the target address and block all other addresses."))
 e.rmempty = false
-e:value("blacklist", "Block the networking of the target address.")
-e:value("whitelist", "Only allow networking for the target address and block all other addresses.")
+e:value("blacklist", translate("blacklist"))
+e:value("whitelist", translate("whitelist"))
 e.default = "blacklist"
 
 
