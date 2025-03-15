@@ -1,0 +1,183 @@
+#!/bin/bash
+
+# Copyright (C) 2006 OpenWrt.org
+# Copyright 2022-2025 sirpdboy <herboy2008@gmail.com>
+
+crrun=$1
+crid=$2
+NAME=timecontrol
+IDLIST="/var/$NAME.idlist"
+TMPID="/var/$NAME.tmpid"
+dev=br-lan
+list_type=$(uci get $NAME.@$NAME[0].list_type)
+if [ x$(uci get $NAME.@$NAME[0].ifname) = 'x1' ] ;then
+    ifname=$(uci -q get network.lan.ifname)
+    [ -z "$ifname" ] && ifname="device" || ifname="ifname"
+    # dev=$(uci -q get network.wan.$ifname)
+    [ -z "$dev" ] && dev=br-lan
+     dev=br-lan
+else
+    dev=$(uci -q get $NAME.@$NAME[0].ifname)
+fi
+
+bin_nft=$(which nft)
+DEBUG=1
+
+dbg_nft() {
+    [ "${DEBUG:-0}" -eq 0 ] || echo "DEBUG: nft $*"
+    $bin_nft "$@"
+}
+
+get_target_info() {
+    local target=$1
+
+    if echo "$target" | grep -qE '^([0-9]{1,3}\.){3}[0-9]{1,3}$'; then
+        table="ip"
+        addr_type="ipv4_addr"
+        saddr="ip saddr"
+        daddr="ip daddr"
+    elif echo "$target" | grep -qE '^([0-9]{1,3}\.){3}[0-9]{1,3}-([0-9]{1,3}\.){3}[0-9]{1,3}$'; then
+        table="ip"
+        addr_type="ipv4_addr"
+        saddr="ip saddr"
+        daddr="ip daddr"
+        target="{ $target }" 
+    elif echo "$target" | grep -qE '^([0-9]{1,3}\.){3}[0-9]{1,3}/[0-9]{1,2}$'; then
+        table="ip"
+        addr_type="ipv4_addr"
+        saddr="ip saddr"
+        daddr="ip daddr"
+    elif echo "$target" | grep -qE '^([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}$'; then
+        table="bridge"
+        addr_type="ether_addr"
+        saddr="ether saddr"
+        daddr="ether daddr"
+    elif echo "$target" | grep -qE '^([0-9a-fA-F]{0,4}:){2,7}[0-9a-fA-F]{0,4}$'; then
+        table="ip6"
+        addr_type="ipv6_addr"
+        saddr="ip6 saddr"
+        daddr="ip6 daddr"
+    else
+        echo "Invalid target format: $target. Skipping."
+        return 1
+    fi
+
+    echo "$table $addr_type $saddr $daddr $target"
+}
+
+stop_timecontrol() {
+    dbg_nft flush ruleset
+    echo "All nftables rules have been cleared."
+    /etc/init.d/firewall restart
+    echo "Firewall has been restarted."
+}
+
+init_timecontrol() {
+    dbg_nft add table ip filter 2>/dev/null
+    dbg_nft add table ip6 filter 2>/dev/null
+    dbg_nft add table bridge filter 2>/dev/null
+}
+
+timedel() {
+    local id=$1
+    local target_info=$(get_target_info "$(uci -q get $NAME.@device[$id].mac)")
+    if [ $? -eq 0 ]; then
+        read -r table addr_type saddr daddr target <<< "$target_info"
+	nft add set "$table" filter "${list_type}_list" { type "$addr_type" \; } 2>/dev/null
+        dbg_nft delete element "$table" filter blacklist_list "$target" 2>/dev/null
+        dbg_nft delete element "$table" filter whitelist_list "$target" 2>/dev/null
+        [ "${DEBUG:-0}" -eq 0 ] || echo "D: timedel $@  --target:$target --table:$table --list_type:$list_type"
+    fi
+}
+
+timeadd() {
+    local id=$1
+    local target_info=$(get_target_info "$(uci -q get $NAME.@device[$id].mac)")
+    if [ $? -eq 0 ]; then
+        read -r table addr_type saddr daddr target <<< "$target_info"
+        dbg_nft add set "$table" filter "${list_type}_list" { type "$addr_type" \; } 2>/dev/null
+        dbg_nft add element "$table" filter "${list_type}_list" "$target"
+
+        if [ "$list_type" = "blacklist" ]; then
+            dbg_nft add chain "$table" filter input 2>/dev/null
+            dbg_nft add rule "$table" filter input "$saddr" @${list_type}_list drop
+            dbg_nft add rule "$table" filter input "$daddr" @${list_type}_list drop
+            echo "Added $target to $list_type. Traffic to/from $target is now blocked."
+        elif [ "$list_type" = "whitelist" ]; then
+            dbg_nft add chain "$table" filter input { type filter hook input priority 0 \; policy drop \; }
+            dbg_nft add rule "$table" filter input "$saddr" @${list_type}_list accept
+            dbg_nft add rule "$table" filter input "$daddr" @${list_type}_list accept
+            echo "Added $target to $list_type. Only traffic to/from $target is allowed."
+        else
+            echo "Invalid list type: $list_type. Skipping."
+        fi
+        [ "${DEBUG:-0}" -eq 0 ] || echo "D: timeadd $@  --target:$target --table:$table --addr_type:$addr_type  --daddr:$daddr --list_type:$list_type"
+    fi
+}
+
+check_list() {
+ local i=$1
+    local checkid='0'
+    local start_time=$(uci -q get $NAME.@device[$i].timestart 2>/dev/null)
+    local end_time=$(uci -q get $NAME.@device[$i].timeend 2>/dev/null)
+    local wweek=$(uci -q get $NAME.@device[$i].week)
+    local current_time=$(date +%H:%M)
+    local current_weekday=$(date +%u)
+
+    if [ "$start_time" != "$end_time" ]; then
+        if [[ "$start_time" < "$end_time" ]]; then
+            [[ "$current_time" > "$start_time" ]] && [[ "$current_time" < "$end_time" ]] || return 1
+        else
+            [[ "$current_time" < "$start_time" ]] && [[ "$current_time" > "$end_time" ]] || return 1
+        fi
+    fi
+
+    for ww in $(echo "$wweek" | sed 's/,/ /g'); do
+        if [ "$current_weekday" = "$ww" ] || [ "$ww" = "0" ]; then
+            checkid='1'
+            break
+        fi
+    done
+
+    [ "$checkid" = '1' ] && return 0 || return 1
+
+}
+
+case "$crrun" in
+    "stop")
+        stop_timecontrol
+        echo "" > "$IDLIST"
+        ;;
+    "start")
+        idlist=$(uci show $NAME | grep "enable='1'" | grep "device" | grep -oE '\[.*?\]' | grep -o '[0-9]' | sed -e 's/^/!/g' -e 's/$/!/g' > "$IDLIST"; cat "$IDLIST" | sed -e 's/!//g')
+        init_timecontrol
+        for list in $(echo "$idlist" | sed -e 's/!//g'); do
+            if check_list "$list"; then
+                timeadd "$list"
+            else
+                if grep -q "!${list}!" "$IDLIST"; then
+                    timedel "$list"
+                    sed -i "/!$list!/d" "$IDLIST" >/dev/null 2>&1
+                fi
+            fi
+        done
+        ;;
+    "add")
+        for list in $(echo "$crid" | sed -e 's/!//g' | sed 's/,/ /g'); do
+            if check_list "$list"; then
+                timeadd "$list"
+            else
+                if grep -q "!${list}!" "$IDLIST"; then
+                    timedel "$list"
+                    sed -i "/!$list!/d" "$IDLIST" >/dev/null 2>&1
+                fi
+            fi
+        done
+        ;;
+    "del")
+		for list in `echo $crid | sed -e 's/!//g' | sed 's/,/ /g' ` ;do timedel $list; done
+        ;;
+    *)
+        echo "Invalid command: $crrun"
+        ;;
+esac
