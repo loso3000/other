@@ -17,17 +17,6 @@ e = t:option(DummyValue, "timecontrol_status", translate("Status"))
 e.template = "timecontrol/timecontrol"
 e.value = translate("Collecting data...")
 
-
-ipi = t:option(ListValue, "ifname", translate("Interface"), translate("Set the interface used for restriction, use pppoe-wan for dialing, use WAN hardware interface for DHCP mode (such as eth1), and use br-lan for bypass mode"))
-ipi.default = "1"
-ipi:value(1,translate("Automatic settings"))
-ipi.rmempty = false
-for _, v in pairs(ifaces) do
-	net = WADM.iface_get_network(v)
-	if net and net ~= "loopback" then
-		ipi:value(v)
-	end
-end
 e = t:option(ListValue, "list_type",translate("Control mode"), translate("blacklist:Block the networking of the target address,whitelist:Only allow networking for the target address and block all other addresses."))
 e.rmempty = false
 e:value("blacklist", translate("blacklist"))
@@ -36,8 +25,8 @@ e.default = "blacklist"
 
 e = t:option(ListValue, "chain",translate("Control intensity"), translate("Pay attention to strong control: machines under control will not be able to connect to the software router backend!"))
 e.rmempty = false
-e:value("forward", "Ordinary forwarding control")
-e:value("input", "Strong inbound control")
+e:value("forward", translate("Ordinary forwarding control"))
+e:value("input", translate("Strong inbound control"))
 e.default = "forward"
 
 t = a:section(TypedSection, "device")

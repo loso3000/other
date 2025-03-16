@@ -6,25 +6,35 @@
 crrun=$1
 crid=$2
 NAME=timecontrol
-IDLIST="/var/$NAME.idlist"
-TMPID="/var/$NAME.tmpid"
-dev=br-lan
-list_type=$(uci get $NAME.@$NAME[0].list_type)
-if [ x$(uci get $NAME.@$NAME[0].ifname) = 'x1' ] ;then
-    ifname=$(uci -q get network.lan.ifname)
-    [ -z "$ifname" ] && ifname="device" || ifname="ifname"
-    # dev=$(uci -q get network.wan.$ifname)
-    [ -z "$dev" ] && dev=br-lan
-     dev=br-lan
-else
-    dev=$(uci -q get $NAME.@$NAME[0].ifname)
-fi
-CHAIN=$(uci -q get $NAME.@$NAME[0].chain)
-bin_nft=$(which nft)
-DEBUG=0
+
+echolog() {
+	local d="$(date "+%Y-%m-%d %H:%M:%S")"
+	echo -e "$d: $*" >>$LOG_FILE
+}
+
+config_get_type() {
+	local ret=$(uci -q get "${NAME}.${1}" 2>/dev/null)
+	echo "${ret:=$2}"
+}
+
+config_n_get() {
+	local ret=$(uci -q get "${NAME}.${1}.${2}" 2>/dev/null)
+	echo "${ret:=$3}"
+}
+
+config_t_get() {
+	local index=${4:-0}
+	local ret=$(uci -q get "${NAME}.@${1}[${index}].${2}" 2>/dev/null)
+	echo "${ret:=${3}}"
+}
+
+config_t_set() {
+	local index=${4:-0}
+	local ret=$(uci -q set "${NAME}.@${1}[${index}].${2}=${3}" 2>/dev/null)
+}
 
 dbg_nft() {
-    [ "${DEBUG:-0}" -eq 0 ] || echo "DEBUG: nft $*"
+    [ "${DEBUG:-0}" -eq 0 ] || echolog "DEBUG: nft $*"
     $bin_nft "$@"
 }
 
@@ -55,64 +65,52 @@ get_target_info() {
 }
 
 stop_timecontrol() {
-    nft delete set ip filter blacklist_list  2>/dev/null
-    nft delete set ip6 filter blacklist_list 2>/dev/null
-    nft delete set bridge filter blacklist_list 2>/dev/null
-    nft delete set ip filter blacklist_list 2>/dev/null
-    nft delete set ip6 filter blacklist_list 2>/dev/null
-    nft delete set bridge filter blacklist_list 2>/dev/null
-    nft delete table ip filter 2>/dev/null
-    nft delete table ip6 filter 2>/dev/null
-    nft delete table bridge filter 2>/dev/null
+    for chain in "ip" "bridge" "ip6" ; do
+ 	dbg_nft delete set $chain filter blacklist_list  2>/dev/null 
+ 	dbg_nft delete set $chain filter whitelist_list  2>/dev/null 
+ 	dbg_nft delete set $chain filter blacklist_list 2>/dev/null
+ 	dbg_nft delete set $chain filter whitelist_list 2>/dev/null
+ 	dbg_nft delete table $chain filter 2>/dev/null
+    done
     dbg_nft flush ruleset
-    echo "All nftables rules have been cleared."
+    echolog "All nftables rules have been cleared."
     /etc/init.d/firewall restart
-    echo "Firewall has been restarted."
+    echolog "Firewall has been restarted."
 }
 
 init_timecontrol() {
-dbg_nft  add table ip filter 2>/dev/null
-dbg_nft  add table ip6 filter 2>/dev/null
-dbg_nft  add table bridge filter 2>/dev/null
+     for chain in "ip" "bridge" "ip6" ; do
+	 case $chain in
+  	  ip)
+  	      addr_type="ipv4_addr"
+  	      ;;
+  	  ip6)
+  	      addr_type="ipv6_addr"
+  	      ;;
+    	bridge)
+        	addr_type="ether_addr"
+        	;;
+	esac
+	dbg_nft  add table $chain filter 2>/dev/null
+ 	dbg_nft  add set $chain filter ${list_type}_list { type $addr_type \; } 2>/dev/null
+     done
 
-dbg_nft  add set ip filter blacklist_list { type ipv4_addr \; } 2>/dev/null
-dbg_nft  add set ip filter whitelist_list { type ipv4_addr \; } 2>/dev/null
-dbg_nft  add set bridge filter blacklist_list { type ether_addr \; } 2>/dev/null
-dbg_nft  add set bridge filter whitelist_list { type ether_addr \; } 2>/dev/null
+
 }
 
 timedel() {
     local id=$1
-    local target_info=$(get_target_info "$(uci -q get $NAME.@device[$id].mac)")
+    local target_info=$(get_target_info "$(config_t_get device mac )")
     if [ $? -eq 0 ]; then
         read -r table addr_type target <<< "$target_info"
-	case $table in
-  	  ip)
-  	      saddr="ip saddr"
-  	      daddr="ip daddr"
-  	      ;;
-  	  ip6)
-  	      saddr="ip6 saddr"
-        	daddr="ip6 daddr"
-        	;;
-    	bridge)
-        	saddr="ether saddr"
-        	daddr="ether daddr"
-        	;;
-    	*)
-        	;;
-	esac
-        [ "${DEBUG:-0}" -eq 0 ] || echo "D: timedel --target:$target --table:$table --list_type:$list_type"
-	# nft add set "$table" filter "${list_type}_list" { type "$addr_type" \; } 2>/dev/null
-        #dbg_nft delete element "$table" filter blacklist_list { "$target" } 2>/dev/null
+        [ "${DEBUG:-0}" -eq 0 ] || echo "D: timedel $@  --target:$target --table:$table --list_type:$list_type"
         dbg_nft delete element "$table" filter "${list_type}_list" { "$target" } 2>/dev/null
-        [ "${DEBUG:-0}" -eq 0 ] || echo "D: timedel  --target:$target --table:$table --list_type:$list_type"
     fi
 }
 
 timeadd() {
     local id=$1
-    local target_info=$(get_target_info "$(uci -q get $NAME.@device[$id].mac)")
+    local target_info=$(get_target_info "$(config_t_get device mac)")
 
     if [ $? -eq 0 ]; then
         read -r table addr_type target <<< "$target_info"
@@ -132,9 +130,8 @@ timeadd() {
     	*)
         	;;
 	esac
-	[ "${DEBUG:-0}" -eq 0 ] || echo "D: timeadd --target:$target --table:$table --addr_type:$addr_type  --daddr:$daddr --list_type:$list_type"
+        [ "${DEBUG:-0}" -eq 0 ] || echo "D: timeadd $@  --target:$target --table:$table --addr_type:$addr_type  --daddr:$daddr --list_type:$list_type"
 
-        dbg_nft add set $table filter "${list_type}_list" { type "$addr_type" \; } 2>/dev/null
 	dbg_nft add element "$table" filter "${list_type}_list" { "$target" }
 
         if [ "$list_type" = "blacklist" ]; then
@@ -142,25 +139,24 @@ timeadd() {
             dbg_nft add rule "$table" filter $CHAIN "$daddr" @${list_type}_list drop
             dbg_nft add rule "$table" filter $CHAIN "$saddr" @${list_type}_list drop
  
-            echo "Added $target to $list_type. Traffic to/from $target is now blocked."
+            echolog "Added $target to $list_type. Traffic to/from $target is now blocked."
         elif [ "$list_type" = "whitelist" ]; then
             dbg_nft add chain "$table" filter $CHAIN { type filter hook $CHAIN priority -100 \; policy drop \; }
             dbg_nft add rule "$table" filter $CHAIN "$daddr" @${list_type}_list accept
             dbg_nft add rule "$table" filter $CHAIN "$saddr" @${list_type}_list accept
-            echo "Added $target to $list_type. Only traffic to/from $target is allowed."
+            echolog "Added $target to $list_type. Only traffic to/from $target is allowed."
         else
-            echo "Invalid list type: $list_type. Skipping."
+            echolog "Invalid list type: $list_type. Skipping."
         fi
-        [ "${DEBUG:-0}" -eq 0 ] || echo "D: timeadd $@  --target:$target --table:$table --addr_type:$addr_type  --daddr:$daddr --list_type:$list_type"
     fi
 }
 
 check_list() {
  local i=$1
     local checkid='0'
-    local start_time=$(uci -q get $NAME.@device[$i].timestart 2>/dev/null)
-    local end_time=$(uci -q get $NAME.@device[$i].timeend 2>/dev/null)
-    local wweek=$(uci -q get $NAME.@device[$i].week)
+    local start_time=$(config_t_get device timestart 2>/dev/null)
+    local end_time=$(config_t_get device timeend 2>/dev/null)
+    local wweek=$(config_t_get device week)
     local current_time=$(date +%H:%M)
     local current_weekday=$(date +%u)
 
@@ -183,6 +179,14 @@ check_list() {
 
 }
 
+IDLIST="/var/$NAME.idlist"
+TMPID="/var/$NAME.tmpid"
+LOG_FILE="/var/log/$NAME.log"
+list_type=$(config_t_get $NAME list_type  )
+CHAIN=$( config_t_get $NAME chain )
+bin_nft=$(which nft)
+DEBUG=0
+
 case "$crrun" in
     "stop")
         stop_timecontrol
@@ -194,11 +198,8 @@ case "$crrun" in
         for list in $(echo "$idlist" | sed -e 's/!//g'); do
             if check_list "$list"; then
                 timeadd "$list"
-		cat $IDLIST
             else
                 if grep -q "!${list}!" "$IDLIST"; then
-		
-		cat $IDLIST
                     timedel "$list"
                     sed -i "/!$list!/d" "$IDLIST" >/dev/null 2>&1
                 fi
@@ -221,6 +222,6 @@ case "$crrun" in
 		for list in `echo $crid | sed -e 's/!//g' | sed 's/,/ /g' ` ;do timedel $list; done
         ;;
     *)
-        echo "Invalid command: $crrun"
+        echolog "Invalid command: $crrun"
         ;;
 esac
