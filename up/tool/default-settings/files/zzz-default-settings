@@ -133,11 +133,14 @@ test $ver -lt 1 && {
     uci -q set network.@device[0].ports="eth0"
     uci -q set network.wan.device="eth1"
     uci -q set network.wan6.device="eth1"
+    uci -q set network.lan.proto='static'
     uci -q set network.lan.ipaddr='192.168.10.1'
     uci del dhcp.lan.ignore
+    uci del dhcp.lan.dynamicdhcp
+    uci -q set dhcp.lan.force='1'
+    uci -q set dhcp.@dnsmasq[0].authoritative='1'
     uci del dhcp.lan.ra_slaac
     uci del network.lan.delegate
-    uci set network.lan.proto='static'
     uci commit network
     setup_network $ifname
     sed -i '/lcp-echo/d' /etc/ppp/options
