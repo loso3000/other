@@ -103,7 +103,7 @@ timedel() {
     local target_info=$(get_target_info "$(config_t_get device mac )")
     if [ $? -eq 0 ]; then
         read -r table addr_type target <<< "$target_info"
-        [ "${DEBUG:-0}" -eq 0 ] || echo "D: timedel $@  --target:$target --table:$table --list_type:$list_type"
+
         dbg_nft delete element "$table" filter "${list_type}_list" { "$target" } 2>/dev/null
     fi
 }
@@ -130,8 +130,6 @@ timeadd() {
     	*)
         	;;
 	esac
-        [ "${DEBUG:-0}" -eq 0 ] || echo "D: timeadd $@  --target:$target --table:$table --addr_type:$addr_type  --daddr:$daddr --list_type:$list_type"
-
 	dbg_nft add element "$table" filter "${list_type}_list" { "$target" }
 
         if [ "$list_type" = "blacklist" ]; then
