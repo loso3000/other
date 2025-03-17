@@ -51,6 +51,9 @@ return baseclass.extend({
         });
 
         onlineuserlist.forEach(function(info) {
+            if (!info.ipaddr && !info.macaddr) {
+   	        return;
+            }
             var row = E('tr', { 'class': 'tr' }, [
                 E('td', { 'class': 'td left' }, info.hostname),
                 E('td', { 'class': 'td left' }, info.ipaddr),
