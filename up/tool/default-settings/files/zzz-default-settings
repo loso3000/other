@@ -243,10 +243,11 @@ set dhcp.lan.ra_management='1'
 set dhcp.lan.ra_default='1'
 set dhcp.lan.force='1'
 set network.lan.delegate='0'
-set network.wan.mtu=1420
-set network.wan.metric='40'
-set network.wan.delegate='0'
-set network.wan.ipv6='0'
+set network.lan.proto='static'
+del dhcp.lan.ignore
+del dhcp.lan.dynamicdhcp
+set dhcp.lan.force='1'
+delete network.wan
 delete network.wan6
 set turboacc.config.sw_flow='0'
 EOF
@@ -361,6 +362,7 @@ EOF
 
 uci commit && cd /etc/init.d && \
 ./dnsmasq restart
+
 [ x$debug = x1 ] && uci -q set base_config.@base[0].base$ver=$? ; echo $ver
 }
 
@@ -411,6 +413,21 @@ if [ -f /etc/config/dockerd ] && [ $(grep -c daocloud.io /etc/config/dockerd) -e
     uci commit dockerd
 fi
 
+if [ -f /etc/config/nginx ] ;then
+uci set nginx.global.uci_enable='true'
+uci del nginx._lan
+uci del nginx._redirect2ssl
+uci add nginx server
+uci rename nginx.@server[0]='_lan'
+uci set nginx._lan.server_name='_lan'
+uci add_list nginx._lan.listen='80 default_server'
+uci add_list nginx._lan.listen='[::]:80 default_server'
+#uci add_list nginx._lan.include='restrict_locally'
+uci add_list nginx._lan.include='conf.d/*.locations'
+uci set nginx._lan.access_log='off; # logd openwrt'
+uci commit nginx
+service nginx restart
+fi
 }
 uci -q set base_config.@base[0].ver=$ver
 uci commit base_config
