@@ -39,8 +39,8 @@ EOF
             ;;
         1)
             uci batch <<EOF
-                set dhcp.lan.ra='server'
-                set dhcp.lan.dhcpv6='server'
+                set dhcp.lan.ra='hybrid'
+                set dhcp.lan.dhcpv6='hybrid'
                 delete dhcp.@dnsmasq[0].filter_aaaa
                 set dhcp.lan.ndp='relay'
                 set dhcp.lan.ra_management='1'
@@ -66,22 +66,30 @@ EOF
                 delete network.wan6.reqaddress='try'
                 set network.wan6.reqprefix='auto'
                 set firewall.@defaults[0].disable_ipv6='0'
+                set dhcp.wan6.master='1'
+                set dhcp.wan6.ra='relay'
+                set dhcp.wan6.dhcpv6='relay'
+                set dhcp.wan6.ndp='relay'
 EOF
             ;;
         2)
             uci batch <<EOF
                 set dhcp.lan.ra='relay'
-                set dhcp.lan.dhcpv6='relay'
+                set dhcp.lan.dhcpv6='hybrid'
                 set dhcp.lan.ndp='relay'
                 delete dhcp.@dnsmasq[0].filter_aaaa
-                set dhcp.lan.ndp=''
                 set dhcp.lan.ra_management='1'
                 set dhcp.lan.ra_default='1'
                 set dhcp.lan.force='1'
                 set dhcp.lan.ra_slaac='1'
-                set network.lan.delegate='0'
+                del network.lan.delegate
                 set network.lan.ip6assign='64'
-                set dhcp.lan.master='1'
+                set network.lan6.extendprefix='1'
+                set network.lan.ip6ifaceid='eui64'
+                set dhcp.lan6.master='1'
+                set dhcp.lan6.ra='relay'
+                set dhcp.lan6.dhcpv6='relay'
+                set dhcp.lan6.ndp='relay'
 EOF
             ;;
         3)
@@ -226,7 +234,7 @@ configure_network() {
         pppoe)
             config_get wan_pppoe_user "$cfg" wan_pppoe_user
             config_get wan_pppoe_pass "$cfg" wan_pppoe_pass
-            [ "x$ipv6" = "x1" ] && setipv6 3 || setipv6 0
+            [ "x$ipv6" = "x1" ] && setipv6 1 || setipv6 0
             [[ "${wan_pppoe_user} != $(uci get network.wan.username)" || "${wan_pppoe_pass} != $(uci get network.wan.password)" ]] && {
                 $UCISET network.wan.proto='pppoe'
                 $UCISET network.wan.username="${wan_pppoe_user}"
@@ -261,12 +269,13 @@ configure_network() {
             uci add_list firewall.@zone[0].network='lan'
             [ `uci show network | grep utun | wc -l` -gt 1 ] && uci add_list firewall.@zone[0].network='utun'
             [ "x$ipv6" = "x1" ] && {
-                setipv6 3
                 $UCISET network.lan6=interface
                 $UCISET network.lan6.proto='dhcpv6'
                 $UCISET network.lan6.delegate='1'
                 $UCISET network.lan6.$ifname="@lan"
+                setipv6 2
                 uci -q add_list firewall.@zone[0].network='lan6'
+		
             } || {
                 setipv6 0
             }
