@@ -12,7 +12,7 @@ boot() {
 setipv6() {
     local mode=$1
     case $mode in
-        0)
+        0) #no
             uci batch <<EOF
                 delete network.wan6
                 set dhcp.lan.ra=''
@@ -36,7 +36,7 @@ setipv6() {
                 set firewall.@defaults[0].disable_ipv6='1'
 EOF
             ;;
-        1)
+        1) #pppoe
             uci batch <<EOF
                 set dhcp.lan.ra='hybrid'
                 set dhcp.lan.dhcpv6='hybrid'
@@ -71,11 +71,12 @@ EOF
                 set dhcp.wan6.ndp='relay'
 EOF
             ;;
-        2)
+        2) #siderouter
             uci batch <<EOF
-                set dhcp.lan.ra='relay'
-                set dhcp.lan.dhcpv6='hybrid'
-                set dhcp.lan.ndp='relay'
+
+                set dhcp.lan.ra=''
+                set dhcp.lan.dhcpv6=''
+                set dhcp.lan.ndp=''
                 delete dhcp.@dnsmasq[0].filter_aaaa
                 set dhcp.lan.ra_management='1'
                 set dhcp.lan.ra_default='1'
@@ -91,7 +92,7 @@ EOF
                 set dhcp.lan6.ndp='relay'
 EOF
             ;;
-        3)
+        3) #dhcp
             uci batch <<EOF
                 set dhcp.lan.ra='hybrid'
                 set dhcp.lan.dhcpv6='hybrid'
