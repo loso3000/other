@@ -465,7 +465,7 @@ autopart() {
 
     		log  "定位到操作目标设备分区:/dev/$DISK$NEXTPART"
 		case "$DISK" in
-		vd*|sd*) fdiskB $DISK $NEXTPART;;
+		vd*) fdiskB $DISK $NEXTPART;;
 
 		sd*) fdiskB $DISK $NEXTPART;;
 		nvme*)  fdiskB $DISK p$NEXTPART;;

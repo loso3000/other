@@ -41,8 +41,6 @@ t.anonymous=true
 
 e=t:option(ListValue,"target_function", translate("Select function"),translate("Select the function to be performed"))
 e:value("/overlay", translate("Expand application space overlay (/overlay)"))
--- e:value("/", translate("Use as root filesystem (/)"))
--- e:value("/lnoverlay", translate("Soft chain partition expansion(/overlay)"))
 e:value("/opt", translate("Used as Docker data disk (/opt)"))
 e:value("/dev", translate("Normal mount and use by device name(/dev/x1)"))
 e.default="/opt"
@@ -63,7 +61,6 @@ e.default=0
 e=t:option(Flag,'auto_format', translate('Format before use'),translate("Ticking indicates formatting"))
 e:depends("target_function", "/opt")
 e:depends("target_function", "/dev")
--- e:depends("target_function", "/lnoverlay")
 e.default=0
 
 e=t:option(Button, "restart", translate("Perform operation"))
