@@ -5,7 +5,6 @@ touch /etc/config/base_config
 uci add base_config base >/dev/null 2>&1
 ver=0
 }
-[ `mount | grep /boot |wc -l` -gt 1 ] && umount /boot
 #argon
 sed -i 's,media .. \"\/b,resource .. \"\/b,g' /usr/lib/lua/luci/view/themes/argon/sysauth.htm
 uci -q set luci.main.lang='auto'
@@ -135,6 +134,10 @@ test $ver -lt 1 && {
     uci -q set network.wan.device="eth1"
     uci -q set network.wan6.device="eth1"
     uci -q set network.lan.ipaddr='192.168.10.1'
+    uci del dhcp.lan.ignore
+    uci del dhcp.lan.ra_slaac
+    uci del network.lan.delegate
+    uci set network.lan.proto='static'
     uci commit network
     setup_network $ifname
     sed -i '/lcp-echo/d' /etc/ppp/options
@@ -143,7 +146,6 @@ test $ver -lt 1 && {
     /etc/init.d/network restart
 	[ x$debug = x1 ] && uci -q set base_config.@base[0].base$ver=$?;echo $ver
 }
-
 #ssh link
 test $ver -lt 2 && {
 frmware=`cat /etc/ezopenwrt_version | awk -F '-' '{printf $2}'`
@@ -407,7 +409,6 @@ if [ -f /etc/config/dockerd ] && [ $(grep -c daocloud.io /etc/config/dockerd) -e
 fi
 
 }
-
 uci -q set base_config.@base[0].ver=$ver
 uci commit base_config
 ntpd -n -q -p 1.lede.pool.ntp.org
