@@ -388,7 +388,7 @@ check_free_space() {
 # 定义函数：获取下一个新的可用的分区号
 get_next_partition_number() {
     DISK=$1
-    PARTITIONS=$(fdisk -l /dev/$DISK 2>/dev/null | grep -v boot  | grep -E "^/dev/$DISK" | awk '{print $1}' | sed 's/\/dev\/[a-z]*//g')
+    PARTITIONS=$(fdisk -l /dev/$DISK 2>/dev/null | grep -v boot  | grep -E "^/dev/$DISK" | awk '{print $1}' | sed 's/\/dev\/[a-z]*//g' | awk -F '[^0-9]+' '{print $NF}')
     MAX_PARTITION=$(echo "$PARTITIONS" | sort -n | tail -n 1)
     NEXT_PARTITION=$(awk -v n="$MAX_PARTITION" 'BEGIN { print n + 1 }')
     #NEXT_PARTITION=$((MAX_PARTITION + 1))
@@ -398,7 +398,7 @@ get_next_partition_number() {
 # 定义函数：获取最后一个可用的分区号
 get_last_partition_number() {
     DISK=$1
-    PARTITIONS=$(fdisk -l /dev/$DISK 2>/dev/null | grep -v boot  | grep -E "^/dev/$DISK" | awk '{print $1}' | sed 's/\/dev\/[a-z]*//g')
+    PARTITIONS=$(fdisk -l /dev/$DISK 2>/dev/null | grep -v boot  | grep -E "^/dev/$DISK" | awk '{print $1}' | sed 's/\/dev\/[a-z]*//g' | awk -F '[^0-9]+' '{print $NF}')
     MAX_PARTITION=$(echo "$PARTITIONS" | sort -n | tail -n 1)
     echo "$MAX_PARTITION"
 }
