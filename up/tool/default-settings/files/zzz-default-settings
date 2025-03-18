@@ -86,18 +86,23 @@ uci -q delete wireless.default_${r}
 }
 setup_network()
 {
-     ifname=$1
+    ifname=$(uci -q get network.lan.ifname) 
+    [ "x$ifname" = "x" ] && ifname="device" || ifname="ifname" 
      wan_interface=`uci -q get network.wan.$ifname` 
-     a=$(ip address | awk -F ': ' '/eth[0-9]+/ {print $2}' )
-     b=$(echo "$a" | wc -l)
-     lannet=""
-     [[ ${b} -gt 1 ]] && {
-	  for i in $(seq 1 $b) ; do [ "${wan_interface}" = "$(echo "$a" | sed -n ${i}p)" ] || lannet="${lannet} $(echo "$a" | sed -n ${i}p)" ;done
-	  lannet=$(echo "$lannet" | sed 's/^ *//')
- 	  [ "x$ifname" = "xdevice" ] &&  uci -q set network.@$ifname[0].ports="${lannet}"  || uci -q set network.lan.$ifname="${lannet}"
- 	  uci -q set network.@$ifname[0].ports="${lannet}"
- 	  [ `uci -q get network.wan6` ] && uci -q set network.wan6.$ifname="@wan"
-     }
+    netname=$(ls /sys/class/net/ | grep -E '^(eth[0-9]+|usb[0-9]+|lan[0-9]+|wan)$')
+    netsum=$(echo "$netname" | wc -l)
+    if [ $netsum -gt 1 ] ;then
+    
+        lannet=''
+        for i in $(seq 1 $netsum); do 
+            [ "${wan_interface}" == "$(echo "$netname" | sed -n ${i}p)" ] || lannet="${lannet} $(echo "$netname" | sed -n ${i}p)"
+        done
+        lannet=$(echo "$lannet" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')  
+        [ "x$ifname" = "xdevice" ] && uci -q set network.@$ifname[0].ports="${lannet}" || uci -q set network.lan.$ifname="${lannet}"
+    else
+        [ "x$ifname" = "xdevice" ] && uci -q set network.@$ifname[0].ports="${wan_interface}" || uci -q set network.lan.$ifname="${wan_interface}"
+        uci -q set network.lan.proto='static'
+    fi
 }
 
 . /etc/openwrt_release
@@ -129,20 +134,13 @@ test $ver -lt 1 && {
     sed -i '/option disabled/d' /etc/config/wireless  >/dev/null 2>&1
     sed -i '/set wireless.radio${devidx}.disabled/d' /lib/wifi/mac80211.sh   >/dev/null 2>&1
 
-    ifname="device"
-    uci -q set network.@device[0].ports="eth0"
-    uci -q set network.wan.device="eth1"
-    uci -q set network.wan6.device="eth1"
-    uci -q set network.lan.proto='static'
     uci -q set network.lan.ipaddr='192.168.10.1'
     uci del dhcp.lan.ignore
-    uci del dhcp.lan.dynamicdhcp
-    uci -q set dhcp.lan.force='1'
-    uci -q set dhcp.@dnsmasq[0].authoritative='1'
     uci del dhcp.lan.ra_slaac
     uci del network.lan.delegate
+    uci set network.lan.proto='static'
+    setup_network
     uci commit network
-    setup_network $ifname
     sed -i '/lcp-echo/d' /etc/ppp/options
     echo "lcp-echo-failure 10" >>  /etc/ppp/options 
     echo "lcp-echo-interval 200" >>  /etc/ppp/options
@@ -164,8 +162,7 @@ frmware=`cat /etc/ezopenwrt_version | awk -F '-' '{printf $2}'`
 	}
  uci -q set system.@system[0].hostname='EzOpWrt'
  uci commit system
-  #sed -i 's/root::0:0:99999:7:::/root:$1$V4UetPzk$CYXluq4wUazHjmCDBCqXF.:0:0:99999:7:::/g' /etc/shadow
-  sed -i 's/root.*/root::0:0:99999:7:::/g' /etc/shadow
+sed -i 's/root.*/root::0:0:99999:7:::/g' /etc/shadow
 
 uci -q batch <<-EOF
 set system.@system[0].timezone=CST-8
@@ -228,10 +225,6 @@ sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/samba4.lua
 sed -i 's/services/nas/g' /usr/share/luci/menu.d/luci-app-samba4.json
 sed -i 's/services/nas/g' /usr/share/luci/menu.d/luci-app-gowebdav.json
 sed -i 's/services/nas/g' /usr/share/luci/menu.d/luci-app-qbittorrent.json
-sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/alist.lua
-sed -i 's/services/nas/g' /usr/share/luci/menu.d/luci-app-alist.json
-sed -i 's/services/nas/g' /usr/lib/lua/luci/view/alist/alist_status.htm
-sed -i 's/services/nas/g' /usr/lib/lua/luci/view/alist/admin_info.htm
 
 elif  [ $frmware = Bypass ] ;then
 uci -q batch <<-EOF
@@ -270,10 +263,6 @@ sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/samba4.lua
 sed -i 's/services/nas/g' /usr/share/luci/menu.d/luci-app-samba4.json
 sed -i 's/services/nas/g' /usr/share/luci/menu.d/luci-app-gowebdav.json
 sed -i 's/services/nas/g' /usr/share/luci/menu.d/luci-app-qbittorrent.json
-sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/alist.lua
-sed -i 's/services/nas/g' /usr/share/luci/menu.d/luci-app-alist.json
-sed -i 's/services/nas/g' /usr/lib/lua/luci/view/alist/alist_status.htm
-sed -i 's/services/nas/g' /usr/lib/lua/luci/view/alist/admin_info.htm
 else
 
 uci -q batch <<-EOF
@@ -299,10 +288,6 @@ sed -i 's/nas/services/g' /usr/lib/lua/luci/controller/samba4.lua
 sed -i 's/nas/services/g' /usr/share/luci/menu.d/luci-app-samba4.json
 sed -i 's/nas/services/g' /usr/share/luci/menu.d/luci-app-gowebdav.json
 sed -i 's/nas/services/g' /usr/share/luci/menu.d/luci-app-qbittorrent.json
-sed -i 's/nas/services/g' /usr/lib/lua/luci/controller/alist.lua
-sed -i 's/nas/services/g' /usr/share/luci/menu.d/luci-app-alist.json
-sed -i 's/nas/services/g' /usr/lib/lua/luci/view/alist/alist_status.htm
-sed -i 's/nas/services/g' /usr/lib/lua/luci/view/alist/admin_info.htm
 fi
 uci commit dropbear
 uci commit vsftpd
@@ -362,7 +347,6 @@ EOF
 
 uci commit && cd /etc/init.d && \
 ./dnsmasq restart
-
 [ x$debug = x1 ] && uci -q set base_config.@base[0].base$ver=$? ; echo $ver
 }
 

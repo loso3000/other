@@ -19,7 +19,6 @@ setipv6() {
                 set dhcp.lan.dhcpv6=''
                 set dhcp.lan.ndp=''
                 set dhcp.@dnsmasq[0].filter_aaaa="1"
-                set dhcp.lan.force='1'
                 delete dhcp.lan.ra
                 delete dhcp.lan.ra_default
                 delete dhcp.lan.ra_slaac
@@ -44,14 +43,9 @@ EOF
                 set dhcp.lan.ndp='relay'
                 set dhcp.lan.ra_management='1'
                 set dhcp.lan.ra_default='1'
-                set dhcp.lan.force='1'
                 delete dhcp.lan.ra_flags
-                set dhcp.lan.ra_slaac='1'
                 set dhcp.wan.master='1'
                 set network.wan.ipv6='auto'
-                set network.lan.delegate='0'
-                set network.wan.delegate='0'
-                set network.wan6.delegate='0'
                 delete dhcp.lan.ra_slaac
                 delete dhcp.wan.master
                 delete dhcp.wan.ra_flags
@@ -80,7 +74,6 @@ EOF
                 delete dhcp.@dnsmasq[0].filter_aaaa
                 set dhcp.lan.ra_management='1'
                 set dhcp.lan.ra_default='1'
-                set dhcp.lan.force='1'
                 set dhcp.lan.ra_slaac='1'
                 del network.lan.delegate
                 set network.lan.ip6assign='64'
@@ -96,10 +89,9 @@ EOF
             uci batch <<EOF
                 set dhcp.lan.ra='hybrid'
                 set dhcp.lan.dhcpv6='hybrid'
-                set dhcp.lan.ndp='hybrid'
+                set dhcp.lan.ndp='relay'
                 delete dhcp.@dnsmasq[0].filter_aaaa
                 set dhcp.lan.ra_management='1'
-                set dhcp.lan.force='1'
                 set dhcp.lan.ra_slaac='1'
                 del dhcp.lan.dns
                 del dhcp.lan.ra_default
@@ -109,9 +101,6 @@ EOF
                 del dhcp.wan.ndp
                 add_list dhcp.wan.ra_flags='none'
                 set network.wan.ipv6='auto'
-                set network.wan.delegate='0'
-                set network.lan.delegate='0'
-                set network.wan6.delegate=0
                 set network.lan.ip6assign='64'
                 set network.wan6.$ifname="${wan_interface}"
                 set network.wan6.reqaddress=try
@@ -152,7 +141,6 @@ configure_network() {
     config_get synflood "$cfg" synflood '0'
     config_get lan_ipaddr "$cfg" lan_ipaddr `uci -q get network.lan.ipaddr`
     config_get lan_netmask "$cfg" lan_netmask '255.255.255.0'
-    config_get dns_tables "$cfg" dns_tables 'iptables -t nat -I POSTROUTING -o br-lan -j MASQUERADE'
 
     if [ "x$showhide" = "x1" ]; then
         touch /etc/config/netwizard_hide 
@@ -187,16 +175,20 @@ configure_network() {
     # uci -q add_list dhcp.lan.dns="2400:3200::1" #del lan dns
 
     sed -i '/j MASQUERADE/d' /etc/firewall.user
-    a=$(ip address | awk -F ': ' '/eth[0-9]+/ {print $2}')
-    b=$(echo "$a" | wc -l)
-    [ ${b} -gt 1 ] && {
-        lannet=""
-        for i in $(seq 1 $b); do 
-            [ "${wan_interface}" = "$(echo "$a" | sed -n ${i}p)" ] || lannet="${lannet} $(echo "$a" | sed -n ${i}p)"
+    netname=$(ls /sys/class/net/ | grep -E '^(eth[0-9]+|usb[0-9]+|lan[0-9]+|wan)$')
+    netsum=$(echo "$netname" | wc -l)
+    if [ $netsum -gt 1 ] ;then
+    
+        lannet=''
+        for i in $(seq 1 $netsum); do 
+            [ "${wan_interface}" == "$(echo "$netname" | sed -n ${i}p)" ] || lannet="${lannet} $(echo "$netname" | sed -n ${i}p)"
         done
         lannet=$(echo "$lannet" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')  
         [ "x$ifname" = "xdevice" ] && $UCISET network.@$ifname[0].ports="${lannet}" || $UCISET network.lan.$ifname="${lannet}"
-    }
+    else
+        [ "x$ifname" = "xdevice" ] && $UCISET network.@$ifname[0].ports="${wan_interface}" || $UCISET network.lan.$ifname="${wan_interface}"
+        $UCISET network.lan.proto='static'
+    fi
 
     $UCISET network.wan.$ifname="${wan_interface}"
     $UCISET network.wan6.$ifname="${wan_interface}"
@@ -254,15 +246,12 @@ configure_network() {
             config_get lan_gateway "$cfg" lan_gateway
             config_get lan_dns "$cfg" lan_dns
             config_get masq "$cfg" masq
-            $UCIDEL dhcp.lan.ignore
             $UCIDEL dhcp.lan.ra_slaac
-            $UCIDEL network.lan.delegate
             $UCISET network.lan.proto='static'
             test -n "${lan_gateway}" && {
                 $UCISET network.lan.gateway="${lan_gateway}"
-                [ -n "$lan_dns" ] || lan_dns='223.5.5.5'
-                $UCISET network.lan.dns="${lan_dns}"
-                if [ ${b} -gt 1 ]; then
+                [ -n ${lan_dns} ] && $UCISET network.lan.dns="${lan_dns}"
+                if [ $netsum -gt 1 ]; then
                     [ "x$ifname" = "xdevice" ] && $UCISET network.@$ifname[0].ports="${lannet} ${wan_interface}" || $UCISET network.lan.$ifname="${lannet} ${wan_interface}"
                 fi
                 [ "x$masq" = "x1" ] && $UCISET firewall.@zone[0].masq='1' || $UCIDEL firewall.@zone[0].masq
@@ -305,13 +294,13 @@ configure_network() {
         $UCIDEL dhcp.@dnsmasq[0].nonegcache
 
     else
-        $UCIDEL  dhcp.lan.ignore
-        $UCIDEL  dhcp.lan.dynamicdhcp
-        $UCISET  dhcp.lan.force='1'
-        $UCISET  dhcp.@dnsmasq[0].authoritative='1'
-       [ "x$dnsset" = "x1" ] && {
-            [ "${dns_tables}" = "1" ] && uci -q add_list dhcp.lan.dhcp_option="6,${lan_ipaddr}" || uci -q add_list dhcp.lan.dhcp_option="6,${dns_tables}" 
-        }
+        $UCIDEL dhcp.lan.ignore
+        $UCIDEL dhcp.lan.dynamicdhcp
+        $UCISET dhcp.lan.force='1'
+        $UCISET dhcp.@dnsmasq[0].authoritative='1'
+        if [ "x$dnsset" = "x1" ] ;then
+            [ "x${dns_tables}" = "x1" ] && uci -q add_list dhcp.lan.dhcp_option="6,${lan_ipaddr}" || uci -q add_list dhcp.lan.dhcp_option="6,${dns_tables}" 
+        fi
     fi
 
     wifi_setup_radio() {
