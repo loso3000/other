@@ -4384,7 +4384,7 @@ div#file-manager-container #status-bar #status-info{
     }
 }
 
-@media screen and (max-width:1280px) {
+@media screen and (max-width:1366px) {
 
     .main>.main-left>.nav>li,
     .main>.main-left>.nav>li>a,
@@ -4488,7 +4488,7 @@ div#file-manager-container #status-bar #status-info{
 
 }
 
-@media screen and (max-width:992px) {
+@media screen and (max-width:1152px) {
     .main .main-left .nav .slide .slide-menu .active a {
         font-size: var(--font-x)
     }
@@ -4928,10 +4928,4 @@ div#file-manager-container #status-bar #status-info{
 
 .Dashboard .devices-list .devices-info, .Dashboard .router-status-wifi .wifi-info > hr:last-child {
   margin-top: 0.575rem;
-}
-
-@media screen and (max-width: 600px) {
-  div#content-filemanager {
-    overflow-x: auto;
-  }
 }
