@@ -4,6 +4,7 @@ LOCK=/var/lock/netwizard-boot.lock
 START=99
 UCISET='uci -q set'
 UCIDEL='uci -q delete'
+UCIC='uci commit'
 boot() {
 	XBOOT=1 start
 }
@@ -123,7 +124,38 @@ EOF
             ;;
     esac
 }
+showwizard(){
+    local c=$1
+    if [ "x$c" = "x1" ]; then
+        touch /etc/config/netwizard_hide 
+        $UCISET advancedplus.@basic[0].wizard="1"
+        exit
+    else
+        rm -rf /etc/config/netwizard_hide
+        $UCISET advancedplus.@basic[0].wizard="0"
+    fi
+    $UCIC advancedplus
+}
+initnet(){
 
+    $UCIDEL network.lan.gateway
+    $UCIDEL network.lan.dns
+    $UCIDEL firewall.@zone[0].masq
+    [ `uci -q get network.wan` ] && $UCIDEL network.wan
+    [ `uci -q get network.wan6` ] && $UCIDEL network.wan6
+    [ `uci -q get network.lan6` ] && $UCIDEL network.lan6
+
+    $UCISET network.wan=interface
+    $UCISET network.wan6=interface
+    $UCISET network.wan6.proto='dhcpv6'
+    $UCISET network.wan6.delegate='1'
+    $UCIDEL dhcp.wan.master
+    $UCIDEL dhcp.lan.master
+    # uci -q add_list dhcp.lan.dns="2400:3200::1" #del lan dns
+
+    [ -f '/etc/firewall.user' ] && sed -i '/j MASQUERADE/d' /etc/firewall.user
+
+}
 # Function to configure network settings
 configure_network() {
     local cfg=$1
@@ -141,40 +173,13 @@ configure_network() {
     config_get synflood "$cfg" synflood '0'
     config_get lan_ipaddr "$cfg" lan_ipaddr `uci -q get network.lan.ipaddr`
     config_get lan_netmask "$cfg" lan_netmask '255.255.255.0'
-
-    if [ "x$showhide" = "x1" ]; then
-        touch /etc/config/netwizard_hide 
-        $UCISET advancedplus.@basic[0].wizard="1"
-        uci commit advancedplus
-        exit
-    else
-        rm -rf /etc/config/netwizard_hide
-        $UCISET advancedplus.@basic[0].wizard="0"
-        uci commit advancedplus
-    fi
-
+    showwizard $showhide
     touch $LOCK
     ifname=$(uci -q get network.lan.ifname) 
     [ "x$ifname" = "x" ] && ifname="device" || ifname="ifname" 
     [ -n "$wan_interface" ] || wan_interface=$(uci -q get network.wan.$ifname 2>/dev/null) 
-    [ -n "$wan_interface" ] || wan_interface=$(uci -q get network.lan.$ifname 2>/dev/null) 
-
-    $UCIDEL network.lan.gateway
-    $UCIDEL network.lan.dns
-    $UCIDEL firewall.@zone[0].masq
-    [ `uci -q get network.wan` ] && $UCIDEL network.wan
-    [ `uci -q get network.wan6` ] && $UCIDEL network.wan6
-    [ `uci -q get network.lan6` ] && $UCIDEL network.lan6
-
-    $UCISET network.wan=interface
-    $UCISET network.wan6=interface
-    $UCISET network.wan6.proto='dhcpv6'
-    $UCISET network.wan6.delegate='1'
-    $UCIDEL dhcp.wan.master
-    $UCIDEL dhcp.lan.master
-    # uci -q add_list dhcp.lan.dns="2400:3200::1" #del lan dns
-
-    sed -i '/j MASQUERADE/d' /etc/firewall.user
+    [ -n "$wan_interface" ] || wan_interface='eth0' 
+    initnet
     netname=$(ls /sys/class/net/ | grep -E '^(eth[0-9]+|usb[0-9]+|lan[0-9]+|wan)$')
     netsum=$(echo "$netname" | wc -l)
     if [ $netsum -gt 1 ] ;then
@@ -342,17 +347,17 @@ configure_network() {
             for radio in radio0 radio1 radio2 radio3; do
                 wifi_setup_radio ${radio}
             done
-            uci commit wireless
+            $UCIC wireless
         }
 
         $UCISET netwizard.default.old_wifi_ssid="${wifi_ssid}"
         $UCISET netwizard.default.old_wifi_key="${wifi_ssid}"
     fi
 
-    uci commit netwizard
-    uci commit dhcp
-    uci commit firewall
-    uci commit network
+    $UCIC netwizard
+    $UCIC dhcp
+    $UCIC firewall
+    $UCIC network
 
     (sleep 2
      /etc/init.d/network restart
