@@ -266,7 +266,7 @@ function k_themenetwork(){
 }
 
 function is_vip() {
-     DISTRIB_FREE=$(cat /etc/openwrt_release | grep "Vip" | cut -d " " -f 2 | cut -d "-" -f 1)
+     DISTRIB_FREE=$(cat /etc/openwrt_release | grep "Vip" | cut -d "'" -f 2 | cut -d "-" -f 1)
     if [ "$DISTRIB_FREE" = "Vip" ]; then
         return 0
     else
@@ -319,7 +319,11 @@ function k_change_ip() {
   Y)
     export keyipn="${keyip}"
     echo " 修改中，请稍等...( please wait... )" 
+    uci set network.lan.proto='static'
     uci set network.lan.ipaddr="${keyip}"
+    uci del dhcp.lan.ignore
+    uci del dhcp.lan.dynamicdhcp
+    uci set dhcp.lan.force='1'
     uci commit network
     ER " 您的IP已经改为(Your IP has been changed to)：${keyip}！"
     [ -s /etc/config/netwizard ] && uci -q set netwizard.default.lan_ipaddr="${keyip}" && uci commit netwizard 
@@ -789,20 +793,20 @@ ifname=$(uci -q get network.lan.ifname )
 
 function mainmenu() {
     show_network_interfaces
-    ER "     Sirdpboy 快捷命令菜单(Shortcut Command Menu)   "
-    EG "  menu -> 调用菜单(Call Menu) 进阶设置中可禁用/显示此快捷菜单 "
-    EY " 1. 修改后台 IPv4 地址(Modify IPv4 address)"
-    EY " 2. 网卡绑定(Bind network card)"
-    EY " 3. 清除密码并重启(Clear password and Reboot)"
-    EY " 4. 重置网络和主题设置(Reset network and theme settings)"
-    EY " 5. 重启关机(Reboot/Shutdown)"
-    EY " 6. 重置系统(Reset System)   7. 网络检查(Check Network)"
-    EY " 8. 释放内存(Free Memory)    9. 其它功能(Other functions)"
+    ER "     Sirdpboy 快捷菜单(Shortcut Menu)   "
+    EG "  menu->(Call Menu)调用菜单 进阶设置中可禁用/显示此菜单 "
+    EY " 1.修改后台 IPv4 地址(Modify IPv4 address)"
+    EY " 2.网卡绑定(Bind network card)"
+    EY " 3.清除密码并重启(Clear password)"
+    EY " 4.重置网络和主题设置(Reset network and theme set)"
+    EY " 5.重启关机(Reboot/Shutdown)"
+    EY " 6.重置系统(Reset System)   7.网络检查(Check Network)"
+    EY " 8.释放内存(Free Memory)    9.其它功能(Other functions)"
 
-    EW " 0/q. 退出本快捷菜单(Exit Shortcut Menu)\n"
+    EW " 0/q. 退出菜单(Exit Menu)\n"
 
     while :; do
-        read -p " 输入功能编号(Enter the function number): " CHOOSE
+        read -p " 输入编号(Enter number)[0-9]: " CHOOSE
         case $CHOOSE in
             1) k_change_ip ;;
             2) k_bindlanwan ;;
