@@ -10,7 +10,7 @@
 var callLuciETHInfo = rpc.declare({
 	object: 'luci',
 	method: 'getETHInfo',
-	expect: { ethinfo: [] }
+	expect: { result: [] }
 });
 
 function isString(v)

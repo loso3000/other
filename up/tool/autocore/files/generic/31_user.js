@@ -15,7 +15,7 @@ var callOnlineUserlist = rpc.declare({
 
 
 return baseclass.extend({
-    title: _('Online Users'),
+    title: _('Online User'),
     load: function() {
 		return Promise.all([
 			L.resolveDefault(callOnlineUserlist(), {}),
@@ -30,7 +30,7 @@ return baseclass.extend({
         var usestatus = E('table', { 'class': 'table' });
         if (fields[0] == _('Online Users')) {
             usestatus.appendChild(E('tr', { 'class': 'tr' }, [
-                E('td', { 'class': 'td left', 'width': '33%' }, [fields[0]]),
+                E('td', { 'class': 'td', 'width': '33%' }, [fields[0]]),
                 E('td', { 'class': 'td left' }, [
                     (fields[1] != null) ? fields[1] : '0'
                 ])
@@ -39,10 +39,10 @@ return baseclass.extend({
 
         var table = E('table', { 'class': 'table' }, [
             E('tr', { 'class': 'tr table-titles' }, [
-                E('th', { 'class': 'th', 'width': '20%' }, _('Hostname')),
-                E('th', { 'class': 'th', 'width': '40%' }, _('IP Address')),
-                E('th', { 'class': 'th', 'width': 'auto' }, _('MAC address')),
-                E('th', { 'class': 'th', 'width': 'auto' }, _('Interface'))
+                E('th', { 'class': 'th'}, _('Hostname')),
+                E('th', { 'class': 'th'}, _('IP Address')),
+                E('th', { 'class': 'th'}, _('MAC address')),
+                E('th', { 'class': 'th'}, _('Interface'))
             ])
         ]);
 
@@ -55,10 +55,10 @@ return baseclass.extend({
    	        return;
             }
             var row = E('tr', { 'class': 'tr' }, [
-                E('td', { 'class': 'td left' }, info.hostname),
-                E('td', { 'class': 'td left' }, info.ipaddr),
-                E('td', { 'class': 'td left' }, info.macaddr),
-                E('td', { 'class': 'td left' }, info.device)
+                E('td', { 'class': 'td'}, info.hostname),
+                E('td', { 'class': 'td'}, info.ipaddr),
+                E('td', { 'class': 'td'}, info.macaddr),
+                E('td', { 'class': 'td'}, info.device)
             ]);
             table.appendChild(row);
         });

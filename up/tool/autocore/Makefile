@@ -1,7 +1,8 @@
-# SPDX-License-Identifier: GPL-2.0-only
+# SPDX-License-Identifier: GPL-3.0-only
 #
 # Copyright (C) 2020 Lean <coolsnowwolf@gmail.com>
 # Copyright (C) 2021 ImmortalWrt.org
+# Copyright (C) 2025 sirpdboy
 
 include $(TOPDIR)/rules.mk
 
@@ -11,8 +12,7 @@ PKG_RELEASE:=$(COMMITCOUNT)
 
 PKG_CONFIG_DEPENDS:= \
 	CONFIG_TARGET_bcm27xx \
-	CONFIG_TARGET_bcm53xx \
-	CONFIG_TARGET_mvebu
+	CONFIG_TARGET_bcm53xx
 
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/target.mk
