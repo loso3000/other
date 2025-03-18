@@ -64,18 +64,21 @@ EOF
             ;;
         2) #siderouter
             uci -q batch <<EOF
-
-                set dhcp.lan.ra=''
-                set dhcp.lan.dhcpv6=''
-                set dhcp.lan.ndp=''
+                del dhcp.lan.ra_default
+                del dhcp.lan.ra_slaac
+                set dhcp.lan.ra='relay'
+                set dhcp.lan.dhcpv6='relay'
+                set dhcp.lan.ndp='relay'
                 delete dhcp.@dnsmasq[0].filter_aaaa
                 set dhcp.lan.ra_management='1'
-                set dhcp.lan.ra_default='1'
-                set dhcp.lan.ra_slaac='1'
                 del network.lan.delegate
                 set network.lan.ip6assign='64'
                 set network.lan6.extendprefix='1'
                 set network.lan.ip6ifaceid='eui64'
+                del network.lan6.delegate
+                set network.lan6.reqaddress='try'
+                set network.lan6.reqprefix='auto'
+                set network.lan6.norelease='1'
                 set dhcp.lan6.master='1'
                 set dhcp.lan6.ra='relay'
                 set dhcp.lan6.dhcpv6='relay'
