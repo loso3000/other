@@ -5,6 +5,7 @@ touch /etc/config/base_config
 uci add base_config base >/dev/null 2>&1
 ver=0
 }
+[ `mount | grep /boot |wc -l` -gt 1 ] && umount /boot
 #argon
 sed -i 's,media .. \"\/b,resource .. \"\/b,g' /usr/lib/lua/luci/view/themes/argon/sysauth.htm
 uci -q set luci.main.lang='auto'
@@ -95,14 +96,14 @@ setup_network()
     
         lannet=''
         for i in $(seq 1 $netsum); do 
-            [ "${wan_interface}" == "$(echo "$netname" | sed -n ${i}p)" ] || lannet="${lannet} $(echo "$netname" | sed -n ${i}p)"
+            [[ -n ${wan_interface} && "${wan_interface}" == "$(echo "$netname" | sed -n ${i}p)" ]] || lannet="${lannet} $(echo "$netname" | sed -n ${i}p)"
         done
         lannet=$(echo "$lannet" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')  
-        [ "x$ifname" = "xdevice" ] && uci -q set network.@$ifname[0].ports="${lannet}" || uci -q set network.lan.$ifname="${lannet}"
     else
-        [ "x$ifname" = "xdevice" ] && uci -q set network.@$ifname[0].ports="${wan_interface}" || uci -q set network.lan.$ifname="${wan_interface}"
         uci -q set network.lan.proto='static'
     fi
+    [ "x$ifname" = "xdevice" ] && uci -q set network.@$ifname[0].ports="${lannet}" || uci -q set network.lan.$ifname="${lannet}"
+
 }
 
 . /etc/openwrt_release
@@ -138,7 +139,7 @@ test $ver -lt 1 && {
     uci del dhcp.lan.ignore
     uci del dhcp.lan.ra_slaac
     uci del network.lan.delegate
-    uci set network.lan.proto='static'
+    uci -q set network.lan.proto='static'
     setup_network
     uci commit network
     sed -i '/lcp-echo/d' /etc/ppp/options
@@ -221,6 +222,10 @@ sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/samba4.lua
 sed -i 's/services/nas/g' /usr/share/luci/menu.d/luci-app-samba4.json
 sed -i 's/services/nas/g' /usr/share/luci/menu.d/luci-app-gowebdav.json
 sed -i 's/services/nas/g' /usr/share/luci/menu.d/luci-app-qbittorrent.json
+sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/alist.lua
+sed -i 's/services/nas/g' /usr/share/luci/menu.d/luci-app-alist.json
+sed -i 's/services/nas/g' /usr/lib/lua/luci/view/alist/alist_status.htm
+sed -i 's/services/nas/g' /usr/lib/lua/luci/view/alist/admin_info.htm
 
 elif  [ $frmware = Bypass ] ;then
 uci -q batch <<-EOF
@@ -259,6 +264,10 @@ sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/samba4.lua
 sed -i 's/services/nas/g' /usr/share/luci/menu.d/luci-app-samba4.json
 sed -i 's/services/nas/g' /usr/share/luci/menu.d/luci-app-gowebdav.json
 sed -i 's/services/nas/g' /usr/share/luci/menu.d/luci-app-qbittorrent.json
+sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/alist.lua
+sed -i 's/services/nas/g' /usr/share/luci/menu.d/luci-app-alist.json
+sed -i 's/services/nas/g' /usr/lib/lua/luci/view/alist/alist_status.htm
+sed -i 's/services/nas/g' /usr/lib/lua/luci/view/alist/admin_info.htm
 else
 
 uci -q batch <<-EOF
@@ -284,6 +293,10 @@ sed -i 's/nas/services/g' /usr/lib/lua/luci/controller/samba4.lua
 sed -i 's/nas/services/g' /usr/share/luci/menu.d/luci-app-samba4.json
 sed -i 's/nas/services/g' /usr/share/luci/menu.d/luci-app-gowebdav.json
 sed -i 's/nas/services/g' /usr/share/luci/menu.d/luci-app-qbittorrent.json
+sed -i 's/nas/services/g' /usr/lib/lua/luci/controller/alist.lua
+sed -i 's/nas/services/g' /usr/share/luci/menu.d/luci-app-alist.json
+sed -i 's/nas/services/g' /usr/lib/lua/luci/view/alist/alist_status.htm
+sed -i 's/nas/services/g' /usr/lib/lua/luci/view/alist/admin_info.htm
 fi
 uci commit vsftpd
 uci commit luci
@@ -366,15 +379,17 @@ EOF
 
 fi
 }
+
 #tv
 test $ver -lt 6 && { 
 ver=6
 
 uci delete ttyd.@ttyd[0].interface
-    if [ -e /etc/config/ttyd ]; then
+    if [[ -e /etc/config/ttyd ]]; then
         uci -q batch <<-EOF >/dev/null
             delete ttyd.@ttyd[0].interface
 EOF
+    fi
     for samba in samba4 samba ; do
         if [ -e /etc/config/$samba ]; then
             uci -q batch <<-EOF >/dev/null
@@ -383,11 +398,12 @@ EOF
 EOF
         fi
     done
+    
 uci set dropbear.@dropbear[0].Interface=''
 uci commit dropbear
 
 # docker mirror
-if [ -f /etc/config/dockerd ] && [ $(grep -c daocloud.io /etc/config/dockerd) -eq '0' ]; then
+if [[ -f /etc/config/dockerd ] && [ $(grep -c daocloud.io /etc/config/dockerd) -eq '0' ]]; then
     uci add_list dockerd.globals.registry_mirrors="https://docker.m.daocloud.io"
     WAN_ZONE=`uci show firewall | grep -E '^firewall\.@zone\[[0-9]+\]\.name='"'wan'" | head -n1 | head -c -12`
     uci -q batch <<-EOF >/dev/null
@@ -406,7 +422,7 @@ uci -q batch <<-EOF >/dev/null
     commit luci
 EOF
 
-if [ -f /etc/config/nginx ] ;then
+if [[ -f /etc/config/nginx ]] ;then
 uci set nginx.global.uci_enable='true'
 uci del nginx._lan
 uci del nginx._redirect2ssl
@@ -421,6 +437,7 @@ uci set nginx._lan.access_log='off; # logd openwrt'
 uci commit nginx
 service nginx restart
 fi
+
 }
 
 [ -f '/etc/init.d/miniupnpd' ] &&/etc/init.d/miniupnpd restart
