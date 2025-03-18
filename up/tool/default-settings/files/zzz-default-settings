@@ -98,11 +98,11 @@ setup_network()
         for i in $(seq 1 $netsum); do 
             [[ -n ${wan_interface} && "${wan_interface}" == "$(echo "$netname" | sed -n ${i}p)" ]] || lannet="${lannet} $(echo "$netname" | sed -n ${i}p)"
         done
-        lannet=$(echo "$lannet" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')  
+        lannet=$(echo "$lannet" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+        [ "x$ifname" = "xdevice" ] && uci -q set network.@$ifname[0].ports="${lannet}" || uci -q set network.lan.$ifname="${lannet}"
     else
         uci -q set network.lan.proto='static'
     fi
-    [ "x$ifname" = "xdevice" ] && uci -q set network.@$ifname[0].ports="${lannet}" || uci -q set network.lan.$ifname="${lannet}"
 
 }
 
