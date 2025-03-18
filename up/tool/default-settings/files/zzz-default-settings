@@ -144,24 +144,20 @@ test $ver -lt 1 && {
     sed -i '/lcp-echo/d' /etc/ppp/options
     echo "lcp-echo-failure 10" >>  /etc/ppp/options 
     echo "lcp-echo-interval 200" >>  /etc/ppp/options
-    /etc/init.d/network restart
-	[ x$debug = x1 ] && uci -q set base_config.@base[0].base$ver=$?;echo $ver
+    [ x$debug = x1 ] && uci -q set base_config.@base[0].base$ver=$?;echo $ver
 }
 #ssh link
 test $ver -lt 2 && {
 frmware=`cat /etc/ezopenwrt_version | awk -F '-' '{printf $2}'`
 
-    ver=2
-	[ "$(uci -q get dropbear.@dropbear[0] 2>/dev/null)" = "dropbear" ] && {
-		uci -q set dropbear.@dropbear[0].PasswordAuth='on'
-		uci -q set dropbear.@dropbear[0].RootPasswordAuth='on'
-		uci -q set dropbear.@dropbear[0].Port='22'
-		uci -q set dropbear.@dropbear[0].Interface='lan'
-		uci commit dropbear
-		touch /etc/dropbear/authorized_keys && chmod 600 /etc/dropbear/authorized_keys
-	}
- uci -q set system.@system[0].hostname='EzOpWrt'
- uci commit system
+[ -f '/usr/lib/lua/luci/view/admin_status/index/ddns.htm' ] &&rm -f /usr/lib/lua/luci/view/admin_status/index/ddns.htm
+[ -f '/usr/lib/lua/luci/view/admin_status/index/minidlna.htm' ] &&rm -f /usr/lib/lua/luci/view/admin_status/index/minidlna.htm
+[ -f '/usr/lib/lua/luci/view/admin_status/index/mwan.htm' ] &&rm -f /usr/lib/lua/luci/view/admin_status/index/mwan.htm
+[ -f '/usr/lib/lua/luci/view/admin_status/index/upnp.htm' ] &&rm -f /usr/lib/lua/luci/view/admin_status/index/upnp.htm
+ver=2
+
+uci -q set system.@system[0].hostname='EzOpWrt'
+uci commit system
 sed -i 's/root.*/root::0:0:99999:7:::/g' /etc/shadow
 
 uci -q batch <<-EOF
@@ -289,7 +285,6 @@ sed -i 's/nas/services/g' /usr/share/luci/menu.d/luci-app-samba4.json
 sed -i 's/nas/services/g' /usr/share/luci/menu.d/luci-app-gowebdav.json
 sed -i 's/nas/services/g' /usr/share/luci/menu.d/luci-app-qbittorrent.json
 fi
-uci commit dropbear
 uci commit vsftpd
 uci commit luci
 uci commit fstab
@@ -301,15 +296,6 @@ uci commit network
 uci commit system
 uci commit firewall
 uci commit mwan3
-/etc/init.d/miniupnpd restart
-/etc/init.d/turboacc restart
-/etc/init.d/ttyd restart
-/etc/init.d/mwan3 restart
-
-rm -f /usr/lib/lua/luci/view/admin_status/index/ddns.htm
-rm -f /usr/lib/lua/luci/view/admin_status/index/minidlna.htm
-rm -f /usr/lib/lua/luci/view/admin_status/index/mwan.htm
-rm -f /usr/lib/lua/luci/view/admin_status/index/upnp.htm
 [ x$debug = x1 ] && uci -q set base_config.@base[0].base$ver=$?;echo $ver
 }
 
@@ -345,8 +331,11 @@ uci batch <<EOF
   set dhcp.${TAG}.dhcp_option="6,${DNS1},${DNS2}"
 EOF
 
-uci commit && cd /etc/init.d && \
-./dnsmasq restart
+uci add dhcp domain
+uci set "dhcp.@domain[-1].name=time.android.com"
+uci set "dhcp.@domain[-1].ip=203.107.6.88"
+uci commit dhcp
+
 [ x$debug = x1 ] && uci -q set base_config.@base[0].base$ver=$? ; echo $ver
 }
 
@@ -381,15 +370,10 @@ fi
 test $ver -lt 6 && { 
 ver=6
 
-uci add dhcp domain
-uci set "dhcp.@domain[-1].name=time.android.com"
-uci set "dhcp.@domain[-1].ip=203.107.6.88"
-uci commit dhcp
-
 uci delete ttyd.@ttyd[0].interface
 
 uci set dropbear.@dropbear[0].Interface=''
-uci commit
+uci commit dropbear
 
 # docker mirror
 if [ -f /etc/config/dockerd ] && [ $(grep -c daocloud.io /etc/config/dockerd) -eq '0' ]; then
@@ -413,6 +397,15 @@ uci commit nginx
 service nginx restart
 fi
 }
+
+[ -f '/etc/init.d/miniupnpd' ] &&/etc/init.d/miniupnpd restart
+[ -f '/etc/init.d/turboacc' ] &&/etc/init.d/turboacc restart
+[ -f '/etc/init.d/ttyd' ] &&/etc/init.d/ttyd restart
+[ -f '/etc/init.d/mwan3' ] &&/etc/init.d/mwan3 restart
+[ -f '/etc/init.d/netwizard' ] &&/etc/init.d/netwizard restart
+/etc/init.d/system restart
+/etc/init.d/network restart
+/etc/init.d/dnsmasq restart
 uci -q set base_config.@base[0].ver=$ver
 uci commit base_config
 ntpd -n -q -p 1.lede.pool.ntp.org
