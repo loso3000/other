@@ -18,7 +18,7 @@ msgid "Control"
 msgstr "管控"
 
 msgid "Task Plan"
-msgstr "任务计划"
+msgstr "任务设置"
 
 msgid "Test/Verify Settings"
 msgstr "测试/验证设置"
