@@ -70,6 +70,9 @@ EOF
                 set dhcp.lan.dhcpv6='relay'
                 set dhcp.lan.ndp='relay'
                 delete dhcp.@dnsmasq[0].filter_aaaa
+                set dhcp.lan6=dhcp
+                set dhcp.lan6.interface='lan6'
+                set dhcp.lan6.ignore='1'
                 set dhcp.lan.ra_management='1'
                 del network.lan.delegate
                 set network.lan.ip6assign='64'
@@ -178,14 +181,14 @@ EOF
 
     netname=$(ls /sys/class/net/ | grep -E '^(eth[0-9]+|usb[0-9]+|lan[0-9]+|wan)$')
     netsum=$(echo "$netname" | wc -l)
-    [ $netsum -gt 1 ] && {
+    if [ $netsum -gt 1 ] ;then
         lannet=''
         for i in $(seq 1 $netsum); do 
             [ "${wan_interface}" == "$(echo "$netname" | sed -n ${i}p)" ] || lannet="${lannet} $(echo "$netname" | sed -n ${i}p)"
         done
         lannet=$(echo "$lannet" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
         [ "x$ifname" = "xdevice" ] && $UCISET network.@$ifname[0].ports="${lannet}" || $UCISET network.lan.$ifname="${lannet}"
-    }
+    fi
 
     $UCISET network.wan.$ifname="${wan_interface}"
     $UCISET network.wan6.$ifname="@wan"
@@ -262,6 +265,7 @@ EOF
                 $UCISET network.lan6.proto='dhcpv6'
                 $UCISET network.lan6.delegate='1'
                 $UCISET network.lan6.$ifname="@lan"
+		# $UCIDEL firewall.@zone[1]
                 setipv6 2
                 uci -q add_list firewall.@zone[0].network='lan6'
 		
