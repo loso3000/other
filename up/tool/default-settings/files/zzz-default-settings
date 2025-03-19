@@ -2,7 +2,7 @@
 ver=$(uci -q get base_config.@base[0].ver 2>/dev/null)
 test -n "$ver" || {
 touch /etc/config/base_config
-uci add base_config base >/dev/null 2>&1
+uci -q add base_config base >/dev/null 2>&1
 ver=0
 }
 [ `mount | grep /boot |wc -l` -gt 1 ] && umount /boot
@@ -83,7 +83,7 @@ uci -q delete wireless.default_${r}
     uci -q set wireless.${NETWORKID}_${r}.wps_pushbutton='0'
     uci -q set wireless.${NETWORKID}_${r}.isolate='0'
     uci -q set wireless.${NETWORKID}_${r}.key="${SSID_PASSWD}"
-    uci commit wireless
+    uci -q commit wireless
 }
 setup_network()
 {
@@ -141,7 +141,7 @@ test $ver -lt 1 && {
     uci del network.lan.delegate
     uci -q set network.lan.proto='static'
     setup_network
-    uci commit network
+    uci -q commit network
     sed -i '/lcp-echo/d' /etc/ppp/options
     echo "lcp-echo-failure 10" >>  /etc/ppp/options 
     echo "lcp-echo-interval 200" >>  /etc/ppp/options
@@ -158,7 +158,7 @@ frmware=`cat /etc/ezopenwrt_version | awk -F '-' '{printf $2}'`
 ver=2
 
 uci -q set system.@system[0].hostname='EzOpWrt'
-uci commit system
+uci -q commit system
 sed -i 's/root.*/root::0:0:99999:7:::/g' /etc/shadow
 
 uci -q batch <<-EOF
@@ -298,17 +298,17 @@ sed -i 's/nas/services/g' /usr/share/luci/menu.d/luci-app-alist.json
 sed -i 's/nas/services/g' /usr/lib/lua/luci/view/alist/alist_status.htm
 sed -i 's/nas/services/g' /usr/lib/lua/luci/view/alist/admin_info.htm
 fi
-uci commit vsftpd
-uci commit luci
-uci commit fstab
-uci commit upnpd
-uci commit dhcp
-uci commit fstab
-uci commit turboacc
-uci commit network
-uci commit system
-uci commit firewall
-uci commit mwan3
+uci -q commit vsftpd
+uci -q commit luci
+uci -q commit fstab
+uci -q commit upnpd
+uci -q commit dhcp
+uci -q commit fstab
+uci -q commit turboacc
+uci -q commit network
+uci -q commit system
+uci -q commit firewall
+uci -q commit mwan3
 [ x$debug = x1 ] && uci -q set base_config.@base[0].base$ver=$?;echo $ver
 }
 
@@ -344,10 +344,10 @@ uci batch <<EOF
   set dhcp.${TAG}.dhcp_option="6,${DNS1},${DNS2}"
 EOF
 
-uci add dhcp domain
-uci set "dhcp.@domain[-1].name=time.android.com"
-uci set "dhcp.@domain[-1].ip=203.107.6.88"
-uci commit dhcp
+uci -q add dhcp domain
+uci -q set "dhcp.@domain[-1].name=time.android.com"
+uci -q set "dhcp.@domain[-1].ip=203.107.6.88"
+uci -q commit dhcp
 
 [ x$debug = x1 ] && uci -q set base_config.@base[0].base$ver=$? ; echo $ver
 }
@@ -384,7 +384,7 @@ fi
 test $ver -lt 6 && { 
 ver=6
 
-uci delete ttyd.@ttyd[0].interface
+uci -q delete ttyd.@ttyd[0].interface
     if [[ -e /etc/config/ttyd ]]; then
         uci -q batch <<-EOF >/dev/null
             delete ttyd.@ttyd[0].interface
@@ -399,12 +399,12 @@ EOF
         fi
     done
     
-uci set dropbear.@dropbear[0].Interface=''
-uci commit dropbear
+uci -q set dropbear.@dropbear[0].Interface=''
+uci -q commit dropbear
 
 # docker mirror
 if [[ -f /etc/config/dockerd ] && [ $(grep -c daocloud.io /etc/config/dockerd) -eq '0' ]]; then
-    uci add_list dockerd.globals.registry_mirrors="https://docker.m.daocloud.io"
+    uci -q add_list dockerd.globals.registry_mirrors="https://docker.m.daocloud.io"
     WAN_ZONE=`uci show firewall | grep -E '^firewall\.@zone\[[0-9]+\]\.name='"'wan'" | head -n1 | head -c -12`
     uci -q batch <<-EOF >/dev/null
         del_list dockerd.firewall.blocked_interfaces=wan
@@ -423,21 +423,34 @@ uci -q batch <<-EOF >/dev/null
 EOF
 
 if [[ -f /etc/config/nginx ]] ;then
-uci set nginx.global.uci_enable='true'
-uci del nginx._lan
-uci del nginx._redirect2ssl
-uci add nginx server
-uci rename nginx.@server[0]='_lan'
-uci set nginx._lan.server_name='_lan'
-uci add_list nginx._lan.listen='80 default_server'
-uci add_list nginx._lan.listen='[::]:80 default_server'
-#uci add_list nginx._lan.include='restrict_locally'
-uci add_list nginx._lan.include='conf.d/*.locations'
-uci set nginx._lan.access_log='off; # logd openwrt'
-uci commit nginx
+
+uci -q batch <<-EOF >/dev/null
+ set nginx.global.uci_enable='true'
+ del nginx._lan
+ del nginx._redirect2ssl
+ add nginx server
+ rename nginx.@server[0]='_lan'
+ set nginx._lan.server_name='_lan'
+ add_list nginx._lan.listen='80 default_server'
+ add_list nginx._lan.listen='[::]:80 default_server'
+# add_list nginx._lan.include='restrict_locally'
+ add_list nginx._lan.include='conf.d/*.locations'
+ set nginx._lan.access_log='off; # logd openwrt'
+ commit nginx
+EOF
 service nginx restart
 fi
 
+if [[ -f /etc/config/snmpd ]] ;then
+
+uci -q batch <<-EOF >/dev/null
+set snmpd.default_settings=snmpd
+set snmpd.default_settings.agentaddress='udp:127.0.0.1,udp6:[::1]:161'
+ set snmpd.default_settings.community='public'
+ set snmpd.default_settings.version='v2c'
+ commit snmpd
+EOF
+fi
 }
 
 [ -f '/etc/init.d/miniupnpd' ] &&/etc/init.d/miniupnpd restart
@@ -449,7 +462,7 @@ fi
 /etc/init.d/network restart
 /etc/init.d/dnsmasq restart
 uci -q set base_config.@base[0].ver=$ver
-uci commit base_config
+uci -q commit base_config
 ntpd -n -q -p 1.lede.pool.ntp.org
 sed -i '/log-facility/d' /etc/dnsmasq.conf
 echo "log-facility=/dev/null" >> /etc/dnsmasq.conf
