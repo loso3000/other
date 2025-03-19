@@ -2,7 +2,9 @@
 # Author=sirpdboy
 
 user() {
-    wans=$(ip route 2>/dev/null |grep -c '^default') && arps=$(cat /proc/net/arp 2>/dev/null | grep -c '0x2') && echo -n "$((arps-wans))"
+    wans=$(ip route 2>/dev/null |grep -c '^default') 
+    arps=$(cat /proc/net/arp 2>/dev/null | grep -c '0x2')
+    echo -n "$((arps-wans))"
 }
 
 platinfo() {

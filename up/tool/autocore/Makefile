@@ -75,31 +75,5 @@ define Package/autocore-x86/install
 	$(INSTALL_BIN) ./files/x86/autocore $(1)/etc/init.d/
 endef
 
-define Package/$(PKG_NAME)/postinst
-#!/bin/sh
-
-HOST_SED="$(subst ${STAGING_DIR_HOST},$${STAGING_DIR_HOST},$(SED))"
-HOST_LN="$(subst ${STAGING_DIR_HOST},$${STAGING_DIR_HOST},$(LN))"
-
-[ -n "$${IPKG_INSTROOT}" ] && {
-	$${HOST_SED} 's,^src/gz istoreos_,src/gz openwrt_,g' -e '/^src\/gz openwrt_\(core\|base\|luci\|packages\|routing\|telephony\) /!d' "$${IPKG_INSTROOT}/etc/opkg/distfeeds.conf"
-
-	$${HOST_SED} 's/"192.168.1.1"/"192.168.10.1"/' \
-		"$${IPKG_INSTROOT}/usr/lib/lua/luci/controller/admin/system.lua" \
-		"$${IPKG_INSTROOT}/usr/lib/lua/luci/controller/admin/ota.lua" \
-		"$${IPKG_INSTROOT}/bin/config_generate"
-
-	$${HOST_SED} "s/'192\\.168\\.1\\.1'/'192.168.10.1'/; s/'openwrt\\.lan'/window.location.host/" "$${IPKG_INSTROOT}/www/luci-static/resources/view/system/flash.js"
-
-	$${HOST_SED} 's/s\.anonymous = true/s\.anonymous = true\ns\.addremove = true/' "$${IPKG_INSTROOT}/usr/lib/lua/luci/model/cbi/hd_idle.lua"
-
-	$${HOST_SED} 's#"/opt"#"/overlay/upper/opt/docker"#' "$${IPKG_INSTROOT}/usr/lib/lua/luci/model/cbi/admin_system/fstab/mount.lua"
-
-	rm -f "$${IPKG_INSTROOT}/sbin/jffs2reset"
-	$${HOST_LN} /sbin/firstboot "$${IPKG_INSTROOT}/sbin/jffs2reset"
-}
-true
-
-endef
 $(eval $(call BuildPackage,autocore-arm))
 $(eval $(call BuildPackage,autocore-x86))
