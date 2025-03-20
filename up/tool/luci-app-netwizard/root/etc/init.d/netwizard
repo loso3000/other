@@ -144,6 +144,7 @@ configure_network() {
     config_get synflood "$cfg" synflood '0'
     config_get lan_ipaddr "$cfg" lan_ipaddr `uci -q get network.lan.ipaddr`
     config_get lan_netmask "$cfg" lan_netmask '255.255.255.0'
+    
     # config_get dns_tables "$cfg" dns_tables 'iptables -t nat -I POSTROUTING -o br-lan -j MASQUERADE'
 
     if [ "x$showhide" = "x1" ]; then
@@ -161,8 +162,8 @@ EOF
     ifname=$(uci -q get network.lan.ifname) 
     [ "x$ifname" = "x" ] && ifname="device" || ifname="ifname" 
     [ -n "$wan_interface" ] || wan_interface=$(uci -q get network.wan.$ifname 2>/dev/null) 
-    [ -n "$wan_interface" ] || wan_interface='eth0' 
-
+    [ -n "$wan_proto" ] || wan_proto=$(uci -q get network.wan.proto 2>/dev/null) 
+    [ -n "$wan_proto" ] || wan_proto="siderouter"
     $UCIDEL network.lan.gateway
     $UCIDEL network.lan.dns
     $UCIDEL firewall.@zone[0].masq
@@ -170,32 +171,38 @@ EOF
     [ `uci -q get network.wan6` ] && $UCIDEL network.wan6
     [ `uci -q get network.lan6` ] && $UCIDEL network.lan6
 
-    $UCISET network.wan=interface
-    $UCISET network.wan6=interface
-    $UCISET network.wan6.proto='dhcpv6'
-    $UCISET network.wan6.delegate='1'
-    $UCIDEL dhcp.wan.master
-    $UCIDEL dhcp.lan.master
-    $UCIDEL firewall.@zone[1].network
     # uci -q add_list dhcp.lan.dns="2400:3200::1" #del lan dns
 
     netname=$(ls /sys/class/net/ | grep -E '^(eth[0-9]+|usb[0-9]+|lan[0-9]+|wan)$')
     netsum=$(echo "$netname" | wc -l)
-    if [ $netsum -gt 1 ] ;then
+    [ $netsum -gt 1 ] && {
         lannet=''
         for i in $(seq 1 $netsum); do 
             [ "${wan_interface}" == "$(echo "$netname" | sed -n ${i}p)" ] || lannet="${lannet} $(echo "$netname" | sed -n ${i}p)"
         done
         lannet=$(echo "$lannet" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
         [ "x$ifname" = "xdevice" ] && $UCISET network.@$ifname[0].ports="${lannet}" || $UCISET network.lan.$ifname="${lannet}"
+    
+    }
+    
+    if [[ -n "$wan_interface" ]] ;then
+         uci -q batch <<-EOF >/dev/null
+         set network.wan=interface
+         set network.wan6=interface
+         set network.wan6.proto='dhcpv6'
+         set network.wan6.delegate='1'
+         del dhcp.wan.master
+         del dhcp.lan.master
+         del firewall.@zone[1].network
+         set network.wan.$ifname="${wan_interface}"
+         set network.wan6.$ifname="@wan"
+EOF
+         [ "x$ifname" = "xdevice" ] && {
+                 uci -q add_list firewall.@zone[1].network='wan6'
+                 uci -q add_list firewall.@zone[1].network='wan'
+         } || uci -q set firewall.@zone[1].network='wan wan6'
+    
     fi
-
-    $UCISET network.wan.$ifname="${wan_interface}"
-    $UCISET network.wan6.$ifname="@wan"
-    [ "x$ifname" = "xdevice" ] && {
-        uci -q add_list firewall.@zone[1].network='wan6'
-        uci -q add_list firewall.@zone[1].network='wan' 
-    } || uci -q set firewall.@zone[1].network='wan wan6'
 
     case "${wan_proto}" in
         dhcp)
@@ -344,9 +351,7 @@ EOF
             for radio in radio0 radio1 radio2 radio3; do
                 wifi_setup_radio ${radio}
             done
-            uci -q batch <<-EOF >/dev/null
-            commit wireless
-EOF
+           uci -q  commit wireless
         }
 
         $UCISET netwizard.default.old_wifi_ssid="${wifi_ssid}"

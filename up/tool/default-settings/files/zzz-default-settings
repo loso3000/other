@@ -87,23 +87,23 @@ uci -q delete wireless.default_${r}
 }
 setup_network()
 {
-. /lib/functions/uci-defaults.sh
-ETHNUM=$(ls /sys/class/net/ | grep eth | wc -l)
-ucidef_set_interface_lan 'eth0'
-if [ $ETHNUM == 1 ]; then
-    uci -q set network.lan.proto='static'
-else
-    [ -d /sys/class/net/eth1 ] && ucidef_set_interface_wan 'eth1'
-    interface=""
-    for eth_interface in /sys/class/net/eth*
-    do
-        [ "$eth_interface" != "/sys/class/net/eth1" ] && interface=$interface" "${eth_interface##*/}
-    done
-    if [ -n "$interface" ]; then
-        interface=$(echo "$interface" | sed 's/^ *//')
-        ucidef_set_interface_lan "$interface"
+    ifname=$(uci -q get network.lan.ifname) 
+    [ "x$ifname" = "x" ] && ifname="device" || ifname="ifname" 
+     wan_interface=`uci -q get network.wan.$ifname` 
+    netname=$(ls /sys/class/net/ | grep -E '^(eth[0-9]+|usb[0-9]+|lan[0-9]+|wan)$')
+    netsum=$(echo "$netname" | wc -l)
+    if [ $netsum -gt 1 ] ;then
+    
+        lannet=''
+        for i in $(seq 1 $netsum); do 
+            [[ -n ${wan_interface} && "${wan_interface}" == "$(echo "$netname" | sed -n ${i}p)" ]] || lannet="${lannet} $(echo "$netname" | sed -n ${i}p)"
+        done
+        lannet=$(echo "$lannet" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+        [ "x$ifname" = "xdevice" ] && uci -q set network.@$ifname[0].ports="${lannet}" || uci -q set network.lan.$ifname="${lannet}"
+    else
+        uci -q set network.lan.proto='static'
     fi
-fi
+
 }
 
 . /etc/openwrt_release
@@ -139,6 +139,7 @@ test $ver -lt 1 && {
     uci del dhcp.lan.ignore
     uci del dhcp.lan.ra_slaac
     uci del network.lan.delegate
+    uci -q set network.lan.proto='static'
     setup_network
     uci -q commit network
     sed -i '/lcp-echo/d' /etc/ppp/options
@@ -402,7 +403,7 @@ uci -q set dropbear.@dropbear[0].Interface=''
 uci -q commit dropbear
 
 # docker mirror
-if [[ -f /etc/config/dockerd ] && [ $(grep -c daocloud.io /etc/config/dockerd) -eq '0' ]]; then
+if [ -f /etc/config/dockerd ] && ! grep -q "daocloud.io" /etc/config/dockerd; then
     uci -q add_list dockerd.globals.registry_mirrors="https://docker.m.daocloud.io"
     WAN_ZONE=`uci show firewall | grep -E '^firewall\.@zone\[[0-9]+\]\.name='"'wan'" | head -n1 | head -c -12`
     uci -q batch <<-EOF >/dev/null
@@ -456,7 +457,7 @@ fi
 [ -f '/etc/init.d/turboacc' ] &&/etc/init.d/turboacc restart
 [ -f '/etc/init.d/ttyd' ] &&/etc/init.d/ttyd restart
 [ -f '/etc/init.d/mwan3' ] &&/etc/init.d/mwan3 restart
-# [ -f '/etc/init.d/netwizard' ] &&/etc/init.d/netwizard restart
+[ -f '/etc/init.d/netwizard' ] &&/etc/init.d/netwizard restart
 /etc/init.d/system restart
 /etc/init.d/network restart
 /etc/init.d/dnsmasq restart
