@@ -89,8 +89,8 @@ setup_network()
 {
 . /lib/functions/uci-defaults.sh
 ETHNUM=$(ls /sys/class/net/ | grep eth | wc -l)
+ucidef_set_interface_lan 'eth0'
 if [ $ETHNUM == 1 ]; then
-    ucidef_set_interface_lan 'eth0'
     uci -q set network.lan.proto='static'
 else
     [ -d /sys/class/net/eth1 ] && ucidef_set_interface_wan 'eth1'
@@ -139,7 +139,6 @@ test $ver -lt 1 && {
     uci del dhcp.lan.ignore
     uci del dhcp.lan.ra_slaac
     uci del network.lan.delegate
-    uci -q set network.lan.proto='static'
     setup_network
     uci -q commit network
     sed -i '/lcp-echo/d' /etc/ppp/options
