@@ -5,7 +5,6 @@ touch /etc/config/base_config
 uci -q add base_config base >/dev/null 2>&1
 ver=0
 }
-[ `mount | grep /boot |wc -l` -gt 1 ] && umount /boot
 #argon
 sed -i 's,media .. \"\/b,resource .. \"\/b,g' /usr/lib/lua/luci/view/themes/argon/sysauth.htm
 uci -q set luci.main.lang='auto'
@@ -103,7 +102,6 @@ setup_network()
     else
         uci -q set network.lan.proto='static'
     fi
-
 }
 
 . /etc/openwrt_release
@@ -145,7 +143,7 @@ test $ver -lt 1 && {
     sed -i '/lcp-echo/d' /etc/ppp/options
     echo "lcp-echo-failure 10" >>  /etc/ppp/options 
     echo "lcp-echo-interval 200" >>  /etc/ppp/options
-    [ x$debug = x1 ] && uci -q set base_config.@base[0].base$ver=$?;echo $ver
+[ x$debug = x1 ] && echo $ver
 }
 #ssh link
 test $ver -lt 2 && {
@@ -309,7 +307,7 @@ uci -q commit network
 uci -q commit system
 uci -q commit firewall
 uci -q commit mwan3
-[ x$debug = x1 ] && uci -q set base_config.@base[0].base$ver=$?;echo $ver
+[ x$debug = x1 ] && echo $ver
 }
 
 sed -i '/coremark/d' /etc/crontabs/root
@@ -325,8 +323,8 @@ echo "OPENWRT_RELEASE='"${new_DISTRIB_REVISION}"'" >> /etc/os-release
 sed -i 's/immortalwrt/openwrt/g' /etc/config/luci
 
 #tv
-test $ver -lt 4 && {
-ver=4
+test $ver -lt 3 && {
+ver=3
 HOSTNAME="samsungTV"
 TAG="googleDNS"
 MAC=""
@@ -349,13 +347,13 @@ uci -q set "dhcp.@domain[-1].name=time.android.com"
 uci -q set "dhcp.@domain[-1].ip=203.107.6.88"
 uci -q commit dhcp
 
-[ x$debug = x1 ] && uci -q set base_config.@base[0].base$ver=$? ; echo $ver
+[ x$debug = x1 ] && echo $ver
 }
 
 
 #distfeeds
-test $ver -lt 5 && { 
-ver=5
+test $ver -lt 4 && { 
+ver=4
 
 echo "src/gz is_store https://istore.linkease.com/repo/all/store" >/etc/opkg/customfeeds.conf
 if is_x86_64; then
@@ -378,11 +376,13 @@ src/gz ezopwrt_telephony https://downloads.immortalwrt.org/releases/24.10-SNAPSH
 EOF
 
 fi
+
+[ x$debug = x1 ] && echo $ver
 }
 
 #tv
-test $ver -lt 6 && { 
-ver=6
+test $ver -lt 5 && { 
+ver=5
 
 uci -q delete ttyd.@ttyd[0].interface
     if [[ -e /etc/config/ttyd ]]; then
@@ -451,19 +451,22 @@ set snmpd.default_settings.agentaddress='udp:127.0.0.1,udp6:[::1]:161'
  commit snmpd
 EOF
 fi
+
+[ x$debug = x1 ] && echo $ver
 }
 
+uci -q set base_config.@base[0].ver=$ver
+uci -q commit base_config
 [ -f '/etc/init.d/miniupnpd' ] &&/etc/init.d/miniupnpd restart
 [ -f '/etc/init.d/turboacc' ] &&/etc/init.d/turboacc restart
 [ -f '/etc/init.d/ttyd' ] &&/etc/init.d/ttyd restart
 [ -f '/etc/init.d/mwan3' ] &&/etc/init.d/mwan3 restart
-[ -f '/etc/init.d/netwizard' ] &&/etc/init.d/netwizard restart
+# [ -f '/etc/init.d/netwizard' ] &&/etc/init.d/netwizard restart
 /etc/init.d/system restart
 /etc/init.d/network restart
 /etc/init.d/dnsmasq restart
-uci -q set base_config.@base[0].ver=$ver
-uci -q commit base_config
-ntpd -n -q -p 1.lede.pool.ntp.org
+
+ntpd -n -q -p 0.pool.ntp.org -p 1.pool.ntp.org -p 2.pool.ntp.org
 sed -i '/log-facility/d' /etc/dnsmasq.conf
 echo "log-facility=/dev/null" >> /etc/dnsmasq.conf
 echo 'hsts=0' > /root/.wgetrc
