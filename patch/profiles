@@ -250,7 +250,7 @@ done
 }
 
 function k_themenetwork(){
-   EY " 1. 恢复默认主题设置(Restore default theme settings) "
+   EY "\n 1. 恢复默认主题设置(Restore default theme settings) "
    EY " 2. 恢复默认网络设置(Restore default network settings)"
     EW " 0/q. 返回主菜单(return main menu) \n"
     while :; do
@@ -275,7 +275,6 @@ function is_vip() {
 }
 
 function k_poweroff() {
-echo
 while :; do
 echo -e "\n q. 返回(return)"
 read -p " 是否确定关闭系统？(Are you sure to shut down the system)[Y/n]:" YN
@@ -301,8 +300,7 @@ done
 }
 
 function k_change_ip() {
-  echo 
-  echo -e " q. 返回(return) ,当前IPv4：${IP_Address}"
+  echo -e "\n q. 返回(return) ,当前IPv4：${IP_Address}"
   export k_ip=" 请输入新IPv4地址(Input new IPv4)"
   echo
   while :; do
@@ -588,23 +586,24 @@ function k_bindwan() {
     fi
     echo -e "您的WAN口绑定为(Your WAN port is bound as)：${keyip}！"
     pwait
-
-    if [[ "x$ifname" == "xdevice" ]]; then
        if [ ! `uci -q get network.wan` ] ;then 
            uci -q set network.wan=interface
            uci -q add_list firewall.@zone[1].network='wan'
        fi 
+        if [ `uci -q get network.wan6` ] ;then 
+           uci -q add_list firewall.@zone[1].network='wan6'
+       fi
+    if [[ "x$ifname" == "xdevice" ]]; then
+
       lanport=`uci get network.@$ifname[0].ports | sed "s/${keyip}//g" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//'`
       uci -q set network.@$ifname[0].ports="$lanport"
     else
-       if [ ! `uci -q get network.wan` ] ;then 
-           uci -q set network.wan=interface
-           uci -q add_list firewall.@zone[1].network='wan'
-       fi 
+
       lanport=`uci get network.lan.$ifname | sed "s/${keyip}//g" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//'`
       uci -q set network.lan.$ifname="$lanport"
     fi
-    uci -q set network.wan.${ifname}="${keyip}"
+    [ `uci -q get network.wan` ] && uci -q set network.wan.${ifname}="${keyip}"
+    [ `uci -q get network.wan6` ] && uci -q set network.wan6.${ifname}="${keyip}"
     uci commit network
     /etc/init.d/network restart
     pwait
@@ -645,6 +644,9 @@ function k_bindlan() {
     fi
     echo -e "您的LAN口绑定为：${keyip}！"
     pwait
+    waneth=`uci -q get network.wan.${ifname} | sed "s/${keyip}//g" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//'`
+    [ `uci -q get network.wan` ] && uci -q set network.wan.${ifname}="${waneth}"
+    [ `uci -q get network.wan6` ] && uci -q set network.wan6.${ifname}="${waneth}"
     if [ "x$ifname" = "xdevice" ]; then
       uci -q set network.@$ifname[0].ports="${keyip}"
     else
@@ -659,7 +661,7 @@ function k_bindlan() {
 }
 
 function k_bindlanwan() {
-    EY " 1. 绑定LAN口(Bind LAN port network card) "
+    EY "\n 1. 绑定LAN口(Bind LAN port network card) "
     EY " 2. 绑定WAN口(Bind WAN port network card)"
     EW " 0/q. 返回主菜单(return main menu) \n"
     while :; do
@@ -675,7 +677,7 @@ function k_bindlanwan() {
 }
     
 function k_rebootpoweroff() {
-    EY " 1. 重启系统(Reboot) "
+    EY "\n 1. 重启系统(Reboot) "
     EY " 2. 关闭系统(Shutdown)"
     EW " 0/q. 返回主菜单(return main menu) \n"
     while :; do
@@ -692,7 +694,7 @@ function k_rebootpoweroff() {
 }
 
 function otherpro() {
-    EY " 1. 停止家长控制/时间控制(Stop Parentcontrol/Timecontrol)"
+    EY "\n 1. 停止家长控制/时间控制(Stop Parentcontrol/Timecontrol)"
     EY " 2. 装载全部网卡驱动(Load all network card drivers)"
     EY " 3. 装载 Docker 服务(Loading Docker Service)"
     EW " 0/q. 返回主菜单(return main menu) \n"
@@ -718,7 +720,7 @@ function otherpro() {
 function check_network() {
 
 	ping 223.5.5.5 -c 1 -W 2 > /dev/null 2>&1 && \
-	EY  " 基础aliyu网络连接正常!(Basic aliyu network connection is OK!)" || EG  " 基础aliyu网络连接错误!(Basic aliyu network connection error!)"
+	EY  "\n 基础aliyu网络连接正常!(Basic aliyu network connection is OK!)" || EG  "\n 基础aliyu网络连接错误!(Basic aliyu network connection error!)"
 	nslookup -type=a baidu.com > /dev/null 2>&1 &&\
 	EY  " 基础 IPv4 DNS 解析正常!(Basic IPv4 DNS resolution is OK!)" || EG  " 基础 IPv4 DNS 解析错误!(Basic IPv4 DNS resolution error!)"
 	Google_Check=$(curl -I -s --connect-timeout 3 http://www.google.com/generate_204 -w %{http_code} | tail -n1)
