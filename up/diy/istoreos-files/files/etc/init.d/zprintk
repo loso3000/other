@@ -13,7 +13,8 @@ boot() {
 	if [ -n "$pids" ]; then
 		local pid
 		for pid in $pids; do
-			echo "EzOpenwrt is ready!" >/proc/$pid/fd/1
+			echo -ne "\033[1A\033[K""\033[1A\033[K"
+			echo "EzOpWrt is ready!" >/proc/$pid/fd/1
 			echo "Please press Enter to activate this console." >/proc/$pid/fd/1
 		done
 	fi

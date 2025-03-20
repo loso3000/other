@@ -50,6 +50,7 @@ define Package/$(PKG_NAME)/install
 endef
 
 
+
 define Package/istoreos-intl/install
 	$(CP) ./intl/* $(1)/
 endef
