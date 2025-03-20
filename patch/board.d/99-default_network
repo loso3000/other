@@ -21,13 +21,16 @@ if [ $ETHNUM == 1 ]; then
         set firewall.docker_nat.extra='-i docker0'
 EOF
 else
-    [ -d /sys/class/net/eth0 ] && ucidef_set_interface_wan 'eth0'
+    [ -d /sys/class/net/eth1 ] && ucidef_set_interface_wan 'eth1'
     interface=""
     for eth_interface in /sys/class/net/eth*
     do
-        [ "$eth_interface" != "/sys/class/net/eth0" ] && interface=$interface" "${eth_interface##*/}
+        [ "$eth_interface" != "/sys/class/net/eth1" ] && interface=$interface" "${eth_interface##*/}
     done
-    [ -n "$interface" ] && ucidef_set_interface_lan "$interface"
+    if [ -n "$interface" ]; then
+        interface=$(echo "$interface" | sed 's/^ *//')
+        ucidef_set_interface_lan "$interface"
+    fi
 fi
 
 board_config_flush
