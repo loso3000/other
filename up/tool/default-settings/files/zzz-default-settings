@@ -457,7 +457,7 @@ fi
 [ -f '/etc/init.d/turboacc' ] &&/etc/init.d/turboacc restart
 [ -f '/etc/init.d/ttyd' ] &&/etc/init.d/ttyd restart
 [ -f '/etc/init.d/mwan3' ] &&/etc/init.d/mwan3 restart
-[ -f '/etc/init.d/netwizard' ] &&/etc/init.d/netwizard restart
+# [ -f '/etc/init.d/netwizard' ] &&/etc/init.d/netwizard restart
 /etc/init.d/system restart
 /etc/init.d/network restart
 /etc/init.d/dnsmasq restart
