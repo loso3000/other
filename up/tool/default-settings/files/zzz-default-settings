@@ -87,23 +87,23 @@ uci -q delete wireless.default_${r}
 }
 setup_network()
 {
-    ifname=$(uci -q get network.lan.ifname) 
-    [ "x$ifname" = "x" ] && ifname="device" || ifname="ifname" 
-     wan_interface=`uci -q get network.wan.$ifname` 
-    netname=$(ls /sys/class/net/ | grep -E '^(eth[0-9]+|usb[0-9]+|lan[0-9]+|wan)$')
-    netsum=$(echo "$netname" | wc -l)
-    if [ $netsum -gt 1 ] ;then
-    
-        lannet=''
-        for i in $(seq 1 $netsum); do 
-            [[ -n ${wan_interface} && "${wan_interface}" == "$(echo "$netname" | sed -n ${i}p)" ]] || lannet="${lannet} $(echo "$netname" | sed -n ${i}p)"
-        done
-        lannet=$(echo "$lannet" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
-        [ "x$ifname" = "xdevice" ] && uci -q set network.@$ifname[0].ports="${lannet}" || uci -q set network.lan.$ifname="${lannet}"
-    else
-        uci -q set network.lan.proto='static'
+. /lib/functions/uci-defaults.sh
+ETHNUM=$(ls /sys/class/net/ | grep eth | wc -l)
+if [ $ETHNUM == 1 ]; then
+    ucidef_set_interface_lan 'eth0'
+    uci -q set network.lan.proto='static'
+else
+    [ -d /sys/class/net/eth1 ] && ucidef_set_interface_wan 'eth1'
+    interface=""
+    for eth_interface in /sys/class/net/eth*
+    do
+        [ "$eth_interface" != "/sys/class/net/eth1" ] && interface=$interface" "${eth_interface##*/}
+    done
+    if [ -n "$interface" ]; then
+        interface=$(echo "$interface" | sed 's/^ *//')
+        ucidef_set_interface_lan "$interface"
     fi
-
+fi
 }
 
 . /etc/openwrt_release
