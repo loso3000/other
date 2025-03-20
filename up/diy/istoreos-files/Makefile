@@ -49,22 +49,6 @@ define Package/$(PKG_NAME)/install
 	$(CP) ./files/* $(1)/
 endef
 
-define Package/$(PKG_NAME)/postinst
-#!/bin/sh
-
-HOST_SED="$(subst ${STAGING_DIR_HOST},$${STAGING_DIR_HOST},$(SED))"
-HOST_LN="$(subst ${STAGING_DIR_HOST},$${STAGING_DIR_HOST},$(LN))"
-
-[ -n "$${IPKG_INSTROOT}" ] && {
-	$${HOST_SED} 's/s\.anonymous = true/s\.anonymous = true\ns\.addremove = true/' "$${IPKG_INSTROOT}/usr/lib/lua/luci/model/cbi/hd_idle.lua"
-	rm -f "$${IPKG_INSTROOT}/sbin/jffs2reset"
-	$${HOST_LN} /sbin/firstboot "$${IPKG_INSTROOT}/sbin/jffs2reset"
-
-
-}
-true
-
-endef
 
 define Package/istoreos-intl/install
 	$(CP) ./intl/* $(1)/
