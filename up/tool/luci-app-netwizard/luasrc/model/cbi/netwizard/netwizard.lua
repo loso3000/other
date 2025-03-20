@@ -10,8 +10,18 @@ local lan_gateway = uci:get("netwizard", "default", "lan_gateway")
 if lan_gateway ~= "" then
    lan_gateway = sys.exec("ipaddr=`uci -q get network.lan.ipaddr`;echo ${ipaddr%.*}")
 end
+
 local lan_ip = uci:get("network", "lan", "ipaddr")
-local wan_face = sys.exec(" [ `uci -q get network.wan.ifname` ] && uci -q get network.wan.ifname  || uci -q get network.wan.device ")
+local landhcp =  uci:get("network", "lan", "lan_dhcp")
+if landhcp ~= "" then
+   landhcp = uci:get("dhcp", "lan", "ignore")
+end 
+
+local wan_face = uci:get("netwizard", "default", "wan_interface")
+if wan_face ~= "" then
+   wan_face = sys.exec(" [ `uci -q get network.wan.device` ] && uci -q get network.wan.device  || uci -q get network.wan.ifname ")
+end
+
 local wanproto = uci:get("netwizard", "default", "wan_proto")
 if wanproto == "" then
      wanproto = sys.exec("uci -q get network.wan.proto || echo 'siderouter'")
@@ -128,7 +138,7 @@ e = s:taboption("wansetup", Flag, "ipv6",translate('Enable IPv6'))
 e.default = "0"
 
 lan_dhcp = s:taboption("wansetup", Flag, "lan_dhcp", translate("Disable DHCP Server"), translate("Selecting means that the DHCP server is not enabled. In a network, only one DHCP server is needed to allocate and manage client IPs. If it is a secondary route, it is recommended to turn off the primary routing DHCP server."))
-lan_dhcp.default = 0
+lan_dhcp.default = landhcp
 lan_dhcp.anonymous = false
 
 e = s:taboption("wansetup", Flag, "dnsset", translate("Enable DNS notifications (ipv4/ipv6)"),translate("Force the DNS server in the DHCP server to be specified as the IP for this route"))
