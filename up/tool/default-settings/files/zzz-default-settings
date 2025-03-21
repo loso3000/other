@@ -310,7 +310,7 @@ uci -q commit mwan3
 [ x$debug = x1 ] && echo $ver
 }
 
-sed -i '/coremark/d' /etc/crontabs/root
+# sed -i '/coremark/d' /etc/crontabs/root
 ln -sf /sbin/ip /usr/bin/ip
 # Disable opkg signature check
 sed -i 's/option check_signature/# option check_signature/g' /etc/opkg.conf
@@ -451,6 +451,8 @@ set snmpd.default_settings.agentaddress='udp:127.0.0.1,udp6:[::1]:161'
  commit snmpd
 EOF
 fi
+sed -i 's/util/xml/g' /usr/lib/lua/luci/model/cbi/*.lua
+sed -i 's/util/xml/g' /usr/lib/lua/luci/model/cbi/*/*.lua
 
 [ x$debug = x1 ] && echo $ver
 }
