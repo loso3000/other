@@ -144,8 +144,7 @@ configure_network() {
     config_get synflood "$cfg" synflood '0'
     config_get lan_ipaddr "$cfg" lan_ipaddr `uci -q get network.lan.ipaddr`
     config_get lan_netmask "$cfg" lan_netmask '255.255.255.0'
-    
-    # config_get dns_tables "$cfg" dns_tables 'iptables -t nat -I POSTROUTING -o br-lan -j MASQUERADE'
+    config_get dns_tables "$cfg" dns_tables '114.114.114.114'
 
     if [ "x$showhide" = "x1" ]; then
         touch /etc/config/netwizard_hide 

@@ -141,7 +141,7 @@ lan_dhcp = s:taboption("wansetup", Flag, "lan_dhcp", translate("Disable DHCP Ser
 lan_dhcp.default = landhcp
 lan_dhcp.anonymous = false
 
-e = s:taboption("wansetup", Flag, "dnsset", translate("Enable DNS notifications (ipv4/ipv6)"),translate("Force the DNS server in the DHCP server to be specified as the IP for this route"))
+e = s:taboption("wansetup", Flag, "dnsset", translate("Enable DNS notifications (ipv4/ipv6)"),translate("Forcefully specify the DNS server for this router"))
 e:depends("lan_dhcp", false)
 e.default = "0"
 
