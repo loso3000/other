@@ -11,7 +11,7 @@ uci -q batch <<-EOF >/dev/null
     commit system
 EOF
 
-uci set dockerd.globals.data_root=/opt/docker
+# uci set dockerd.globals.data_root=/opt/docker
 
 
 uci -q batch <<-EOF >/dev/null
