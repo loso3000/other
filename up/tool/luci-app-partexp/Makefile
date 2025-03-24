@@ -7,8 +7,8 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-partexp
-PKG_VERSION:=1.2.1
-PKG_RELEASE:=20250315
+PKG_VERSION:=1.2.2
+PKG_RELEASE:=20250325
 
 PKG_LICENSE:=Apache-2.0
 PKG_MAINTAINER:=Sirpdboy <herboy2008@gmail.com>

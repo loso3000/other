@@ -12,8 +12,9 @@ USE_PROCD=1
 EXTRA_COMMANDS="autopart"
 
 LOCK=/var/lock/partexp.lock
-LOGD=/etc/partexp
-LOG=/etc/partexp/partexp.log
+LOGD=/var/partexp
+LOG=$LOGD/partexp.log
+[ -d "$LOGD" ] || mkdir -p $LOGD
 
 limit_log() {
 	local logf=$1
@@ -21,14 +22,13 @@ limit_log() {
 	local sc=100
 	[ -n "$2" ] && sc=$2
 	local count=$(grep -c "" $logf)
-	if [[ $count -gt $sc ]];then
+	if [ $count -gt $sc ];then
 		let count=count-$sc
 		sed -i "1,$count d" $logf
 	fi
 }
 
 init_env() {
-[ -d "$LOGD" ] || mkdir -p $LOGD
 [ ! -f "$LOG" ] && echo " " > $LOG
 
 }
@@ -42,42 +42,145 @@ log(){
 	echo -e  " $(date +'%Y-%m-%d %H:%M:%S') $*"
 }
 
-
-get_config() {
-        config_get target_function $1 target_function 1
-	config_get target_disk $1 target_disk 1
-	config_get_bool keep_config $1 keep_config 1
-	config_get_bool auto_format $1 auto_format 1
+_uci_get() {
+	local ret=$(uci get partexp.global.$1 2>/dev/null)
+	echo ${ret:=$2}
 }
 
-# 定义函数：检查硬盘是否已挂载
+uci_get() {
+    case $# in
+        2)
+	local ret=$(uci get $1.$2 2>/dev/null)
+	echo ${ret}
+            ;;
+        3)
+	local ret=$(uci get $1.$2.$3 2>/dev/null)
+	echo ${ret}
+            ;;
+        4)
+	local ret=$(uci get $1.$2.$3 2>/dev/null)
+	echo ${ret:=$4}
+            ;;
+    esac
+}
+
+uci_set() {
+    case $# in
+        3)
+	uci set $1.$2=$3 2>/dev/null
+	uci commit $1
+            ;;
+        4)
+	uci set $1.$2.$3=$4 2>/dev/null
+	uci commit $1
+            ;;
+    esac
+}
+
+uci_add(){
+    uci add_list $1.$2.$3=$4 2>/dev/null
+    uci commit $1
+}
+
+uci_del() {
+    case $# in
+        2)
+            uci delete "$1.$2"
+            ;;
+        3)
+            uci delete "$1.$2.$3"
+            ;;
+        4)
+            uci delete "$1.$2.$3.$4"
+            ;;
+    esac
+}
+
+# 检查硬盘是否已挂载
 is_disk_mounted() {
     DISK=$1
-    # 检查是否已挂载
-    if mount | grep -q "^/dev/$DISK"; then
+    if mount | grep -q "$DISK "; then
         return 0  # 已挂载
     else
         return 1  # 未挂载
     fi
 }
 
-# 定义函数：取消挂载硬盘
-unmount_disk() {
-    DISK=$1
-    # log "正在取消挂载 /dev/$DISK..."
-    MOUNT='';eval $(block info "/dev/$DISK" | grep -o -e "MOUNT=\S*") 
-    if [ "$MOUNT" ] ; then
-         umount /dev/$DISK 2>/dev/null
-	 if [ $? -eq 0 ]; then
-                  log "取消挂载成功: /dev/$DISK"
-         else
-                 log  "取消挂载失败: /dev/$DISK"
-         fi
-    fi  
 
+mount_device() {
+    local DEVICE=$1
+    local MOUNT_POINT=$2
+    local TYPE=$3
+    # 检查设备是否存在
+    if [ ! -e "$DEVICE" ]; then
+        log "设备 $DEVICE 不存在"
+        return 1
+    fi
+
+    # 检查挂载点是否存在
+    if [ ! -d "$MOUNT_POINT" ]; then
+        log "挂载点 $MOUNT_POINT 不存在，正在创建..."
+        mkdir -p "$MOUNT_POINT"
+        if [ $? -ne 0 ]; then
+            log "无法创建挂载点 $MOUNT_POINT"
+            return 1
+        fi
+    fi
+
+    # 检查设备是否已挂载
+    if mount | grep -q "$DEVICE"; then
+        log "设备 $DEVICE 已挂载到其他位置"
+        return 1
+    fi
+
+    if mount | grep -q "$MOUNT_POINT"; then
+        log "挂载点 $MOUNT_POINT 已被其他设备占用"
+        return 1
+    fi
+
+    # 挂载设备
+    log "正在挂载 $DEVICE 到 $MOUNT_POINT..."
+    # mount "$DEVICE" "$MOUNT_POINT"
+
+    mount  $TYPE "$DEVICE" "$MOUNT_POINT" >/dev/null 2> /dev/null
+    # 检查挂载是否成功
+    if [ $? -eq 0 ]; then
+        log "挂载成功: $DEVICE -> $MOUNT_POINT"
+        return 0
+    else
+        log "挂载失败: $DEVICE -> $MOUNT_POINT"
+        return 1
+    fi
 }
 
-# 定义函数：检查是否有共享挂载（如 Samba 或 NFS）
+# 取消硬盘挂载
+umount_disk() {
+    DISK=$1
+    MOUNT=''
+    eval $(block info "$DISK" | grep -o -e "MOUNT=\S*")
+    if [ "$MOUNT" ]; then
+        umount $DISK 2>/dev/null
+        if [ $? -eq 0 ]; then
+            log "取消挂载成功:$DISK"
+        else
+            log "取消挂载失败:$DISK"
+        fi
+    else
+        log "设备/dev/$DISK未挂载"
+    fi
+}
+
+# 从 block info 中提取指定字段的值
+get_block() {
+    local DISK=$1
+    local TYPE=$2
+    local value
+    value=`mount | grep $DISK |awk -F $TYPE '{print $2}' |awk '{print $1}' | head -1`
+    # value=$(block info "/dev/$DISK" | grep -o -e "$TYPE=\S*" | cut -d\" -f2)
+    echo $value
+}
+	
+# 检查是否有共享挂载（如 Samba 或 NFS）
 check_shared_mount() {
     DISK=$1
     if [ -f /etc/config/samba ]; then
@@ -100,30 +203,27 @@ check_shared_mount() {
 
 usamba(){
 s=$1
-s2=$2
-	[ -e "/etc/config/$s" ] && {
+[ -e "/etc/config/$s" ] && {
 	msum=$(grep -c "config sambashare" /etc/config/$s)
-	for i in $(seq 0 $((msum)))
-	do
-			pdev=`uci -q get $s.@sambashare[$i].path `
-			[ "$pdev" = "$s2" ] && {
-					uci delete $s.@sambashare[$i] 
-					uci commit $s
-					log "分区/dev/$b被挂载$MOUNT共享使用，删除$s共享成功！"  
-					sleep 1
-			}
+	for i in $(seq 0 $((msum)));do
+		pdev=`uci_get $s @sambashare[$i] path `
+		[ "$pdev" = "$2" ] && {
+		uci_del $s @sambashare[$i] 
+		log "分区/dev/$b被挂载$MOUNT共享使用，删除$s共享成功！"  
+		sleep 1
+		}
 	done
-	}
+}
     # 取消 Samba 共享
-    if [ -f /etc/config/$s ]; then
+if [ -f /etc/config/$s ]; then
         sed -i "/\/dev\/$b/d" /etc/config/$s
         /etc/init.d/$s restart
-    fi
+fi
     # 取消 NFS 共享
-    if [ -f /etc/exports ]; then
+if [ -f /etc/exports ]; then
         sed -i "/\/dev\/$b/d" /etc/exports
         /etc/init.d/nfs restart
-    fi
+fi
 }
 
 
@@ -150,91 +250,97 @@ fdisksave(){
     echo -e "n\w" | fdisk /dev/$1    >/dev/null 2> /dev/null
 }
 
+# 格式化磁盘函数 DISK=/dev/sda1 ;TYPE=btrfs
+format_disk() {   
+    local DISK=$1
+    local TYPE=$2
+    [ $TYPE == '0' ] && TYPE="ext4"
+    log "正在格式化 $DISK "
+    mkfs.$TYPE -F "$DISK" >/dev/null 2>/dev/null
+    if [ $? -eq 0 ]; then
+        log "格式化 $TYPE 成功 $DISK"
+        return 0
+    else
+        log "格式化 $TYPE 失败 $DISK"
+        return 1
+    fi
+}
+
 fdiskB(){
-	a=$1
-	b=$1$2
-	log "检测$a是否分区$b..."
-	isfdisk=0
-	isP=$(is_disk_partitioned $a $b)
-	if [ "$isP" == '0' ] ;then
- 		fdisksave $a
+    target_function=$( _uci_get target_function "/opt" )
+    format_type=$( _uci_get format_type)
+    keep_config=$( _uci_get keep_config "1" )
+    uci_set fstab @global[0] anon_mount '0'
+    uci_set fstab @global[0] auto_mount '0'
+	a=$( _uci_get target_disk "/sda3" )
+	local b=$a$1
+	log "开始检测目标$a信息"
+   	log "检测/dev/$b是否需要分区和格式化$format_type"
+	[ -e "/etc/config/dockerd" ] && /etc/init.d/dockerd stop   >/dev/null 2> /dev/null
+	[ -e "/etc/config/fstab" ] || block detect > /etc/config/fstab
+	[ -d "/mnt/$b" ] || mkdir -p /mnt/$b
+	if is_disk_mounted "/dev/$b"; then
+ 	   log "设备 /dev/$b 已挂载，尝试取消挂载..."
+	   if check_shared_mount $b; then
+	   	   usamba samba4 $MOUNT
+	  	   usamba samba $MOUNT
+	  	   sleep 5
+	   fi
+ 	   umount_disk "/dev/$b" || umount_disk "/mnt/$b"
+	else
+  	   log "设备/dev/$b未挂载"
+	   isfdisk=0
+	   isP=$(is_disk_partitioned $a $b)
+	   if [ "$isP" == '0' ] ;then
+ 		fdisksave $a  
  		fdisknew $a
 		sleep 2
 		isfdisk=1
-	fi
-
-	isP=$(is_disk_partitioned $a $b)
-	if [ $isP == '1'  -a "$isfdisk" == 1 ] ;then
-	   log "分区$b建立成功！"
-	elif  [ $isP == '1'  -a "$isfdisk" = 0 ] ;then
-	    log "检测目标分区$b已存在."
-	else
-	   log "分区$b建立失败，没有足够的空间操作失败！"
-	   expquit 1
-	fi
-	sleep 1
-	[ -e "/etc/config/dockerd" ] && /etc/init.d/dockerd stop  >/dev/null 2> /dev/null 
-	
-	block detect > /etc/config/fstab
-	isD=` block info "/dev/$b" `
-	if [ "$isD" ];then
-	  MOUNT='';eval $(block info "/dev/$b" | grep -o -e "MOUNT=\S*")
-
-	  log "检测/dev/$b是不是被共享..."
-	  if [ "x$MOUNT" != 'x' ] ; then
-		usamba samba4 $MOUNT
-		usamba samba $MOUNT
-		sleep 5
-		umount $MOUNT || block umount /dev/$b   >/dev/null 2> /dev/null 
-		sleep 5
-		MOUNT='';eval $(block info "/dev/$b" | grep -o -e "MOUNT=\S*")
-		if [ "x$MOUNT" != 'x'  ] ;then
-		     log "分区/dev/$b挂载$MOUNT使用中,自动删除失败！请手动删除共享或者取消其它插件的占用权限再重试！" 
-		     expquit 1 
-		fi
-	  else
-	    log "检测目标设备$b未被共享..."
-	  fi
-	fi
-	#isD=`block info /dev/$b | awk -F 'TYPE=' '{print $2}'| sed 's,\",,g' ` 
-	TYPE='';eval $(block info "/dev/$b" | grep -o -e "TYPE=\S*")
-	if [ "$target_function" = "/" -o "$target_function" = "/overlay" ] ; then 
-	    log  "正在将/dev/$b格式化为EXT4文件系统..."
-	    mkfs.ext4 -L extroot /dev/$b  >/dev/null 2> /dev/null 
-	    log  "设备/dev/$b格式化EXT4成功！"
-	elif [ "$auto_format" = "1" -o "$isfdisk" = "1" ] ; then
-	    mkfs.ext4 -F /dev/$b  >/dev/null 2> /dev/null
-	    log  "设备/dev/$b格式化EXT4成功！"
-	elif [ "$TYPE" ];then
-	    log  "设备/dev/$b无需格式化！"
-	else
-	    log  "设备/dev/$b未格式化，无法正常使用！"
-	    expquit 1
-	fi
-
-	[ -d "/mnt/$b" ] || mkdir -p /mnt/$b
-	MOUNT='';eval $(block info "/dev/$b" | grep -o -e "MOUNT=\S*") 
-	if [  "x$MOUNT" != 'x'  ] ;then
-	     umount /mnt/$b || block umount /dev/$b   >/dev/null 2> /dev/null 
-	     MOUNT='';eval $(block info "/dev/$b" | grep -o -e "MOUNT=\S*") 
-	     if [ "$MOUNT" ] ; then
-	     	log "检测设备/dev/$b被占用,请检查设备硬件或中止其他插件等占用权限再重试！" 
-		expquit 1
-	     fi
-	fi
-	TYPE='';eval $(block info "/dev/$b" | grep -o -e "TYPE=\S*") 
-	if [ "$TYPE" = "ntfs" ];then
-	   log "检测设备/dev/$b分区是$TYPE格式！" 
-	   if [ `which ntfs-3g ` ] ;then
-	     mount -t ntfs-3g /dev/$b /mnt/$b   >/dev/null 2> /dev/null
-	   elif  [ `which ntfs3 ` ]  ;then
-	      mount -t ntfs3 /dev/$b /mnt/$b   >/dev/null 2> /dev/null
-	   else
-	     log "不支持NTFS分区挂载，请安装ntfs-3g或者ntfs3支持服务"
-	     expquit 1
 	   fi
+	   isP=$(is_disk_partitioned $a $b)
+	   if [ $isP == '1' -a "$isfdisk" == 1 ] ;then
+	       log "分区$b建立成功！"
+	   elif  [ $isP == '1'  -a "$isfdisk" = 0 ] ;then
+	       log "检测目标分区$b已存在."
+	   else
+	       log "分区$b建立失败，请检查$b硬盘空间！"
+	       expquit 1
+	   fi
+	   sleep 1
+	fi
+	if is_disk_mounted "/dev/$b"; then
+		umount /dev/$b  >/dev/null 2> /dev/null
+		[ $? -ne 0 ] && block umount /dev/$b   >/dev/null 2> /dev/null
+	fi
+	if [ "$target_function" = "/" -o "$target_function" = "/overlay" ] ; then
+	    format_disk "/dev/$b" $format_type
+	elif [ "$format_type" != "0" -o "$isfdisk" = "1" ] ; then
+	    format_disk "/dev/$b" $format_type
 	else
-	   /usr/bin/mount /dev/$b  /mnt/$b  >/dev/null 2> /dev/null
+	    log  "设备/dev/$b如果未格式化,可能无法正常使用."
+	fi
+
+	[  $(is_disk_mounted "/dev/$b") ] || mount /dev/$b /mnt/$b
+	
+	TYPE='';eval $(block info "/dev/$b" | grep -o -e "TYPE=\S*")
+
+	log "检测设备/dev/$b分区$TYPE格式！"
+	if is_disk_mounted "/dev/$b"; then
+		umount /dev/$b  >/dev/null 2> /dev/null
+		[ $? -ne 0 ] && block umount /dev/$b   >/dev/null 2> /dev/null
+	fi
+	if [ "$TYPE" = "ntfs" ];then
+		if  [ `which ntfs-3g ` ]  ;then
+		   if  is_disk_mounted "/mnt/$b" ;then
+		      mount_device /dev/$b /mnt/$b "-t ntfs-3g"
+		   fi
+	       else 
+		   if  is_disk_mounted "/mnt/$b" ;then
+		      mount_device /dev/$b /mnt/$b "-t ntfs3"
+		   fi
+	       fi
+	else
+	   mount /dev/$b  /mnt/$b  >/dev/null 2> /dev/null
 	fi
 	UUID='';eval $(block info /dev/$b | grep -o -e "UUID=\S*")
 	if [ ! "$UUID" ] ; then 
@@ -244,31 +350,15 @@ fdiskB(){
 	     log "获取/dev/$b设备UUID信息:$UUID成功" 
 	fi
 
-	if [ "$target_function" = "/" ] ; then
-			    mkdir -p /tmp/introot
-			    mount --bind / /tmp/introot
-			    tar -C /tmp/introot -cvf - . | tar -C /mnt/$b -xf -
-			    umount /tmp/introot || block umount /tmp/introot
-			    umount /mnt/$b || block umount /dev/$b   >/dev/null 2> /dev/null 
-			    block detect > /etc/config/fstab
-			    OVERLAY=`uci -q get fstab.@mount[0].target `
-			    if [ "$OVERLAY" == "/overlay" -o "$OVERLAY" == "/dev/loop0" ] ;then
-			         uci -q set fstab.@mount[0].uuid="${UUID}"
-			         uci -q set fstab.@mount[0].target='/'
-			         uci -q set fstab.@mount[0].enabled='1'
-			    fi
-			    log "保留数据根目录扩展/dev/$b成功！"
+        case "$target_function" in
 
-			    sleep 5
-			    log "设备重启才能生效"
-			    expquit 2
-
-	elif [ "$target_function" = "/overlay" ] ; then
+	/overlay) 
 	 	if [ "$keep_config" = "1" ] ; then
-		
 			    # cp -a -f /overlay/*  /mnt/$b/  || cp -a -f /rom/overlay/*  /mnt/$b/
 			    tar -C /overlay -cvf - . | tar -C /mnt/$b/ -xf -  || tar -C /rom/overlay -cvf - . | tar -C /mnt/$b/ -xf - 
-			    umount /mnt/$b || block umount /dev/$b  >/dev/null 2> /dev/null 
+			    umount /dev/$b  >/dev/null 2> /dev/null 
+			    [ $? -ne 0 ] && umount /mnt/$b  >/dev/null 2> /dev/null 
+			    [ $? -ne 0 ] && block umount /dev/$b   >/dev/null 2> /dev/null 
 			    block detect > /etc/config/fstab
 			    OVERLAY=`uci -q get fstab.@mount[0].target `
 			    if [ "$OVERLAY" == "/overlay" -o "$OVERLAY" == "/dev/loop0" ] ;then
@@ -289,13 +379,13 @@ fdiskB(){
 			    uci set fstab.@global[0].delay_root="15"
 			    uci commit fstab
 			    log "保留数据overlay扩展/dev/$b成功！"
-			    sleep 5
+			    sleep 3
 			    log "设备重启才能生效"
 			    expquit 2
-
 		else
-			    
-			    umount /mnt/$b || block umount /dev/$b  >/dev/null 2> /dev/null 
+			    umount /dev/$b  >/dev/null 2> /dev/null 
+			    [ $? -ne 0 ] && umount /mnt/$b  >/dev/null 2> /dev/null 
+			    [ $? -ne 0 ] && block umount /dev/$b   >/dev/null 2> /dev/null 
 			    block detect > /etc/config/fstab
 			    OVERLAY=`uci -q get fstab.@mount[0].target `
 			    if [ "$OVERLAY" == "/overlay" -o "$OVERLAY" == "/dev/loop0" ] ;then
@@ -316,18 +406,92 @@ fdiskB(){
 			    uci set fstab.@global[0].delay_root="15"
 			    uci commit fstab
 			    log "不保留数据overlay扩展/dev/$b成功！"
-			    
 			    sleep 3
 			    log "设备重启才能生效"
 			    expquit 2
-
 		fi
-	elif [ "$target_function" = "/lnoverlay" ] ; then
-		umount /mnt/$b || block umount /dev/$b    >/dev/null 2> /dev/null 
-		
+
+	;;
+	"/opt")  
+		umount /dev/$b  >/dev/null 2> /dev/null 
+		[ $? -ne 0 ] && umount /mnt/$b  >/dev/null 2> /dev/null 
+		[ $? -ne 0 ] && block umount /dev/$b   >/dev/null 2> /dev/null 
+		for OPT in $(mount |grep /opt | awk '{print $1}');do
+		    umount $OPT   >/dev/null 2> /dev/null
+		    log "取消/opt之前的挂载$OPT成功！"
+		done
 		block detect > /etc/config/fstab
 		mkdir -p $target_function
 		msum=$(grep -c "'mount'" /etc/config/fstab)
+		mount_device /dev/$b "$target_function"
+		for i in $(seq 0 $((msum-1)))
+		do
+			zuuid=`uci -q get fstab.@mount[$i].uuid `
+			[ $? -ne 0 ] && break
+			if [ "$zuuid" = "$UUID" ] ; then
+			    uci -q set fstab.@mount[$i].target="$target_function"
+			    uci -q set fstab.@mount[$i].enabled='1'
+			 fi
+		done
+		uci commit fstab
+		#  ln -sf /mnt/$b /overlay
+		if is_disk_mounted "/opt"; then
+		    log "/dev/$b分区扩容和挂载到$target_function成功！" 
+		    log "如果没生效，请重启设备"
+		    expquit 2
+		else
+		    log "/dev/$b分区扩容和挂载到$target_function失败！" 
+		fi
+	;;
+	"/") 
+	    if [ "$keep_config" = "1" ] ; then
+		mkdir -p /tmp/introot
+		mount --bind / /tmp/introot
+		tar -C /tmp/introot -cvf - . | tar -C /mnt/$b -xf -
+		umount /tmp/introot || block umount /tmp/introot
+		umount /dev/$b  >/dev/null 2> /dev/null 
+		[ $? -ne 0 ] && umount /mnt/$b  >/dev/null 2> /dev/null 
+		[ $? -ne 0 ] && block umount /dev/$b   >/dev/null 2> /dev/null 
+
+		block detect > /etc/config/fstab
+		OVERLAY=`uci -q get fstab.@mount[0].target `
+		if [ "$OVERLAY" == "/overlay" -o "$OVERLAY" == "/dev/loop0" ] ;then
+			         uci -q set fstab.@mount[0].uuid="${UUID}"
+			         uci -q set fstab.@mount[0].target='/'
+			         uci -q set fstab.@mount[0].enabled='1'
+		fi
+		log "保留数据根目录扩展/dev/$b成功！"
+		sleep 3
+		log "设备重启才能生效"
+		expquit 2
+	   else
+		mkdir -p /tmp/introot
+		mount --bind / /tmp/introot
+		umount /tmp/introot || block umount /tmp/introot
+		umount /dev/$b  >/dev/null 2> /dev/null 
+		[ $? -ne 0 ] && umount /mnt/$b  >/dev/null 2> /dev/null 
+		[ $? -ne 0 ] && block umount /dev/$b   >/dev/null 2> /dev/null 
+		block detect > /etc/config/fstab
+		OVERLAY=`uci -q get fstab.@mount[0].target `
+		if [ "$OVERLAY" == "/overlay" -o "$OVERLAY" == "/dev/loop0" ] ;then
+			         uci -q set fstab.@mount[0].uuid="${UUID}"
+			         uci -q set fstab.@mount[0].target='/'
+			         uci -q set fstab.@mount[0].enabled='1'
+		fi
+		log "保留数据根目录扩展/dev/$b成功！"
+		sleep 3
+		log "设备重启才能生效"
+		expquit 2
+	   fi
+	;;
+	*) 
+		umount /dev/$b  >/dev/null 2> /dev/null 
+		[ $? -ne 0 ] && umount /mnt/$b  >/dev/null 2> /dev/null 
+		[ $? -ne 0 ] && block umount /dev/$b   >/dev/null 2> /dev/null 
+		block detect > /etc/config/fstab
+		mkdir -p $target_function
+		msum=$(grep -c "'mount'" /etc/config/fstab)
+		mount_device /dev/$b /mnt/$b
 		for i in $(seq 0 $((msum-1)))
 		do
 			zuuid=`uci -q get fstab.@mount[$i].uuid `
@@ -338,38 +502,22 @@ fdiskB(){
 			 fi
 		done
 		uci commit fstab
-		ln -sf /mnt/$b /overlay
-		log "设备/dev/$b挂载/mnt/$b软链到/overlay扩容成功！" 
-		log "设备重启才能生效"
-		expquit 2
-	else 
-		umount /mnt/$b || block umount /dev/$b  >/dev/null 2> /dev/null 
-		
-		block detect > /etc/config/fstab
-		mkdir -p $target_function
-		msum=$(grep -c "'mount'" /etc/config/fstab)
-		for i in $(seq 0 $((msum-1)))
-		do
-			zuuid=`uci -q get fstab.@mount[$i].uuid `
-			[ $? -ne 0 ] && break
-			if [ "$zuuid" = "$UUID" ] ; then
-			  
-			    [ "$target_function" = "/opt" ] && uci -q set fstab.@mount[$i].target="$target_function" || uci -q set fstab.@mount[$i].target="/mnt/$b"
-			    
-			    uci -q set fstab.@mount[$i].enabled='1'
-			 fi
-		done
-		uci commit fstab
-		[ "$target_function" = "/opt" ] && log "挂载/dev/$b到$target_function成功！" ||  log "挂载/dev/$b到/mnt/$b成功！" 
-		log "设备重启才能生效"
-		expquit 2
+		if is_disk_mounted /mnt/$b ; then
+		    log "/dev/$b分区扩容和挂载到/mnt/$b成功！" 
+		    log "如果没生效，请重启设备"
+		    expquit 2
+		else
 
-	fi
+		    log "/dev/$b分区扩容和挂载到/mnt/$b失败！" 
+		fi
+	    ;;
+    esac
+
 }
 
 get_system_disk() {
-    SYSTEM_DISK=$(mount | grep 'on /overlay' | awk '{print $1}' | sed 's/[0-9]*$//' |head -1)
-    [ -z ${SYSTEM_DISK} ]  &&  SYSTEM_DISK=$( df -h | grep boot |awk -F ' ' '{print $1}' |head -1)
+     SYSTEM_DISK=$( df -h | grep boot |awk -F ' ' '{print $1}' |head -1)
+    [ -z ${SYSTEM_DISK} ]  &&  SYSTEM_DISK=$(mount | grep 'on /overlay' | awk '{print $1}' | sed 's/[0-9]*$//' |head -1)
     echo "$SYSTEM_DISK"
 }
 
@@ -385,7 +533,7 @@ check_free_space() {
     echo $FREE_SPACE |awk -F '.' '{print $1}'
 }
 
-# 定义函数：获取下一个新的可用的分区号
+# 获取下一个新的可用的分区号
 get_next_partition_number() {
     DISK=$1
     PARTITIONS=$(fdisk -l /dev/$DISK 2>/dev/null | grep -v boot  | grep -E "^/dev/$DISK" | awk '{print $1}' | sed 's/\/dev\/[a-z]*//g' | awk -F '[^0-9]+' '{print $NF}')
@@ -395,7 +543,7 @@ get_next_partition_number() {
     echo "$NEXT_PARTITION"
 }
 
-# 定义函数：获取最后一个可用的分区号
+# 获取最后一个可用的分区号
 get_last_partition_number() {
     DISK=$1
     PARTITIONS=$(fdisk -l /dev/$DISK 2>/dev/null | grep -v boot  | grep -E "^/dev/$DISK" | awk '{print $1}' | sed 's/\/dev\/[a-z]*//g' | awk -F '[^0-9]+' '{print $NF}')
@@ -404,20 +552,31 @@ get_last_partition_number() {
 }
 
 
-# 定义函数：获取硬盘分区数
+# 获取硬盘分区数
 get_partition_number() {
     DISK=$1
     PARTITIONS=$(fdisk -l /dev/$DISK 2>/dev/null | grep -v boot  | grep -E "^/dev/$DISK" | awk '{print $1}' | sed 's/\/dev\/[a-z]*//g' | wc -l)
     echo "$PARTITIONS"
 }
 
+get_config() {
+	config_get target_function $1 target_function 1
+	config_get target_disk $1 target_disk 1
+	config_get_bool keep_config $1 keep_config 1
+	config_get format_type $1 format_type
+}
+
 autopart() {
-    config_load partexp
-    config_foreach get_config global
+    #config_load partexp
+    #config_foreach get_config global
+    touch $LOCK
     init_env
     gen_log
+    target_function=$( _uci_get target_function "/opt" )
+    format_type=$( _uci_get format_type)
+    DISK=$( _uci_get target_disk "/sda3" )
+    keep_config=$( _uci_get keep_config "1" )
     NEXTPART=1  #目标分区
-    DISK=$target_disk   #目标硬盘
     DISKSALL=$(get_all_disks)  #硬盘名列表
     DISK_COUNT=$(echo "$DISKSALL" | wc -l)  #所有硬盘数量
     log "系统中检测到的硬盘数量: $DISK_COUNT"
@@ -458,40 +617,42 @@ autopart() {
 		 
 	         [[ $FREE_SPACE -gt 2 ]] && NEXTPART=$(get_next_partition_number $DISK) || NEXTPART=$(get_last_partition_number  $DISK)
 	else 
-		        NEXTPART=1
+		 NEXTPART=1
 	fi
-	            
     fi
+    log  "定位到操作目标设备分区:/dev/$DISK$NEXTPART"
+    case "$DISK" in
+    vd*) fdiskB  $NEXTPART;;
+    sd*) fdiskB  $NEXTPART;;
+    nvme*)  fdiskB  p$NEXTPART;;
+    mmc*)  fdiskB  p$NEXTPART;;
+    *)
+	    log "目标设备/dev/$DISK暂不支持！请联系作者sirpdboy！"
+	    ;;
+    esac
 
-    		log  "定位到操作目标设备分区:/dev/$DISK$NEXTPART"
-		case "$DISK" in
-		vd*) fdiskB $DISK $NEXTPART;;
-
-		sd*) fdiskB $DISK $NEXTPART;;
-		nvme*)  fdiskB $DISK p$NEXTPART;;
-		mmc*)  fdiskB $DISK p$NEXTPART;;
-		*)
-			log "目标设备/dev/$target_disk暂不支持！请联系作者sirpdboy！"
-			expquit 1
-			;;
-		esac
-		
-    rm -f $LOCK
+   expquit 1
 }
 
 start() {
-[ x$x = x1 ] && exit || autopart
+
+    [ -f $LOCK ] && exit
+    [ x$xBOOT = x1 ] || autopart
+    rm -f $LOCK 2>/dev/null
 
 }
 
 boot() {
-x=1
+xBOOT=1
 }
 
 expquit() {
-	rm -f $LOCK
-	[ -e "/etc/config/dockerd" ] && /etc/init.d/dockerd restart  >/dev/null 2> /dev/null 
-	sleep 5
-	[ $1 == 2 ] && log "重启中...\n" &&reboot 
-	exit $1
+    rm -f $LOCK
+    uci_set fstab @global[0] anon_mount '1'
+    uci_set fstab @global[0] auto_mount '1'
+    [ -e "/etc/config/dockerd" ] && /etc/init.d/dockerd restart   >/dev/null 2> /dev/null 
+    sleep 2
+    [ $1 == 2 ] && log "重启中...\n" &&reboot 
+    exit $1
 }
+

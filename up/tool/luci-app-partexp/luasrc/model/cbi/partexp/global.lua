@@ -39,6 +39,7 @@ t=m:section(TypedSection,"global")
 t.anonymous=true
 
 e=t:option(ListValue,"target_function", translate("Select function"),translate("Select the function to be performed"))
+e:value("/", translate("Used to extend to the root directory of EXT4 firmware(Ext4 /)"))
 e:value("/overlay", translate("Expand application space overlay (/overlay)"))
 e:value("/opt", translate("Used as Docker data disk (/opt)"))
 e:value("/dev", translate("Normal mount and use by device name(/dev/x1)"))
@@ -55,12 +56,17 @@ end
 
 e=t:option(Flag,"keep_config",translate("Keep configuration"),translate("Tick means to retain the settings"))
 e:depends("target_function", "/overlay")
+e:depends("target_function", "/")
 e.default=0
 
-e=t:option(Flag,'auto_format', translate('Format before use'),translate("Ticking indicates formatting"))
+e=t:option(ListValue,'format_type', translate('Format system type'))
 e:depends("target_function", "/opt")
 e:depends("target_function", "/dev")
-e.default=0
+e:value("0", translate("No formatting required"))
+e:value("ext4", translate("Linux system partition(EXT4)"))
+e:value("btrfs", translate("Large capacity storage devices(Btrfs)"))
+e:value("ntfs", translate("Windows system partition(NTFS)"))
+e.default="0"
 
 e=t:option(Button, "restart", translate("Perform operation"))
 e.inputtitle=translate("Click to execute")
