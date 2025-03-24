@@ -1,9 +1,9 @@
 #!/bin/sh /etc/rc.common
-START=95
+START=99
 STOP=10
 
 boot() {
-	return 0
+    [ "$(uci get network.wan.up)" -eq 1 ] && start
 }
 
 reload() {
