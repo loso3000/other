@@ -42,7 +42,7 @@ e=t:option(ListValue,"target_function", translate("Select function"),translate("
 e:value("/", translate("Used to extend to the root directory of EXT4 firmware(Ext4 /)"))
 e:value("/overlay", translate("Expand application space overlay (/overlay)"))
 e:value("/opt", translate("Used as Docker data disk (/opt)"))
-e:value("/dev", translate("Normal mount and use by device name(/dev/x1)"))
+e:value("/dev", translate("Normal mount and use by device name(/mnt/x1)"))
 e.default="/opt"
 
 e=t:option(ListValue,"target_disk", translate("Destination hard disk"),translate("Select the hard disk device to operate"))

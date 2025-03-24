@@ -320,15 +320,11 @@ fdiskB(){
 	    log  "设备/dev/$b如果未格式化,可能无法正常使用."
 	fi
 
-	[  $(is_disk_mounted "/dev/$b") ] || mount /dev/$b /mnt/$b
 	
-	TYPE='';eval $(block info "/dev/$b" | grep -o -e "TYPE=\S*")
+	TYPE='';eval $(blkid  "/dev/$b" | grep -o -e "TYPE=\S*")
 
 	log "检测设备/dev/$b分区$TYPE格式！"
-	if is_disk_mounted "/dev/$b"; then
-		umount /dev/$b  >/dev/null 2> /dev/null
-		[ $? -ne 0 ] && block umount /dev/$b   >/dev/null 2> /dev/null
-	fi
+
 	if [ "$TYPE" = "ntfs" ];then
 		if  [ `which ntfs-3g ` ]  ;then
 		   if  is_disk_mounted "/mnt/$b" ;then
@@ -352,7 +348,7 @@ fdiskB(){
 
         case "$target_function" in
 
-	/overlay) 
+	"/overlay") 
 	 	if [ "$keep_config" = "1" ] ; then
 			    # cp -a -f /overlay/*  /mnt/$b/  || cp -a -f /rom/overlay/*  /mnt/$b/
 			    tar -C /overlay -cvf - . | tar -C /mnt/$b/ -xf -  || tar -C /rom/overlay -cvf - . | tar -C /mnt/$b/ -xf - 

@@ -24,8 +24,8 @@ msgstr "用于扩展为EXT4固件根目录(Ext4 /)"
 msgid "Used as Docker data disk (/opt)"
 msgstr "用作Docker数据盘 (/opt)"
 
-msgid "Normal mount and use by device name(/dev/x1)"
-msgstr "按设备名普通挂载使用(/dev/x1)"
+msgid "Normal mount and use by device name(/mnt/x1)"
+msgstr "按设备名普通挂载使用(/mnt/x1)"
 
 msgid "Soft chain partition expansion(/overlay)"
 msgstr "分区软链扩容(/overlay)"
