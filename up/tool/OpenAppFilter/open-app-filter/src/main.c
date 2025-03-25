@@ -35,6 +35,7 @@ THE SOFTWARE.
 #include <arpa/inet.h>
 #include "appfilter.h"
 #include <stdio.h>
+#include "utils.h"
 
 #define CMD_GET_LAN_IP_FMT   "ifconfig %s | grep 'inet addr' | awk '{print $2}' | awk -F: '{print $2}'"
 #define CMD_GET_LAN_MASK_FMT "ifconfig %s | grep 'inet addr' | awk '{print $4}' | awk -F: '{print $2}'"
@@ -346,13 +347,18 @@ int af_check_time(af_time_config_t *t_config) {
 void update_oaf_status(void){
     int ret = 0;
     int cur_enable = 0;
-    ret = af_check_time(&g_af_config.time);
-    if (ret == 1){
-        system("echo 1 >/proc/sys/oaf/enable");
-    }
-    else{
-        system("echo 0 >/proc/sys/oaf/enable");
-    }
+    if(g_af_config.global.enable == 1){
+		ret = af_check_time(&g_af_config.time);
+		if (ret == 1){
+			system("echo 1 >/proc/sys/oaf/enable");
+		}
+		else{
+			system("echo 0 >/proc/sys/oaf/enable");
+		}
+	}
+	else{
+		system("echo 0 >/proc/sys/oaf/enable");
+	}
 }
 
 void update_oaf_record_status(void){
@@ -410,7 +416,7 @@ int af_load_feature_to_kernel(void){
 	if (!fp)
 	{
 		printf("open file failed\n");
-		return;
+		return -1;
 	}
 	if (af_nl_clean_feature() < 0){
         return -1;
