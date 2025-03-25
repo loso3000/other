@@ -52,8 +52,6 @@ define Package/autocore/install/Default
 	$(INSTALL_DIR) $(1)/usr/share/rpcd/acl.d
 	$(CP) ./files/generic/luci-mod-status-autocore.json $(1)/usr/share/rpcd/acl.d/
 	$(CP) ./files/generic/luci-app-cpu-status.json $(1)/usr/share/rpcd/acl.d/
-	$(INSTALL_DIR) $(1)/usr/lib/lua/luci/view/admin_status/index/
-	$(CP) ./files/generic/inlink.htm  $(1)/usr/lib/lua/luci/view/admin_status/index/
 	$(INSTALL_DIR) $(1)/www/luci-static/resources/view/status/include
 	$(INSTALL_DATA) ./files/generic/19_cpu.js $(1)/www/luci-static/resources/view/status/include/
 	$(INSTALL_DATA) ./files/generic/28_ethinfo.js $(1)/www/luci-static/resources/view/status/include/
