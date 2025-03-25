@@ -45,7 +45,8 @@ md5() {
 }
 
 # alias fcurl='curl -L --fail --show-error'
-alias fcurl='curl --connect-timeout 20 --max-time 60 '
+# alias fcurl='curl --connect-timeout 20 --max-time 60 '
+alias fcurl='curl -L '
 
 
 function LOGGER() {
@@ -347,7 +348,7 @@ AUTHVER=`cat /etc/ezopenwrt_version | cut -d - -f 1-2`
 eval OS_ARCH=`cat /etc/os-release |grep OPENWRT_ARCH | cut -d = -f 2`
 proxy=""
 google_status=$(curl -I -4 -m 3 -o /dev/null -s -w %{http_code} http://www.google.com/generate_204)
-# [ "$google_status" -ne "204" ] && proxy="https://ghproxy.com/"
+# [ "$google_status" -ne "204" ] && proxy="https://ghproxy.com/"  && echo "nameserver 1.1.1.1" |  tee /etc/resolv.conf
 [ "$google_status" -ne "204" ] && proxy="https://gh.404delivr.workers.dev/"
 ota_init || exit 255
 
