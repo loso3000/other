@@ -73,6 +73,9 @@ msgstr "启用IPv6"
 msgid "Lan IPv4 address"
 msgstr "内网IP地址"
 
+msgid "You must specify the IP address of this machine, which is the IP address of the web access route"
+msgstr "必须指定此机器IP地址,即该路由web访问的IP地址"
+
 msgid "Forcefully specify the DNS server for this router"
 msgstr "强制指定此路由器的DNS服务器"
 
