@@ -1,12 +1,14 @@
-local fs  = require "nixio.fs"
 local ds = require "luci.dispatcher"
+local nxo = require "nixio"
+local nfs = require "nixio.fs"
 local ipc = require "luci.ip"
+local sys = require "luci.sys"
 local utl = require "luci.util"
 local dsp = require "luci.dispatcher"
 local uci = require "luci.model.uci"
 local lng = require "luci.i18n"
 local jsc = require "luci.jsonc"
-local uci = require "luci.model.uci".cursor()
+local http = luci.http
 local SYS = require "luci.sys"
 local m,s,n,o
 
@@ -15,7 +17,7 @@ m = Map("appfilter", translate(""))
 local rule_count = 0
 local version = ""
 local format = ""
-if fs.access("/tmp/feature.cfg") then
+if nixio.fs.access("/tmp/feature.cfg") then
     rule_count = tonumber(SYS.exec("cat /tmp/feature.cfg | grep -v ^$ |grep -v ^# | wc -l"))
     version = SYS.exec("cat /tmp/feature.cfg |grep '#version' | awk '{print $2}'")
 end
@@ -34,11 +36,10 @@ s.anonymous = true
 s:tab("configs", translate("设置特征库"))
 
 o = s:taboption("configs", DynamicList, "update_url", translate('更新特征库地址'))
-o:value("https://gh.404delivr.workers.dev/https://raw.githubusercontent.com/destan19/OpenAppFilter/master/open-app-filter/files/feature_cn.cfg", translate("destan19_cn_v24.06.26"))
 o:value("https://gh.404delivr.workers.dev/https://raw.githubusercontent.com/destan19/OpenAppFilter/master/open-app-filter/files/feature_cn.cfg", translate("destan19_cn_v22.3.24"))
-o:value("https://gh.404delivr.workers.dev/https://raw.githubusercontent.com/destan19/OpenAppFilter/master/open-app-filter/files/feature_en.cfg", translate("destan19_en_v22.3.24"))
+o:value("https://gh.404delivr.workers.dev/https://raw.githubusercontent.com/destan19/OpenAppFilter/master/open-app-filter/files/feature_en.cfg", translate("destan19_en_v22.11.11"))
 o:value("https://gh.404delivr.workers.dev/https://raw.githubusercontent.com/jjm2473/OpenAppFilter/master/open-app-filter/files/feature_cn.cfg", translate("jjm2473_cn_v23.07.29"))
-o:value("https://gh.404delivr.workers.dev/https://raw.githubusercontent.com/jjm2473/OpenAppFilter/dev4/open-app-filter/files/feature_en.cfg", translate("jjm2473_en_v23.07.29"))
+o:value("https://gh.404delivr.workers.dev/https://raw.githubusercontent.com/jjm2473/OpenAppFilter/dev4/open-app-filter/files/feature_en.cfg", translate("jjm2473_en_v22.12.01"))
 o.default = "https://gh.404delivr.workers.dev/https://raw.githubusercontent.com/destan19/OpenAppFilter/master/open-app-filter/files/feature_cn.cfg"
 
 o = s:taboption("configs", Button, "Update", translate("手动更新官方特征库"))
@@ -47,7 +48,7 @@ o.write = function()
 
 	SYS.call("sh /usr/bin/appfilterupdate > /dev/null 2>&1 &")
 	uci:commit("appfilter")
-        luci.http.redirect(luci.dispatcher.build_url("admin", "control", "appfilter" ,"feature"))
+        luci.http.redirect(luci.dispatcher.build_url("admin", "services", "appfilter" ,"feature"))
 	
 end
 
@@ -88,7 +89,6 @@ function conf.write(self, section, value)
             fs.writefile("/etc/appfilter/feature_cn.cfg", value)
 	     SYS.exec("chmod 666  /etc/appfilter/feature_cn.cfg 2>/dev/null")
 	     SYS.exec("rm -rf /tmp/appfilter 2>/dev/null")
-	     SYS.call("/etc/init.d/appfilter restart >/dev/null")
         end
         fs.remove("/tmp/tfeature.cfg")
     end
@@ -106,10 +106,6 @@ function conf.write(self, section, value)
         value = value:gsub("\r\n?", "\n")
         fs.writefile("/tmp/feature.user.cfg", value)
         if (SYS.call("cmp -s /tmp/feature.user.cfg /etc/appfilter/feature.user.cfg") == 1) then
-
-            SYS.call("rm /www/luci-static/resources/app_icons/* -fr");
-            SYS.call("cp /tmp/upload/app_icons/* /www/luci-static/resources/app_icons/ -fr >/dev/null")
-            SYS.call("killall -SIGUSR1 oafd")
 	    
             fs.writefile("/etc/appfilter/feature.user.cfg", value)
 	     SYS.exec("chmod 666  /etc/appfilter/feature.user.cfg 2>/dev/null")
@@ -122,6 +118,13 @@ end
 
 m.apply_on_parse = true
 m.on_after_apply = function(self,map)
+            cmd = "cp /etc/appfilter/feature_cn.cfg /etc/appfilter/feature.cfg ;echo '' >> /etc/appfilter/feature.cfg ; cat  /etc/appfilter/feature.user.cfg >> /etc/appfilter/feature.cfg "
+            os.execute(cmd)
+            os.execute("rm /www/luci-static/resources/app_icons/* -fr");
+            cmd = "cp /tmp/upload/app_icons/* /www/luci-static/resources/app_icons/ -fr >/dev/null"
+            os.execute(cmd)
+            os.execute("chmod 666 /etc/appfilter/feature.cfg" )
+            luci.sys.exec("killall -SIGUSR1 oafd")
 	luci.sys.exec("/etc/init.d/appfilter start >/dev/null 2>&1")
 end
 
