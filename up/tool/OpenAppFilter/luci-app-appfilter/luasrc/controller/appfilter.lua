@@ -5,22 +5,21 @@ function index()
 	if not nixio.fs.access("/etc/config/appfilter") then
 		return
 	end
+	
+	local page
+	entry({"admin", "services", "appfilter"}, alias("admin", "services", "appfilter", "app_filter"),_("App Filter"), 10).dependent = true
 
-	local e = entry({"admin", "control", "appfilter"}, alias("admin", "control", "appfilter", "app_filter"),_("App Filter"), 10)
-	e.dependent = false
-	e.acl_depends = { "luci-app-appfilter" }
 
-
-	entry({"admin", "control", "appfilter", "user_list"}, 
+	entry({"admin", "services", "appfilter", "user_list"}, 
 		arcombine(cbi("appfilter/user_list",{hideapplybtn=true, hidesavebtn=true, hideresetbtn=true}), 
 		cbi("appfilter/dev_status", {hideapplybtn=true, hidesavebtn=true, hideresetbtn=true})),
 		_("User List"), 20).leaf=true
 
-	entry({"admin", "control", "appfilter", "time"}, cbi("appfilter/time", {hideapplybtn=true, hidesavebtn=true, hideresetbtn=true}), _("时间配置"), 25).leaf=true
-	entry({"admin", "control", "appfilter", "app_filter"}, cbi("appfilter/app_filter", {hideapplybtn=true, hidesavebtn=true, hideresetbtn=true}), _("应用过滤"), 21).leaf=true
-	entry({"admin", "control", "appfilter", "feature"}, cbi("appfilter/feature"), _("App Feature"), 26).leaf=true
-	entry({"admin", "control", "appfilter", "user"}, cbi("appfilter/user", {hideapplybtn=true, hidesavebtn=true, hideresetbtn=true}), _("用户配置"), 24).leaf=true
-	entry({"admin", "control", "appfilter", "advance"}, cbi("appfilter/advance", {hideapplybtn=true, hidesavebtn=true, hideresetbtn=true}), _("高级设置"), 27).leaf=true
+	entry({"admin", "services", "appfilter", "time"}, cbi("appfilter/time", {hideapplybtn=true, hidesavebtn=true, hideresetbtn=true}), _("时间配置"), 25).leaf=true
+	entry({"admin", "services", "appfilter", "app_filter"}, cbi("appfilter/app_filter", {hideapplybtn=true, hidesavebtn=true, hideresetbtn=true}), _("应用过滤"), 21).leaf=true
+	entry({"admin", "services", "appfilter", "feature"}, cbi("appfilter/feature"), _("App Feature"), 26).leaf=true
+	entry({"admin", "services", "appfilter", "user"}, cbi("appfilter/user", {hideapplybtn=true, hidesavebtn=true, hideresetbtn=true}), _("用户配置"), 24).leaf=true
+	entry({"admin", "services", "appfilter", "advance"}, cbi("appfilter/advance", {hideapplybtn=true, hidesavebtn=true, hideresetbtn=true}), _("高级设置"), 27).leaf=true
 	entry({"admin", "network", "user_status"}, call("user_status"), nil).leaf = true
 	entry({"admin", "network", "get_user_list"}, call("get_user_list"), nil).leaf = true
 	entry({"admin", "network", "dev_visit_list"}, call("get_dev_visit_list"), nil).leaf = true
@@ -192,8 +191,8 @@ function add_app_filter_user()
 	local json = require "luci.jsonc"
 	luci.http.prepare_content("application/json")
 	local req_obj = {}
-	req_obj.mac_list = luci.http.formvalue("mac_list")
-	req_obj.mac_list = json.parse(req_obj.mac_list)
+	local data_str = luci.http.formvalue("data")
+	req_obj = json.parse(data_str)
 	local resp_obj=utl.ubus("appfilter", "add_app_filter_user", req_obj);
 	luci.http.write_json(resp_obj);
 end
@@ -208,11 +207,20 @@ end
 function set_app_filter()
 	local json = require "luci.jsonc"
 	luci.http.prepare_content("application/json")
-	local req_obj = {}
-	req_obj.app_list = luci.http.formvalue("app_list")
-	req_obj.app_list = json.parse(req_obj.app_list) 
-	local resp_obj=utl.ubus("appfilter", "set_app_filter", req_obj);
-	luci.http.write_json(resp_obj);
+	
+	local app_list_str = luci.http.formvalue("app_list")
+
+	local app_list = {}
+	for id in app_list_str:gmatch("([^,]+)") do
+		table.insert(app_list, tonumber(id))
+	end
+	
+	local req_obj = {
+		app_list = app_list
+	}
+
+	local resp_obj = utl.ubus("appfilter", "set_app_filter", req_obj)
+	luci.http.write_json(resp_obj)
 end
 
 function set_nickname()
@@ -247,7 +255,15 @@ function set_app_filter_base()
 	llog("set appfilter base");
 	luci.http.prepare_content("application/json")
 	local req_obj = {}
-	req_obj = json.parse(luci.http.formvalue("data"))
+
+	local enable = luci.http.formvalue("enable")
+	local work_mode = luci.http.formvalue("work_mode")
+	local record_enable = luci.http.formvalue("record_enable")
+
+	llog("enable: "..enable.." work_mode: "..work_mode.." record_enable: "..record_enable)
+	req_obj.enable = enable
+	req_obj.work_mode = work_mode
+	req_obj.record_enable = record_enable
 	local resp_obj=utl.ubus("appfilter", "set_app_filter_base", req_obj);
 	luci.http.write_json(resp_obj);
 end
@@ -263,7 +279,9 @@ function set_app_filter_adv()
 	llog("set appfilter base");
 	luci.http.prepare_content("application/json")
 	local req_obj = {}
-	req_obj = json.parse(luci.http.formvalue("data"))
+	req_obj.lan_ifname = luci.http.formvalue("lan_ifname")
+	req_obj.disable_hnat = luci.http.formvalue("disable_hnat")
+	req_obj.auto_load_engine = luci.http.formvalue("auto_load_engine")
 	local resp_obj=utl.ubus("appfilter", "set_app_filter_adv", req_obj);
 	luci.http.write_json(resp_obj);
 end
@@ -273,7 +291,6 @@ end
 -- data: {"mode":1,"weekday_list":[1,2,3,4,5,6,0],"start_time":"22:22","end_time":"12:00","allow_time":30,"deny_time":5}
 function set_app_filter_time()
 	local json = require "luci.jsonc"
-	llog("set appfilter time");
 	luci.http.prepare_content("application/json")
 	local req_obj = {}
 	req_obj = json.parse(luci.http.formvalue("data"))
@@ -289,13 +306,13 @@ function get_app_filter_time()
 end
 
 function get_dev_visit_time(mac)
-	llog("get dev visit time 2 "..mac);
+
 	local json = require "luci.jsonc"
 	luci.http.prepare_content("application/json")
 		local req_obj = {}
 	req_obj.mac = mac;
 	local visit_obj=utl.ubus("appfilter", "dev_visit_time", req_obj);
-	llog("ubus ok");
+
 	local visit_list=visit_obj.list
 	luci.http.write_json(visit_list);
 end

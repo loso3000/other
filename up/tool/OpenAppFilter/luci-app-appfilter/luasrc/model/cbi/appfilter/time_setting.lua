@@ -44,6 +44,11 @@ hv.optional = false
 hv = s:option(Value, "end_time2", translate("End Time2"))
 hv.optional = false
 
+m.apply_on_parse = true
+m.on_after_apply = function(self,map)
+	luci.sys.exec("/etc/init.d/appfilter start >/dev/null 2>&1")
+end
+
 
 
 return m

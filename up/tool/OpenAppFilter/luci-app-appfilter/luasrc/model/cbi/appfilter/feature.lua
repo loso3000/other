@@ -120,4 +120,10 @@ function conf.write(self, section, value)
     end
 end
 
+m.apply_on_parse = true
+m.on_after_apply = function(self,map)
+	luci.sys.exec("/etc/init.d/appfilter start >/dev/null 2>&1")
+end
+
+
 return m

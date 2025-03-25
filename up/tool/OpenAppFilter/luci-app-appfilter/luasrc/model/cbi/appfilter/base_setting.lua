@@ -24,9 +24,6 @@ o.default=0
 o:value(0, translate("Gateway Mode"))
 o:value(1,translate("Bypass Mode"))
 
-o=s:option(ListValue, "filter_space", translate("Filter Space"),translate(""))
-o:value(0, translate("Filter Domestic"))
-o:value(1,translate("Filter Overseas"))
 local rule_count = 0
 local version = ""
 
@@ -116,5 +113,10 @@ local version = ""
 --     end
 --     class_fd:close()
 -- end
+m.apply_on_parse = true
+m.on_after_apply = function(self,map)
+	luci.sys.exec("/etc/init.d/appfilter start >/dev/null 2>&1")
+end
+
 
 return m

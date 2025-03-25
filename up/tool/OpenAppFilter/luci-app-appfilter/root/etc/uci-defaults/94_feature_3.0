@@ -1,5 +1,6 @@
 #!/bin/sh
 
+FEATURE_FILE="/tmp/feature.cfg"
 uci -q batch <<-EOF >/dev/null
         set appfilter.feature.format='v3.0'
         set appfilter.rule='rule'
@@ -9,3 +10,13 @@ uci -q batch <<-EOF >/dev/null
         set appfilter.global.auto_load_engine='1'
         commit appfilter
 EOF
+test -f $FEATURE_FILE && rm -rf $FEATURE_FILE
+rm -rf /tmp/appfilter
+space=$(uci -q get appfilter.global.filter_space)
+if [ x$space == x1 ];then
+		cat  /etc/appfilter/feature_en.cfg > $FEATURE_FILE ; echo "" >> $FEATURE_FILE
+	        cat /etc/appfilter/feature.user.cfg >> $FEATURE_FILE ; echo "" >> $FEATURE_FILE
+else
+		cat  /etc/appfilter/feature_cn.cfg > $FEATURE_FILE ; echo "" >> $FEATURE_FILE
+		cat /etc/appfilter/feature.user.cfg >> $FEATURE_FILE ; echo "" >> $FEATURE_FILE
+fi
