@@ -1592,6 +1592,13 @@ background-image: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNzY4IiBoZWlnaHQ
     display: unset
 }
 
+.cbi-rowstyle-2 .cbi-button-up,
+.cbi-rowstyle-2 .cbi-button-down,
+body:not(.Interfaces) .cbi-rowstyle-2:first-child {
+    background-color: rgba(var(--primary-rgbm), 0.5) !important
+}
+
+
 .btn:hover,
 .btn:focus,
 .btn:active,
@@ -1725,19 +1732,6 @@ button:active{
     border: thin solid #4cae4c;
     background-color: #5cb85c
 }
-
-.cbi-rowstyle-2 .cbi-button-up,
-.cbi-rowstyle-2 .cbi-button-down,
-body:not(.Interfaces) .cbi-rowstyle-2:first-child {
-    background: rgba(var(--primary-rgbm), 0.7) !important;
-    width: 3rem;
-}
-
-.cbi-rowstyle-1 .cbi-button-up,
-.cbi-rowstyle-1 .cbi-button-down {
-    background: rgba(var(--primary-rgbs), 0.7) !important;
-    width: 3rem;
-} 
 
 .cbi-page-actions .cbi-button-link:first-child {
     float: left
@@ -4415,8 +4409,7 @@ div#file-manager-container #status-bar #status-info{
         top: -12px
     }
 }
-
-@media screen and (max-width:1366px) {
+@media only screen and (min-width: 1153px) {
 
     .main>.main-left>.nav>li,
     .main>.main-left>.nav>li>a,
@@ -4482,8 +4475,8 @@ div#file-manager-container #status-bar #status-info{
 
 
 }
+@media only screen and (max-width: 1152px) {
 
-@media screen and (max-width:1152px) {
     .main .main-left .nav .slide .slide-menu .active a {
         font-size: var(--font-x)
     }
@@ -4717,7 +4710,7 @@ div#file-manager-container #status-bar #status-info{
     }
 }
 
-@media screen and (max-width:600px) {
+@media only screen and (max-width: 768px) {
     .main-left {
         width: calc(0% + 15rem)
     }
@@ -4862,7 +4855,7 @@ div#file-manager-container #status-bar #status-info{
     }
 }
 
-@media screen and (max-width:480px) {
+@media only screen and (max-width: 480px) {
 
     [data-page="admin-status-overview"] .main #view td:nth-child(1) {
     padding-right: 0.2rem;
