@@ -2197,7 +2197,6 @@ button:active{
   font-size: 1.5rem;
   line-height: 1;
   margin: 5px 5px 5px 0;
-  color: var(--inputtext-color);
   background-color: rgba(var(--primary-rgbm), 0.9);
   border: 1px solid rgba(var(--primary-rgbm), 1);
 
