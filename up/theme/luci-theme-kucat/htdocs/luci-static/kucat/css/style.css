@@ -1598,7 +1598,6 @@ body:not(.Interfaces) .cbi-rowstyle-2:first-child {
     background-color: rgba(var(--primary-rgbm), 0.5) !important
 }
 
-
 .btn:hover,
 .btn:focus,
 .btn:active,
@@ -4409,7 +4408,7 @@ div#file-manager-container #status-bar #status-info{
         top: -12px
     }
 }
-@media only screen and (min-width: 1153px) {
+@media screen and (max-width:1366px) {
 
     .main>.main-left>.nav>li,
     .main>.main-left>.nav>li>a,
