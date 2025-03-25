@@ -44,7 +44,9 @@ md5() {
     md5sum $1 | cut -d' ' -f1
 }
 
-alias fcurl='curl -L --fail --show-error'
+# alias fcurl='curl -L --fail --show-error'
+alias fcurl='curl --connect-timeout 20 --max-time 60 '
+
 
 function LOGGER() {
 		[[ ! -d ${LogPath} ]] && mkdir -p ${LogPath}
@@ -61,7 +63,9 @@ function RM() {
 }
 
 function SHOWOTA_API() {
-    fcurl --connect-timeout 5 -o ${ApiFile} "${GithubAPI}"  >/dev/null 2>&1 
+
+    # fcurl -o ${ApiFile} "$proxy${GithubAPI}"  
+    fcurl -o ${ApiFile} "$proxy${GithubAPI}"  >/dev/null 2>&1 
     [[ ! -s ${ApiFile} ]] && {
 		ECHO r "未检测到 API 文件!"
 		return 1
@@ -147,7 +151,7 @@ download() {
         echo "Try $url" >>/tmp/firmware.img.progress
         flock 300
         echo "#=#=#" >>/tmp/firmware.img.progress
-        fcurl --connect-timeout 5 --progress-bar -o /tmp/firmware.img.part "$url" 2>>/tmp/firmware.img.progress &
+        fcurl  --progress-bar -o /tmp/firmware.img.part "$url" 2>>/tmp/firmware.img.progress &
         pid="$!"
         echo "$pid" > ${TmpPath}/download.pid
         flock -u 300
@@ -207,13 +211,13 @@ prepare_check() {
 	 return 255
      }
     eval md5url=`echo $Github/releases/download/$(echo ${CLOUD_FW_Url##*download/} | cut -d / -f 1)/EzOpWrt_dev-efi.md5`
-    fcurl --connect-timeout 5 -o ${MD5File}   $Github/releases/download/$(echo ${CLOUD_FW_Url##*download/} | cut -d / -f 1)/EzOpWrt_dev-efi.md5  >/dev/null 2>&1 
-    fcurl --connect-timeout 5 -o ${verFile}   $Github/releases/download/$(echo ${CLOUD_FW_Url##*download/} | cut -d / -f 1)/ver.latest  >/dev/null 2>&1 || { rm -f ${verFile} ; return 255; }
-    fcurl --connect-timeout 5 -o ${footFile}   $Github/releases/download/$(echo ${CLOUD_FW_Url##*download/} | cut -d / -f 1)/ota.footer  >/dev/null 2>&1 || { rm -f ${footFile} ; return 255; }
+    fcurl -o ${MD5File}   $proxy$Github/releases/download/$(echo ${CLOUD_FW_Url##*download/} | cut -d / -f 1)/EzOpWrt_dev-efi.md5  >/dev/null 2>&1 
+    fcurl -o ${verFile}   $proxy$Github/releases/download/$(echo ${CLOUD_FW_Url##*download/} | cut -d / -f 1)/ver.latest  >/dev/null 2>&1 || { rm -f ${verFile} ; return 255; }
+    fcurl -o ${footFile}   $proxy$Github/releases/download/$(echo ${CLOUD_FW_Url##*download/} | cut -d / -f 1)/ota.footer  >/dev/null 2>&1 || { rm -f ${footFile} ; return 255; }
 
     [[ ! -s "$MD5File"  ]] &&{
         eval md5url=$(jq ".[0].assets[1].browser_download_url" ${ApiFile} 2> /dev/null)
-        fcurl --connect-timeout 5 -o ${MD5File}  $md5url  >/dev/null 2>&1 
+        fcurl -o ${MD5File}  "$proxy$md5url"  >/dev/null 2>&1 
     }
     [[ ! -s ${MD5File} ]] && {
 		echo "未检测到 MD5 文件!"
@@ -341,6 +345,10 @@ GithubAPI="https://api.github.com/repos/${FirmwareAuthor}/releases"
 LogFull="${LogPath}/${LogFile}"
 AUTHVER=`cat /etc/ezopenwrt_version | cut -d - -f 1-2`
 eval OS_ARCH=`cat /etc/os-release |grep OPENWRT_ARCH | cut -d = -f 2`
+proxy=""
+google_status=$(curl -I -4 -m 3 -o /dev/null -s -w %{http_code} http://www.google.com/generate_204)
+# [ "$google_status" -ne "204" ] && proxy="https://ghproxy.com/"
+[ "$google_status" -ne "204" ] && proxy="https://gh.404delivr.workers.dev/"
 ota_init || exit 255
 
 case $action in
