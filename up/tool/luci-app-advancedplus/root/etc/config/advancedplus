@@ -31,10 +31,10 @@ config theme
 	option remarks '隔栏经典蓝色'
 	option primary_opacity '0'
 	option primary_rgbm_ts '0.9'
-	option bkuse '0'
+	option bkuse '1'
 	option primary_rgbs_ts '0.1'
 	option mode 'light'
-	option use '0'
+	option use '1'
 	option primary_rgbm 'blue'
 
 config theme
@@ -42,7 +42,7 @@ config theme
 	option primary_rgbs '76,157,69'
 	option primary_rgbm_ts '0.9'
 	option primary_opacity '0'
-	option bkuse '0'
+	option bkuse '1'
 	option remarks '无隔栏清爽绿'
 	option primary_rgbs_ts '0'
 	option mode 'dark'
