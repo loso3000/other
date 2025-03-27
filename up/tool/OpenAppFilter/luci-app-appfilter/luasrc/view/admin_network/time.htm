@@ -230,6 +230,7 @@
 			const maxEntries = 64;
 			const mode = document.getElementById('timeMode').value;
 
+
 			if (mode === "0") {
 				if (!time_data.time_list || time_data.time_list.length === 0) {
 					const errorContainer = document.getElementById('errorContainer');
@@ -261,6 +262,8 @@
 					}, 1000);
 				}
 			);
+
+
 		}
 
 		function openModal() {

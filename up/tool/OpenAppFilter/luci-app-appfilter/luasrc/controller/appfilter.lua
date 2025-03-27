@@ -15,9 +15,12 @@ function index()
 		cbi("appfilter/dev_status", {hideapplybtn=true, hidesavebtn=true, hideresetbtn=true})),
 		_("User List"), 20).leaf=true
 
+	-- entry({"admin", "services", "appfilter", "base_setting"}, cbi("appfilter/base_setting"), _("Basic Settings"), 22).leaf=true
+	-- entry({"admin", "services", "appfilter", "user_setting"}, cbi("appfilter/user_setting"), _("Effective User"), 23).leaf=true
 	entry({"admin", "services", "appfilter", "time"}, cbi("appfilter/time", {hideapplybtn=true, hidesavebtn=true, hideresetbtn=true}), _("时间配置"), 25).leaf=true
 	entry({"admin", "services", "appfilter", "app_filter"}, cbi("appfilter/app_filter", {hideapplybtn=true, hidesavebtn=true, hideresetbtn=true}), _("应用过滤"), 21).leaf=true
 	entry({"admin", "services", "appfilter", "feature"}, cbi("appfilter/feature"), _("App Feature"), 26).leaf=true
+
 	entry({"admin", "services", "appfilter", "user"}, cbi("appfilter/user", {hideapplybtn=true, hidesavebtn=true, hideresetbtn=true}), _("用户配置"), 24).leaf=true
 	entry({"admin", "services", "appfilter", "advance"}, cbi("appfilter/advance", {hideapplybtn=true, hidesavebtn=true, hideresetbtn=true}), _("高级设置"), 27).leaf=true
 	entry({"admin", "network", "user_status"}, call("user_status"), nil).leaf = true
@@ -193,6 +196,7 @@ function add_app_filter_user()
 	local req_obj = {}
 	local data_str = luci.http.formvalue("data")
 	req_obj = json.parse(data_str)
+
 	local resp_obj=utl.ubus("appfilter", "add_app_filter_user", req_obj);
 	luci.http.write_json(resp_obj);
 end
@@ -256,6 +260,7 @@ function set_app_filter_base()
 	luci.http.prepare_content("application/json")
 	local req_obj = {}
 
+
 	local enable = luci.http.formvalue("enable")
 	local work_mode = luci.http.formvalue("work_mode")
 	local record_enable = luci.http.formvalue("record_enable")
@@ -264,6 +269,7 @@ function set_app_filter_base()
 	req_obj.enable = enable
 	req_obj.work_mode = work_mode
 	req_obj.record_enable = record_enable
+
 	local resp_obj=utl.ubus("appfilter", "set_app_filter_base", req_obj);
 	luci.http.write_json(resp_obj);
 end
@@ -285,8 +291,6 @@ function set_app_filter_adv()
 	local resp_obj=utl.ubus("appfilter", "set_app_filter_adv", req_obj);
 	luci.http.write_json(resp_obj);
 end
-
-
 
 -- data: {"mode":1,"weekday_list":[1,2,3,4,5,6,0],"start_time":"22:22","end_time":"12:00","allow_time":30,"deny_time":5}
 function set_app_filter_time()

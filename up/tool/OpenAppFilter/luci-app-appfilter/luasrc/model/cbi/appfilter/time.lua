@@ -16,10 +16,4 @@ m = Map("appfilter", translate(""), translate(""))
 local v
 v = m:section(SimpleSection)
 v.template = "admin_network/time"
-m.apply_on_parse = true
-m.on_after_apply = function(self,map)
-	luci.sys.exec("/etc/init.d/appfilter start >/dev/null 2>&1")
-end
-
-
 return m

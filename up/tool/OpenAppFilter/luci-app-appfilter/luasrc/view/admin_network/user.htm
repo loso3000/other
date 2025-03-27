@@ -277,6 +277,7 @@
             mac_list: selectedMacs
         }
         var data_str = JSON.stringify(data);
+
         console.log(selectedMacs);
         new XHR().post('<%=url('admin/network/add_app_filter_user')%>', 
             { data: data_str },
