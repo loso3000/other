@@ -1,6 +1,6 @@
 msgid ""
 msgstr ""
-"Copyright (C) 2022-2024 sirpdboy  herboy2008@gmail.com  https://github.com/sirpdboy/luci-app-partexp"
+"Copyright (C) 2022-2025 sirpdboy  herboy2008@gmail.com  https://github.com/sirpdboy/luci-app-partexp"
 "This is free software, licensed under the GNU General Public License v3."
 
 msgid "Partition Expansion"

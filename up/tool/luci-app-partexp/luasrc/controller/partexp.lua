@@ -1,6 +1,6 @@
 --[[
 LuCI - Lua Configuration Partition Expansion
- Copyright (C) 2022-2024  sirpdboy <herboy2008@gmail.com> https://github.com/sirpdboy/partexp
+ Copyright (C) 2022-2025  sirpdboy <herboy2008@gmail.com> https://github.com/sirpdboy/partexp
 ]]--
 
 local fs = require "nixio.fs"
