@@ -1,15 +1,6 @@
-local ds = require "luci.dispatcher"
-local nxo = require "nixio"
-local nfs = require "nixio.fs"
-local ipc = require "luci.ip"
-local sys = require "luci.sys"
-local utl = require "luci.util"
-local dsp = require "luci.dispatcher"
 local uci = require "luci.model.uci"
-local lng = require "luci.i18n"
-local jsc = require "luci.jsonc"
-local http = luci.http
 local SYS = require "luci.sys"
+local fs = require "nixio.fs"
 local m,s,n,o
 
 m = Map("appfilter", translate(""))
@@ -35,12 +26,13 @@ s.anonymous = true
 
 s:tab("configs", translate("设置特征库"))
 
-o = s:taboption("configs", DynamicList, "update_url", translate('更新特征库地址'))
+o = s:taboption("configs", Value, "update_url", translate('更新特征库地址'))
 o:value("https://gh.404delivr.workers.dev/https://raw.githubusercontent.com/destan19/OpenAppFilter/master/open-app-filter/files/feature_cn.cfg", translate("destan19_cn_v22.3.24"))
 o:value("https://gh.404delivr.workers.dev/https://raw.githubusercontent.com/destan19/OpenAppFilter/master/open-app-filter/files/feature_en.cfg", translate("destan19_en_v22.11.11"))
 o:value("https://gh.404delivr.workers.dev/https://raw.githubusercontent.com/jjm2473/OpenAppFilter/master/open-app-filter/files/feature_cn.cfg", translate("jjm2473_cn_v23.07.29"))
 o:value("https://gh.404delivr.workers.dev/https://raw.githubusercontent.com/jjm2473/OpenAppFilter/dev4/open-app-filter/files/feature_en.cfg", translate("jjm2473_en_v22.12.01"))
-o.default = "https://gh.404delivr.workers.dev/https://raw.githubusercontent.com/destan19/OpenAppFilter/master/open-app-filter/files/feature_cn.cfg"
+o:value("https://gh.404delivr.workers.dev/https://raw.githubusercontent.com/sirpdboy/other/master/patch/oaf/feature_cn.cfg", translate("sirpdboy_cn_v24.06.26"))
+o.default = "https://gh.404delivr.workers.dev/https://raw.githubusercontent.com/sirpdboy/other/master/patch/oaf/feature_cn.cfg"
 
 o = s:taboption("configs", Button, "Update", translate("手动更新官方特征库"))
 o.inputstyle = "apply"
