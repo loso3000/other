@@ -11,6 +11,8 @@ translate("</br>For specific usage, see:")..translate("<a href=\'https://github.
 t = a:section(TypedSection, "basic", translate("Settings"))
 t.anonymous = true
 
+
+
 e = t:option(Flag, "usshmenu",translate('No backend menu required'), translate('OPENWRT backend and SSH login do not display shortcut menus'))
 
 e = t:option(Flag, "wizard",translate('Hide Wizard'), translate('Show or hide the setup wizard menu'))

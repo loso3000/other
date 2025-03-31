@@ -4,7 +4,7 @@ LOCK=/var/lock/netwizard-boot.lock
 START=99
 UCISET='uci -q set'
 UCIDEL='uci -q delete'
-
+UCIADD=`uci -q add_list `
 
 uci_get() {
     case $# in
@@ -26,28 +26,28 @@ uci_get() {
 uci_set() {
     case $# in
         3)
-	uci set $1.$2=$3 2>/dev/null
+	$UCISET $1.$2=$3 2>/dev/null
             ;;
         4)
-	uci set $1.$2.$3=$4 2>/dev/null
+	$UCISET $1.$2.$3=$4 2>/dev/null
             ;;
     esac
     uci commit $1
 }
 uci_add(){
-    uci add_list $1.$2.$3=$4 2>/dev/null
+    $UCIADD $1.$2.$3=$4 2>/dev/null
     uci commit $1
 }
 uci_del() {
     case $# in
         2)
-            uci delete "$1.$2"
+            $UCIDEL "$1.$2"
             ;;
         3)
-            uci delete "$1.$2.$3"
+            $UCIDEL "$1.$2.$3"
             ;;
         4)
-            uci delete "$1.$2.$3.$4"
+            $UCIDEL "$1.$2.$3.$4"
             ;;
     esac
 }
@@ -56,17 +56,7 @@ _uci_set(){
     uci_set netwizard default "$1" "$2"
     uci commit netwizard
 }
-synflood(){
-if [ "x$synflood" = "x1" ] ;then
-$UCISET firewall.@defaults[0].syn_flood='1'
-$UCISET firewall.@defaults[0].synflood_protect='1'
-$UCISET firewall.@defaults[0].input='ACCEPT'
-else
-$UCIDEL firewall.@defaults[0].syn_flood
-$UCIDEL firewall.@defaults[0].synflood_protect
-$UCISET firewall.@defaults[0].input='ACCEPT'
-fi
-}
+
 # 设置IPV6
 setipv6() {
     local mode=$1
@@ -187,6 +177,62 @@ EOF
             ;;
     esac
 }
+setsynflood(){
+if [ "x$synflood" = "x1" ] ;then
+$UCISET firewall.@defaults[0].syn_flood='1'
+$UCISET firewall.@defaults[0].synflood_protect='1'
+$UCISET firewall.@defaults[0].input='ACCEPT'
+else
+$UCIDEL firewall.@defaults[0].syn_flood
+$UCIDEL firewall.@defaults[0].synflood_protect
+$UCISET firewall.@defaults[0].input='ACCEPT'
+fi
+}
+
+sethttps() {
+	config_get https "$cfg" https
+	if [ -n "$(command -v nginx)" ]; then
+		if [ -z "`uci -q get nginx._redirect2ssl`" ]; then
+			$UCISET nginx._redirect2ssl=server
+			$UCISET nginx._redirect2ssl.server_name='_redirect2ssl'
+			$UCISET nginx._redirect2ssl.return='302 https://$host$request_uri'
+			$UCISET nginx._redirect2ssl.access_log='off; # logd openwrt'
+		fi
+           if [ "x${https}" = "x1" ] ; then
+    		$UCIDEL nginx.default_server.listen
+    		$UCIADD nginx.default_server.listen='80'
+    		$UCIADD nginx.default_server.listen='[::]:80'
+    		$UCIDEL nginx._redirect2ssl.listen
+    		$UCIADD nginx._redirect2ssl.listen='80 default_server'
+    		$UCIADD nginx._redirect2ssl.listen='[::]:80 default_server'
+    	   else
+	         $UCIDEL nginx._redirect2ssl.listen
+	         $UCIADD nginx._redirect2ssl.listen='80'
+	         $UCIADD nginx._redirect2ssl.listen='[::]:80'
+	         $UCIDEL nginx.default_server.listen
+	         $UCIADD nginx.default_server.listen='80 default_server'
+	         $UCIADD nginx.default_server.listen='[::]:80 default_server'
+    	   fi
+	   uci commit nginx
+    	   /etc/init.d/nginx reload
+    else
+        if [ "x${https}" = "x1" ] ; then
+	         sed -i "/listen_https/d" /etc/config/uhttpd
+	         /etc/init.d/uhttpd stop
+	         #$UCIADD uhttpd.main.listen_https='0.0.0.0:443'
+	         #$UCIADD uhttpd.main.listen_https='[::]:443'
+	         $UCISET uhttpd.main.redirect_https='1'
+	         uci commit uhttpd
+	         /etc/init.d/uhttpd reload
+       else
+	     /etc/init.d/uhttpd stop
+	    # sed -i "/listen_https/d" /etc/config/uhttpd
+	    $UCISET uhttpd.main.redirect_https='0'
+	    uci commit uhttpd
+	    /etc/init.d/uhttpd reload
+       fi
+    fi
+}
 
 # Function to configure network settings
 configure_network() {
@@ -252,9 +298,9 @@ EOF
          $UCISET network.wan.$ifname="${wan_interface}"
          $UCISET network.wan6.$ifname="@wan"
          [ "x$ifname" = "xdevice" ] && {
-                    uci -q add_list firewall.@zone[1].network='wan6'
-                    uci -q add_list firewall.@zone[1].network='wan' 
-         } || uci -q set firewall.@zone[1].network='wan wan6'
+                    $UCIADD firewall.@zone[1].network='wan6'
+                    $UCIADD firewall.@zone[1].network='wan' 
+         } || $UCISET firewall.@zone[1].network='wan wan6'
     fi
 
     case "${wan_proto}" in
@@ -275,8 +321,8 @@ EOF
                 $UCISET network.wan.gateway="${wan_gateway}"
                 config_get wan_dns "$cfg" wan_dns
                 test -n "${wan_dns}" && {
-                    uci -q set network.wan.peerdns='0'
-                    uci -q set network.wan.dns="${wan_dns}"
+                    $UCISET network.wan.peerdns='0'
+                    $UCISET network.wan.dns="${wan_dns}"
                 }
             }
             ;;
@@ -317,15 +363,15 @@ EOF
                 [ "x$masq" = "x1" ] && $UCISET firewall.@zone[0].masq='1' || $UCIDEL firewall.@zone[0].masq
             }
             $UCIDEL firewall.@zone[0].network
-            uci -q add_list firewall.@zone[0].network='lan'
-            [ `uci show network | grep utun | wc -l` -gt 1 ] && uci -q add_list firewall.@zone[0].network='utun'
+            $UCIADD firewall.@zone[0].network='lan'
+            [ `uci show network | grep utun | wc -l` -gt 1 ] && $UCIADD firewall.@zone[0].network='utun'
             [ "x$ipv6" = "x1" ] && {
                 $UCISET network.lan6=interface
                 $UCISET network.lan6.proto='dhcpv6'
                 $UCISET network.lan6.delegate='1'
                 $UCISET network.lan6.$ifname="@lan"
                 setipv6 2
-                uci -q add_list firewall.@zone[0].network='lan6'
+                $UCIADD firewall.@zone[0].network='lan6'
 		
             } || {
                 setipv6 0
@@ -336,7 +382,8 @@ EOF
             ;;
     esac
 
-    synflood
+    setsynflood
+    sethttps
     test -n "${lan_ipaddr}"  &&  $UCISET network.lan.ipaddr="${lan_ipaddr}"  
     test -n "${lan_netmask}" &&  $UCISET network.lan.netmask="${lan_netmask}"
     sed -i "/dhcp_option '6/d" /etc/config/dhcp
@@ -357,7 +404,7 @@ EOF
         $UCISET dhcp.lan.force='1'
         $UCISET dhcp.@dnsmasq[0].authoritative='1'
        [ "x$dnsset" = "x1" ] && {
-            [ "${dns_tables}" = "1" ] && uci -q add_list dhcp.lan.dhcp_option="6,${lan_ipaddr}" || uci -q add_list dhcp.lan.dhcp_option="6,${dns_tables}" 
+            [ "${dns_tables}" = "1" ] && $UCIADD dhcp.lan.dhcp_option="6,${lan_ipaddr}" || $UCIADD dhcp.lan.dhcp_option="6,${dns_tables}" 
         }
     fi
     test -s /etc/config/wireless && {

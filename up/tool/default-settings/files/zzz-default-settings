@@ -129,7 +129,6 @@ test $ver -lt 1 && {
     fi
     sed -i '/option disabled/d' /etc/config/wireless  >/dev/null 2>&1
     sed -i '/set wireless.radio${devidx}.disabled/d' /lib/wifi/mac80211.sh   >/dev/null 2>&1
-    uci -q set network.lan.ipaddr='192.168.10.1'
     uci del dhcp.lan.ignore
     uci del dhcp.lan.ra_slaac
     uci del network.lan.delegate
@@ -436,6 +435,8 @@ set snmpd.default_settings.agentaddress='udp:127.0.0.1,udp6:[::1]:161'
 EOF
 fi
 
+uci set firewall.@defaults[0].synflood_protect='1'
+uci set firewall.@defaults[0].input='ACCEPT'
 [ x$debug = x1 ] && echo $ver
 }
 
