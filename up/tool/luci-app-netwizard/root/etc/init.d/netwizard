@@ -283,6 +283,7 @@ configure_network() {
                 $UCISET network.wan.persist='1'
                 $UCISET network.wan.holdoff='5'
                 $UCISET network.wan.pppd_options='debug noipdefault'
+		$UCIDEL network.wan6
                 config_get wan_dns "$cfg" wan_dns
                 test -n "${wan_dns}" && {
                     $UCISET network.wan.peerdns='0'
