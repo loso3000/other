@@ -131,11 +131,11 @@ setsynflood(){
 if [ "x$synflood" = "x1" ] ;then
 	$UCISET firewall.@defaults[0].syn_flood='1'
 	$UCISET firewall.@defaults[0].synflood_protect='1'
-	$UCISET firewall.@defaults[0].input='ACCEPT'
+	# $UCISET firewall.@defaults[0].input='ACCEPT'
 else
 	$UCIDEL firewall.@defaults[0].syn_flood
 	$UCIDEL firewall.@defaults[0].synflood_protect
-	$UCISET firewall.@defaults[0].input='ACCEPT'
+	# $UCISET firewall.@defaults[0].input='REJECT'
 fi
 }
 
