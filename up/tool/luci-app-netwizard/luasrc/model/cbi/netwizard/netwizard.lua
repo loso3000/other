@@ -170,6 +170,10 @@ synflood = s:taboption("othersetup", Flag, "synflood", translate("Enable SYN-flo
 synflood.default = 1
 synflood.anonymous = false
 
+-- dns_redirect = s:taboption("othersetup", Flag, "dns_redirect", translate("DNS Redirect"),translate("Force all TCP/UDP DNS 53ports in IPV4/IPV6 to be forwarded from this route[Suggest opening]"))
+-- dns_redirect.default = 1
+-- dns_redirect.anonymous = false
+
 -- e = s:taboption("othersetup", Flag, "https",translate('Accessing using HTTPS'), translate('Open the address in the background and use HTTPS for secure access'))
 
 m.apply_on_parse = true

@@ -210,8 +210,8 @@ advancedset(){
     [ ! $dev ] && dev=` uci -q get network.wan.ifname ` || dev=` uci -q get network.wan.device ` 
     [ ! $dev ] && dev=br-lan
     setnetwizard
-    set_ttyd
-    set_firewall_wan
+    # set_ttyd
+    # set_firewall_wan
     tsoset
     sed -i "\/bin\/zsh/d" /etc/profile
     [ "x$(uci -q get advancedplus.@basic[0].usshmenu)" = "x1" ] || echo '/usr/bin/zsh'  >> /etc/profile
