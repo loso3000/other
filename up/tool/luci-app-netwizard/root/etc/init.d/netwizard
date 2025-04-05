@@ -438,11 +438,7 @@ EOF
 EOF
     (sleep 2
      /etc/init.d/network restart
-     /etc/init.d/dnsmasq reload
-     /etc/init.d/firewall reload
-     # /etc/init.d/rpcd restart
-     # /etc/init.d/uhttpd reload
-     )&
+     /etc/init.d/dnsmasq reload)&
 }
 
 boot() {
