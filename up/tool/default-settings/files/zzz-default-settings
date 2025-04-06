@@ -435,8 +435,8 @@ set snmpd.default_settings.agentaddress='udp:127.0.0.1,udp6:[::1]:161'
 EOF
 fi
 
-uci set firewall.@defaults[0].synflood_protect='1'
-uci set firewall.@defaults[0].input='ACCEPT'
+#uci set firewall.@defaults[0].synflood_protect='1'
+#uci set firewall.@defaults[0].input='ACCEPT'
 [ x$debug = x1 ] && echo $ver
 }
 
