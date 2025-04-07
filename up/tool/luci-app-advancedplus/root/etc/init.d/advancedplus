@@ -5,6 +5,7 @@ START=99
 STOP=15
 EXTRA_COMMANDS='reset'
 EXTRA_HELP="        reset   Reset to default settings"
+LOCK=/var/lock/advancedplus-boot.lock
 
 reset() {
 rm -rf /etc/config/advancedplus
@@ -330,12 +331,21 @@ uci commit advancedplus
 
 start() {
     [ "x$(uci -q get advancedplus.@basic[0].mode)" = "x" ]  && /etc/config/advancedplus reset 
+    [ -f $LOCK ] && exit
+    [ "x$XBOOT" = "x1" ] && exit 0
+    touch $LOCK
     kucatset
     advancedset
     rm -rf /tmp/luci-*
+    rm -f $LOCK 2>/dev/null
 }
 
 stop() {
 rm -rf /tmp/luci*
+rm -f $LOCK 2>/dev/null
+}
+
+boot() {
+	XBOOT=1 start
 }
 
