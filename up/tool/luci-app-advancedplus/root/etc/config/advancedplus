@@ -34,7 +34,7 @@ config theme
 	option bkuse '1'
 	option primary_rgbs_ts '0.1'
 	option mode 'light'
-	option use '1'
+	option use '0'
 	option primary_rgbm 'blue'
 
 config theme
