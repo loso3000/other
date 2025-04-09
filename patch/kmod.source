@@ -116,7 +116,6 @@ kmod-switch-rtl8366rb
 kmod-switch-rtl8366s
 kmod-switch-rtl8367
 kmod-switch-rtl8367b
-
 kmod-via-rhine
 kmod-atm
 kmod-misdn
@@ -258,7 +257,6 @@ kmod-rtl8723be
 kmod-rtl8723bs
 kmod-rtl8723du
 kmod-rtl8821ae
-
 kmod-rtl8812au-ac
 kmod-rtl8812au-ct
 kmod-rtl8821au
