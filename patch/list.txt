@@ -116,7 +116,6 @@ kmod-switch-rtl8366rb*.ipk
 kmod-switch-rtl8366s*.ipk
 kmod-switch-rtl8367*.ipk
 kmod-switch-rtl8367b*.ipk
-
 kmod-via-rhine*.ipk
 kmod-atm*.ipk
 kmod-misdn*.ipk
@@ -258,7 +257,6 @@ kmod-rtl8723be*.ipk
 kmod-rtl8723bs*.ipk
 kmod-rtl8723du*.ipk
 kmod-rtl8821ae*.ipk
-
 kmod-rtl8812au-ac*.ipk
 kmod-rtl8812au-ct*.ipk
 kmod-rtl8821au*.ipk
