@@ -2,7 +2,7 @@ msgid "Processor"
 msgstr "处理器"
 
 msgid "Architecture"
-msgstr "架构"
+msgstr "机器架构"
 
 msgid "Target Platform"
 msgstr "目标平台"
@@ -25,6 +25,9 @@ msgstr "CPU 负载"
 msgid "CPU Load"
 msgstr "CPU 负载"
 
+msgid "Detailed load"
+msgstr "详细负载"
+
 msgid "Total usage"
 msgstr "CPU 总负载"
 
@@ -45,7 +48,6 @@ msgstr "运行中"
 
 msgid "NOT RUNNING"
 msgstr "未运行"
-
 
 msgid "Update suggestions"
 msgstr "更新建议"
