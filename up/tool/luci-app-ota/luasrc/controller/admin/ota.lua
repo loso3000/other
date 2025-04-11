@@ -70,12 +70,19 @@ function action_ota()
       return
     end
     local keep = (http.formvalue("keep") == "1") and "" or "-n"
+    local bopkg = (http.formvalue("bopkg") == "1") and "" or "-k"
+    
+    local slist = {}
+    if keep ~= "" then table.insert(slist, keep) end
+    if bopkg ~= "" then table.insert(slist, bopkg) end
+    slist = table.concat(slist, " ")
+    
     luci.template.render("admin_system/ota_flashing", {
       title = luci.i18n.translate("Flashing…"),
       msg   = luci.i18n.translate("The system is flashing now.<br /> DO NOT POWER OFF THE DEVICE!<br /> Wait a few minutes before you try to reconnect. It might be necessary to renew the address of your computer to reach the device again, depending on your settings."),
       addr  = (#keep > 0) and "192.168.10.1" or nil
     })
-    fork_exec("sleep 1; killall dropbear uhttpd nginx; sleep 1; sync; /sbin/sysupgrade %s %q" %{ keep, image_tmp })
+    fork_exec("sleep 1; killall dropbear uhttpd nginx; sleep 1; sync; /sbin/sysupgrade %s %q" %{ slist, image_tmp })
   else
     luci.template.render("admin_system/ota")
   end
