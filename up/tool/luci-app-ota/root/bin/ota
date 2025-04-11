@@ -48,7 +48,6 @@ MD5File="${TmpPath}/EzOpWrt_dev-efi.md5"
 verFile="${TmpPath}/ver.latest"
 footFile="${TmpPath}/ota.footer"
 proxy_list="https://gh.con.sh/ https://gh.404delivr.workers.dev/ https://ghproxy.com/ https://ghps.cc/"
-clean_old_cache
 
 md5() {
     md5sum $1 | cut -d' ' -f1
@@ -79,7 +78,7 @@ select_proxy() {
     fi
     return 1
 }
-
+clean_old_cache
 proxy=$(select_proxy)
 
 fcurl() {
