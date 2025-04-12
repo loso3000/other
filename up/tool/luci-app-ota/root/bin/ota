@@ -357,7 +357,7 @@ download() {
         echo "Try $url" >>/tmp/firmware.img.progress
         flock 300
         echo "#=#=#" >>/tmp/firmware.img.progress
-        pcurl  "$url"  /tmp/firmware.img 1 3 1200 10 5
+        pcurl  "$url"  /tmp/firmware.img 1 3 3600 10 5
         pid="$!"
         echo "$pid" > ${TmpPath}/download.pid
         flock -u 300
