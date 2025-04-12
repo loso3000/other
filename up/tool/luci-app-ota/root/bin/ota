@@ -9,7 +9,7 @@ STLOCK=/var/lock/otaez_status.lock
 
 action=${1}
 shift
-DEBUG=0
+DEBUG=1
 LogPath=/tmp
 LogFile=ezota.log
 LogFull="${LogPath}/${LogFile}"
@@ -19,51 +19,24 @@ ApiInfo="${TmpPath}/Api_Info"
 MD5File="${TmpPath}/EzOpWrt_dev-efi.md5"
 verFile="${TmpPath}/ver.latest"
 footFile="${TmpPath}/ota.footer"
-proxy_list="https://ghproxy.net/ https://mirror.ghproxy.com/ https://gh-proxy.com/ https://gh.idayer.com/"
-mirrors="gh.ddlc.top github.mirror.noc.one hub.fgit.ml github.com.cnpmjs.org gitclone.com"
+
+INIT_HOSTS() {
+    [ -f /tmp/.github_hosts_added ] && return
+    
+    local ip="140.82.121.4"
+    local hosts="$ip github.com $ip api.github.com"
+    
+    if ! grep -q "$ip.*github.com" /etc/hosts; then
+        echo "$hosts" >> /etc/hosts && \
+        touch /tmp/.github_hosts_added && \
+
+        [ $DEBUG = 1 ] && LOGGER "HOSTS: $ip -> $hosts"
+    fi
+}
 
 function LOGGER() {
 		[[ ! -f ${LogFull} ]] && touch -f ${LogFull}
 		echo "[$(date "+%H:%M:%S")] [$0] $*" >> ${LogFull}
-}
-select_proxy() {
-    local test_url="https://github.com/robots.txt"
-    local timeout=3
-    local best_proxy=""
-    local min_latency=9999
-    local success=0
-
-    # 首先尝试直连
-    local start_time=$(date +%s%3N)
-    if curl -sSI --connect-timeout "$timeout" "$test_url" >/dev/null 2>&1; then
-        local end_time=$(date +%s%3N)
-        local latency=$((end_time - start_time))
-        min_latency=$latency
-        best_proxy=""  # 空字符串表示直连
-        [ $DEBUG = 1 ] &&LOGGER "proxy:$best_proxy $latency $min_latency"
-    fi
-
-    # 测试代理服务器
-    for proxy in $proxy_list; do
-        start_time=$(date +%s%3N)
-        if curl -sSI --connect-timeout "$timeout" "${proxy}${test_url}" >/dev/null 2>&1; then
-            end_time=$(date +%s%3N)
-            latency=$((end_time - start_time))
-            if [ "$latency" -lt "$min_latency" ]; then
-                min_latency=$latency
-                best_proxy="$proxy"
-                success=1
-            fi
-	    [ $DEBUG = 1  ] &&LOGGER "proxy: $best_proxy $latency $min_latency"
-        fi
-    done
-
-    if [ "$success" -eq 1 ]; then
-        echo "$best_proxy"  # 输出最佳代理或空字符串(直连)
-        return 0
-    else
-        return 1  # 全部失败
-    fi
 }
 
 function ECHO() {
@@ -95,15 +68,15 @@ function ECHO() {
 		LOGGER "${Message}"
 	fi
 }
-md5() {
+function md5() {
     md5sum $1 | cut -d' ' -f1
 }
 
-clean_old_cache() {
+function clean_old_cache() {
     local cache_dir="${TmpPath:-/tmp}"
     find "$cache_dir" -type f -mmin +60 -exec rm -f {} \;
 }
-fcurl() {
+function fcurl() {
     local url=$1
     local output=$2
     local retries=${3:-3}
@@ -113,7 +86,6 @@ fcurl() {
     local temp_output="${output}.tmp"
     
     [ -f "etc/ezgithub" ] && source "etc/ezgithub"
-    [ -z "$proxy" ] && proxy=$(select_proxy)
     
     if [ -n "$GITHUB_TOKEN" ]; then
         CURL_AUTH_HEADER="Authorization: token $GITHUB_TOKEN"
@@ -131,8 +103,8 @@ fcurl() {
         echo "$cmd"
     }
     for i in $(seq 1 "$retries"); do
-	[ $DEBUG == 1  ] &&LOGGER " $_build_curl_cmd  -> $i"
-        if eval "$(_build_curl_cmd) -o '$temp_output' '$proxy$url'" && mv "$temp_output" "$output"; then
+	[ $DEBUG == 1  ] &&LOGGER "fcurl: $_build_curl_cmd  -> $i"
+        if eval "$(_build_curl_cmd) -o '$temp_output' '$url'" && mv "$temp_output" "$output"; then
             return 0
         fi
         [ "$i" -lt "$retries" ] && sleep "$retry_delay"
@@ -143,7 +115,7 @@ fcurl() {
         local gitmirrors="gh.ddlc.top github.mirror.noc.one hub.fgit.ml github.com.cnpmjs.org"
         for mirror in $gitmirrors; do
             mirror_url=$(echo "$url" | sed "s|github.com|$mirror|")
-            [ $DEBUG == 1  ] &&LOGGER " $mirror  -> $mirror_url"
+	     [ $DEBUG == 1  ] &&LOGGER "fcurl mirror: $mirror  -> $mirror_url"
             if eval "$(_build_curl_cmd) -o '$temp_output' '$mirror_url'" && mv "$temp_output" "$output"; then
                 return 0
             fi
@@ -168,8 +140,8 @@ fcurl() {
             local tag_file=$(echo "$url" | awk -F'/releases/download/' '{print $2}' | cut -d'/' -f1)
             local file_name=$(echo "$url" | awk -F'/releases/download/' '{print $2}' | cut -d'/' -f2-)
 
-            [ $DEBUG == 1  ] &&LOGGER "git: $tag_file  -> $https://$proxy$repo.git"
-            if git clone --depth 1 --branch "$tag_file" "https://$proxy$repo.git" "$TmpPath/repo" 2>/dev/null; then
+            [ $DEBUG == 1  ] &&LOGGER "Releases: $tag_file  ->  https://$repo.git"  "  $TmpPath/repo"
+            if git clone --depth 1 --branch "$tag_file" "https://$repo.git" "$TmpPath/repo" 2>/dev/null; then
                 if [ -f "$TmpPath/repo/$file_name" ]; then
                     cp "$TmpPath/repo/$file_name" "$output"
                     rm -rf "$TmpPath/repo"
@@ -184,7 +156,7 @@ fcurl() {
     return 1
 }
 
-pcurl() {
+function pcurl() {
     local url=$1
     local output=$2
     local background=${3:-1}            # 是否后台下载（0:前台，1:后台）
@@ -197,7 +169,6 @@ pcurl() {
     local success=0
     local pid
     [ -f "etc/ezgithub" ] && source "etc/ezgithub"
-    [ -z "$proxy" ] && proxy=$(select_proxy)
 
     if [ -n "$GITHUB_TOKEN" ]; then
         CURL_AUTH_HEADER="Authorization: token $GITHUB_TOKEN"
@@ -212,11 +183,13 @@ pcurl() {
         -H 'User-Agent: EzOpenWrt-Updater/1.0'"
     [ -n "$CURL_AUTH_HEADER" ] && curl_cmd="$curl_cmd -H '$CURL_AUTH_HEADER'"
     for i in $(seq 1 "$retries"); do
+    
+        [ $DEBUG == 1  ] &&LOGGER  "fcurl url: $url'  $i -> $output "
         if [ "$background" -eq 1 ]; then
-            eval "$curl_cmd -o '$temp_output' '$proxy$url' 2>>'$progress_file' &"
+            eval "$curl_cmd -o '$temp_output' '$url' 2>>'$progress_file' &"
             return 0
         else
-            if eval "$curl_cmd -o '$temp_output' '$proxy$url' 2>>'$progress_file'"; then
+            if eval "$curl_cmd -o '$temp_output' '$url' 2>>'$progress_file'"; then
                 success=1
                 break
             fi
@@ -229,12 +202,13 @@ pcurl() {
             local mirrors="gh.ddlc.top github.mirror.noc.one hub.fgit.cf hub.fgit.ml github.com.cnpmjs.org"
             for mirror in $mirrors; do
                 mirror_url=$(echo "$url" | sed "s|github.com|$mirror|" |sed '/^$/d')
+                [ $DEBUG == 1  ] &&LOGGER  "fcurl mirror : $mirror_url  -> $output "
                 if curl -L -k -f \
                     --connect-timeout "$connect_timeout" \
                     --max-time "$timeout" \
                     --progress-bar \
                     -o "$temp_output" \
-                    "$proxy$mirror_url" 2>>"$progress_file"; then
+                    "$mirror_url" 2>>"$progress_file"; then
                     return 0
                 fi
             done
@@ -252,7 +226,7 @@ function RM() {
 	done
 }
 
-get_github_releases() {
+function get_github_releases() {
     local author="$1"
     local output_file="$2"
     local retries=${3:-3}
@@ -261,7 +235,6 @@ get_github_releases() {
     local api_url="https://api.github.com/repos/${author}/releases"
     local cache_file="${TmpPath}/gh_cache_$(echo "$author" | tr '/' '_').json"
     local cache_ttl=300 # 5分钟缓存
-    
 if [ -f "$cache_file" ] && \
    [ $(date +%s) -lt $(($(date -r "$cache_file" +%s) + $cache_ttl)) ] && \
    jq -e '.' "$cache_file" >/dev/null 2>&1; then
@@ -270,7 +243,7 @@ if [ -f "$cache_file" ] && \
 fi
     # 尝试直接获取
     if fcurl "$api_url" "$output_file" "$retries" "$timeout"; then
-        # 验证响应并更新缓存
+        [ $DEBUG == 1  ] &&LOGGER  "GitHub api: $api_url  -> $output_file"
         if jq -e '.' "$output_file" >/dev/null 2>&1; then
             cp "$output_file" "$cache_file"
             return 0
@@ -279,8 +252,8 @@ fi
     
     # 备用方案：使用GitHub镜像API
     local api_mirrors="https://gh-api.p3terx.com/repos/${author}/releases  https://api.github.com.cnpmjs.org/repos/${author}/releases"
-    for mirror in $api_mirrors; do
-
+    for mirror in $api_mirrors; do 
+        [ $DEBUG == 1  ] &&LOGGER  "GitHub mirror API: $mirror  ->   :$output_file"
         if fcurl "$mirror" "$output_file" "$retries" "$timeout" && \
            jq -e '.' "$output_file" >/dev/null 2>&1; then
             cp "$output_file" "$cache_file"
@@ -288,7 +261,7 @@ fi
         fi
     done
     
-    echo "无法获取发布信息，请检查网络或稍后重试" >&2
+    [ $DEBUG = 1 ] &&LOGGER  "无法获取发布信息，请检查网络或稍后重试"  
     rm -f "$output_file" 2>/dev/null
     return 1
 }
@@ -297,7 +270,7 @@ function SHOWOTA_API() {
     get_github_releases "$FirmwareAuthor" "$ApiFile"
     [ ! -s "${ApiFile}" ] && {
         echo "API请求失败，请检查网络连接!"
-        return 255
+        exit 255
     }
 
 	for i in $(seq 0 $(jq ".[]|length" ${ApiFile} | wc -l));do
@@ -315,7 +288,7 @@ function SHOWOTA_API() {
 			[[ ! ${updated_at} || ${updated_at} == null ]] && updated_at="-"
 			[[ ! ${download_count} || ${download_count} == null ]] && download_count="-"
 			printf "%-75s %-5s %-10s %-15s %-20s %s\n" ${name} ${download_count} ${updated_at} ${size} ${tagname} ${browser_download_url} >> ${ApiInfo}
-			# cat ${ApiInfo}
+			[ $DEBUG = 1 ] &&LOGGER  ` cat ${ApiInfo}`
 			return
 		;;
 		esac
@@ -327,7 +300,7 @@ function SHOW_INFO() {
 	local Info Type Result
 	[[ ! -s ${ApiInfo} ]] && {
 		echo  "未检测到 API 文件!"
-		return 1
+		exit 255
 	}
 	Info=$(grep " " ${ApiInfo} | awk 'BEGIN {MAX = 0} {if ($4+0 > MAX+0) {MAX=$4 ;content=$0} } END {print content}')
 	Result="$(echo $Info | awk '{print $"'${1}'"}'  2> /dev/null)"
@@ -353,6 +326,7 @@ function SHOW_INFO() {
 
 ota_init(){
     mkdir -p $TmpPath >/dev/null 2>&1 || true
+    echo '' > $LogFull
 }
 
 download() {
@@ -441,24 +415,22 @@ prepare_check() {
             echo "检查错误:无法获取云端版本!"
             return 255
         }
-# echo   "cloud_version:$cloud_version --- $CLOUD_FW_Url"
+    [ $DEBUG = 1 ] &&LOGGER   "prepare_check:  cloud_version:$cloud_version --- CLOUD_FW_Url:$CLOUD_FW_Url"
 
     
     downloadsuccess=0
     for file in "EzOpWrt_dev-efi.md5" "ver.latest" "ota.footer"; do
         url="$Github/releases/download/$cloud_version/$file"
         outputf="${TmpPath}/$(basename "$file")"
+        [ ! -s "${outputf}" ] && {
+
+        [ $DEBUG == 1  ] &&LOGGER  "GitHub file url: $url  ->   :$outputf"
         if fcurl "$url" "$outputf"; then
             continue
         fi
-        asset_url=$(jq -r ".[0].assets[] | select(.name == \"$file\").browser_download_url" "${ApiFile}" 2>/dev/null)
-        if [ -z "$asset_url" ]; then
-            downloadsuccess=1
-            continue
-        fi
-        if ! fcurl "$asset_url" "$outputf"; then
-            downloadsuccess=1
-        fi
+	 
+        }
+
     done
     if [ "$downloadsuccess" -ne 0 ]; then
         return 255
@@ -575,13 +547,13 @@ usage() {
 
 ota_init || exit 255
 
+INIT_HOSTS
 clean_old_cache
-proxy=$(select_proxy)
 FirmwareAuthor="sirpdboy/openwrt"
 Github="https://github.com/${FirmwareAuthor}"
-GithubAPI="https://api.github.com/repos/${FirmwareAuthor}/releases"
 AUTHVER=`cat /etc/ezopenwrt_version | cut -d - -f 1-2`
 eval OS_ARCH=`cat /etc/os-release |grep OPENWRT_ARCH | cut -d = -f 2`
+
 case $action in
     "check")
         do_check
