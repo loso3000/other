@@ -436,7 +436,7 @@ EOF
 fi
 
 uci set firewall.@defaults[0].synflood_protect='1'
-uci set firewall.@defaults[0].input='ACCEPT'
+uci set firewall.@defaults[0].input='DROP'
 [ x$debug = x1 ] && echo $ver
 }
 
