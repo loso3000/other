@@ -1,0 +1,31 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: sirpdboy <herboy2008@gmail.com>
+Date: Fri, 12 Apr 2025 15:53:05 +0000
+Subject: [PATCH] upnp.js: Dynamic presentation URL with LAN IP
+Signed-off-by: sirpdboy <herboy2008@gmail.com>
+
+
+diff --git a/modules/luci-mod-status/htdocs/luci-static/resources/view/status/include/25_storage.js b/modules/luci-mod-status/htdocs/luci-static/resources/view/status/include/25_storage.js
+index 60661f6..aac6711 100644
+--- a/modules/luci-mod-status/htdocs/luci-static/resources/view/status/include/25_storage.js
++++ b/modules/luci-mod-status/htdocs/luci-static/resources/view/status/include/25_storage.js
+@@ -18,6 +18,10 @@
+ 	"/tmp",
+ 	"/dev",
+ 	"/boot",
++	"/dev/loop",
++	"/dev/loop0",
++	"/overlay",
++	"/root",
+ 	"/",
+ ]
+ 
+@@ -62,7 +66,7 @@
+ 		for (var i = 0; i < mounts.length; i++) {
+ 			var entry = mounts[i];
+ 
+-			if (MountSkipList.includes(entry.mount))
++			if (!entry.device.includes("/dev/") || MountSkipList.includes(entry.mount))
+ 				continue;
+ 
+ 			var name = entry.device + ' (' + entry.mount +')',

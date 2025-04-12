@@ -1,0 +1,44 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: sirpdboy <herboy2008@gmail.com>
+Date: Fri, 12 Apr 2025 15:53:05 +0000
+Subject: [PATCH] upnp.js: Dynamic presentation URL with LAN IP
+Signed-off-by: sirpdboy <herboy2008@gmail.com>
+
+--- a/applications/luci-app-upnp/htdocs/luci-static/resources/view/upnp/upnp.js
++++ b/applications/luci-app-upnp/htdocs/luci-static/resources/view/upnp/upnp.js
+
+@@ -6,7 +6,7 @@
+ 'require rpc';
+ 'require form';
+ 
+-var callInitAction, callUpnpGetStatus, callUpnpDeleteRule, handleDelRule;
++var callInitAction, callUpnpGetStatus, callUpnpDeleteRule,callUciGet, handleDelRule;
+ 
+ callInitAction = rpc.declare({
+ 	object: 'luci',
+@@ -27,6 +27,15 @@
+ 	params: [ 'token' ],
+ 	expect: { result : "OK" },
+ });
++callUciGet = rpc.declare({
++    object: 'uci',
++    method: 'get',
++    params: ['config', 'section', 'option']
++});
++
++var iprul;
++callUciGet('network', 'lan', 'ipaddr').then(function(res) {
++    iprul = `http://${res.value}/`;});
+ 
+ handleDelRule = function(num, ev) {
+ 	dom.parent(ev.currentTarget, '.tr').style.opacity = 0.5;
+@@ -162,8 +171,8 @@
+ 		o.placeholder = 600
+ 
+ 		o = s.taboption('advanced', form.Value, 'presentation_url', _('Presentation URL'))
+-		o.placeholder = 'http://192.168.1.1/'
+ 
++		o.placeholder = iprul;
+ 		o = s.taboption('advanced', form.Value, 'upnp_lease_file', _('UPnP lease file'))
+ 		o.placeholder = '/var/run/miniupnpd.leases'
+ 
