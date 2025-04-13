@@ -158,7 +158,17 @@ start() {
 		xl2tpd -c ${L2TP_CONFIG_FILE} -C ${L2TP_CONTROL_FILE} -D >${L2TP_LOG_FILE} 2>&1 &
 		rm -f "/usr/lib/ipsec/libipsec.so.0"
 	}
-	
+	[ -d /var/ipsec ] || mkdir -p /var/ipsec
+	[ -f /var/ipsec/strongswan.conf ] || {
+	cat > /var/ipsec/strongswan.conf <<EOF
+	charon {
+  	     load_modular = yes
+   	     plugins {
+   	         include /etc/strongswan.d/charon/*.conf
+   	     }
+	}
+	EOF
+	}
 	cat > ${IPSEC_CONN_FILE} <<-EOF
 		# ipsec.conf - strongSwan IPsec configuration file
 
