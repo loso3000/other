@@ -7,29 +7,32 @@ Signed-off-by: sirpdboy <herboy2008@gmail.com>
 
 --- a/modules/luci-mod-system/htdocs/luci-static/resources/view/system/reboot.js
 +++ b/modules/luci-mod-system/htdocs/luci-static/resources/view/system/reboot.js
-
-@@ -30,7 +30,23 @@
+@@ -30,7 +30,27 @@
  		body.appendChild(E('hr'));
  		body.appendChild(E('button', {
  			'class': 'cbi-button cbi-button-action important',
 -			'click': ui.createHandlerFn(this, 'handleReboot')
-+			'click': ui.createHandlerFn(this, function() {
++			'click': function () {
 +				ui.showModal(_('Reboot'), [
 +					E('p', {}, _('Reboots the operating system of your device')),
-+					E('div', { 'class': 'right' }, [
-+						E('button', {
-+							'class': 'btn cbi-button cbi-button-apply',
-+							'click': ui.hideModal
-+						}, _('Cancel')),
-+						' ',
-+						E('button', {
-+							'class': 'cbi-button cbi-button-action important',
-+							'style': 'background-color: red; border-color: red;',
-+							'click': ui.createHandlerFn(this, this.handlePowerOff)
-+						}, _('OK'))
-+					])
++					E('p', {}, _(' ')),
++					E('button', {
++						'class': 'cbi-button cbi-button-action important',
++						'style': 'margin: 2rem 5rem 1rem 5rem; background: red!important; border-color: red!important',
++						'click': function () {
++							ui.hideModal();
++							this.handleReboot();
++						}.bind(this)
++					}, _('OK')),
++					E('button', {
++						'class': 'btn cbi-button cbi-button-apply',
++						'style': 'margin: 0 5rem 1rem 5rem;',
++						'click': function () {
++							ui.hideModal();
++						}
++					}, _('Cancel'))
 +				]);
-+			})
++			}.bind(this)
  		}, _('Perform reboot')));
  
  		return body;
