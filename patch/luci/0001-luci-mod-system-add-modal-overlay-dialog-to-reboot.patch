@@ -27,7 +27,7 @@ index 92e1dd4..c106f78 100644
 +							ui.hideModal();
 +							this.handleReboot();
 +						}.bind(this)
-+					}, _('Confirm')),
++					}, _('OK')),
 +					E('button', {
 +						'class': 'btn cbi-button cbi-button-apply',
 +						'style': 'margin: 0 5rem 1rem 5rem;',
