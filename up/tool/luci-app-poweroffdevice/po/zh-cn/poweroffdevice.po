@@ -9,7 +9,7 @@ msgstr "关机"
 msgid "PowerOff Device"
 msgstr "设备关机"
 
-msgid "Perform PowerOff"
+msgid "Perform Power Off"
 msgstr "执行关机"
 
 msgid "Turn off the power to the device you are using"

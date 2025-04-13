@@ -46,7 +46,7 @@ return view.extend({
 					])
 				]);
 			})
-		}, _('Perform PowerOff')));
+		}, _('Perform Power Off')));
 
 		return body;
 	},
