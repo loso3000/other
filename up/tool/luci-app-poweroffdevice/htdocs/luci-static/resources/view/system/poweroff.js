@@ -1,85 +1,61 @@
+
 'use strict';
 'require view';
-'require rpc';
 'require ui';
-'require uci';
-
-var callPowerOff = rpc.declare({
-	object: 'system',
-	method: 'poweroff',
-	expect: { result: 0 }
-});
+'require fs';
 
 return view.extend({
-	load: function() {
-		return uci.changes();
-	},
+    render: function() {
+        return E([
+            E('h2', _('PowerOff')),
+            E('p',  _('Turn off the power to the device you are using')),
+	    E('hr'),
+            E('button', {
+                        class: 'btn cbi-button cbi-button-negative',
+                        click: ui.createHandlerFn(this, 'handlePowerOff')
+            }, _('Perform Power Off')),
 
-	render: function(changes) {
-		var body = E([
-			E('h2', _('PowerOff')),
-			E('p', {}, _('Turn off the power to the device you are using'))
-		]);
+            E('div', { 'style': 'text-align: center; padding: 10px; font-style: italic;' }, [
+                E('span', {}, [
+                    _('© github '),
+                    E('a', { 
+                        'href': 'https://github.com/sirpdboy/luci-app-poweroffdevice', 
+                        'target': '_blank',
+                        'style': 'text-decoration: none;'
+                    }, 'by sirpdboy')
+                ])
+            ])
+        ]);
+    },
 
-		for (var config in (changes || {})) {
-			body.appendChild(E('p', { 'class': 'alert-message warning' },
-			_('WARNING: Power off might result in a reboot on a device which not support power off.')));
-			break;
-		}
+    handlePowerOff: function() {
+        return ui.showModal(_('PowerOff Device'), [
+            E('h4', { }, _('Turn off the power to the device you are using')),
 
-		body.appendChild(E('hr'));
-		body.appendChild(E('button', {
-			'class': 'cbi-button cbi-button-action important',
-			'click': function () {
-				ui.showModal(_('Power Off Device'), [
-					E('p', {}, _('Turn off the power to the device you are using')),
-					E('p', {}, _(' ')),
-					E('button', {
-						'class': 'cbi-button cbi-button-action important',
-						'style': 'margin: 2rem 5rem 1rem 5rem; background: red!important; border-color: red!important',
-						'click': function () {
-							ui.hideModal();
-							this.handlePowerOff();
-						}.bind(this)
-					}, _('Confirm')),
-					E('button', {
-						'class': 'btn cbi-button cbi-button-apply',
-						'style': 'margin: 0 5rem 1rem 5rem;',
-						'click': function () {
-							ui.hideModal();
-						}
-					}, _('Cancel'))
-				]);
-			}.bind(this)
-		}, _('Perform Power Off')));
+            E('div', { class: 'right' }, [
+                E('button', {
+                    'class': 'btn cbi-button cbi-button-apply',
+                    'click': ui.hideModal
+                }, _('Cancel')),
+                ' ',
+                E('button', {
+                    'class': 'btn btn-danger ',
+		    'style': 'background: red!important; border-color: red!important',
+                    'click': ui.createHandlerFn(this, function() {
+                        ui.hideModal();
+                        ui.showModal(_('PowerOffing...'), [
+                            E('p', {'class': 'spinning'  }, _('The device may have powered off. If not, check manually.'))
+                        ]);
+                        return fs.exec('/sbin/poweroff').catch(function(e) {
+                            ui.addNotification(null, E('p', e.message));
+                        });
+                    })
+                }, _('OK'))
+            ])
+        ]);
+    },
 
-		return body;
-	},
-
-	handlePowerOff: function(ev) {
-		return callPowerOff().then(function(res) {
-			if (res != 0) {
-				L.ui.addNotification(null, E('p', _('The PowerOff command failed with code %d').format(res)));
-				L.raise('Error', 'PowerOff failed');
-			}
-
-			L.ui.showModal(_('PowerOffing...'), [
-				E('p', { 'class': 'spinning' }, _('The device is shutting down...'))
-			]);
-
-			window.setTimeout(function() {
-				L.ui.showModal(_('PowerOffing...'), [
-					E('p', { 'class': 'spinning alert-message warning' },
-						_('The device may have powered off. If not, check manually.'))
-				]);
-			}, 150000);
-
-			L.ui.awaitReconnect();
-		})
-		.catch(function(e) { L.ui.addNotification(null, E('p', e.message)) });
-	},
-
-	handleSaveApply: null,
-	handleSave: null,
-	handleReset: null
+    handleSaveApply: null,
+    handleSave: null,
+    handleReset: null
 });
