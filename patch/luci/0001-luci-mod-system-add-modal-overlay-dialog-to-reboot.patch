@@ -4,41 +4,32 @@ Date: Fri, 13 Sep 2024 19:36:44 +0800
 Subject: [PATCH 1/5] luci-mod-system: add modal overlay dialog to reboot
 
 Signed-off-by: sirpdboy <herboy2008@gmail.com>
----
- .../resources/view/system/reboot.js           | 21 ++++++++++++++++++-
- 1 file changed, 20 insertions(+), 1 deletion(-)
 
-diff --git a/modules/luci-mod-system/htdocs/luci-static/resources/view/system/reboot.js b/modules/luci-mod-system/htdocs/luci-static/resources/view/system/reboot.js
-index 92e1dd4..c106f78 100644
 --- a/modules/luci-mod-system/htdocs/luci-static/resources/view/system/reboot.js
 +++ b/modules/luci-mod-system/htdocs/luci-static/resources/view/system/reboot.js
-@@ -30,7 +30,26 @@ return view.extend({
+
+@@ -30,7 +30,23 @@
  		body.appendChild(E('hr'));
  		body.appendChild(E('button', {
  			'class': 'cbi-button cbi-button-action important',
 -			'click': ui.createHandlerFn(this, 'handleReboot')
-+			'click': function () {
++			'click': ui.createHandlerFn(this, function() {
 +				ui.showModal(_('Reboot'), [
 +					E('p', {}, _('Reboots the operating system of your device')),
-+					E('button', {
-+						'class': 'cbi-button cbi-button-action important',
-+						'style': 'margin: 2rem 5rem 1rem 5rem; background: red!important; border-color: red!important',
-+						'click': function () {
-+							ui.hideModal();
-+							this.handleReboot();
-+						}.bind(this)
-+					}, _('OK')),
-+					E('button', {
-+						'class': 'btn cbi-button cbi-button-apply',
-+						'style': 'margin: 0 5rem 1rem 5rem;',
-+						'click': function () {
-+							ui.hideModal();
-+						}
-+					}, _('Cancel'))
++					E('div', { 'class': 'right' }, [
++						E('button', {
++							'class': 'btn cbi-button cbi-button-apply',
++							'click': ui.hideModal
++						}, _('Cancel')),
++						' ',
++						E('button', {
++							'class': 'cbi-button cbi-button-action important',
++							'style': 'background-color: red; border-color: red;',
++							'click': ui.createHandlerFn(this, this.handlePowerOff)
++						}, _('OK'))
++					])
 +				]);
-+			}.bind(this)
++			})
  		}, _('Perform reboot')));
  
  		return body;
--- 
-2.42.0
