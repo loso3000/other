@@ -42,7 +42,7 @@ return view.extend({
 							'class': 'cbi-button cbi-button-action important',
 							'style': 'background-color: red; border-color: red;',
 							'click': ui.createHandlerFn(this, this.handlePowerOff)
-						}, _('PowerOff'))
+						}, _('OK'))
 					])
 				]);
 			})
@@ -53,25 +53,28 @@ return view.extend({
 
 	handlePowerOff: function() {
 		return callPowerOff().then(function(res) {
-			if (res !== 0) {
-				ui.addNotification(null, E('p', _('Power off failed with code: %d').format(res)));
-				return;
+			if (res != 0) {
+				L.ui.addNotification(null, E('p', _('The PowerOff command failed with code %d').format(res)));
+				L.raise('Error', 'PowerOff failed');
 			}
 
-			ui.showModal(_('PowerOffing¡­'), [
+			L.ui.showModal(_('PowerOffingâ€¦'), [
 				E('p', { 'class': 'spinning' }, _('The device is shutting down...'))
 			]);
 
-			setTimeout(function() {
-				ui.showModal(_('Device Unreachable'), [
+			window.setTimeout(function() {
+				L.ui.showModal(_('PowerOffingâ€¦'), [
 					E('p', { 'class': 'alert-message warning' },
 						_('The device may have powered off. If not, check manually.'))
 				]);
 			}, 15000);
 
-			ui.awaitReconnect();
+			L.ui.awaitReconnect();
 		}).catch(function(e) {
 			ui.addNotification(null, E('p', _('Error: %s').format(e.message)));
 		});
-	}
+	},
+	handleSaveApply: null,
+	handleSave: null,
+	handleReset: null
 });

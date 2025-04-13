@@ -4,7 +4,8 @@
 		"order": 99,
 		"action": {
 			"type": "view",
-			"path": "system/poweroffdevice" 
+			"path": "system/poweroffdevice" ,
+			"nocfg": true
 		},
 		"depends": {
 			"acl": ["luci-app-poweroffdevice"]
