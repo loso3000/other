@@ -46,21 +46,20 @@ function do_clear() {
 function fcurl() {
     local url="$1"
     local output="$2"
-    local authhead="$3"
-    local retries="${4:-2}"
-    local timeout="${5:-15}"
-    local connect_timeout="${6:-5}"
-    local retry_delay="${7:-2}"
-    local curl_cmd="curl -Lfs --retry 3 \
+    local retries="${3:-2}"
+    local timeout="${4:-15}"
+    local connect_timeout="${5:-5}"
+    local retry_delay="${6:-2}"
+    local curl_cmd="curl -Lf \
             --connect-timeout $connect_timeout \
             --max-time $timeout \
             -o '${output}' "
 
-    [ -n "$authhead" ] && curl_cmd="$curl_cmd \
+    [ -n "$CURL_AUTH_HEADER" ] && curl_cmd="$curl_cmd \
             -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' \
             -H 'Accept: application/vnd.github.v3+json' \
             -H 'Cookie: _octo=GH1.1.xxx; _device_id=yyy; logged_in=yes' \
-            -H '$authhead' "
+            -H '$CURL_AUTH_HEADER' "
     for i in $(seq 1 "$retries"); do
         [ "$DEBUG" = 1 ] && LOG "fcurl :$curl_cmd   ${url} , $i "
         if eval "$curl_cmd '$url'"; then
@@ -89,12 +88,12 @@ get_github_releases() {
         return 0
     fi
     [ "$DEBUG" = 1 ] && LOG "Fetching GitHub API: $api_url"
-    if fcurl "$api_url" "$output_file" "$CURL_AUTH_HEADER" ; then
+    if fcurl "$api_url" "$output_file"  ; then
         [ "$DEBUG" = 1 ] && LOG "Successfully github api : $api_url"
         cp "$output_file" "$cache_file"
         return 0
     fi
-    local api_mirrors="https://gh-api.p3terx.com/repos/${author}/releases"
+    local mirror="https://gh-api.p3terx.com/repos/${author}/releases"
         [ "$DEBUG" = 1 ] && LOG "Trying GitHub mirror api: $mirror"
         if fcurl "$mirror" "$output_file" ; then
             [ "$DEBUG" = 1 ] && LOG "Successfully mirror api: $mirror"
@@ -104,6 +103,34 @@ get_github_releases() {
     LOG "Failed to fetch release apifile $author."
     return 1
 }
+
+SHOW_INFO() {
+	local Info Type Result
+    [ ! -s "${ApiInfo}" ] && {
+        LOG  "未检测到 ApiInfo 文件!"
+        exit 255
+    }
+	Info=$(grep " " ${ApiInfo} | awk 'BEGIN {MAX = 0} {if ($4+0 > MAX+0) {MAX=$4 ;content=$0} } END {print content}')
+	Result="$(echo $Info | awk '{print $"'${1}'"}'  2> /dev/null)"
+	case $1 in
+	1) Type="固件名称";;
+	2) Type="下载次数";;
+	3) Type="发布日期" ;;
+	4) Type="固件体积";;
+	5) Type="版本名字";;
+	6) Type="固件链接";;
+	*) Type="未定义信息";;
+	esac
+	[[ ! ${Result} == "-" ]] && {
+		LOG   "${Type}: ${Result}"
+		echo -e "${Result}"
+	} || {
+		LOG   "${Type}获取失败!"
+		return 1
+	}
+}
+
+
 
 SHOW_API() { 
     get_github_releases "$FirmwareAuthor" "$ApiFile"
@@ -137,34 +164,6 @@ SHOW_API() {
 	done
 	unset i
 }
-
-SHOW_INFO() {
-	local Info Type Result
-    [ ! -s "${ApiInfo}" ] && {
-        LOG  "未检测到 ApiInfo 文件!"
-        exit 255
-    }
-	Info=$(grep " " ${ApiInfo} | awk 'BEGIN {MAX = 0} {if ($4+0 > MAX+0) {MAX=$4 ;content=$0} } END {print content}')
-	Result="$(echo $Info | awk '{print $"'${1}'"}'  2> /dev/null)"
-	case $1 in
-	1) Type="固件名称";;
-	2) Type="下载次数";;
-	3) Type="发布日期" ;;
-	4) Type="固件体积";;
-	5) Type="版本名字";;
-	6) Type="固件链接";;
-	*) Type="未定义信息";;
-	esac
-	[[ ! ${Result} == "-" ]] && {
-		LOG   "${Type}: ${Result}"
-		echo -e "${Result}"
-	} || {
-		LOG   "${Type}获取失败!"
-		return 1
-	}
-}
-
-
 download() {
     SHOW_API
     local sum=$1
