@@ -31,7 +31,7 @@ msgid "The device is shutting down..."
 msgstr "设备正在关闭..."
 
 msgid "The device may have powered off. If not, check manually."
-msgstr "设备可能已断电。如果没有，请手动操作。"
+msgstr "设备已断电。如果没有，请手动操作。"
 
 msgid "Confirm"
 msgstr "确认"
