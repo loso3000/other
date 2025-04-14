@@ -10,274 +10,114 @@ STLOCK=/var/lock/otaez_status.lock
 action=${1}
 shift
 DEBUG=1
-LogPath=/tmp
-LogFile=ezota.log
-LogFull="${LogPath}/${LogFile}"
-TmpPath=/var/run/ezota
-ApiFile="${TmpPath}/Api_File"
-ApiInfo="${TmpPath}/Api_Info"
-MD5File="${TmpPath}/EzOpWrt_dev-efi.md5"
-verFile="${TmpPath}/ver.latest"
-footFile="${TmpPath}/ota.footer"
 
-INIT_HOSTS() {
+ota_init() {
+    mkdir -p $TmpPath >/dev/null 2>&1 || true
+    echo '' > $Log
+}
+
+hosts_init() {
     [ -f /tmp/.github_hosts_added ] && return
-    
-    local ip="140.82.121.4"
-    local hosts="$ip github.com $ip api.github.com"
-    
-    if ! grep -q "$ip.*github.com" /etc/hosts; then
-        echo "$hosts" >> /etc/hosts && \
-        touch /tmp/.github_hosts_added && \
-
-        [ $DEBUG = 1 ] && LOGGER "HOSTS: $ip -> $hosts"
-    fi
+    sed -i '/github/d' /etc/hosts
+    ip="140.82.121.4"
+    if  ! grep -q "github" /etc/hosts ; then
+        echo "$ip github.com" >> /etc/hosts
+        echo "$ip api.github.com" >> /etc/hosts
+        touch /tmp/.github_hosts_added 
+    fi  
 }
 
-function LOGGER() {
-		[[ ! -f ${LogFull} ]] && touch -f ${LogFull}
-		echo "[$(date "+%H:%M:%S")] [$0] $*" >> ${LogFull}
+function LOG() {
+    # [ ! -f ${Log} ] && touch -f ${Log}
+    echo "[$(date "+%H:%M:%S")] [$0] $*" >> ${Log}
 }
 
-function ECHO() {
-	local Color
-	if [[ ! $1 ]]
-	then
-		echo -ne "\n${Grey}[$(date "+%H:%M:%S")]${White} "
-	else
-		while [[ $1 ]];do
-			case $1 in
-			r | g | b | y | x | w)
-				case $1 in
-				r) Color="${Red}";;
-				g) Color="${Green}";;
-				b) Color="${Blue}";;
-				y) Color="${Yellow}";;
-				x) Color="${Grey}";;
-				w) Color="${White}";;
-				esac
-				shift
-			;;
-			*)
-				Message=$1
-				break
-			;;
-			esac
-		done
-		echo -e "\n${Grey}[$(date "+%H:%M:%S")]${White}${Color} ${Message}${White}"
-		LOGGER "${Message}"
-	fi
-}
-function md5() {
-    md5sum $1 | cut -d' ' -f1
-}
-
-function clean_old_cache() {
+function clear_old_cache() {
     local cache_dir="${TmpPath:-/tmp}"
-    find "$cache_dir" -type f -mmin +60 -exec rm -f {} \;
+    find "$cache_dir" -type f -mmin +3600 -exec rm -f {} \;
+    find "/tmp" -type f -mmin +3600 -exec rm -f {} \;
 }
+
+function do_clear() {
+    local cache_dir="${TmpPath:-/tmp}"
+    find "$cache_dir" -type f -mmin +3600 -exec rm -f {} \;
+}
+
 function fcurl() {
-    local url=$1
-    local output=$2
-    local retries=${3:-3}
-    local timeout=${4:-10}
-    local connect_timeout=${5:-5}
-    local retry_delay=${6:-2}
-    local temp_output="${output}.tmp"
-    
-    [ -f "etc/ezgithub" ] && source "etc/ezgithub"
-    
-    if [ -n "$GITHUB_TOKEN" ]; then
-        CURL_AUTH_HEADER="Authorization: token $GITHUB_TOKEN"
-    else
-        CURL_AUTH_HEADER=""
-    fi
-    
-    _build_curl_cmd() {
-        local cmd="curl -L -k -f \
+    local url="$1"
+    local output="$2"
+    local retries="${3:-2}"
+    local timeout="${4:-15}"
+    local connect_timeout="${5:-5}"
+    local retry_delay="${6:-2}"
+    local curl_cmd="curl -Lfs --retry 3 \
             --connect-timeout $connect_timeout \
             --max-time $timeout \
+            -o '${output}' "
+
+    [ -n "$CURL_AUTH_HEADER" ] && curl_cmd="$curl_cmd \
+            -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' \
             -H 'Accept: application/vnd.github.v3+json' \
-            -H 'User-Agent: EzOpenWrt-Updater/1.0'"
-        [ -n "$CURL_AUTH_HEADER" ] && cmd="$cmd -H '$CURL_AUTH_HEADER'"
-        echo "$cmd"
-    }
+            -H 'Cookie: _octo=GH1.1.xxx; _device_id=yyy; logged_in=yes' \
+            -H '$CURL_AUTH_HEADER' "
     for i in $(seq 1 "$retries"); do
-	[ $DEBUG == 1  ] &&LOGGER "fcurl: $_build_curl_cmd  -> $i"
-        if eval "$(_build_curl_cmd) -o '$temp_output' '$url'" && mv "$temp_output" "$output"; then
-            return 0
-        fi
-        [ "$i" -lt "$retries" ] && sleep "$retry_delay"
-    done
-
-    if echo "$url" | grep -q "github.com"; then
-        # 普通镜像
-        local gitmirrors="gh.ddlc.top github.mirror.noc.one hub.fgit.ml github.com.cnpmjs.org"
-        for mirror in $gitmirrors; do
-            mirror_url=$(echo "$url" | sed "s|github.com|$mirror|")
-	     [ $DEBUG == 1  ] &&LOGGER "fcurl mirror: $mirror  -> $mirror_url"
-            if eval "$(_build_curl_cmd) -o '$temp_output' '$mirror_url'" && mv "$temp_output" "$output"; then
-                return 0
-            fi
-	    
-        done
-
-        # Raw 文件镜像
-        if echo "$url" | grep -q "raw.githubusercontent.com"; then
-            local raw_mirrors="raw.fastgit.org raw.githubusercontents.com"
-            for mirror in $raw_mirrors; do
-                mirror_url=$(echo "$url" | sed "s|raw.githubusercontent.com|$mirror|")
-                [ $DEBUG == 1  ] &&LOGGER  "Raw: $mirror  -> $mirror_url"
-                if eval "$(_build_curl_cmd) -o '$temp_output' '$mirror_url'" && mv "$temp_output" "$output"; then
-                    return 0
-                fi
-            done
-        fi
-
-        # Releases 下载
-        if [[ "$url" == *"releases/download/"* ]]; then
-            local repo=$(echo "$url" | awk -F'/releases/download/' '{print $1}' | awk -F'github.com/' '{print $2}')
-            local tag_file=$(echo "$url" | awk -F'/releases/download/' '{print $2}' | cut -d'/' -f1)
-            local file_name=$(echo "$url" | awk -F'/releases/download/' '{print $2}' | cut -d'/' -f2-)
-
-            [ $DEBUG == 1  ] &&LOGGER "Releases: $tag_file  ->  https://$repo.git"  "  $TmpPath/repo"
-            if git clone --depth 1 --branch "$tag_file" "https://$repo.git" "$TmpPath/repo" 2>/dev/null; then
-                if [ -f "$TmpPath/repo/$file_name" ]; then
-                    cp "$TmpPath/repo/$file_name" "$output"
-                    rm -rf "$TmpPath/repo"
-                    return 0
-                fi
-                rm -rf "$TmpPath/repo"
-            fi
-        fi
-    fi
-
-    rm -f "$temp_output" 2>/dev/null
-    return 1
-}
-
-function pcurl() {
-    local url=$1
-    local output=$2
-    local background=${3:-1}            # 是否后台下载（0:前台，1:后台）
-    local retries=${4:-3}               # 默认重试3次
-    local timeout=${5:-30}              # 默认超时30秒（大文件需要更长时间）
-    local connect_timeout=${6:-10}      # 默认连接超时10秒
-    local retry_delay=${7:-5}           # 默认重试间隔5秒
-    local progress_file="${output}.progress"
-    local temp_output="${output}.part"
-    local success=0
-    local pid
-    [ -f "etc/ezgithub" ] && source "etc/ezgithub"
-
-    if [ -n "$GITHUB_TOKEN" ]; then
-        CURL_AUTH_HEADER="Authorization: token $GITHUB_TOKEN"
-    else
-        CURL_AUTH_HEADER=""
-    fi
-    local curl_cmd="curl -L -k -f \
-        --connect-timeout $connect_timeout \
-        --max-time $timeout \
-        --progress-bar \
-        -H 'Accept: application/vnd.github.v3+json' \
-        -H 'User-Agent: EzOpenWrt-Updater/1.0'"
-    [ -n "$CURL_AUTH_HEADER" ] && curl_cmd="$curl_cmd -H '$CURL_AUTH_HEADER'"
-    for i in $(seq 1 "$retries"); do
-    
-        [ $DEBUG == 1  ] &&LOGGER  "fcurl url: $url'  $i -> $output "
-        if [ "$background" -eq 1 ]; then
-            eval "$curl_cmd -o '$temp_output' '$url' 2>>'$progress_file' &"
-            return 0
+        [ "$DEBUG" = 1 ] && LOG "fcurl :$curl_cmd   ${url} , $i "
+        if eval "$curl_cmd '$url'"; then
+             return 0
         else
-            if eval "$curl_cmd -o '$temp_output' '$url' 2>>'$progress_file'"; then
-                success=1
-                break
-            fi
+             LOG "fcurl :$url , $i failed. "
+             [ "$i" -lt "$retries" ] && sleep $retry_delay
         fi
-        [ "$i" -lt "$retries" ] && sleep "$retry_delay"
+
     done
-    if [ "$background" -eq 0 ]; then
-        [ $success -eq 1 ] && return 0
-        if echo "$url" | grep -q "github.com"; then
-            local mirrors="gh.ddlc.top github.mirror.noc.one hub.fgit.cf hub.fgit.ml github.com.cnpmjs.org"
-            for mirror in $mirrors; do
-                mirror_url=$(echo "$url" | sed "s|github.com|$mirror|" |sed '/^$/d')
-                [ $DEBUG == 1  ] &&LOGGER  "fcurl mirror : $mirror_url  -> $output "
-                if curl -L -k -f \
-                    --connect-timeout "$connect_timeout" \
-                    --max-time "$timeout" \
-                    --progress-bar \
-                    -o "$temp_output" \
-                    "$mirror_url" 2>>"$progress_file"; then
-                    return 0
-                fi
-            done
-        fi
-        return 1
-    fi
-}
 
-
-function RM() {
-	for i in $@
-	do
-		rm -r "$i" 2> /dev/null
-		LOGGER "删除文件: [$i]"
-	done
-}
-
-function get_github_releases() {
-    local author="$1"
-    local output_file="$2"
-    local retries=${3:-3}
-    local timeout=${4:-15}
-
-    local api_url="https://api.github.com/repos/${author}/releases"
-    local cache_file="${TmpPath}/gh_cache_$(echo "$author" | tr '/' '_').json"
-    local cache_ttl=300 # 5分钟缓存
-if [ -f "$cache_file" ] && \
-   [ $(date +%s) -lt $(($(date -r "$cache_file" +%s) + $cache_ttl)) ] && \
-   jq -e '.' "$cache_file" >/dev/null 2>&1; then
-    cp "$cache_file" "$output_file"
-    return 0
-fi
-    # 尝试直接获取
-    if fcurl "$api_url" "$output_file" "$retries" "$timeout"; then
-        [ $DEBUG == 1  ] &&LOGGER  "GitHub api: $api_url  -> $output_file"
-        if jq -e '.' "$output_file" >/dev/null 2>&1; then
-            cp "$output_file" "$cache_file"
-            return 0
-        fi
-    fi
-    
-    # 备用方案：使用GitHub镜像API
-    local api_mirrors="https://gh-api.p3terx.com/repos/${author}/releases  https://api.github.com.cnpmjs.org/repos/${author}/releases"
-    for mirror in $api_mirrors; do 
-        [ $DEBUG == 1  ] &&LOGGER  "GitHub mirror API: $mirror  ->   :$output_file"
-        if fcurl "$mirror" "$output_file" "$retries" "$timeout" && \
-           jq -e '.' "$output_file" >/dev/null 2>&1; then
-            cp "$output_file" "$cache_file"
-            return 0
-        fi
-    done
-    
-    [ $DEBUG = 1 ] &&LOGGER  "无法获取发布信息，请检查网络或稍后重试"  
-    rm -f "$output_file" 2>/dev/null
     return 1
 }
 
-function SHOWOTA_API() { 
+
+get_github_releases() {
+    local author="$1"
+    local output_file="$2" 
+    local api_url="https://api.github.com/repos/${author}/releases"
+    local cache_file="${TmpPath}/ota_cache_$(basename $output_file)"
+    local cache_ttl=300 
+
+    if [ -f "$cache_file" ] && [ "$(date +%s)" -lt "$(($(date -r "$cache_file" +%s) + cache_ttl))" ] ; then
+        [ "$DEBUG" = 1 ] && LOG "Using cached GitHub releases for $author"
+        cp "$cache_file" "$output_file"
+        return 0
+    fi
+    [ "$DEBUG" = 1 ] && LOG "Fetching GitHub API: $api_url"
+    if fcurl "$api_url" "$output_file" ; then
+        [ "$DEBUG" = 1 ] && LOG "Successfully github api : $api_url"
+        cp "$output_file" "$cache_file"
+        return 0
+    fi
+    local api_mirrors="https://gh-api.p3terx.com/repos/${author}/releases"
+        [ "$DEBUG" = 1 ] && LOG "Trying GitHub mirror api: $mirror"
+        if fcurl "$mirror" "$output_file" ; then
+            [ "$DEBUG" = 1 ] && LOG "Successfully mirror api: $mirror"
+            cp "$output_file" "$cache_file"
+            return 0
+        fi
+    LOG "Failed to fetch release apifile $author."
+    return 1
+}
+
+SHOW_API() { 
     get_github_releases "$FirmwareAuthor" "$ApiFile"
     [ ! -s "${ApiFile}" ] && {
-        echo "API请求失败，请检查网络连接!"
+        LOG "API请求失败，请检查网络连接!"
         exit 255
     }
-
 	for i in $(seq 0 $(jq ".[]|length" ${ApiFile} | wc -l));do
-		eval name=$(jq ".[${i}].assets[0].name" ${ApiFile} 2> /dev/null)
-		[[ `echo $name | grep $OS_ARCH | grep $AUTHVER ` ]] || continue
-		case ${name} in
-		 *img.gz )
+	    eval name=$(jq ".[${i}].assets[0].name" ${ApiFile} 2> /dev/null)
+	    if echo "$name" | grep -q "$OS_ARCH"; then
+		     if ! echo "$name" | grep -q "$AUTHVER" && ! echo "$name" | grep -q "Vip-Super"; then
+ 		              continue
+		     fi
+		     case ${name} in
+		     *img.gz )
 			eval browser_download_url=$(jq ".[${i}].assets[0].browser_download_url" ${ApiFile} 2> /dev/null)
 			eval size=$(jq ".[${i}].assets[0].size" ${ApiFile} 2> /dev/null | awk '{a=$1/1048576} {printf("%.2f\n",a)}')
 			eval updated_at=$(jq ".[${i}].assets[0].updated_at" ${ApiFile} 2> /dev/null | sed 's/[-:TZ]//g')
@@ -288,20 +128,21 @@ function SHOWOTA_API() {
 			[[ ! ${updated_at} || ${updated_at} == null ]] && updated_at="-"
 			[[ ! ${download_count} || ${download_count} == null ]] && download_count="-"
 			printf "%-75s %-5s %-10s %-15s %-20s %s\n" ${name} ${download_count} ${updated_at} ${size} ${tagname} ${browser_download_url} >> ${ApiInfo}
-			[ $DEBUG = 1 ] &&LOGGER  ` cat ${ApiInfo}`
+			[ $DEBUG = 1 ] && LOG  " SHOW_API: ${name} ${download_count} ${updated_at} ${size} ${tagname} ${browser_download_url} "
 			return
-		;;
-		esac
+		   ;;
+		   esac
+	    fi	 
 	done
 	unset i
 }
 
-function SHOW_INFO() {
+SHOW_INFO() {
 	local Info Type Result
-	[[ ! -s ${ApiInfo} ]] && {
-		echo  "未检测到 API 文件!"
-		exit 255
-	}
+    [ ! -s "${ApiInfo}" ] && {
+        LOG  "未检测到 ApiInfo 文件!"
+        exit 255
+    }
 	Info=$(grep " " ${ApiInfo} | awk 'BEGIN {MAX = 0} {if ($4+0 > MAX+0) {MAX=$4 ;content=$0} } END {print content}')
 	Result="$(echo $Info | awk '{print $"'${1}'"}'  2> /dev/null)"
 	case $1 in
@@ -314,23 +155,17 @@ function SHOW_INFO() {
 	*) Type="未定义信息";;
 	esac
 	[[ ! ${Result} == "-" ]] && {
-		LOGGER "${Type}: ${Result}"
+		LOG   "${Type}: ${Result}"
 		echo -e "${Result}"
 	} || {
-		LOGGER "${Type}获取失败!"
+		LOG   "${Type}获取失败!"
 		return 1
 	}
 }
 
 
-
-ota_init(){
-    mkdir -p $TmpPath >/dev/null 2>&1 || true
-    echo '' > $LogFull
-}
-
 download() {
-    SHOWOTA_API
+    SHOW_API
     local sum=$1
     exec 300>$STLOCK
     flock 300
@@ -340,7 +175,7 @@ download() {
     flock -u 300
     if [ -f /tmp/firmware.img ]; then
         echo "Checking existed firmware.img..." >> /tmp/firmware.img.progress
-        if [ "`md5 /tmp/firmware.img`" = "$sum" ]; then
+        if [ `md5 /tmp/firmware.img` = "$sum" ]; then
             flock 300
             echo $sum > /tmp/firmware.img.md5;
             rm -f /tmp/firmware.img.part
@@ -357,14 +192,14 @@ download() {
         echo "Try $url" >>/tmp/firmware.img.progress
         flock 300
         echo "#=#=#" >>/tmp/firmware.img.progress
-        pcurl  "$url"  /tmp/firmware.img 1 3 3600 10 5
+        curl -Lfs --connect-timeout 15 --max-time 3600 --progress-bar -o /tmp/firmware.img.part "$url" 2>>/tmp/firmware.img.progress &
         pid="$!"
         echo "$pid" > ${TmpPath}/download.pid
         flock -u 300
         if wait $pid; then
             rm -f ${TmpPath}/download.pid
             echo "Checking new firmware.img.part..." > /tmp/firmware.img.progress
-            if [ "`md5 /tmp/firmware.img.part`" = "$sum" ]; then
+            if [ `md5 /tmp/firmware.img.part` = "$sum" ]; then
                 flock 300
                 mv /tmp/firmware.img.part /tmp/firmware.img && echo $sum > /tmp/firmware.img.md5
                 rm -f /tmp/firmware.img.progress
@@ -397,67 +232,59 @@ lock_download() {
     flock -u 200
 }
 prepare_check() {
-    eval ez_version=$(cat /etc/ezopenwrt_version | cut -d _ -f 1)
-    [ -z "$ez_version" ] && {
-        echo "$ez_version 检查错误:非sirpdboy固件,不支持在线升级！"
-        return 3
+    eval ez_version=`cat /etc/ezopenwrt_version | cut -d _ -f 1 `
+    [ -z "$ez_version" ] && return 3
+    SHOW_API
+    [ ! -s "${ApiFile}" ] && {
+        LOG  "API请求失败，请检查网络连接!"
+        exit 255
     }
-    SHOWOTA_API || return 255
-    
     CLOUD_FW_Name=$(SHOW_INFO 1)
     CLOUD_FW_Count=$(SHOW_INFO 2)
     CLOUD_FW_Date=$(SHOW_INFO 3)
     CLOUD_FW_Size=$(SHOW_INFO 4)
     cloud_version=$(SHOW_INFO 5)
     CLOUD_FW_Url=$(SHOW_INFO 6)
-    [ -z  ${cloud_version} ] && eval cloud_version=$(jq -r ".[0].tag_name" ${ApiFile} 2>/dev/null)
-    [ -z "${cloud_version}" ] && {
-            echo "检查错误:无法获取云端版本!"
-            return 255
-        }
-    [ $DEBUG = 1 ] &&LOGGER   "prepare_check:  cloud_version:$cloud_version --- CLOUD_FW_Url:$CLOUD_FW_Url"
+    [ $DEBUG = 1 ] && LOG  " prepare_check 2 "
+    [ -z ${cloud_version} ] && eval cloud_version=$(jq -r ".[0].tag_name" ${ApiFile} )
+    [ -z ${cloud_version} ] && {
+            LOG   "检查错误:无法获取云端版本!"
+            exit 255
+    }
+    [ $DEBUG = 1 ] && LOG   "prepare_check:  cloud_version:$cloud_version --- CLOUD_FW_Url:$CLOUD_FW_Url"
 
-    
-    downloadsuccess=0
     for file in "EzOpWrt_dev-efi.md5" "ver.latest" "ota.footer"; do
         url="$Github/releases/download/$cloud_version/$file"
         outputf="${TmpPath}/$(basename "$file")"
         [ ! -s "${outputf}" ] && {
-
-        [ $DEBUG == 1  ] &&LOGGER  "GitHub file url: $url  ->   :$outputf"
+        LOG  "GitHub file url: $url  ->   :$outputf"
         if fcurl "$url" "$outputf"; then
             continue
         fi
-	 
         }
-
     done
-    if [ "$downloadsuccess" -ne 0 ]; then
-        return 255
-    fi
 
-    eval summd5=$(head -1 "$MD5File" | awk -F " " '{print $1}' | sed '/^$/d')
-    [ -z "${summd5}" ] && {
-        echo "检查错误:无MD5校验码!"
+
+    eval summd5=`head -1 "$MD5File" | awk -F " " '{print $1}' | sed '/^$/d'`
+    [ -z  ${summd5} ] && {
+        LOG   "检查错误:无MD5校验码!"
         return 255
     }
-    
-    eval CLOUD_FW_IP=$(head -2 "$MD5File" | awk -F "=" '{print $2}' | sed '/^$/d')
+
+    eval CLOUD_FW_IP=`head -2 "$MD5File" | awk -F "=" '{print $2}' | sed '/^$/d'`
     [ -z "$CLOUD_FW_IP" ] && CLOUD_FW_IP="192.168.1.1"
     
     if [ "$ez_version" != "$cloud_version" ]; then
-        echo "<h3>机器型号:&nbsp;&nbsp;<font color=\"green\">$OS_ARCH</font><br/>当前版本:&nbsp;&nbsp;<font color=\"green\">$ez_version</font></h3>"
-        echo "<br/><h3>云端版本:&nbsp;&nbsp;<font color=\"green\">$cloud_version</font><br/>固件日期:&nbsp;&nbsp;<font color=\"green\">$(echo $CLOUD_FW_Date | sed 's/\(....\)\(..\)\(..\)\(..\)\(..\)\(..\)/\1-\2-\3 \4:\5:\6/')</font><br/>固件大小:&nbsp;&nbsp;<font color=\"green\">$CLOUD_FW_Size</font><br/>下载次数:&nbsp;&nbsp;<font color=\"green\">$CLOUD_FW_Count</font><br/>固件 IP :&nbsp;&nbsp;<font color='green'>$CLOUD_FW_IP</font><br/>MD5 值:&nbsp;&nbsp;<font color=\"green\">$summd5</font></h3>"
+        echo "<h3>机器型号:&nbsp;&nbsp;<font color='green'>$OS_ARCH</font><br/>当前版本:&nbsp;&nbsp;<font color='green'>$ez_version</font></h3>"
+        echo "<br/><h3>云端版本:&nbsp;&nbsp;<font color='green'>$cloud_version</font><br/>固件日期:&nbsp;&nbsp;<font color='green'>$(echo $CLOUD_FW_Date | sed 's/\(....\)\(..\)\(..\)\(..\)\(..\)\(..\)/\1-\2-\3 \4:\5:\6/')</font><br/>固件大小:&nbsp;&nbsp;<font color='green'>$CLOUD_FW_Size</font><br/>下载次数:&nbsp;&nbsp;<font color='green'>$CLOUD_FW_Count</font><br/>固件 IP :&nbsp;&nbsp;<font color='green'>$CLOUD_FW_IP</font><br/>MD5 值:&nbsp;&nbsp;<font color='green'>$summd5</font></h3>"
         latest=0
     else
         latest=1
     fi
-    
+
     [ "`wc -l ${verFile} | cut -d' ' -f1`" -eq 0 ] && return 255
     return $latest
 }
-
-# 0: found newer fw, 1: already newest fw, 2: found running task, *: err
 do_check() {
     local ret=0
     local lock="$WRLOCK"
@@ -485,7 +312,7 @@ do_check() {
         sed -E '1 s/^\[.*\]\((.+)\)\s*$/\1/'  ${footFile} 
         echo "</pre>"
         } 
-        echo "<h3><font color=\"red\"> About :<a href=\"$Github/\" onclick=\"void(0)\" target=\"_blank\">Sirpdboy Firmware</a></font></h3>"
+        echo "<h3><font color='red'> About :<a href='$Github/' onclick='void(0)' target='_blank'>Sirpdboy Firmware</a></font></h3>"
     }
 
     return $ret
@@ -544,30 +371,30 @@ usage() {
     echo "      progress               Download progress"
     echo "      cancel                 Cancel download"
 }
-
-ota_init || exit 255
-
-INIT_HOSTS
-clean_old_cache
+LogPath=/tmp
+LogFile=ezota.log
+Log="${LogPath}/${LogFile}"
+TmpPath=/var/run/ezota
+ApiFile="${TmpPath}/Api_File"
+ApiInfo="${TmpPath}/Api_Info"
+MD5File="${TmpPath}/EzOpWrt_dev-efi.md5"
+verFile="${TmpPath}/ver.latest"
+footFile="${TmpPath}/ota.footer"
 FirmwareAuthor="sirpdboy/openwrt"
 Github="https://github.com/${FirmwareAuthor}"
+GithubAPI="https://api.github.com/repos/${FirmwareAuthor}/releases"
 AUTHVER=`cat /etc/ezopenwrt_version | cut -d - -f 1-2`
 eval OS_ARCH=`cat /etc/os-release |grep OPENWRT_ARCH | cut -d = -f 2`
-
+[ -f "/etc/ezgithub" ] && GITHUB_TOKEN=`base64 -d /etc/ezgithub`
+[ -n "$GITHUB_TOKEN" ] && CURL_AUTH_HEADER="Authorization: token $GITHUB_TOKEN" || CURL_AUTH_HEADER=""
+ota_init || exit 255
+hosts_init
+clear_old_cache
 case $action in
-    "check")
-        do_check
-    ;;
-    "download")
-        do_download
-    ;;
-    "progress")
-        do_progress_locked
-    ;;
-    "cancel")
-        do_cancel
-    ;;
-    *)
-        usage
-    ;;
+    "check")  do_check;;
+    "download") do_download ;;
+    "progress")do_progress_locked   ;;
+    "cancel") do_cancel ;;
+    "clear") do_clear ;;
+    *) usage ;;
 esac
