@@ -3,17 +3,20 @@
 . /etc/os-release
 . /lib/functions/uci-defaults.sh
 
-
 WRLOCK=/var/lock/otaez_background.lock
 STLOCK=/var/lock/otaez_status.lock
 
 action=${1}
 shift
-DEBUG=0
+DEBUG=1
 
 ota_init() {
     mkdir -p $TmpPath >/dev/null 2>&1 || true
     echo '' > $Log
+}
+
+sha256() {
+    sha256sum $1 | cut -d' ' -f1
 }
 
 hosts_init() {
@@ -32,10 +35,30 @@ function LOG() {
     echo "[$(date "+%H:%M:%S")] [$0] $*" >> ${Log}
 }
 
+read_ezota_json(){
+    [ ! -s "$EZOTA" ] && {
+        LOG  "未检测到 ezota.json 文件!"
+        return 1
+    }
+    EZ_NAME=$(jsonfilter -i $EZOTA -e "@['$OS_ARCH'][0]['name']")
+	if echo "$EZ_NAME" | grep -q "$OS_ARCH"; then
+		     if ! echo "$EZ_NAME" | grep -q "$EZVER" && ! echo "$EZ_NAME" | grep -q "Vip-Super"; then
+ 		         return 1
+		     else
+ 		         EZ_URL=$(jsonfilter -i $EZOTA -e "@['$OS_ARCH'][0]['url']")
+ 		         EZ_DATE=$(jsonfilter -i $EZOTA -e "@['$OS_ARCH'][0]['date']")
+ 		         EZ_SHA256=$(jsonfilter -i $EZOTA -e "@['$OS_ARCH'][0]['sha256']")
+ 		         EZ_VER=$(jsonfilter -i $EZOTA -e "@['$OS_ARCH'][0]['ver']")
+ 		         EZ_IP=$(jsonfilter -i $EZOTA -e "@['$OS_ARCH'][0]['ip']")
+ 		         EZ_SIZE="$(jsonfilter -i $EZOTA -e "@['$OS_ARCH'][0]['size']")MB"
+            fi
+    fi
+ }
+
 function clear_old_cache() {
     local cache_dir="${TmpPath:-/tmp}"
     find "$cache_dir" -type f -mmin +3600 -exec rm -f {} \;
-    find "/tmp" -type f -mmin +3600 -exec rm -f {} \;
+    # find "/tmp" -type f -mmin +3600 -exec rm -f {} \;
 }
 
 function do_clear() {
@@ -76,31 +99,29 @@ function fcurl() {
 
 
 get_github_releases() {
-    local author="$1"
-    local output_file="$2" 
-    local api_url="https://api.github.com/repos/${author}/releases"
+    local output_file="$1" 
     local cache_file="${TmpPath}/ota_cache_$(basename $output_file)"
     local cache_ttl=300 
 
     if [ -f "$cache_file" ] && [ "$(date +%s)" -lt "$(($(date -r "$cache_file" +%s) + cache_ttl))" ] ; then
-        [ "$DEBUG" = 1 ] && LOG "Using cached GitHub releases for $author"
+        [ "$DEBUG" = 1 ] && LOG "Using cached GitHub releases for $Author"
         cp "$cache_file" "$output_file"
         return 0
     fi
-    [ "$DEBUG" = 1 ] && LOG "Fetching GitHub API: $api_url"
-    if fcurl "$api_url" "$output_file"  ; then
-        [ "$DEBUG" = 1 ] && LOG "Successfully github api : $api_url"
+    [ "$DEBUG" = 1 ] && LOG "Fetching GitHub API: $API_URL"
+    if fcurl "$API_URL" "$output_file"  ; then
+        [ "$DEBUG" = 1 ] && LOG "Successfully github api : $API_URL"
         cp "$output_file" "$cache_file"
         return 0
     fi
-    local mirror="https://gh-api.p3terx.com/repos/${author}/releases"
+    local mirror="https://gh-api.p3terx.com/repos/$Author/releases"
         [ "$DEBUG" = 1 ] && LOG "Trying GitHub mirror api: $mirror"
         if fcurl "$mirror" "$output_file" ; then
             [ "$DEBUG" = 1 ] && LOG "Successfully mirror api: $mirror"
             cp "$output_file" "$cache_file"
             return 0
         fi
-    LOG "Failed to fetch release apifile $author."
+    LOG "Failed to fetch release apifile $Author."
     return 1
 }
 
@@ -108,7 +129,7 @@ SHOW_INFO() {
 	local Info Type Result
     [ ! -s "${ApiInfo}" ] && {
         LOG  "未检测到 ApiInfo 文件!"
-        exit 255
+        return 1
     }
 	Info=$(grep " " ${ApiInfo} | awk 'BEGIN {MAX = 0} {if ($4+0 > MAX+0) {MAX=$4 ;content=$0} } END {print content}')
 	Result="$(echo $Info | awk '{print $"'${1}'"}'  2> /dev/null)"
@@ -133,15 +154,15 @@ SHOW_INFO() {
 
 
 SHOW_API() { 
-    get_github_releases "$FirmwareAuthor" "$ApiFile"
+    get_github_releases "$ApiFile"
     [ ! -s "${ApiFile}" ] && {
-        LOG "API请求失败，请检查网络连接!"
-        exit 255
+        LOG  "未检测到 ApiFile 文件!"
+        return 1
     }
 	for i in $(seq 0 $(jq ".[]|length" ${ApiFile} | wc -l));do
 	    eval name=$(jq ".[${i}].assets[0].name" ${ApiFile} 2> /dev/null)
 	    if echo "$name" | grep -q "$OS_ARCH"; then
-		     if ! echo "$name" | grep -q "$AUTHVER" && ! echo "$name" | grep -q "Vip-Super"; then
+		     if ! echo "$name" | grep -q "$EZVER" && ! echo "$name" | grep -q "Vip-Super"; then
  		              continue
 		     fi
 		     case ${name} in
@@ -165,19 +186,19 @@ SHOW_API() {
 	unset i
 }
 download() {
-    SHOW_API
-    local sum=$1
+    read_ezota_json
+    local sum=$EZ_SHA256
     exec 300>$STLOCK
     flock 300
     touch /tmp/firmware.img.part
     echo >/tmp/firmware.img.progress
-    rm -f /tmp/firmware.img.md5
+    rm -f /tmp/firmware.img.sha256sum
     flock -u 300
     if [ -f /tmp/firmware.img ]; then
         echo "Checking existed firmware.img..." >> /tmp/firmware.img.progress
-        if [ "`md5 /tmp/firmware.img`" = "$sum" ]; then
+        if [ "`sha256 /tmp/firmware.img`" = "$sum" ]; then
             flock 300
-            echo $sum > /tmp/firmware.img.md5;
+            echo $sum > /tmp/firmware.img.sha256sum;
             rm -f /tmp/firmware.img.part
             rm -f /tmp/firmware.img.progress
             flock -u 300
@@ -188,7 +209,8 @@ download() {
         fi
     fi
     local pid url
-        url=$(SHOW_INFO 6)
+
+        url=$EZ_URL
         echo "Try $url" >>/tmp/firmware.img.progress
         flock 300
         echo "#=#=#" >>/tmp/firmware.img.progress
@@ -199,9 +221,9 @@ download() {
         if wait $pid; then
             rm -f ${TmpPath}/download.pid
             echo "Checking new firmware.img.part..." > /tmp/firmware.img.progress
-            if [ "`md5 /tmp/firmware.img.part`" = "$sum" ]; then
+            if [ "`sha256 /tmp/firmware.img.part`" = "$sum" ]; then
                 flock 300
-                mv /tmp/firmware.img.part /tmp/firmware.img && echo $sum > /tmp/firmware.img.md5
+                mv /tmp/firmware.img.part /tmp/firmware.img && echo $sum > /tmp/firmware.img.sha256sum
                 rm -f /tmp/firmware.img.progress
                 flock -u 300
                 return 0
@@ -228,32 +250,39 @@ lock_download() {
     local lock="$WRLOCK"
     exec 200>$lock
     flock -n 200 || return
-    download $1
+    download
     flock -u 200
 }
 prepare_check() {
-    eval ez_version=`cat /etc/ezopenwrt_version | cut -d _ -f 1 `
+    [ $DEBUG = 1 ] && LOG   "prepare_check:  start"
+    eval ez_version=`cat /etc/$ezverfile | cut -d _ -f 1 `
     [ -z "$ez_version" ] && return 3
+    
+    if ! curl -fsSL  "$EZOTAURL" > $EZOTA ;then
+          exit 255
+    fi
+    read_ezota_json
     SHOW_API
-    [ ! -s "${ApiFile}" ] && {
-        LOG  "API请求失败，请检查网络连接!"
-        exit 255
-    }
-    CLOUD_FW_Name=$(SHOW_INFO 1)
-    CLOUD_FW_Count=$(SHOW_INFO 2)
-    CLOUD_FW_Date=$(SHOW_INFO 3)
-    CLOUD_FW_Size=$(SHOW_INFO 4)
-    cloud_version=$(SHOW_INFO 5)
-    CLOUD_FW_Url=$(SHOW_INFO 6)
-    [ -z ${cloud_version} ] && eval cloud_version=$(jq -r ".[0].tag_name" ${ApiFile} )
-    [ -z ${cloud_version} ] && {
-            LOG   "检查错误:无法获取云端版本!"
-            exit 255
-    }
-    [ $DEBUG = 1 ] && LOG   "prepare_check:  cloud_version:$cloud_version - CLOUD_FW_Url:$CLOUD_FW_Url"
-
-    for file in "EzOpWrt_dev-efi.md5" "ver.latest" "ota.footer"; do
-        url="$Github/releases/download/$cloud_version/$file"
+    if [ -s "${ApiFile}" ] ;then 
+        CLOUD_EZ_Name=$(SHOW_INFO 1)
+        CLOUD_EZ_Count=$(SHOW_INFO 2)
+        CLOUD_EZ_Date=$(SHOW_INFO 3)
+        CLOUD_EZ_Size=$(SHOW_INFO 4)
+        CLOUD_EZ_VER=$(SHOW_INFO 5)
+        CLOUD_EZ_Url=$(SHOW_INFO 6)
+    else
+        CLOUD_EZ_Count='-'
+        CLOUD_EZ_Name=$EZ_NAME
+        CLOUD_EZ_Size=$EZ_SIZE
+        CLOUD_EZ_Date=$EZ_DATE
+        CLOUD_EZ_VER=$EZ_VER
+        CLOUD_EZ_Url=$EZ_URL
+    fi
+    CLOUD_EZ_IP=$EZ_IP
+    CLOUD_EZ_SHA256=$EZ_SHA256
+    [ $DEBUG = 1 ] && LOG   "prepare_check:  EZ_NAME:$EZ_NAME - CLOUD_EZ_Url:$CLOUD_EZ_Url"
+    for file in  "ver.latest" "ota.footer"; do
+        url="$Github/releases/download/$CLOUD_EZ_VER/$file"
         outputf="${TmpPath}/$(basename "$file")"
         [ ! -s "${outputf}" ] && {
         LOG  "GitHub file url: $url  ->   :$outputf"
@@ -262,23 +291,18 @@ prepare_check() {
         fi
         }
     done
-
-
-    eval summd5=`head -1 "$MD5File" | awk -F " " '{print $1}' | sed '/^$/d'`
-    [ -z  ${summd5} ] && {
-        LOG   "检查错误:无MD5校验码!"
-        return 255
-    }
-
-    eval CLOUD_FW_IP=`head -2 "$MD5File" | awk -F "=" '{print $2}' | sed '/^$/d'`
-    [ -z "$CLOUD_FW_IP" ] && CLOUD_FW_IP="192.168.1.1"
-    
-    if [ "$ez_version" != "$cloud_version" ]; then
-        echo "<h3>机器型号:&nbsp;&nbsp;<font color='green'>$OS_ARCH</font><br/>当前版本:&nbsp;&nbsp;<font color='green'>$ez_version</font></h3>"
-        echo "<br/><h3>云端版本:&nbsp;&nbsp;<font color='green'>$cloud_version</font><br/>固件日期:&nbsp;&nbsp;<font color='green'>$(echo $CLOUD_FW_Date | sed 's/\(....\)\(..\)\(..\)\(..\)\(..\)\(..\)/\1-\2-\3 \4:\5:\6/')</font><br/>固件大小:&nbsp;&nbsp;<font color='green'>$CLOUD_FW_Size</font><br/>下载次数:&nbsp;&nbsp;<font color='green'>$CLOUD_FW_Count</font><br/>固件 IP :&nbsp;&nbsp;<font color='green'>$CLOUD_FW_IP</font><br/>MD5 值:&nbsp;&nbsp;<font color='green'>$summd5</font></h3>"
-        latest=0
-    else
+    [ -z "$CLOUD_EZ_IP" ] && CLOUD_EZ_IP="192.168.10.1"
+    if [ "$ez_version" = "$CLOUD_EZ_VER" ]; then
         latest=1
+    else
+        echo "<h3>机器型号:&nbsp;&nbsp;<font color='green'>$OS_ARCH</font><br/>当前版本:&nbsp;&nbsp;<font color='green'>$ez_version</font></h3>"
+        echo "<br/><h3>云端版本:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_VER</font>\
+        <br/>固件日期:&nbsp;&nbsp;<font color='green'>$(echo $CLOUD_EZ_Date | sed 's/\(....\)\(..\)\(..\)\(..\)\(..\)\(..\)/\1-\2-\3 \4:\5:\6/')</font>\
+        <br/>固件大小:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_Size</font>\
+        <br/>下载次数:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_Count</font>\
+        <br/>SHA256值:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_SHA256</font>\
+        <br/>固件 IP:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_IP</font></h3>"
+        latest=0 
     fi
 
     [ "`wc -l ${verFile} | cut -d' ' -f1`" -eq 0 ] && return 255
@@ -311,7 +335,7 @@ do_check() {
         sed -E '1 s/^\[.*\]\((.+)\)\s*$/\1/'  ${footFile} 
         echo "</pre>"
         } 
-        echo "<h3><font color='red'> About :<a href='$Github/' onclick='void(0)' target='_blank'>Sirpdboy Firmware</a></font></h3>"
+        echo "<h3><font color='red'> About :<a href='$Github/' onclick='void(0)' target='_blank'> Sirpdboy Firmware</a></font></h3>"
     }
 
     return $ret
@@ -319,20 +343,19 @@ do_check() {
 
 # async download
 do_download(){
-    eval sum=`head -1 "$MD5File" | awk -F " " '{print $1}'  |sed '/^$/d'`
-    [ -z "$sum" ] && { echo "do check first" >&2 ; return 254; }
-    lock_download $sum &
+    [ ! -f "$EZOTA" ] && { echo "do check first" >&2 ; return 254; }
+    lock_download &
     return 0
 }
 
 # 0: done, 1: downloading, 2: failed, 254: wrong state, *: err
 do_progress() {
-    eval sum=`head -1 "$MD5File" | awk -F " " '{print $1}' |sed '/^$/d'`
-    [ -z "$sum" ] && { echo "do check first" >&2 ; return 254; }
-    [ -f /tmp/firmware.img.md5 ] && [ "`cat /tmp/firmware.img.md5`" = "$sum" ] && return 0
+    read_ezota_json
+    [ -f /tmp/firmware.img.sha256sum ] && [ "`cat /tmp/firmware.img.sha256sum`" = "$EZ_SHA256" ] && return 0
     [ -f /tmp/firmware.img.progress ] || { echo "download not in progress" >&2 ; return 254; }
     [ -f /tmp/firmware.img.part ] && { cat /tmp/firmware.img.progress | tr '\r' '\n' | tail -n1; return 1; }
     tail -1 /tmp/firmware.img.progress | grep -Fq 'Canceled!' && { echo "Canceled"; return 2; }
+    tail -1 /tmp/firmware.img.progress | grep -Fq 'Checksum failed!' && { echo "Checksum failed!"; return 254; }
     cat /tmp/firmware.img.progress | tr '\r' '\n' | grep -v '^$' | tail -n1 >&2
     return 3
 }
@@ -352,7 +375,7 @@ do_cancel() {
         local pid=`cat ${TmpPath}/download.pid`
         if [ -n "$pid" ]; then
             kill -TERM $pid;
-            while kill -0 $pid >/dev/null 2>&1; do
+            while kill -9 $pid >/dev/null 2>&1; do
                 if ! sleep 1; then
                     break
                 fi
@@ -370,20 +393,24 @@ usage() {
     echo "      progress               Download progress"
     echo "      cancel                 Cancel download"
 }
+
 LogPath=/tmp
 LogFile=ezota.log
 Log="${LogPath}/${LogFile}"
 TmpPath=/var/run/ezota
 ApiFile="${TmpPath}/Api_File"
 ApiInfo="${TmpPath}/Api_Info"
-MD5File="${TmpPath}/EzOpWrt_dev-efi.md5"
+EZOTA="${TmpPath}/ezota.json"
 verFile="${TmpPath}/ver.latest"
 footFile="${TmpPath}/ota.footer"
-FirmwareAuthor="sirpdboy/openwrt"
-Github="https://github.com/${FirmwareAuthor}"
-GithubAPI="https://api.github.com/repos/${FirmwareAuthor}/releases"
-AUTHVER=`cat /etc/ezopenwrt_version | cut -d - -f 1-2`
-eval OS_ARCH=`cat /etc/os-release |grep OPENWRT_ARCH | cut -d = -f 2`
+ezverfile="ezopenwrt_version"
+Author="sirpdboy/openwrt"
+Github="https://github.com/$Author"
+API_URL="https://api.github.com/repos/$Author/releases"
+# API_URL="https://github.com/repos/sirpdboy/openwrt/releases"
+EZVER=`curl -fsSL https://raw.githubusercontent.com/$Author/ver/$ezverfile`
+EZOTAURL="$Github/releases/download/${EZVER}/ezota.json"
+eval OS_ARCH=$OPENWRT_ARCH
 [ -f "/etc/ezgithub" ] && GITHUB_TOKEN=`base64 -d /etc/ezgithub`
 [ -n "$GITHUB_TOKEN" ] && CURL_AUTH_HEADER="Authorization: token $GITHUB_TOKEN" || CURL_AUTH_HEADER=""
 ota_init || exit 255
