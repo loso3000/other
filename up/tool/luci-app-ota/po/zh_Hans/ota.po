@@ -25,9 +25,6 @@ msgstr "固件已下载"
 msgid "Flash image..."
 msgstr "刷写固件..."
 
-msgid "Flash image"
-msgstr "刷写固件"
-
 msgid "Checking..."
 msgstr "检查中..."
 

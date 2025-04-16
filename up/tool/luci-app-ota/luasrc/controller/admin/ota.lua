@@ -3,8 +3,8 @@ LuCI - Lua Configuration Interface
 Copyright 2021 jjm2473
 ]]--
 
-module("luci.controller.admin.ota",package.seeall)
 require "luci.util"
+module("luci.controller.admin.ota",package.seeall)
 
 function index()
   if luci.sys.call("ota >/dev/null 2>&1") ~= 0 then

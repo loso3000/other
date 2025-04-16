@@ -263,15 +263,15 @@ prepare_check() {
     if [ -s "${ApiFile}" ] ;then 
         CLOUD_EZ_Name=$(SHOW_INFO 1)
         CLOUD_EZ_Count=$(SHOW_INFO 2)
-        CLOUD_EZ_Date=$(SHOW_INFO 3)
+        CLOUD_EZ_Date=`echo $(SHOW_INFO 3) | sed 's/\(....\)\(..\)\(..\)\(..\)\(..\)\(..\)/\1-\2-\3 \4:\5:\6/'`
         CLOUD_EZ_Size=$(SHOW_INFO 4)
         CLOUD_EZ_VER=$(SHOW_INFO 5)
         CLOUD_EZ_Url=$(SHOW_INFO 6)
     else
         CLOUD_EZ_Count='-'
         CLOUD_EZ_Name=$EZ_NAME
-        CLOUD_EZ_Size=$EZ_SIZE
-        CLOUD_EZ_Date=$EZ_DATE
+        CLOUD_EZ_Size=$EZ_SIZE   
+        CLOUD_EZ_Date=`echo $(date -d "$EZ_DATE" "+%F %H:%M")`
         CLOUD_EZ_VER=$EZ_VER
         CLOUD_EZ_Url=$EZ_URL
     fi
@@ -294,7 +294,7 @@ prepare_check() {
     else
         echo "<h3>机器型号:&nbsp;&nbsp;<font color='green'>$OS_ARCH</font><br/>当前版本:&nbsp;&nbsp;<font color='green'>$OPENWRT_RELEASE</font></h3>"
         echo "<br/><h3>云端版本:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_VER</font>\
-        <br/>固件日期:&nbsp;&nbsp;<font color='green'>$(echo $CLOUD_EZ_Date | sed 's/\(....\)\(..\)\(..\)\(..\)\(..\)\(..\)/\1-\2-\3 \4:\5:\6/')</font>\
+        <br/>固件日期:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_Date</font>\
         <br/>固件大小:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_Size</font>\
         <br/>下载次数:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_Count</font>\
         <br/>SHA256值:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_SHA256</font>\
@@ -394,13 +394,13 @@ usage() {
 LogPath=/tmp
 LogFile=ezota.log
 TmpPath=/var/run/ezota
-ota_init || exit 255
 Log="${LogPath}/${LogFile}"
 ApiFile="${TmpPath}/Api_File"
 ApiInfo="${TmpPath}/Api_Info"
 EZOTA="${TmpPath}/ezota.json"
 verFile="${TmpPath}/ver.latest"
 footFile="${TmpPath}/ota.footer"
+ota_init || exit 255
 Author="sirpdboy/openwrt"
 Github="https://github.com/$Author"
 API_URL="https://api.github.com/repos/$Author/releases"
@@ -415,10 +415,16 @@ eval OS_ARCH=$OPENWRT_ARCH
 hosts_init
 clear_old_cache
 case $action in
-    "check")  do_check;;
-    "download") do_download ;;
-    "progress")do_progress_locked   ;;
-    "cancel") do_cancel ;;
-    "clear") do_clear ;;
-    *) usage ;;
+    "check")
+    do_check;;
+    "download")
+    do_download ;;
+    "progress")
+    do_progress_locked   ;;
+    "cancel")
+    do_cancel ;;
+    "clear")
+    do_clear ;;
+    *)
+    usage ;;
 esac
