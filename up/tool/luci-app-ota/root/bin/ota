@@ -255,9 +255,6 @@ lock_download() {
 }
 prepare_check() {
     [ $DEBUG = 1 ] && LOG   "prepare_check:  start"
-    eval ez_version=`cat /etc/$ezverfile | cut -d _ -f 1 `
-    [ -z "$ez_version" ] && return 3
-    
     if ! curl -fsSL  "$EZOTAURL" > $EZOTA ;then
           exit 255
     fi
@@ -292,10 +289,10 @@ prepare_check() {
         }
     done
     [ -z "$CLOUD_EZ_IP" ] && CLOUD_EZ_IP="192.168.10.1"
-    if [ "$ez_version" = "$CLOUD_EZ_VER" ]; then
+    if [ "$OPENWRT_RELEASE" = "$CLOUD_EZ_VER" ]; then
         latest=1
     else
-        echo "<h3>机器型号:&nbsp;&nbsp;<font color='green'>$OS_ARCH</font><br/>当前版本:&nbsp;&nbsp;<font color='green'>$ez_version</font></h3>"
+        echo "<h3>机器型号:&nbsp;&nbsp;<font color='green'>$OS_ARCH</font><br/>当前版本:&nbsp;&nbsp;<font color='green'>$OPENWRT_RELEASE</font></h3>"
         echo "<br/><h3>云端版本:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_VER</font>\
         <br/>固件日期:&nbsp;&nbsp;<font color='green'>$(echo $CLOUD_EZ_Date | sed 's/\(....\)\(..\)\(..\)\(..\)\(..\)\(..\)/\1-\2-\3 \4:\5:\6/')</font>\
         <br/>固件大小:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_Size</font>\
@@ -396,24 +393,25 @@ usage() {
 
 LogPath=/tmp
 LogFile=ezota.log
-Log="${LogPath}/${LogFile}"
 TmpPath=/var/run/ezota
+ota_init || exit 255
+Log="${LogPath}/${LogFile}"
 ApiFile="${TmpPath}/Api_File"
 ApiInfo="${TmpPath}/Api_Info"
 EZOTA="${TmpPath}/ezota.json"
 verFile="${TmpPath}/ver.latest"
 footFile="${TmpPath}/ota.footer"
-ezverfile="ezopenwrt_version"
 Author="sirpdboy/openwrt"
 Github="https://github.com/$Author"
 API_URL="https://api.github.com/repos/$Author/releases"
-# API_URL="https://github.com/repos/sirpdboy/openwrt/releases"
-EZVER=`curl -fsSL https://raw.githubusercontent.com/$Author/ver/$ezverfile`
+ezverfile="ezopenwrt_version"
+curl -fsSL https://raw.githubusercontent.com/$Author/ver/$ezverfile >${TmpPath}/$ezverfile
+. ${TmpPath}/$ezverfile
 EZOTAURL="$Github/releases/download/${EZVER}/ezota.json"
 eval OS_ARCH=$OPENWRT_ARCH
 [ -f "/etc/ezgithub" ] && GITHUB_TOKEN=`base64 -d /etc/ezgithub`
 [ -n "$GITHUB_TOKEN" ] && CURL_AUTH_HEADER="Authorization: token $GITHUB_TOKEN" || CURL_AUTH_HEADER=""
-ota_init || exit 255
+
 hosts_init
 clear_old_cache
 case $action in
