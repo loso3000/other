@@ -1,4 +1,5 @@
 #!/bin/sh
+. /etc/
 ver=$(uci -q get base_config.@base[0].ver 2>/dev/null)
 test -n "$ver" || {
 touch /etc/config/base_config
@@ -309,12 +310,15 @@ uci -q commit mwan3
 ln -sf /sbin/ip /usr/bin/ip
 # Disable opkg signature check
 sed -i 's/option check_signature/# option check_signature/g' /etc/opkg.conf
-new_DISTRIB_REVISION=`cat  /etc/ezopenwrt_version`
+. /etc/ezopenwrt_version
+[ -n $EZVER ] && {
 sed -i '/DISTRIB_DESCRIPTION/d' /etc/openwrt_release
 sed -i '/DISTRIB_REVISION/d' /etc/openwrt_release
-echo "DISTRIB_DESCRIPTION='"${new_DISTRIB_REVISION}"'" >> /etc/openwrt_release
+echo "DISTRIB_DESCRIPTION='"${EZVER}"'" >> /etc/openwrt_release
+echo "DISTRIB_REVISION='"${EZVER}"'" >> /etc/openwrt_release
 sed -i '/OPENWRT_RELEASE/d' /etc/os-release
-echo "OPENWRT_RELEASE='"${new_DISTRIB_REVISION}"'" >> /etc/os-release
+echo "OPENWRT_RELEASE='"${EZVER}"'" >> /etc/os-release
+}
 sed -i 's/immortalwrt/openwrt/g' /etc/config/luci
 
 #tv
