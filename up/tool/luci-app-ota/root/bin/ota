@@ -53,7 +53,7 @@ read_ezota_json(){
  		         EZ_SIZE="$(jsonfilter -i $EZOTA -e "@['$OS_ARCH'][0]['size']")MB"
             fi
     fi
- }
+ }  
 
 function clear_old_cache() {
     local cache_dir="${TmpPath:-/tmp}"
@@ -275,8 +275,10 @@ prepare_check() {
         CLOUD_EZ_VER=$EZ_VER
         CLOUD_EZ_Url=$EZ_URL
     fi
-    CLOUD_EZ_IP=$EZ_IP
-    CLOUD_EZ_MD5=$EZ_MD5
+    CLOUD_EZ_IP="${EZ_IP:-192.168.10.1}"
+    [ -z "$CLOUD_EZ_Date" ] &&  CLOUD_EZ_Date=`echo $(date -d "$EZDATA" "+%F %H:%M")`
+    [ -z "$CLOUD_EZ_VER" ] &&  CLOUD_EZ_VER=$EZVER
+    CLOUD_EZ_MD5=$EZ_MD5 ;[ -z "$CLOUD_EZ_MD5" ] &&  CLOUD_EZ_MD5=`curl -fsSL https://github.com/$Author/releases/download/$EZVER/EzOpWrt_dev-efi.md5 | cut -d' ' -f1 | head -1``
     [ $DEBUG = 1 ] && LOG   "prepare_check:  EZ_NAME:$EZ_NAME - CLOUD_EZ_Url:$CLOUD_EZ_Url"
     for file in  "ver.latest" "ota.footer"; do
         url="$Github/releases/download/$CLOUD_EZ_VER/$file"
@@ -292,13 +294,13 @@ prepare_check() {
     if [ "$OPENWRT_RELEASE" = "$CLOUD_EZ_VER" ]; then
         latest=1
     else
-        echo "<h3>机器型号:&nbsp;&nbsp;<font color='green'>$OS_ARCH</font><br/>当前版本:&nbsp;&nbsp;<font color='green'>$OPENWRT_RELEASE</font></h3>"
-        echo "<br/><h3>云端版本:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_VER</font>\
+        echo "<h4>机器型号:&nbsp;&nbsp;<font color='green'>$OS_ARCH</font><br/>当前版本:&nbsp;&nbsp;<font color='green'>$OPENWRT_RELEASE</font></h4>"
+        echo "<br/><h4>云端版本:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_VER</font>\
         <br/>固件日期:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_Date</font>\
         <br/>固件大小:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_Size</font>\
         <br/>下载次数:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_Count</font>\
-        <br/>MD5SUM值:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_MD5</font>\
-        <br/>固件 IP:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_IP</font></h3>"
+        <br/>MD5  值:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_MD5</font>\
+        <br/>固件 IP:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_IP</font></h4>"
         latest=0 
     fi
 
