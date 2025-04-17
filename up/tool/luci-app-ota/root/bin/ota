@@ -40,19 +40,25 @@ read_ezota_json(){
         LOG  "未检测到 ezota.json 文件!"
         return 1
     }
-    EZ_NAME=$(cat "$EZOTA" | jq -r --arg arch "$OS_ARCH" '.[$arch][0].name')
+	EZ_NAME=$(jq -r --arg arch "$OS_ARCH" '.[$arch][0].name // empty' < "$EZOTA")
 	if echo "$EZ_NAME" | grep -q "$OS_ARCH"; then
 		     if ! echo "$EZ_NAME" | grep -q "$EZVER" && ! echo "$EZ_NAME" | grep -q "Vip-Super"; then
  		         return 1
 		     else
-			 EZ_URL=$(cat "$EZOTA" | jq -r --arg arch "$OS_ARCH" '.[$arch][0].url')
-			 EZ_DATE=$(cat "$EZOTA" | jq -r --arg arch "$OS_ARCH" '.[$arch][0].date')
-			 EZ_MD5=$(cat "$EZOTA" | jq -r --arg arch "$OS_ARCH" '.[$arch][0].md5')
-			 EZ_VER=$(cat "$EZOTA" | jq -r --arg arch "$OS_ARCH" '.[$arch][0].ver')
-			 EZ_IP=$(cat "$EZOTA" | jq -r --arg arch "$OS_ARCH" '.[$arch][0].ip')
-			 EZ_SIZE="$(cat "$EZOTA" | jq -r --arg arch "$OS_ARCH" '.[$arch][0].size')MB"
+ 		         EZ_URL=$(jq -r --arg arch "$OS_ARCH" '.[$arch][0].url // empty' < "$EZOTA")
+ 		         EZ_DATE=$(jq -r --arg arch "$OS_ARCH" '.[$arch][0].date // empty' < "$EZOTA")
+ 		         EZ_MD5=$(jq -r --arg arch "$OS_ARCH" '.[$arch][0].md5 // empty' < "$EZOTA")
+ 		         EZ_VER=$(jq -r --arg arch "$OS_ARCH" '.[$arch][0].ver // empty' < "$EZOTA")
+ 		         EZ_IP=$(jq -r --arg arch "$OS_ARCH" '.[$arch][0].ip // empty' < "$EZOTA")
+ 		         EZ_SIZE=$(jq -r --arg arch "$OS_ARCH" '.[$arch][0].size // empty' < "$EZOTA")MB
+	                 # eval name=$(jq ".[${i}].assets[0].name" ${ApiFile} 2> /dev/null)
+	                 # eval name=$(jq ".$OS_ARCH[0].name" $EZOTA 2> /dev/null)
+			 
+			 
             fi
     fi
+    [ ! "$EZ_MD5" ] && EZ_MD5=`curl -fsSL $Github/releases/download/$EZVER/EzOpWrt_dev-efi.md5 | cut -d' ' -f1 | head -1`
+
  }  
 
 function clear_old_cache() {
@@ -98,7 +104,7 @@ function fcurl() {
 }
 
 
-get_github_releases() {
+get_github_api() {
     local output_file="$1" 
     local cache_file="${TmpPath}/ota_cache_$(basename $output_file)"
     local cache_ttl=300 
@@ -109,24 +115,44 @@ get_github_releases() {
         return 0
     fi
     [ "$DEBUG" = 1 ] && LOG "Fetching GitHub API: $API_URL"
-    if fcurl "$API_URL" "$output_file"  ; then
+    if curl -Lfs "$API_URL" -o "$output_file"; then
         [ "$DEBUG" = 1 ] && LOG "Successfully github api : $API_URL"
         cp "$output_file" "$cache_file"
         return 0
     fi
-    local mirror="https://gh-api.p3terx.com/repos/$Author/releases"
-        [ "$DEBUG" = 1 ] && LOG "Trying GitHub mirror api: $mirror"
-        if fcurl "$mirror" "$output_file" ; then
+    if fcurl "$API_URL"  "$output_file" 1; then
+        [ "$DEBUG" = 1 ] && LOG "Successfully github api : $API_URL"
+        cp "$output_file" "$cache_file"
+        return 0
+    fi
+    [ "$DEBUG" = 1 ] && LOG "Trying GitHub Number API : $EZAPI"
+    if curl -Lfs  "$EZAPI" 0o "$output_file"; then
+            [ "$DEBUG" = 1 ] && LOG "Successfully mirror api: $EZAPI"
+            cp "$output_file" "$cache_file"
+            return 0
+    fi
+    if fcurl "$EZAPI" "$output_file" 1; then
+            [ "$DEBUG" = 1 ] && LOG "Successfully mirror api: $EZAPI"
+            cp "$output_file" "$cache_file"
+            return 0
+    fi
+    [ "$DEBUG" = 1 ] && LOG "Trying GitHub mirror api: $mirror"
+    if curl -Lfs  "$mirror" -o "$output_file" ; then
             [ "$DEBUG" = 1 ] && LOG "Successfully mirror api: $mirror"
             cp "$output_file" "$cache_file"
             return 0
-        fi
+    fi
+    if fcurl "$mirror" "$output_file" 1; then
+            [ "$DEBUG" = 1 ] && LOG "Successfully mirror api: $mirror"
+            cp "$output_file" "$cache_file"
+            return 0
+    fi
     LOG "Failed to fetch release apifile $Author."
     return 1
 }
 
 SHOW_INFO() {
-	local Info Type Result
+    local Info Type Result
     [ ! -s "${ApiInfo}" ] && {
         LOG  "未检测到 ApiInfo 文件!"
         return 1
@@ -138,8 +164,7 @@ SHOW_INFO() {
 	2) Type="下载次数";;
 	3) Type="发布日期" ;;
 	4) Type="固件体积";;
-	5) Type="版本名字";;
-	6) Type="固件链接";;
+	5) Type="固件链接";;
 	*) Type="未定义信息";;
 	esac
 	[[ ! ${Result} == "-" ]] && {
@@ -151,33 +176,33 @@ SHOW_INFO() {
 	}
 }
 
-
-
-SHOW_API() { 
-    get_github_releases "$ApiFile"
+GIT_API() {
+    get_github_api "$ApiFile"
     [ ! -s "${ApiFile}" ] && {
         LOG  "未检测到 ApiFile 文件!"
         return 1
     }
 	for i in $(seq 0 $(jq ".[]|length" ${ApiFile} | wc -l));do
-	    eval name=$(jq ".[${i}].assets[0].name" ${ApiFile} 2> /dev/null)
+	    name=$(jq -r --argjson idx "$i" '.[$idx].assets[0].name // empty' "$ApiFile")
+	    # eval name=$(jq ".[${i}].assets[0].name" ${ApiFile} 2> /dev/null) #不安全
 	    if echo "$name" | grep -q "$OS_ARCH"; then
 		     if ! echo "$name" | grep -q "$EZVER" && ! echo "$name" | grep -q "Vip-Super"; then
  		              continue
 		     fi
 		     case ${name} in
 		     *img.gz )
-			eval browser_download_url=$(jq ".[${i}].assets[0].browser_download_url" ${ApiFile} 2> /dev/null)
-			eval size=$(jq ".[${i}].assets[0].size" ${ApiFile} 2> /dev/null | awk '{a=$1/1048576} {printf("%.2f\n",a)}')
-			eval updated_at=$(jq ".[${i}].assets[0].updated_at" ${ApiFile} 2> /dev/null | sed 's/[-:TZ]//g')
-			eval download_count=$(jq ".[${i}].assets[0].download_count" ${ApiFile} 2> /dev/null)
-			eval tagname=$(jq ".[${i}].tag_name" ${ApiFile}  2> /dev/null)
+			browser_download_url=$(jq -r --argjson idx "$i" '.[$idx].assets[0].browser_download_url // empty' "$ApiFile")
+			# eval size=$(jq ".[${i}].assets[0].size" ${ApiFile} 2> /dev/null | awk '{a=$1/1048576} {printf("%.2f\n",a)}')
+			size=$(jq -r --argjson idx "$i" '.[$idx].assets[0].size // empty' "$ApiFile" | awk '{a=$1/1048576} {printf("%.2f\n",a)}')
+			updated_at=$(jq -r --argjson idx "$i" '.[$idx].assets[0].updated_at // empty' "$ApiFile" | sed 's/[-:TZ]//g')
+			download_count=$(jq -r --argjson idx "$i" '.[$idx].assets[0].download_count // empty' "$ApiFile")
+
 			[[ ! ${browser_download_url} || ${browser_download_url} == null ]] && continue
 			[[ ! ${size} || ${size} == null || ${size} == 0 ]] && size="-" || size="${size}MB"
 			[[ ! ${updated_at} || ${updated_at} == null ]] && updated_at="-"
 			[[ ! ${download_count} || ${download_count} == null ]] && download_count="-"
 			printf "%-75s %-5s %-10s %-15s %-20s %s\n" ${name} ${download_count} ${updated_at} ${size} ${tagname} ${browser_download_url} >> ${ApiInfo}
-			[ $DEBUG = 1 ] && LOG  " SHOW_API: ${name} ${download_count} ${updated_at} ${size} ${tagname} ${browser_download_url} "
+			[ $DEBUG = 1 ] && LOG  " SHOW_API: ${name} ${download_count} ${updated_at} ${size} ${browser_download_url} "
 			return
 		   ;;
 		   esac
@@ -259,30 +284,28 @@ prepare_check() {
           exit 255
     fi
     read_ezota_json
-    SHOW_API
+    GIT_API
     if [ -s "${ApiFile}" ] ;then 
         CLOUD_EZ_Name=$(SHOW_INFO 1)
         CLOUD_EZ_Count=$(SHOW_INFO 2)
         CLOUD_EZ_Date=`echo $(SHOW_INFO 3) | sed 's/\(....\)\(..\)\(..\)\(..\)\(..\)\(..\)/\1-\2-\3 \4:\5:\6/'`
         CLOUD_EZ_Size=$(SHOW_INFO 4)
-        CLOUD_EZ_VER=$(SHOW_INFO 5)
-        CLOUD_EZ_Url=$(SHOW_INFO 6)
+        CLOUD_EZ_Url=$(SHOW_INFO 5)
     else
-        CLOUD_EZ_Count='-'
+        CLOUD_EZ_Count='API限制'
         CLOUD_EZ_Name=$EZ_NAME
         CLOUD_EZ_Size=$EZ_SIZE   
         CLOUD_EZ_Date=`echo $(date -d "$EZ_DATE" "+%F %H:%M")`
-        CLOUD_EZ_VER=$EZ_VER
         CLOUD_EZ_Url=$EZ_URL
     fi
     CLOUD_EZ_IP="${EZ_IP:-192.168.10.1}"
-    [ -z "$CLOUD_EZ_Date" ] &&  CLOUD_EZ_Date=`echo $(date -d "$EZDATA" "+%F %H:%M")`
-    [ -z "$CLOUD_EZ_VER" ] &&  CLOUD_EZ_VER=$EZVER
+    [ ! "$CLOUD_EZ_Date" ] &&  CLOUD_EZ_Date=`echo $(date -d "$EZDATE" "+%F %H:%M")`
+    CLOUD_EZ_Ver=$EZ_VER
+    [ ! "$CLOUD_EZ_Ver" ] &&  CLOUD_EZ_Ver=$EZVER
     CLOUD_EZ_MD5=$EZ_MD5
-    [ -z "$CLOUD_EZ_MD5" ] &&  CLOUD_EZ_MD5=`curl -fsSL https://github.com/$Author/releases/download/$EZVER/EzOpWrt_dev-efi.md5 | cut -d' ' -f1 | head -1`
     [ $DEBUG = 1 ] && LOG   "prepare_check:  EZ_NAME:$EZ_NAME - CLOUD_EZ_Url:$CLOUD_EZ_Url"
     for file in  "ver.latest" "ota.footer"; do
-        url="$Github/releases/download/$CLOUD_EZ_VER/$file"
+        url="$Github/releases/download/$CLOUD_EZ_Ver/$file"
         outputf="${TmpPath}/$(basename "$file")"
         [ ! -s "${outputf}" ] && {
         LOG  "GitHub file url: $url  ->   :$outputf"
@@ -292,16 +315,16 @@ prepare_check() {
         }
     done
     [ -z "$CLOUD_EZ_IP" ] && CLOUD_EZ_IP="192.168.10.1"
-    if [ "$OPENWRT_RELEASE" = "$CLOUD_EZ_VER" ]; then
+    if [ "$OPENWRT_RELEASE" = "$CLOUD_EZ_Ver" ]; then
         latest=1
     else
         echo "<h4>机器型号:&nbsp;&nbsp;<font color='green'>$OS_ARCH</font><br/>当前版本:&nbsp;&nbsp;<font color='green'>$OPENWRT_RELEASE</font></h4>"
-        echo "<br/><h4>云端版本:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_VER</font>\
+        echo "<br/><h4>云端版本:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_Ver</font>\
         <br/>固件日期:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_Date</font>\
         <br/>固件大小:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_Size</font>\
         <br/>下载次数:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_Count</font>\
         <br/>固件地址:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_IP</font>\
-        <br/>MD5  值:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_MD5</font></h4>"
+        <br/>MD5　值:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_MD5</font></h4>"
         latest=0 
     fi
 
@@ -403,19 +426,20 @@ ApiInfo="${TmpPath}/Api_Info"
 EZOTA="${TmpPath}/ezota.json"
 verFile="${TmpPath}/ver.latest"
 footFile="${TmpPath}/ota.footer"
-ota_init || exit 255
 Author="sirpdboy/openwrt"
 Github="https://github.com/$Author"
 API_URL="https://api.github.com/repos/$Author/releases"
+mirror="https://gh-api.p3terx.com/repos/$Author/releases"
 ezverfile="ezopenwrt_version"
+ota_init || exit 255
 curl -fsSL https://raw.githubusercontent.com/$Author/ver/$ezverfile >${TmpPath}/$ezverfile
 . ${TmpPath}/$ezverfile
 EZOTAURL="$Github/releases/download/${EZVER}/ezota.json"
 eval OS_ARCH=$OPENWRT_ARCH
 [ -f "/etc/ezgithub" ] && GITHUB_TOKEN=`base64 -d /etc/ezgithub`
 [ -n "$GITHUB_TOKEN" ] && CURL_AUTH_HEADER="Authorization: token $GITHUB_TOKEN" || CURL_AUTH_HEADER=""
-
-hosts_init
+[ -n "$GITHUB_TOKEN" ] && EZAPI=https://api.github.com/repositories/256094735/releases
+# hosts_init
 clear_old_cache
 case $action in
     "check")
