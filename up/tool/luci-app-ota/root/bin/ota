@@ -278,7 +278,8 @@ prepare_check() {
     CLOUD_EZ_IP="${EZ_IP:-192.168.10.1}"
     [ -z "$CLOUD_EZ_Date" ] &&  CLOUD_EZ_Date=`echo $(date -d "$EZDATA" "+%F %H:%M")`
     [ -z "$CLOUD_EZ_VER" ] &&  CLOUD_EZ_VER=$EZVER
-    CLOUD_EZ_MD5=$EZ_MD5 ;[ -z "$CLOUD_EZ_MD5" ] &&  CLOUD_EZ_MD5=`curl -fsSL https://github.com/$Author/releases/download/$EZVER/EzOpWrt_dev-efi.md5 | cut -d' ' -f1 | head -1``
+    CLOUD_EZ_MD5=$EZ_MD5
+    [ -z "$CLOUD_EZ_MD5" ] &&  CLOUD_EZ_MD5=`curl -fsSL https://github.com/$Author/releases/download/$EZVER/EzOpWrt_dev-efi.md5 | cut -d' ' -f1 | head -1`
     [ $DEBUG = 1 ] && LOG   "prepare_check:  EZ_NAME:$EZ_NAME - CLOUD_EZ_Url:$CLOUD_EZ_Url"
     for file in  "ver.latest" "ota.footer"; do
         url="$Github/releases/download/$CLOUD_EZ_VER/$file"
@@ -299,8 +300,8 @@ prepare_check() {
         <br/>固件日期:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_Date</font>\
         <br/>固件大小:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_Size</font>\
         <br/>下载次数:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_Count</font>\
-        <br/>MD5  值:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_MD5</font>\
-        <br/>固件 IP:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_IP</font></h4>"
+        <br/>固件地址:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_IP</font>\
+        <br/>MD5  值:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_MD5</font></h4>"
         latest=0 
     fi
 
