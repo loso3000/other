@@ -22,7 +22,6 @@ config basic
 	option font_x '0.875rem'
 	option tsoset '1'
 	option set_ttyd '1'
-	option set_firewall_wan '1'
 	option dhcp_domain '1'
 	
 config theme

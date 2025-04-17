@@ -21,22 +21,10 @@ is_iStore() {
 }
 
 is_vip() {
-     DISTRIB_FREE=$(cat /etc/openwrt_release | grep "Vip" | cut -d "'" -f 2 | cut -d "-" -f 1)
-    if [ "$DISTRIB_FREE" = "Vip" ]; then
-        return 0
-    else
-        return 1
-    fi
+     eval $(cat /etc/ezopenwrt_version | grep -o -e "EZVER=\S*")
+    [[ "$EZVER" = "Vip*" ]] &&  return 0 ||  return 1
 }
 
-is_free() {
-     DISTRIB_FREE=$(cat /etc/openwrt_release | grep "Free" | cut -d "'" -f 2 | cut -d "-" -f 1)
-    if [ "$DISTRIB_FREE" = "Free" ]; then
-        return 0
-    else
-        return 1
-    fi
-}
 
 istore_install(){
     if is_iStore; then

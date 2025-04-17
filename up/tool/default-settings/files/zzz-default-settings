@@ -12,21 +12,15 @@ uci -q set luci.main.lang='auto'
 uci -q set luci.main.mediaurlbase='/luci-static/kucat'
 
 is_x86_64() {
-    DISTRIB_ARCH=$(cat /etc/openwrt_release | grep "DISTRIB_ARCH" | cut -d "'" -f 2)
-    if [ "$DISTRIB_ARCH" = "x86_64" ]; then
-        return 0
-    else
-        return 1
-    fi
+    eval $(cat /etc/os-release  | grep -o -e "DISTRIB_ARCH=\S*")
+    [[ "$DISTRIB_ARCH" = "x86_64" ]] &&  return 0 ||  return 1
+        
 }
 
 is_vip() {
-     DISTRIB_FREE=$(cat /etc/ezopenwrt_version | grep "Vip" | cut -d " " -f 2 | cut -d "-" -f 1)
-    if [ "$DISTRIB_FREE" = "Vip" ]; then
-        return 0
-    else
-        return 1
-    fi
+     eval $(cat /etc/ezopenwrt_version | grep -o -e "EZVER=\S*")
+    [[ "$EZVER" = "Vip*" ]] &&  return 0 ||  return 1
+
 }
 
 # stop avahi cups
