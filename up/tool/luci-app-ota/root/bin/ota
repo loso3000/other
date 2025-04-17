@@ -15,8 +15,8 @@ ota_init() {
     echo '' > $Log
 }
 
-sha256() {
-    sha256sum $1 | cut -d' ' -f1
+md5() {
+    md5sum $1 | cut -d' ' -f1
 }
 
 hosts_init() {
@@ -47,7 +47,7 @@ read_ezota_json(){
 		     else
  		         EZ_URL=$(jsonfilter -i $EZOTA -e "@['$OS_ARCH'][0]['url']")
  		         EZ_DATE=$(jsonfilter -i $EZOTA -e "@['$OS_ARCH'][0]['date']")
- 		         EZ_SHA256=$(jsonfilter -i $EZOTA -e "@['$OS_ARCH'][0]['sha256']")
+ 		         EZ_MD5=$(jsonfilter -i $EZOTA -e "@['$OS_ARCH'][0]['md5']")
  		         EZ_VER=$(jsonfilter -i $EZOTA -e "@['$OS_ARCH'][0]['ver']")
  		         EZ_IP=$(jsonfilter -i $EZOTA -e "@['$OS_ARCH'][0]['ip']")
  		         EZ_SIZE="$(jsonfilter -i $EZOTA -e "@['$OS_ARCH'][0]['size']")MB"
@@ -187,18 +187,18 @@ SHOW_API() {
 }
 download() {
     read_ezota_json
-    local sum=$EZ_SHA256
+    local sum=$EZ_MD5
     exec 300>$STLOCK
     flock 300
     touch /tmp/firmware.img.part
     echo >/tmp/firmware.img.progress
-    rm -f /tmp/firmware.img.sha256sum
+    rm -f /tmp/firmware.img.md5sum
     flock -u 300
     if [ -f /tmp/firmware.img ]; then
         echo "Checking existed firmware.img..." >> /tmp/firmware.img.progress
-        if [ "`sha256 /tmp/firmware.img`" = "$sum" ]; then
+        if [ "`md5 /tmp/firmware.img`" = "$sum" ]; then
             flock 300
-            echo $sum > /tmp/firmware.img.sha256sum;
+            echo $sum > /tmp/firmware.img.md5sum;
             rm -f /tmp/firmware.img.part
             rm -f /tmp/firmware.img.progress
             flock -u 300
@@ -221,9 +221,9 @@ download() {
         if wait $pid; then
             rm -f ${TmpPath}/download.pid
             echo "Checking new firmware.img.part..." > /tmp/firmware.img.progress
-            if [ "`sha256 /tmp/firmware.img.part`" = "$sum" ]; then
+            if [ "`md5 /tmp/firmware.img.part`" = "$sum" ]; then
                 flock 300
-                mv /tmp/firmware.img.part /tmp/firmware.img && echo $sum > /tmp/firmware.img.sha256sum
+                mv /tmp/firmware.img.part /tmp/firmware.img && echo $sum > /tmp/firmware.img.md5sum
                 rm -f /tmp/firmware.img.progress
                 flock -u 300
                 return 0
@@ -276,7 +276,7 @@ prepare_check() {
         CLOUD_EZ_Url=$EZ_URL
     fi
     CLOUD_EZ_IP=$EZ_IP
-    CLOUD_EZ_SHA256=$EZ_SHA256
+    CLOUD_EZ_MD5=$EZ_MD5
     [ $DEBUG = 1 ] && LOG   "prepare_check:  EZ_NAME:$EZ_NAME - CLOUD_EZ_Url:$CLOUD_EZ_Url"
     for file in  "ver.latest" "ota.footer"; do
         url="$Github/releases/download/$CLOUD_EZ_VER/$file"
@@ -297,7 +297,7 @@ prepare_check() {
         <br/>固件日期:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_Date</font>\
         <br/>固件大小:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_Size</font>\
         <br/>下载次数:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_Count</font>\
-        <br/>SHA256值:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_SHA256</font>\
+        <br/>MD5SUM值:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_MD5</font>\
         <br/>固件 IP:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_IP</font></h3>"
         latest=0 
     fi
@@ -348,7 +348,7 @@ do_download(){
 # 0: done, 1: downloading, 2: failed, 254: wrong state, *: err
 do_progress() {
     read_ezota_json
-    [ -f /tmp/firmware.img.sha256sum ] && [ "`cat /tmp/firmware.img.sha256sum`" = "$EZ_SHA256" ] && return 0
+    [ -f /tmp/firmware.img.md5sum ] && [ "`cat /tmp/firmware.img.md5sum`" = "$EZ_MD5" ] && return 0
     [ -f /tmp/firmware.img.progress ] || { echo "download not in progress" >&2 ; return 254; }
     [ -f /tmp/firmware.img.part ] && { cat /tmp/firmware.img.progress | tr '\r' '\n' | tail -n1; return 1; }
     tail -1 /tmp/firmware.img.progress | grep -Fq 'Canceled!' && { echo "Canceled"; return 2; }
