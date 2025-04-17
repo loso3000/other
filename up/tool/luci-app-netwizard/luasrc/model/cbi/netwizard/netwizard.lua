@@ -174,7 +174,7 @@ synflood.anonymous = false
 -- dns_redirect.default = 1
 -- dns_redirect.anonymous = false
 
--- e = s:taboption("othersetup", Flag, "https",translate('Accessing using HTTPS'), translate('Open the address in the background and use HTTPS for secure access'))
+e = s:taboption("othersetup", Flag, "https",translate('Accessing using HTTPS'), translate('Open the address in the background and use HTTPS for secure access'))
 
 m.apply_on_parse = true
 m.on_after_apply = function(self,map)
