@@ -321,10 +321,10 @@ prepare_check() {
         echo "<h4>机器型号:&nbsp;&nbsp;<font color='green'>$OS_ARCH</font><br/>当前版本:&nbsp;&nbsp;<font color='green'>$OPENWRT_RELEASE</font></h4>"
         echo "<br/><h4>云端版本:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_Ver</font>\
         <br/>固件日期:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_Date</font>\
+        <br/>固件地址:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_IP</font>\
         <br/>固件大小:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_Size</font>\
         <br/>下载次数:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_Count</font>\
-        <br/>固件地址:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_IP</font>\
-        <br/>MD5　值:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_MD5</font></h4>"
+        <br/>MD5 值:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_MD5</font></h4>"
         latest=0 
     fi
 
