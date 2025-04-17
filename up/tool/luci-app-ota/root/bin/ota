@@ -1,0 +1,432 @@
+#!/bin/sh
+
+. /etc/os-release
+. /lib/functions/uci-defaults.sh
+
+WRLOCK=/var/lock/otaez_background.lock
+STLOCK=/var/lock/otaez_status.lock
+
+action=${1}
+shift
+DEBUG=1
+
+ota_init() {
+    mkdir -p $TmpPath >/dev/null 2>&1 || true
+    echo '' > $Log
+}
+
+md5() {
+    md5sum $1 | cut -d' ' -f1
+}
+
+hosts_init() {
+    [ -f /tmp/.github_hosts_added ] && return
+    sed -i '/github/d' /etc/hosts
+    ip="140.82.121.4"
+    if  ! grep -q "github" /etc/hosts ; then
+        echo "$ip github.com" >> /etc/hosts
+        echo "$ip api.github.com" >> /etc/hosts
+        touch /tmp/.github_hosts_added 
+    fi  
+}
+
+function LOG() {
+    # [ ! -f ${Log} ] && touch -f ${Log}
+    echo "[$(date "+%H:%M:%S")] [$0] $*" >> ${Log}
+}
+
+read_ezota_json(){
+    [ ! -s "$EZOTA" ] && {
+        LOG  "未检测到 ezota.json 文件!"
+        return 1
+    }
+    EZ_NAME=$(cat "$EZOTA" | jq -r --arg arch "$OS_ARCH" '.[$arch][0].name')
+	if echo "$EZ_NAME" | grep -q "$OS_ARCH"; then
+		     if ! echo "$EZ_NAME" | grep -q "$EZVER" && ! echo "$EZ_NAME" | grep -q "Vip-Super"; then
+ 		         return 1
+		     else
+			 EZ_URL=$(cat "$EZOTA" | jq -r --arg arch "$OS_ARCH" '.[$arch][0].url')
+			 EZ_DATE=$(cat "$EZOTA" | jq -r --arg arch "$OS_ARCH" '.[$arch][0].date')
+			 EZ_MD5=$(cat "$EZOTA" | jq -r --arg arch "$OS_ARCH" '.[$arch][0].md5')
+			 EZ_VER=$(cat "$EZOTA" | jq -r --arg arch "$OS_ARCH" '.[$arch][0].ver')
+			 EZ_IP=$(cat "$EZOTA" | jq -r --arg arch "$OS_ARCH" '.[$arch][0].ip')
+			 EZ_SIZE="$(cat "$EZOTA" | jq -r --arg arch "$OS_ARCH" '.[$arch][0].size')MB"
+            fi
+    fi
+ }  
+
+function clear_old_cache() {
+    local cache_dir="${TmpPath:-/tmp}"
+    find "$cache_dir" -type f -mmin +3600 -exec rm -f {} \;
+    # find "/tmp" -type f -mmin +3600 -exec rm -f {} \;
+}
+
+function do_clear() {
+    local cache_dir="${TmpPath:-/tmp}"
+    find "$cache_dir" -type f -mmin +3600 -exec rm -f {} \;
+}
+
+function fcurl() {
+    local url="$1"
+    local output="$2"
+    local retries="${3:-2}"
+    local timeout="${4:-15}"
+    local connect_timeout="${5:-5}"
+    local retry_delay="${6:-2}"
+    local curl_cmd="curl -Lf \
+            --connect-timeout $connect_timeout \
+            --max-time $timeout \
+            -o '${output}' "
+
+    [ -n "$CURL_AUTH_HEADER" ] && curl_cmd="$curl_cmd \
+            -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' \
+            -H 'Accept: application/vnd.github.v3+json' \
+            -H 'Cookie: _octo=GH1.1.xxx; _device_id=yyy; logged_in=yes' \
+            -H '$CURL_AUTH_HEADER' "
+    for i in $(seq 1 "$retries"); do
+        [ "$DEBUG" = 1 ] && LOG "fcurl :$curl_cmd   ${url} , $i "
+        if eval "$curl_cmd '$url'"; then
+             return 0
+        else
+             LOG "fcurl :$url , $i failed. "
+             [ "$i" -lt "$retries" ] && sleep $retry_delay
+        fi
+
+    done
+
+    return 1
+}
+
+
+get_github_releases() {
+    local output_file="$1" 
+    local cache_file="${TmpPath}/ota_cache_$(basename $output_file)"
+    local cache_ttl=300 
+
+    if [ -f "$cache_file" ] && [ "$(date +%s)" -lt "$(($(date -r "$cache_file" +%s) + cache_ttl))" ] ; then
+        [ "$DEBUG" = 1 ] && LOG "Using cached GitHub releases for $Author"
+        cp "$cache_file" "$output_file"
+        return 0
+    fi
+    [ "$DEBUG" = 1 ] && LOG "Fetching GitHub API: $API_URL"
+    if fcurl "$API_URL" "$output_file"  ; then
+        [ "$DEBUG" = 1 ] && LOG "Successfully github api : $API_URL"
+        cp "$output_file" "$cache_file"
+        return 0
+    fi
+    local mirror="https://gh-api.p3terx.com/repos/$Author/releases"
+        [ "$DEBUG" = 1 ] && LOG "Trying GitHub mirror api: $mirror"
+        if fcurl "$mirror" "$output_file" ; then
+            [ "$DEBUG" = 1 ] && LOG "Successfully mirror api: $mirror"
+            cp "$output_file" "$cache_file"
+            return 0
+        fi
+    LOG "Failed to fetch release apifile $Author."
+    return 1
+}
+
+SHOW_INFO() {
+	local Info Type Result
+    [ ! -s "${ApiInfo}" ] && {
+        LOG  "未检测到 ApiInfo 文件!"
+        return 1
+    }
+	Info=$(grep " " ${ApiInfo} | awk 'BEGIN {MAX = 0} {if ($4+0 > MAX+0) {MAX=$4 ;content=$0} } END {print content}')
+	Result="$(echo $Info | awk '{print $"'${1}'"}'  2> /dev/null)"
+	case $1 in
+	1) Type="固件名称";;
+	2) Type="下载次数";;
+	3) Type="发布日期" ;;
+	4) Type="固件体积";;
+	5) Type="版本名字";;
+	6) Type="固件链接";;
+	*) Type="未定义信息";;
+	esac
+	[[ ! ${Result} == "-" ]] && {
+		LOG   "${Type}: ${Result}"
+		echo -e "${Result}"
+	} || {
+		LOG   "${Type}获取失败!"
+		return 1
+	}
+}
+
+
+
+SHOW_API() { 
+    get_github_releases "$ApiFile"
+    [ ! -s "${ApiFile}" ] && {
+        LOG  "未检测到 ApiFile 文件!"
+        return 1
+    }
+	for i in $(seq 0 $(jq ".[]|length" ${ApiFile} | wc -l));do
+	    eval name=$(jq ".[${i}].assets[0].name" ${ApiFile} 2> /dev/null)
+	    if echo "$name" | grep -q "$OS_ARCH"; then
+		     if ! echo "$name" | grep -q "$EZVER" && ! echo "$name" | grep -q "Vip-Super"; then
+ 		              continue
+		     fi
+		     case ${name} in
+		     *img.gz )
+			eval browser_download_url=$(jq ".[${i}].assets[0].browser_download_url" ${ApiFile} 2> /dev/null)
+			eval size=$(jq ".[${i}].assets[0].size" ${ApiFile} 2> /dev/null | awk '{a=$1/1048576} {printf("%.2f\n",a)}')
+			eval updated_at=$(jq ".[${i}].assets[0].updated_at" ${ApiFile} 2> /dev/null | sed 's/[-:TZ]//g')
+			eval download_count=$(jq ".[${i}].assets[0].download_count" ${ApiFile} 2> /dev/null)
+			eval tagname=$(jq ".[${i}].tag_name" ${ApiFile}  2> /dev/null)
+			[[ ! ${browser_download_url} || ${browser_download_url} == null ]] && continue
+			[[ ! ${size} || ${size} == null || ${size} == 0 ]] && size="-" || size="${size}MB"
+			[[ ! ${updated_at} || ${updated_at} == null ]] && updated_at="-"
+			[[ ! ${download_count} || ${download_count} == null ]] && download_count="-"
+			printf "%-75s %-5s %-10s %-15s %-20s %s\n" ${name} ${download_count} ${updated_at} ${size} ${tagname} ${browser_download_url} >> ${ApiInfo}
+			[ $DEBUG = 1 ] && LOG  " SHOW_API: ${name} ${download_count} ${updated_at} ${size} ${tagname} ${browser_download_url} "
+			return
+		   ;;
+		   esac
+	    fi	 
+	done
+	unset i
+}
+download() {
+    read_ezota_json
+    local sum=$EZ_MD5
+    exec 300>$STLOCK
+    flock 300
+    touch /tmp/firmware.img.part
+    echo >/tmp/firmware.img.progress
+    rm -f /tmp/firmware.img.md5sum
+    flock -u 300
+    if [ -f /tmp/firmware.img ]; then
+        echo "Checking existed firmware.img..." >> /tmp/firmware.img.progress
+        if [ "`md5 /tmp/firmware.img`" = "$sum" ]; then
+            flock 300
+            echo $sum > /tmp/firmware.img.md5sum;
+            rm -f /tmp/firmware.img.part
+            rm -f /tmp/firmware.img.progress
+            flock -u 300
+            return 0;
+        else
+            echo "Check failed, redownload" >> /tmp/firmware.img.progress
+            rm -f /tmp/firmware.img
+        fi
+    fi
+    local pid url
+
+        url=$EZ_URL
+        echo "Try $url" >>/tmp/firmware.img.progress
+        flock 300
+        echo "#=#=#" >>/tmp/firmware.img.progress
+        curl -L --connect-timeout 5 --progress-bar -o /tmp/firmware.img.part "$url" 2>>/tmp/firmware.img.progress &
+        pid="$!"
+        echo "$pid" > ${TmpPath}/download.pid
+        flock -u 300
+        if wait $pid; then
+            rm -f ${TmpPath}/download.pid
+            echo "Checking new firmware.img.part..." > /tmp/firmware.img.progress
+            if [ "`md5 /tmp/firmware.img.part`" = "$sum" ]; then
+                flock 300
+                mv /tmp/firmware.img.part /tmp/firmware.img && echo $sum > /tmp/firmware.img.md5sum
+                rm -f /tmp/firmware.img.progress
+                flock -u 300
+                return 0
+            else
+                echo "Checksum failed!" >>/tmp/firmware.img.progress
+            fi
+        else
+            local ecode=$?
+            echo >>/tmp/firmware.img.progress
+            if [ $ecode -eq 143 ]; then
+                echo "Canceled!" >> /tmp/firmware.img.progress
+                break
+            fi
+        fi
+        flock 300
+        sed -i '/\r/d' /tmp/firmware.img.progress
+        flock -u 300
+    rm -f ${Tmp_Path}/download.pid
+    rm -f /tmp/firmware.img.part
+    return 1
+}
+
+lock_download() {
+    local lock="$WRLOCK"
+    exec 200>$lock
+    flock -n 200 || return
+    download
+    flock -u 200
+}
+prepare_check() {
+    [ $DEBUG = 1 ] && LOG   "prepare_check:  start"
+    if ! curl -fsSL  "$EZOTAURL" > $EZOTA ;then
+          exit 255
+    fi
+    read_ezota_json
+    SHOW_API
+    if [ -s "${ApiFile}" ] ;then 
+        CLOUD_EZ_Name=$(SHOW_INFO 1)
+        CLOUD_EZ_Count=$(SHOW_INFO 2)
+        CLOUD_EZ_Date=`echo $(SHOW_INFO 3) | sed 's/\(....\)\(..\)\(..\)\(..\)\(..\)\(..\)/\1-\2-\3 \4:\5:\6/'`
+        CLOUD_EZ_Size=$(SHOW_INFO 4)
+        CLOUD_EZ_VER=$(SHOW_INFO 5)
+        CLOUD_EZ_Url=$(SHOW_INFO 6)
+    else
+        CLOUD_EZ_Count='-'
+        CLOUD_EZ_Name=$EZ_NAME
+        CLOUD_EZ_Size=$EZ_SIZE   
+        CLOUD_EZ_Date=`echo $(date -d "$EZ_DATE" "+%F %H:%M")`
+        CLOUD_EZ_VER=$EZ_VER
+        CLOUD_EZ_Url=$EZ_URL
+    fi
+    CLOUD_EZ_IP="${EZ_IP:-192.168.10.1}"
+    [ -z "$CLOUD_EZ_Date" ] &&  CLOUD_EZ_Date=`echo $(date -d "$EZDATA" "+%F %H:%M")`
+    [ -z "$CLOUD_EZ_VER" ] &&  CLOUD_EZ_VER=$EZVER
+    CLOUD_EZ_MD5=$EZ_MD5 ;[ -z "$CLOUD_EZ_MD5" ] &&  CLOUD_EZ_MD5=`curl -fsSL https://github.com/$Author/releases/download/$EZVER/EzOpWrt_dev-efi.md5 | cut -d' ' -f1 | head -1``
+    [ $DEBUG = 1 ] && LOG   "prepare_check:  EZ_NAME:$EZ_NAME - CLOUD_EZ_Url:$CLOUD_EZ_Url"
+    for file in  "ver.latest" "ota.footer"; do
+        url="$Github/releases/download/$CLOUD_EZ_VER/$file"
+        outputf="${TmpPath}/$(basename "$file")"
+        [ ! -s "${outputf}" ] && {
+        LOG  "GitHub file url: $url  ->   :$outputf"
+        if fcurl "$url" "$outputf"; then
+            continue
+        fi
+        }
+    done
+    [ -z "$CLOUD_EZ_IP" ] && CLOUD_EZ_IP="192.168.10.1"
+    if [ "$OPENWRT_RELEASE" = "$CLOUD_EZ_VER" ]; then
+        latest=1
+    else
+        echo "<h4>机器型号:&nbsp;&nbsp;<font color='green'>$OS_ARCH</font><br/>当前版本:&nbsp;&nbsp;<font color='green'>$OPENWRT_RELEASE</font></h4>"
+        echo "<br/><h4>云端版本:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_VER</font>\
+        <br/>固件日期:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_Date</font>\
+        <br/>固件大小:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_Size</font>\
+        <br/>下载次数:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_Count</font>\
+        <br/>MD5  值:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_MD5</font>\
+        <br/>固件 IP:&nbsp;&nbsp;<font color='green'>$CLOUD_EZ_IP</font></h4>"
+        latest=0 
+    fi
+
+    [ "`wc -l ${verFile} | cut -d' ' -f1`" -eq 0 ] && return 255
+    return $latest
+}
+do_check() {
+    local ret=0
+    local lock="$WRLOCK"
+    exec 200>$lock
+    if flock -n 200; then
+        prepare_check
+        ret=$?
+        flock -u 200 >/dev/null 2>&1
+    elif [ -f /tmp/firmware.img.progress ]; then
+        ret=2
+    else
+        echo "lock failed!" >&2
+        return 255
+    fi
+    if [ "$ret" -eq 0 -o "$ret" -eq 2 ]; then
+        # output
+        echo "<pre></br>"
+        sed -E '1 s/^\[.*\]\((.+)\)\s*$/\1/'  ${verFile} 
+        echo "</pre>"
+    fi
+    [ "$ret" -eq 0 -o "$ret" -eq 1 -o "$ret" -eq 2 ] && {
+         [[ -s ${footFile} ]] &&  {
+            # output
+        echo "<pre>"
+        sed -E '1 s/^\[.*\]\((.+)\)\s*$/\1/'  ${footFile} 
+        echo "</pre>"
+        } 
+        echo "<h3><font color='red'> About :<a href='$Github/' onclick='void(0)' target='_blank'> Sirpdboy Firmware</a></font></h3>"
+    }
+
+    return $ret
+}
+
+# async download
+do_download(){
+    [ ! -f "$EZOTA" ] && { echo "do check first" >&2 ; return 254; }
+    lock_download &
+    return 0
+}
+
+# 0: done, 1: downloading, 2: failed, 254: wrong state, *: err
+do_progress() {
+    read_ezota_json
+    [ -f /tmp/firmware.img.md5sum ] && [ "`cat /tmp/firmware.img.md5sum`" = "$EZ_MD5" ] && return 0
+    [ -f /tmp/firmware.img.progress ] || { echo "download not in progress" >&2 ; return 254; }
+    [ -f /tmp/firmware.img.part ] && { cat /tmp/firmware.img.progress | tr '\r' '\n' | tail -n1; return 1; }
+    tail -1 /tmp/firmware.img.progress | grep -Fq 'Canceled!' && { echo "Canceled"; return 2; }
+    tail -1 /tmp/firmware.img.progress | grep -Fq 'Checksum failed!' && { echo "Checksum failed!"; return 254; }
+    cat /tmp/firmware.img.progress | tr '\r' '\n' | grep -v '^$' | tail -n1 >&2
+    return 3
+}
+
+do_progress_locked() {
+    local ret
+    exec 300>$STLOCK
+    flock -s 300
+    do_progress
+    ret=$?
+    flock -u 300
+    return $ret
+}
+
+do_cancel() {
+    if [ -f ${TmpPath}/download.pid ]; then
+        local pid=`cat ${TmpPath}/download.pid`
+        if [ -n "$pid" ]; then
+            kill -TERM $pid;
+            while kill -9 $pid >/dev/null 2>&1; do
+                if ! sleep 1; then
+                    break
+                fi
+            done
+        fi
+    fi
+    return 0
+}
+
+usage() {
+    echo "usage: ota sub-command"
+    echo "where sub-command is one of:"
+    echo "      check                  Check firmware upgrade"
+    echo "      download               Download latest firmware"
+    echo "      progress               Download progress"
+    echo "      cancel                 Cancel download"
+}
+
+LogPath=/tmp
+LogFile=ezota.log
+TmpPath=/var/run/ezota
+Log="${LogPath}/${LogFile}"
+ApiFile="${TmpPath}/Api_File"
+ApiInfo="${TmpPath}/Api_Info"
+EZOTA="${TmpPath}/ezota.json"
+verFile="${TmpPath}/ver.latest"
+footFile="${TmpPath}/ota.footer"
+ota_init || exit 255
+Author="sirpdboy/openwrt"
+Github="https://github.com/$Author"
+API_URL="https://api.github.com/repos/$Author/releases"
+ezverfile="ezopenwrt_version"
+curl -fsSL https://raw.githubusercontent.com/$Author/ver/$ezverfile >${TmpPath}/$ezverfile
+. ${TmpPath}/$ezverfile
+EZOTAURL="$Github/releases/download/${EZVER}/ezota.json"
+eval OS_ARCH=$OPENWRT_ARCH
+[ -f "/etc/ezgithub" ] && GITHUB_TOKEN=`base64 -d /etc/ezgithub`
+[ -n "$GITHUB_TOKEN" ] && CURL_AUTH_HEADER="Authorization: token $GITHUB_TOKEN" || CURL_AUTH_HEADER=""
+
+hosts_init
+clear_old_cache
+case $action in
+    "check")
+    do_check;;
+    "download")
+    do_download ;;
+    "progress")
+    do_progress_locked   ;;
+    "cancel")
+    do_cancel ;;
+    "clear")
+    do_clear ;;
+    *)
+    usage ;;
+esac
