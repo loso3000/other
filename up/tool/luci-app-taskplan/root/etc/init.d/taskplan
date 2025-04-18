@@ -162,7 +162,6 @@ start()
 
    if [ "x$XBOOT" = "x1" ] ;then
        bash /etc/taskplan/taskplanrun
-       exit 0
    fi
 	del_cru
 
