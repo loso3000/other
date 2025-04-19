@@ -1,0 +1,214 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Project-Id-Version: PACKAGE VERSION\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: none\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: applications/luci-app-adguardhome/root/usr/share/luci/menu.d/luci-app-adguardhome.json:3
+msgid "AdGuardHome"
+msgstr ""
+
+#: applications/luci-app-adguardhome/htdocs/luci-static/resources/view/adguardhome/config.js:13
+msgid "AdGuardHome Configuration"
+msgstr "AdGuardHome配置"
+
+#: applications/luci-app-adguardhome/root/usr/share/luci/menu.d/luci-app-adguardhome.json:44
+msgid "A DNS graphical monitoring and ad removal plugin with default username and password admin"
+msgstr "一款DNS图形监控和去广告插件，默认用户名和密码admin"
+
+#: applications/luci-app-adguardhome/htdocs/luci-static/resources/view/adguardhome/status.js:150
+msgid "AdGuardHome Statistics"
+msgstr "AdGuardHome统计"
+
+#: applications/luci-app-adguardhome/htdocs/luci-static/resources/view/adguardhome/status.js:146
+msgid "AdGuard Status"
+msgstr "AdGuardHome状态"
+
+#: applications/luci-app-adguardhome/htdocs/luci-static/resources/view/adguardhome/status.js:134
+msgid "AdGuardHome Status - Error"
+msgstr ""
+
+#: applications/luci-app-adguardhome/htdocs/luci-static/resources/view/adguardhome/status.js:69
+msgid "Average processing time (seconds)"
+msgstr ""
+
+#: applications/luci-app-adguardhome/htdocs/luci-static/resources/view/adguardhome/status.js:45
+msgid "Bootstrap DNS addresses"
+msgstr ""
+
+#: applications/luci-app-adguardhome/root/usr/share/luci/menu.d/luci-app-adguardhome.json:33
+msgid "Configuration"
+msgstr ""
+
+#: applications/luci-app-adguardhome/htdocs/luci-static/resources/view/adguardhome/status.js:66
+msgid "DNS blocks"
+msgstr ""
+
+#: applications/luci-app-adguardhome/htdocs/luci-static/resources/view/adguardhome/status.js:44
+msgid "DNS listen addresses"
+msgstr ""
+
+#: applications/luci-app-adguardhome/htdocs/luci-static/resources/view/adguardhome/status.js:43
+msgid "DNS listen port"
+msgstr ""
+
+#: applications/luci-app-adguardhome/htdocs/luci-static/resources/view/adguardhome/status.js:65
+msgid "DNS queries"
+msgstr ""
+
+#: applications/luci-app-adguardhome/htdocs/luci-static/resources/view/adguardhome/status.js:68
+msgid "DNS replacements (malware/phishing)"
+msgstr ""
+
+#: applications/luci-app-adguardhome/htdocs/luci-static/resources/view/adguardhome/status.js:67
+msgid "DNS replacements (safesearch)"
+msgstr ""
+
+#: applications/luci-app-adguardhome/htdocs/luci-static/resources/view/adguardhome/config.js:22
+msgid "General settings"
+msgstr ""
+
+#: applications/luci-app-adguardhome/root/usr/share/rpcd/acl.d/luci-app-adguardhome.json:3
+msgid "Grant permissions for the AdGuardHome LuCI app"
+msgstr ""
+
+#: applications/luci-app-adguardhome/root/usr/share/luci/menu.d/luci-app-adguardhome.json:25
+msgid "Logs"
+msgstr ""
+
+#: applications/luci-app-adguardhome/htdocs/luci-static/resources/view/adguardhome/status.js:39
+#: applications/luci-app-adguardhome/htdocs/luci-static/resources/view/adguardhome/status.js:40
+msgid "No"
+msgstr ""
+
+#: applications/luci-app-adguardhome/htdocs/luci-static/resources/view/adguardhome/status.js:35
+#: applications/luci-app-adguardhome/htdocs/luci-static/resources/view/adguardhome/status.js:36
+#: applications/luci-app-adguardhome/htdocs/luci-static/resources/view/adguardhome/status.js:37
+#: applications/luci-app-adguardhome/htdocs/luci-static/resources/view/adguardhome/status.js:54
+#: applications/luci-app-adguardhome/htdocs/luci-static/resources/view/adguardhome/status.js:77
+msgid "Not found"
+msgstr ""
+
+#: applications/luci-app-adguardhome/htdocs/luci-static/resources/view/adguardhome/config.js:35
+msgid "Password for AdGuardHome"
+msgstr "密码"
+
+#: applications/luci-app-adguardhome/htdocs/luci-static/resources/view/adguardhome/status.js:136
+msgid "Please open the Configuration section, and provide the credentials."
+msgstr ""
+
+#: applications/luci-app-adguardhome/htdocs/luci-static/resources/view/adguardhome/status.js:40
+msgid "Protection enabled"
+msgstr ""
+
+#: applications/luci-app-adguardhome/htdocs/luci-static/resources/view/adguardhome/status.js:21
+msgid "RPC call failure:"
+msgstr ""
+
+#: applications/luci-app-adguardhome/htdocs/luci-static/resources/view/adguardhome/status.js:39
+msgid "Running"
+msgstr ""
+
+#: applications/luci-app-adguardhome/htdocs/luci-static/resources/view/adguardhome/logs.js:27
+msgid "Showing last 50 lines"
+msgstr ""
+
+#: applications/luci-app-adguardhome/htdocs/luci-static/resources/view/adguardhome/status.js:41
+msgid "Statistics period (days)"
+msgstr ""
+
+#: applications/luci-app-adguardhome/root/usr/share/luci/menu.d/luci-app-adguardhome.json:17
+msgid "Status"
+msgstr ""
+
+#: applications/luci-app-adguardhome/htdocs/luci-static/resources/view/adguardhome/logs.js:26
+msgid "System Log (AdGuardHome)"
+msgstr ""
+
+#: applications/luci-app-adguardhome/htdocs/luci-static/resources/view/adguardhome/config.js:36
+msgid "The password you configured when you set up AdGuardHome"
+msgstr ""
+
+#: applications/luci-app-adguardhome/htdocs/luci-static/resources/view/adguardhome/config.js:29
+msgid "The username you configured when you set up AdGuardHome"
+msgstr ""
+
+#: applications/luci-app-adguardhome/htdocs/luci-static/resources/view/adguardhome/config.js:14
+msgid ""
+"This application requires the username and password that were configured "
+"when you set up AdGuardHome, as the REST API for AdGuardHome is password "
+"protected. The password cannot be read from the YAML configuration file for "
+"AdGuardHome, as it is encrypted in that store. The credentials supplied "
+"here will be stored unencrypted in /etc/config/adguardhome on your device."
+msgstr ""
+
+#: applications/luci-app-adguardhome/htdocs/luci-static/resources/view/adguardhome/status.js:158
+msgid "Top Blocked Domains"
+msgstr ""
+
+#: applications/luci-app-adguardhome/htdocs/luci-static/resources/view/adguardhome/status.js:154
+msgid "Top Queried Domains"
+msgstr ""
+
+#: applications/luci-app-adguardhome/htdocs/luci-static/resources/view/adguardhome/logs.js:16
+msgid "Unable to load log data:"
+msgstr ""
+
+#: applications/luci-app-adguardhome/htdocs/luci-static/resources/view/adguardhome/status.js:46
+msgid "Upstream DNS addresses"
+msgstr ""
+
+#: applications/luci-app-adguardhome/htdocs/luci-static/resources/view/adguardhome/config.js:28
+msgid "Username for AdGuardHome"
+msgstr "用户名"
+
+#: applications/luci-app-adguardhome/htdocs/luci-static/resources/view/adguardhome/status.js:47
+msgid "Version"
+msgstr ""
+
+#: applications/luci-app-adguardhome/htdocs/luci-static/resources/view/adguardhome/status.js:42
+msgid "Web interface"
+msgstr ""
+
+#: applications/luci-app-adguardhome/htdocs/luci-static/resources/view/adguardhome/status.js:39
+#: applications/luci-app-adguardhome/htdocs/luci-static/resources/view/adguardhome/status.js:40
+msgid "Yes"
+msgstr ""
+
+msgid "RUNNING"
+msgstr "运行中"
+
+msgid "NOT RUNNING"
+msgstr "未运行"
+
+msgid "Collecting data..."
+msgstr "获取数据中..."
+
+msgid "Enable"
+msgstr "启用"
+
+msgid "Redirect"
+msgstr "重定向"
+
+msgid "none"
+msgstr "无"
+
+msgid "Run as dnsmasq upstream server"
+msgstr "作为dnsmasq的上游服务器"
+
+msgid "Redirect 53 port to AdGuardHome"
+msgstr "重定向53端口到AdGuardHome"
+
+msgid "Use port 53 replace dnsmasq"
+msgstr "使用53端口替换dnsmasq"
+
+msgid "AdGuardHome redirect mode"
+msgstr "AdGuardHome重定向模式"
+
+msgid "Work Dir"
+msgstr "工作目录"
+
