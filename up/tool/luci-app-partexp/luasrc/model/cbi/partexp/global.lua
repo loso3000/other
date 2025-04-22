@@ -46,6 +46,9 @@ e:value("/dev", translate("Normal mount and use by device name(/mnt/x1)"))
 e.default="/opt"
 
 e=t:option(ListValue,"target_disk", translate("Destination hard disk"),translate("Select the hard disk device to operate"))
+e:depends("target_function", "/overlay")
+e:depends("target_function", "/opt")
+e:depends("target_function", "/dev")
 for i, d in ipairs(devices) do
 	if d.name and d.size then
 		e:value(d.name, "%s (%s, %d MB)" %{ d.name, d.dev, d.size })
