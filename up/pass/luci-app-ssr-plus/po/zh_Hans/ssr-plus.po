@@ -165,16 +165,19 @@ msgid "NOTE: If the server uses the userpass authentication, the format must be 
 msgstr "注意： 如果服务器使用 userpass 验证，格式必须是 username:password。"
 
 msgid "Enable Port Hopping"
-msgstr "启用端口跃迁"
+msgstr "启用端口跳跃"
 
 msgid "Enable Transport Protocol Settings"
 msgstr "启用传输协议设置"
 
-msgid "Port Range"
-msgstr "端口范围值"
+msgid "Port hopping range"
+msgstr "端口跳跃范围"
+
+msgid "Format as 10000:20000 or 10000-20000 Multiple groups are separated by commas (,)."
+msgstr "格式为：10000:20000 或 10000-20000 多组时用逗号（,）隔开。"
 
 msgid "Port Hopping Interval(Unit:Second)"
-msgstr "端口跃迁间隔（单位：秒）"
+msgstr "端口跳跃间隔（单位：秒）"
 
 msgid "Enable Lazy Mode"
 msgstr "启用懒狗模式"
@@ -228,8 +231,17 @@ msgstr "服务器名称指示"
 msgid "Shadow-TLS ChainPoxy type"
 msgstr "代理链类型"
 
+msgid "ShadowSocks Node Use Version"
+msgstr "ShadowSocks 节点使用版本"
+
+msgid "Selection ShadowSocks Node Use Version."
+msgstr "选择 ShadowSocks 节点使用版本。"
+
+msgid "ShadowSocks-libev Version"
+msgstr "ShadowSocks-libev 版本"
+
 msgid "Shadowsocks-rust Version"
-msgstr "shadowsocks rust 版本"
+msgstr "ShadowSocks-rust 版本"
 
 msgid "Vmess Protocol"
 msgstr "VMESS协议"
@@ -615,14 +627,80 @@ msgstr "访问国外域名 DNS 服务器"
 msgid "Custom DNS Server format as IP:PORT (default: 8.8.4.4:53)"
 msgstr "格式为 IP:Port（默认：8.8.4.4:53）"
 
+msgid "Muitiple DNS server can saperate with ','"
+msgstr "多个上游 DNS 服务器请用 ',' 分隔（注意用英文逗号)"
+
+msgid "ChinaDNS-NG query protocol"
+msgstr "ChinaDNS-NG 查询协议"
+
+msgid "UDP/TCP upstream"
+msgstr "UDP/TCP 上游"
+
+msgid "TCP upstream"
+msgstr "TCP 上游"
+
+msgid "UDP upstream"
+msgstr "UDP 上游"
+
+msgid "DoT upstream (Need use wolfssl version)"
+msgstr "DoT 上游（需使用 wolfssl 版本）"
+
+msgid "ChinaDNS-NG shunt query protocol"
+msgstr "ChinaDNS-NG 分流查询协议"
+
 msgid "Use DNS2TCP query"
 msgstr "使用 DNS2TCP 查询"
 
 msgid "Use DNS2SOCKS query and cache"
 msgstr "使用 DNS2SOCKS 查询并缓存"
 
+msgid "Use DNS2SOCKS-RUST query and cache"
+msgstr "使用 DNS2SOCKS-RUST 查询并缓存"
+
 msgid "Use MOSDNS query (Not Support Oversea Mode)"
 msgstr "使用 MOSDNS 查询 (不支持海外用户回国模式)"
+
+msgid "Use DNSPROXY query and cache"
+msgstr "使用 DNSPROXY 查询并缓存"
+
+msgid "Use ChinaDNS-NG query and cache"
+msgstr "使用 ChinaDNS-NG 查询并缓存"
+
+msgid "Select DNS parse Mode"
+msgstr "选择 DNS 解析方式"
+
+msgid "Set Single DNS"
+msgstr "设置单个 DNS"
+
+msgid "Custom DNS Server (support: IP:Port or tls://IP:Port or https://IP/dns-query and other format)."
+msgstr "自定义 DNS 服务器（支持格式：IP:端口、tls://IP:端口、https://IP/dns-query 及其他格式）。"
+
+msgid "Use DNS List File"
+msgstr "使用 DNS 列表文件"
+
+msgid "Defines the upstreams logic mode"
+msgstr "定义上游逻辑模式"
+
+msgid "load_balance"
+msgstr "负载均衡"
+
+msgid "parallel"
+msgstr "并行查询"
+
+msgid "fastest_addr"
+msgstr "最快响应"
+
+msgid "Disable IPv6 query mode"
+msgstr "禁止返回 IPv6 记录"
+
+msgid "When disabled, all AAAA requests are not resolved."
+msgstr "当禁用时，不解析所有 AAAA 请求。"
+
+msgid "Defines the upstreams logic mode, possible values: load_balance, parallel, fastest_addr (default: load_balance)."
+msgstr "定义上游逻辑模式，可选择值：负载均衡、并行查询、最快响应（默认值：负载均衡）。"
+
+msgid "When two or more DNS servers are deployed, enable this function."
+msgstr "当部署两台或两台以上 DNS 服务器时，需要启用该功能。"
 
 msgid "Disable IPv6 in MOSDNS query mode"
 msgstr "禁止 MOSDNS 返回 IPv6 记录"
@@ -644,6 +722,21 @@ msgstr "禁止 MOSDNS 返回 IPv6 记录 (分流模式)"
 
 msgid "DNS Server IP:Port"
 msgstr "DNS 服务器 IP:Port"
+
+msgid "When use DNS list file, please ensure list file exists and is formatted correctly."
+msgstr "当使用 DNS 列表文件时，请确保列表文件存在并且格式正确。"
+
+msgid "Tips: Dnsproxy DNS Parse List Path:"
+msgstr "提示：Dnsproxy 的 DNS 解析列表路径："
+
+msgid "Click here to view or manage the DNS list file"
+msgstr "点击此处查看或管理 DNS 列表文件"
+
+msgid "Dnsproxy Parse List"
+msgstr "DNSPROXY 解析列表"
+
+msgid "Specifically for edit dnsproxy DNS parse files."
+msgstr "专门用于编辑 DNSPROXY 的 DNS 解析文件。"
 
 msgid "Domestic DNS Server"
 msgstr "国内 DNS 服务器"
@@ -861,8 +954,17 @@ msgstr "修改订阅 URL 和节点关键字后，请先点击更新"
 msgid "Update All Subscribe Servers"
 msgstr "更新所有订阅服务器节点"
 
+msgid "Enable Plugin"
+msgstr "启用插件"
+
 msgid "Plugin"
 msgstr "插件"
+
+msgid "Custom"
+msgstr "自定义"
+
+msgid "Custom Plugin Path"
+msgstr "自定义插件路径"
 
 msgid "Plugin Opts"
 msgstr "插件参数"
@@ -880,7 +982,7 @@ msgid "Upload"
 msgstr "上传"
 
 msgid "No specify upload file."
-msgstr "没有上传证书"
+msgstr "没有上传证书。"
 
 msgid "Current Certificate Path"
 msgstr "当前证书路径"
@@ -1223,6 +1325,9 @@ msgstr "应用"
 
 msgid "Enable Netflix Mode"
 msgstr "启用 Netflix 分流模式"
+
+msgid "When disabled shunt mode, will same time stopped shunt service."
+msgstr "当停用分流模式时，将同时停止分流服务。"
 
 msgid "TUIC User UUID"
 msgstr "TUIC 用户 uuid"

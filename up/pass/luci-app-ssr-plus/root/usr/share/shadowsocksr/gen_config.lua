@@ -411,18 +411,18 @@ local ss = {
 	fast_open = (server.fast_open == "1") and true or false,
 	reuse_port = true
 }
-local hysteria = {
-	server = (server.server_port and (server.port_range and (server.server .. ":" .. server.server_port .. "," .. server.port_range) or (server.server .. ":" .. server.server_port) or (server.port_range and server.server .. ":" .. server.port_range or server.server .. ":443"))),
+local hysteria2 = {
+	server = (server.server_port and (server.port_range and (server.server .. ":" .. server.server_port .. "," .. string.gsub(server.port_range, ":", "-")) or (server.server .. ":" .. server.server_port) or (server.port_range and server.server .. ":" .. string.gsub(server.port_range, ":", "-") or server.server .. ":443"))),
 	bandwidth = (server.uplink_capacity or server.downlink_capacity) and {
 	up = tonumber(server.uplink_capacity) and tonumber(server.uplink_capacity) .. " mbps" or nil,
 	down = tonumber(server.downlink_capacity) and tonumber(server.downlink_capacity) .. " mbps" or nil 
-	},
+	} or nil,
 	socks5 = (proto:find("tcp") and tonumber(socks_port) and tonumber(socks_port) ~= 0) and {
 		listen = "0.0.0.0:" .. tonumber(socks_port),
 		disable_udp = false
 	} or nil,
-	transport = (server.transport_protocol) and {
-		type = (server.transport_protocol) or udp,
+	transport = server.transport_protocol and {
+		type = server.transport_protocol or "udp",
 		udp = (server.port_range and (server.hopinterval) and {
                         hopInterval = (server.port_range and (tonumber(server.hopinterval) .. "s") or nil)
                 } or nil)
@@ -579,8 +579,12 @@ function config:handleIndex(index)
 	local switch = {
 		ss = function()
 			ss.protocol = socks_port
-			if server.plugin and server.plugin ~= "none" then
+			if server.enable_plugin == "1" and server.plugin and server.plugin ~= "none" then
+				if server.plugin == "custom" then
+					ss.plugin = server.custom_plugin
+				else
 				ss.plugin = server.plugin
+				end
 				ss.plugin_opts = server.plugin_opts or nil
 			end
 			print(json.stringify(ss, 1))
@@ -602,8 +606,8 @@ function config:handleIndex(index)
 		naiveproxy = function()
 			print(json.stringify(naiveproxy, 1))
 		end,
-		hysteria = function()
-			print(json.stringify(hysteria, 1))
+		hysteria2 = function()
+			print(json.stringify(hysteria2, 1))
 		end,
 		shadowtls = function()
 			local chain_switch = {

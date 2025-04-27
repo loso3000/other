@@ -86,8 +86,17 @@
 		return false;
 	}
 	// set tr draggable
-	function enableDragForTable(table_selecter, store) {
-		var trs = document.querySelectorAll(table_selecter + " tr");
+	function enableDragForTable(table_selector, store) {
+		// Ìí¼Ó CSS ÑùÊ½
+		const style = document.createElement("style");
+		style.textContent = `
+			tr[draggable="true"] {
+				cursor: move;
+				user-select: none;
+			}
+			`;
+		document.head.appendChild(style);
+		var trs = document.querySelectorAll(table_selector + " tr");
 		if (!trs || trs.length.length < 3) {
 			return;
 		}
@@ -103,12 +112,12 @@
 			ev.dataTransfer.dropEffect = "move";
 		}
 		function moveToTop(id) {
-			var top = document.querySelectorAll(table_selecter + " tr")[2];
+			var top = document.querySelectorAll(table_selector + " tr")[2];
 			cbi_row_drop(id, top.id, store);
 		}
 		function moveToBottom(id) {
-			console.log('moveToBottom:', id);
-			var trList = document.querySelectorAll(table_selecter + " tr");
+			//console.log('moveToBottom:', id);
+			var trList = document.querySelectorAll(table_selector + " tr");
 			var bottom = trList[trList.length - 1];
 			cbi_row_drop(id, bottom.id, store, true);
 		}
