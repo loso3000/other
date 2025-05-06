@@ -1,0 +1,665 @@
+msgid ""
+msgstr ""
+"PO-Revision-Date: 2024-2025\n"
+"Last-Translator: https://github.com/sirpdboy/luci-app-watchdog \n"
+"Language-Team: \n"
+"Language: zh_Hans\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Weblate 4.18-dev\n"
+
+msgid "watchdog"
+msgstr "看门狗"
+
+msgid "Watch Dog"
+msgstr "看门狗"
+
+msgid "Basic Settings"
+msgstr "基本设置"
+
+msgid "Advance Setting"
+msgstr "高级设置"
+
+msgid "Online Devices"
+msgstr "在线设备"
+
+msgid "Log"
+msgstr "日志"
+
+msgid "This is the security watchdog plugin for OpenWRT, which monitors and guards web login, SSH connections, and other situations.<br /><br />If you encounter any issues while using it, please submit them here:"
+msgstr "这是openwrt的安全看门狗插件，监视和守护WEB登陆SSH连接等情况<br /><br />如果你在使用中遇到问题，请到这里提交："
+
+msgid "GitHub Project Address"
+msgstr "GitHub 项目地址"
+
+msgid "Login control"
+msgstr "管控内容"
+
+msgid "Black list"
+msgstr "黑名单"
+
+
+msgid "White list"
+msgstr "白名单"
+
+
+
+
+msgid "You may need to save the configuration before sending."
+msgstr "你可能需要先保存配置再进行发送"
+
+msgid "Unknown error: %s."
+msgstr "未知错误：%s"
+
+msgid "Check Interval (s)"
+msgstr "检测时间间隔（秒）"
+
+msgid "Shorter intervals provide quicker response but consume more system resources."
+msgstr "越短的时间间隔响应越及时，但会占用更多的系统资源"
+
+
+msgid "CPU Alert"
+msgstr "CPU 报警"
+
+msgid "Load Alert"
+msgstr "负载报警"
+
+msgid "Temperature Alert"
+msgstr "温度报警"
+
+msgid "Device alert will be triggered only if it exceeds the set value continuously for five minutes, and there won't be a second reminder within an hour."
+msgstr "设备报警只会在连续五分钟超过设定值时才会记录，一个小时内不会再提醒第二次。"
+
+msgid "Load alert threshold"
+msgstr "负载报警阈值"
+
+msgid "In general, when the load value is lower than the number of logical cores, you typically don't need to pay much attention to it."
+msgstr "通常情况下，负载值低于逻辑核心数量时，你不需要关注它"
+
+msgid "Please enter a numeric value only"
+msgstr "请输入纯数字"
+
+msgid "Temperature alert threshold"
+msgstr "温度报警阈值"
+
+msgid "Please confirm that the device can retrieve temperature. If you need to modify the command, please go to advanced settings."
+msgstr "请确认设备可以获取温度。如果需修改命令，请移步高级设置。"
+
+msgid "Web Login"
+msgstr "Web 登录"
+
+msgid "SSH Login"
+msgstr "SSH 登录"
+
+msgid "Frequent Web Login Errors"
+msgstr "Web 频繁错误登录"
+
+msgid "Frequent SSH Login Errors"
+msgstr "SSH 频繁错误登录"
+
+msgid "Login failure count"
+msgstr "登录失败次数"
+
+msgid "Reminder and optional automatic IP ban after exceeding the number of times"
+msgstr "超过次数后记录并可选自动封禁IP"
+
+
+msgid "Auto-ban unauthorized login devices"
+msgstr "自动封禁非法登录设备"
+
+msgid "Blacklisting time (s)"
+msgstr "拉黑时间（秒）"
+
+msgid "\"0\" in ipset means permanent blacklist, use with caution. If misconfigured, change the device IP and clear rules in LUCI."
+msgstr "ipset 中, \"0\" 为永久拉黑，慎用。如不幸误操作，请更改设备 IP 进入 LUCI 界面清空规则。"
+
+msgid "Port knocking"
+msgstr "端口敲门"
+
+msgid "Port"
+msgstr "端口"
+
+msgid "Open port after successful login<br/>example：\"22\"、\"21:25\"、\"21:25,135:139\""
+msgstr "登录成功后开放端口<br/>例：\"22\"、\"21:25\"、\"21:25,135:139\""
+
+msgid "If you have disabled LAN port inbound and forwarding in Firewall - Zone Settings, it won't work."
+msgstr "如在 防火墙 - 区域设置 中禁用了 LAN 口入站和转发，该功能将不起作用"
+
+msgid "Example: Forward port 13389 of this device (IPv4:10.0.0.1 / IPv6:fe80::10:0:0:2) to port 3389 of (IPv4:10.0.0.2 / IPv6:fe80::10:0:0:8)<br/>\"10.0.0.1,13389,10.0.0.2,3389\"<br/>\"fe80::10:0:0:1,13389,fe80::10:0:0:2,3389\""
+msgstr "例：将本机 (IPv4:10.0.0.1 / IPv6:fe80::10:0:0:2) 的 13389 端口转发到 (IPv4:10.0.0.2 / IPv6:fe80::10:0:0:8) 的 3389 端口:<br/>\"10.0.0.1,13389,10.0.0.2,3389\"<br/>\"fe80::10:0:0:2,13389,fe80::10:0:0:8,3389\""
+
+msgid "Release time (s)"
+msgstr "放行时间（秒）"
+
+msgid "\"0\" in ipset means permanent release, use with caution"
+msgstr "ipset 中, \"0\" 为永久放行，慎用"
+
+msgid "IP blacklist"
+msgstr "IP 黑名单列表"
+
+msgid "You can add or delete here, the numbers after represent the remaining time. When adding, only the IP needs to be entered.<br/>Due to limitations on the web interface, please keep one empty line if you need to clear the content; otherwise, it will not be possible to submit. ╮(╯_╰)╭<br/>Please use the 「Save」 button in the text box."
+msgstr "可在此处添加或删除，后面的数字为剩余时间，添加时只需要输入 IP<br/>由于网页端的限制，如需清空内容，请保留一处空白的换行，否则内容为空会导致无法提交 ╮(╯_╰)╭<br/>文本框请使用「保存」按钮"
+
+
+msgid "MAC Filtering Mode"
+msgstr "MAC 过滤模式"
+
+msgid "Ignore devices in the list"
+msgstr "忽略列表内设备"
+
+msgid "Ignored devices will not logged"
+msgstr "被忽略设备不做日志记录"
+
+msgid "Notify only devices in the list"
+msgstr "仅通知列表内设备"
+
+msgid "Notify only devices using this interface"
+msgstr "仅通知此接口设备"
+
+msgid "Multiple choice is not currently supported"
+msgstr "暂不支持多选"
+
+msgid "Ignored device list"
+msgstr "忽略设备列表"
+
+msgid "Followed device list"
+msgstr "关注设备列表"
+
+msgid "Notify only devices using this interface"
+msgstr "仅通知此接口设备"
+
+
+msgid "Login (Auto-Ban) Whitelist"
+msgstr "登录（自动封禁）白名单"
+
+msgid "Add the IP addresses in the list to the whitelist for the blocking function (if available), Only record in the log. Mask notation is currently not supported."
+msgstr "列表内 IP 加入封禁功能白名单(如果可用)，仅在日志中记录，暂不支持掩码位表示"
+
+msgid "If you are not familiar with the meanings of these options, please do not modify them.<br/><br/>"
+msgstr "如果你不了解这些选项的含义，请不要修改这些选项<br/><br/>"
+
+msgid "Advanced Settings"
+msgstr "高级设置"
+
+msgid "Device online detection timeout (s)"
+msgstr "设备上线检测超时（秒）"
+
+msgid "Device offline detection timeout (s)"
+msgstr "设备离线检测超时（秒）"
+
+msgid "Offline detection count"
+msgstr "离线检测次数"
+
+msgid "If the device has good signal strength and no Wi-Fi sleep issues, you can reduce the above values.<br/>Due to the mysterious nature of Wi-Fi sleep during the night, if you encounter frequent disconnections, please adjust the parameters accordingly.<br/>..╮(╯_╰）╭.."
+msgstr "若设备信号强度良好，无息屏 WiFi 休眠问题，可以减少以上数值<br/>因夜间 WiFi 息屏休眠较为玄学，遇到设备频繁推送断开，烦请自行调整参数<br/>..╮(╯_╰）╭.."
+
+
+msgid "Devices"
+msgstr "设备"
+
+msgid "Disable active detection"
+msgstr "关闭主动探测"
+
+msgid "Maximum concurrent processes"
+msgstr "最大并发进程数"
+
+msgid "Do not change the setting value for low-performance devices, or reduce the parameters as appropriate."
+msgstr "低性能设备请勿更改设置值，或酌情减少参数"
+
+
+msgid "Online time"
+msgstr "在线时间"
+
+msgid "Clear Logs..."
+msgstr "清除日志..."
+
+msgid "Logs cleared successfully!"
+msgstr "日志清除成功！"
+
+msgid "Clear Logs"
+msgstr "清除日志"
+
+msgid "Refresh every 5 seconds."
+msgstr "每 5 秒刷新"
+
+msgid "Create scheduled task"
+msgstr "创建定时任务"
+
+msgid "Router status:"
+msgstr "路由状态："
+
+msgid "Send test:"
+msgstr "发送测试："
+
+msgid "Content 1"
+msgstr "内容1"
+
+msgid "Content 2"
+msgstr "内容2"
+
+msgid "Device 1"
+msgstr "设备1"
+
+msgid "Device 2"
+msgstr "设备2"
+
+msgid "Device 3"
+msgstr "设备3"
+
+msgid "Device 4"
+msgstr "设备4"
+
+
+msgid "Connected!"
+msgstr "已连通！"
+
+msgid "Disconnected!"
+msgstr "已断开！"
+
+msgid "System running status"
+msgstr "系统运行状态"
+
+msgid "Average load:"
+msgstr "平均负载："
+
+msgid "CPU usage:"
+msgstr "CPU占用："
+
+msgid "Memory usage:"
+msgstr "内存占用："
+
+msgid "Global connection:"
+msgstr "全球互联："
+
+msgid "Device temperature"
+msgstr "设备温度"
+
+msgid "CPU:"
+msgstr "CPU："
+
+msgid "Unable to get device temperature"
+msgstr "无法获取设备温度"
+
+msgid "WAN Port Information"
+msgstr "WAN 口信息"
+
+msgid "Interface IPv4:"
+msgstr "接口 IPv4:"
+
+msgid "Outbound IPv4:"
+msgstr "出口 IPv4:"
+
+msgid "Interface IPv6:"
+msgstr "接口 IPv6:"
+
+msgid "Outbound IPv6:"
+msgstr "出口 IPv6:"
+
+msgid "I encountered a problem"
+msgstr "我遇到了一个难题"
+
+msgid "Device %s logged into router via %s"
+msgstr "设备 %s 通过 %s 登录了路由器"
+
+msgid "/ (Homepage login)"
+msgstr "/ (首页登录)"
+
+msgid "%s frequent %s login attempts"
+msgstr "%s 频繁尝试 %s 登录"
+
+msgid "Block Information"
+msgstr "封禁信息"
+
+msgid "Device %s (%s) frequently attempted %s %s login"
+msgstr "设备 %s (%s) 频繁尝试 %s %s 登录"
+
+msgid "%s logged into router via %s"
+msgstr "%s 通过 %s 登录了路由器"
+
+msgid "Login Information"
+msgstr "登录信息"
+
+msgid "Device %s (%s) logged into router via %s %s"
+msgstr "设备 %s (%s) 通过 %s %s 登录了路由器"
+
+msgid "Time:"
+msgstr "时间："
+
+msgid "Device IP:"
+msgstr "设备 IP："
+
+msgid "Login Method:"
+msgstr "登录方式："
+
+msgid "Total Traffic:"
+msgstr "总计流量："
+
+msgid "%s disconnected"
+msgstr "%s 断开连接"
+
+msgid "Device Disconnected"
+msgstr "设备断开连接"
+
+msgid "Device Status Changed"
+msgstr "设备状态变化"
+
+msgid "Client Name:"
+msgstr "客户端名："
+
+msgid "Client IP:"
+msgstr "客户端IP："
+
+msgid "Client MAC:"
+msgstr "客户端MAC："
+
+msgid "Uptime:"
+msgstr "在线时间："
+
+msgid "Device %s %s disconnected"
+msgstr "设备 %s %s 断开连接"
+
+msgid "JSON format error, not a standard JSON file, please check %s for unescaped special characters or syntax errors"
+msgstr "JSON 文件格式错误，这不是一个标准的 JSON 文件，请检查 %s 文件是否有特殊符号未转义或语法错误"
+
+msgid "type:{ } field format error after variable substitution, please check for unescaped special characters or syntax errors in type:{ } field"
+msgstr "type:{ } 字段转义变量后格式错误，请检查 type:{ } 字段内是否有特殊符号未转义或语法错误"
+
+msgid "Network or URL error, push failed, curl returned %s, please check the following debug information"
+msgstr "网络错误或 URL 错误，推送失败，curl 返回值为 %s，请参考如下调试信息进行排查"
+
+msgid "Push test enabled, current curl return value is %s"
+msgstr "推送测试已开启，当前 curl 返回值为 %s"
+
+msgid "Format error after variable substitution, please check %s for unescaped special characters or syntax errors"
+msgstr "转义变量后格式错误，请检查 %s 字段内是否有特殊符号未转义或语法错误"
+
+msgid "JSON file saved to: %s"
+msgstr "JSON 文件已保存至：%s"
+
+msgid "Push content preview saved to: %s"
+msgstr "推送内容预览文件保存至：%s"
+
+msgid "If no message received, please check %s or use the following command to test manually"
+msgstr "如果收不到信息，请检查 %s 文件，或使用下列命令手动测试返回值"
+
+msgid "Total Traffic:"
+msgstr "总计流量："
+
+msgid "%s abnormal traffic"
+msgstr "%s 流量异常"
+
+msgid "Device abnormal traffic"
+msgstr "设备流量异常"
+
+msgid "Device status changed"
+msgstr "设备状态变化"
+
+msgid "Traffic in 1 minute:"
+msgstr "一分钟内流量："
+
+msgid "Whitelist add failed, IP format error"
+msgstr "白名单添加失败，IP 格式错误"
+
+msgid "Currently no online devices"
+msgstr "当前无在线设备"
+
+msgid "Currently %d online devices, details below"
+msgstr "当前有 %d 台在线设备，具体如下"
+
+msgid "IP Address"
+msgstr "IP 地址"
+
+msgid "Uptime"
+msgstr "在线时间"
+
+msgid "Client Name"
+msgstr "客户端名"
+
+msgid "%s connected to your router"
+msgstr "%s 连接了你的路由器"
+
+msgid "New device connected"
+msgstr "新设备连接"
+
+msgid "Device status changed"
+msgstr "设备状态变化"
+
+msgid "Network Interface:"
+msgstr "网络接口："
+
+msgid "New device %s %s connected"
+msgstr "新设备 %s %s 连接了"
+
+msgid "Login to MIWiFi failed, unable to get stok"
+msgstr "登录 MIWiFi 失败，无法获取 stok"
+
+msgid "Failed to get modem information, maybe current user not logged out or wrong settings"
+msgstr "获取光猫信息失败，可能当前用户未注销或设置错误"
+
+msgid "Disk Name:"
+msgstr "硬盘名称："
+
+msgid "Disk in standby"
+msgstr "硬盘休眠中"
+
+msgid "Disk Temp:"
+msgstr "硬盘温度："
+
+msgid "Power On:"
+msgstr "通电时间："
+
+msgid "Disk Usage:"
+msgstr "空间使用："
+
+msgid "Health Used:"
+msgstr "寿命使用："
+
+msgid "Error Logs:"
+msgstr "错误日志："
+
+msgid "Self-Test Errors:"
+msgstr "自检错误："
+
+msgid "0E Errors:"
+msgstr "0E 错误："
+
+msgid "Disk health assessment FAILED!!!"
+msgstr "硬盘整体健康评估不通过！！！"
+
+msgid "Disk has errors, please backup data immediately!!!"
+msgstr "硬盘存在错误，请及时备份数据！！！"
+
+msgid "CPU temperature too high: %s"
+msgstr "CPU 温度过高: %s"
+
+msgid "Device Alert!"
+msgstr "设备报警！"
+
+msgid "CPU Temperature Too High!"
+msgstr "CPU 温度过高！"
+
+msgid "CPU Temperature Alert"
+msgstr "CPU 温度过高"
+
+msgid "CPU temperature has exceeded threshold for %s"
+msgstr "CPU 温度已连续 %s 超过预设"
+
+msgid "No further alerts for %s"
+msgstr "接下来 %s 不再提示"
+
+msgid "Current temperature: %s℃"
+msgstr "当前温度：%s℃"
+
+msgid "CPU load too high: %s"
+msgstr "CPU 负载过高: %s"
+
+msgid "CPU Load Too High!"
+msgstr "CPU 负载过高！"
+
+msgid "CPU Load Alert"
+msgstr "CPU 负载过高"
+
+msgid "CPU load has exceeded threshold for %s"
+msgstr "CPU 负载已连续 %s 超过预设"
+
+msgid "Current load: %s"
+msgstr "当前负载：%s"
+
+msgid "Top 3 CPU Processes"
+msgstr "当前 CPU 占用前三的进程"
+
+msgid "Top 3 CPU processes: %s"
+msgstr "CPU 占用前三: %s"
+
+msgid "Network connection restored"
+msgstr "网络恢复正常"
+
+msgid "Network connection failed! Stopping detection!"
+msgstr "当前网络不通！停止检测！"
+
+msgid "Attempting router reboot (attempt %s/3)"
+msgstr "正在尝试重启路由，当前第 %s 次"
+
+msgid "Attempting network restart (attempt %s/3)"
+msgstr "正在尝试重启网络，当前第 %s 次"
+
+msgid "Failed after 2 router reboots, please fix manually"
+msgstr "已经重启路由2次，修复失败，请主人自行修复哦"
+
+msgid "Failed after 2 network restarts, please fix manually"
+msgstr "已经重启网络2次，修复失败，请主人自行修复哦"
+
+msgid "Network Interface"
+msgstr "网络接口"
+
+msgid "Location:"
+msgstr "地址："
+
+msgid "Interface:"
+msgstr "接口："
+
+msgid "Router has rebooted!"
+msgstr "路由器已经重启！"
+
+msgid "Router Rebooted"
+msgstr "路由器重新启动"
+
+msgid "Current IP: %s from: %s"
+msgstr "当前 IP：%s 来自：%s"
+
+msgid "IP Address Changed"
+msgstr "IP地址变化"
+
+msgid "Current IP:"
+msgstr "当前 IP："
+
+msgid "Current IPv6: %s from: %s"
+msgstr "当前 IPv6：%s 来自：%s"
+
+msgid "IPv6 Address Changed"
+msgstr "IPv6地址变化"
+
+msgid "Current IPv6:"
+msgstr "当前 IPv6："
+
+msgid "It's late at night, time to rest"
+msgstr "夜深了，该休息了"
+
+msgid "Failed to get IP, current API: %s & %s"
+msgstr "IP 获取失败，当前使用的 API 为 %s & %s"
+
+msgid "Failed to get IPv6, current API: %s & %s"
+msgstr "IPv6 获取失败，当前使用的 API 为 %s & %s"
+
+msgid "Log exceeded limit, keeping last 300 entries"
+msgstr "日志超出上限，保留最后 300 条"
+
+msgid "%ds"
+msgstr "%d秒"
+
+msgid "%dm %ds"
+msgstr "%d分%d秒"
+
+msgid "%dh %dm"
+msgstr "%d小时%d分"
+
+msgid "%dd %dh"
+msgstr "%d天%d小时"
+
+msgid "Uptime: %dd %dh %dm %ds"
+msgstr "运行时间： %d天%d时%d分%d秒"
+
+msgid "Failed to retrieve remote host temperature. To prevent SSH connection timeout from affecting program functionality, the temperature retrieval feature has been disabled. Please verify your configuration and restart the script, or manually delete /tmp/watchdog/temp_err to retry."
+msgstr "远程主机温度获取失败，为避免 SSH 连接超时影响程序功能，已禁用温度获取功能，请确认配置正确后重启脚本或手动删除 `/tmp/watchdog/temp_err` 重试"
+
+msgid "Failed to read settings, please check configuration."
+msgstr "读取设置出错，请检查设置项"
+
+msgid "Loading online devices..."
+msgstr "载入在线设备..."
+
+msgid "Initialization completed"
+msgstr "初始化完成"
+
+msgid "Start running..."
+msgstr "开始运行..."
+
+msgid "Loaded logs from previous restart"
+msgstr "载入上次重启前日志"
+
+msgid "wrtbwmon not installed, traffic statistics unavailable"
+msgstr "未安装 wrtbwmon，流量统计不可用"
+
+msgid "Cannot get iputils-arping version, please confirm if plugin is running properly"
+msgstr "无法获取依赖项 iputils-arping 版本号，请确认插件是否正常运行"
+
+msgid "Cannot get curl version, please confirm if plugin is running properly"
+msgstr "无法获取依赖项 curl 版本号，请确认插件是否正常运行"
+
+msgid "Please fill in the correct API key"
+msgstr "请填写正确的 key"
+
+msgid "Multiple interfaces detected or configuration error, may not get interface uptime information, please confirm if plugin is running properly"
+msgstr "存在多个接口或配置错误，可能无法获取接口在线时间等信息，请确认插件是否正常运行"
+
+msgid "Cannot read device temperature, please check command"
+msgstr "无法读取设备温度，请检查命令"
+
+msgid "Cannot read device load, please check command"
+msgstr "无法读取设备负载，请检查命令"
+
+msgid "Device list file format error, needs reinitialization. Original file saved to %s.err"
+msgstr "设备列表文件格式错误，需重新初始化，原文件已保存至 %s.err"
+
+msgid "Starting background update of MAC information file"
+msgstr "开始后台更新 MAC 信息文件"
+
+msgid "Failed to download MAC information file, return code: %s"
+msgstr "设备 MAC 信息文件下载失败，返回码为 %s"
+
+msgid "MAC information file downloaded successfully, processing..."
+msgstr "设备 MAC 信息文件下载成功，处理中"
+
+msgid "MAC information file processing completed"
+msgstr "设备 MAC 信息文件处理完成"
+
+msgid "MAC information file does not need updating"
+msgstr "MAC 信息文件无需更新"
+
+msgid "Location query timeout, current API: %s"
+msgstr "归属地获取超时，当前使用的 API 为 %s"
+
+msgid "Currently %d online devices, details below"
+msgstr "现有在线设备 %d 台，具体如下"
+
+msgid "Rebooting router..."
+msgstr "重启路由器咯"
+
+msgid "Re-establishing PPPoE connection..."
+msgstr "重新拨号咯"
+
+msgid "Failed to add to blacklist, invalid IP format: %s (removed from list)"
+msgstr "黑名单添加失败，IP %s 格式错误，已从列表中移除"
+
+msgid "Currently %s devices online"  
+msgstr "当前共 %s 台设备在线"
