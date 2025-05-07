@@ -118,7 +118,6 @@ return view.extend({
 		s = m.section(form.NamedSection, 'config', 'watchdog', _(''));
 		s.tab('basic', _('Basic Settings'));
 		s.tab('blacklist', _('Black list'));
-		s.tab('whitelist', _('White list'));
 		s.addremove = false;
 		s.anonymous = true;
 
@@ -130,7 +129,7 @@ return view.extend({
 		o.datatype = 'and(uinteger,min(10))';
 		o.description = _('Shorter intervals provide quicker response but consume more system resources.');
 
-		o = s.taboption('basic', form.MultiValue, 'Login_control', _('Login control'));
+		o = s.taboption('basic', form.MultiValue, 'login_control', _('Login control'));
 		o.value('web_logged', _('Web Login'));
 		o.value('ssh_logged', _('SSH Login'));
 		o.value('web_login_failed', _('Frequent Web Login Errors'));
@@ -141,43 +140,21 @@ return view.extend({
 		o.default = '3';
 		o.rmempty = false;
 		o.datatype = 'and(uinteger,min(1))';
-		o.depends({ Login_control: "web_login_failed", '!contains': true });
-		o.depends({ Login_control: "ssh_login_failed", '!contains': true });
+		o.depends({ login_control: "web_login_failed", '!contains': true });
+		o.depends({ login_control: "ssh_login_failed", '!contains': true });
 		o.description = _('Reminder and optional automatic IP ban after exceeding the number of times');
 
 		o = s.taboption('blacklist', form.Flag, 'login_web_black', _('Auto-ban unauthorized login devices'));
 		o.default = '0';
-		o.depends({ Login_control: "web_login_failed", '!contains': true });
-		o.depends({ Login_control: "ssh_login_failed", '!contains': true });
-
+		o.depends({ login_control: "web_login_failed", '!contains': true });
+		o.depends({ login_control: "ssh_login_failed", '!contains': true });
+		
 		o = s.taboption('blacklist', form.Value, 'login_ip_black_timeout', _('Blacklisting time (s)'));
 		o.default = '86400';
 		o.rmempty = false;
 		o.datatype = 'and(uinteger,min(0))';
 		o.depends('login_web_black', '1');
 		o.description = _('\"0\" in ipset means permanent blacklist, use with caution. If misconfigured, change the device IP and clear rules in LUCI.');
-
-		o = s.taboption('blacklist', form.Flag, 'port_knocking_enable', _('Port knocking'));
-		o.default = '0';
-		o.description = _('If you have disabled LAN port inbound and forwarding in Firewall - Zone Settings, it won\'t work.');
-		o.depends({ Login_control: "web_login_failed", '!contains': true });
-		o.depends({ Login_control: "ssh_login_failed", '!contains': true });
-
-		o = s.taboption('blacklist', form.Value, 'login_port_white', _('Port'));
-		o.default = '';
-		o.description = _('Open port after successful login<br/>example：\"22\"、\"21:25\"、\"21:25,135:139\"');
-		o.depends('port_knocking_enable', '1');
-
-		o = s.taboption('blacklist', form.DynamicList, 'login_port_forward_list', _('Port Forwards'));
-		o.default = '';
-		o.description = _('Example: Forward port 13389 of this device (IPv4:10.0.0.1 / IPv6:fe80::10:0:0:2) to port 3389 of (IPv4:10.0.0.2 / IPv6:fe80::10:0:0:8)<br/>\"10.0.0.1,13389,10.0.0.2,3389\"<br/>\"fe80::10:0:0:1,13389,fe80::10:0:0:2,3389\"');
-		o.depends('port_knocking_enable', '1');
-
-		o = s.taboption('blacklist', form.Value, 'login_ip_white_timeout', _('Release time (s)'));
-		o.default = '86400';
-		o.datatype = 'and(uinteger,min(0))';
-		o.description = _('\"0\" in ipset means permanent release, use with caution');
-		o.depends('port_knocking_enable', '1');
 
 		o = s.taboption('blacklist', form.TextValue, 'ip_black_list', _('IP blacklist'));
 		o.rows = 8;
@@ -196,40 +173,27 @@ return view.extend({
 		o.depends('login_web_black', '1');
 		o.description = _('You can add or delete here, the numbers after represent the remaining time. When adding, only the IP needs to be entered.<br/>Due to limitations on the web interface, please keep one empty line if you need to clear the content; otherwise, it will not be possible to submit. ╮(╯_╰)╭<br/>Please use the 「Save」 button in the text box.');
 
+		o = s.taboption('blacklist', form.Flag, 'port_release_enable', _('Release port'));
+		o.default = '0';
+		o.description = _('If you have disabled LAN port inbound and forwarding in Firewall - Zone Settings, it won\'t work.');
+		o.depends({ login_control: "web_login_failed", '!contains': true });
+		o.depends({ login_control: "ssh_login_failed", '!contains': true });
 
-		o = s.taboption('whitelist', cbiRichListValue, 'mac_filtering_mode_1', _('MAC Filtering Mode'));
-		o.value('', _('Close'),
-			_(' '));
-		o.value('allow', _('Ignore devices in the list'),
-			_('Ignored devices will not logged'));
-		o.value('block', _('Notify only devices in the list'),
-			_('Ignored devices will not logged'));
-		o.value('interface', _('Notify only devices using this interface'),
-			_('Multiple choice is not currently supported'));
+		o = s.taboption('blacklist', form.Value, 'login_port_white', _('Port'));
+		o.default = '';
+		o.description = _('Open port after successful login<br/>example：\"22\"、\"21:25\"、\"21:25,135:139\"');
+		o.depends('port_release_enable', '1');
 
-		o = fwtool.addMACOption(s, 'whitelist', 'up_down_push_whitelist', _('Ignored device list'),
-			_('Please select device MAC'), hosts);
-		o.datatype = 'list(neg(macaddr))';
-		o.depends('mac_filtering_mode_1', 'allow');
+		o = s.taboption('blacklist', form.DynamicList, 'login_port_forward_list', _('Port Forwards'));
+		o.default = '';
+		o.description = _('Example: Forward port 13389 of this device (IPv4:10.0.0.1 / IPv6:fe80::10:0:0:2) to port 3389 of (IPv4:10.0.0.2 / IPv6:fe80::10:0:0:8)<br/>\"10.0.0.1,13389,10.0.0.2,3389\"<br/>\"fe80::10:0:0:1,13389,fe80::10:0:0:2,3389\"');
+		o.depends('port_release_enable', '1');
 
-		o = fwtool.addMACOption(s, 'whitelist', 'up_down_push_blacklist', _('Followed device list'),
-			_('Please select device MAC'), hosts);
-		o.datatype = 'list(neg(macaddr))';
-		o.depends('mac_filtering_mode_1', 'block');
-
-		o = s.taboption('whitelist', widgets.DeviceSelect, 'up_down_push_interface', _("Device"));
-		o.description = _('Notify only devices using this interface');
-		o.modalonly = true;
-		o.multiple = false;
-		o.depends('mac_filtering_mode_1', 'interface');
-
-		o = fwtool.addIPOption(s, 'whitelist', 'login_ip_white_list', _('Login (Auto-Ban) Whitelist'), null, 'ipv4', hosts, true);
-		o.datatype = 'ipaddr';
-		o.depends({ Login_control: "web_logged", '!contains': true });
-		o.depends({ Login_control: "ssh_logged", '!contains': true });
-		o.depends({ Login_control: "web_login_failed", '!contains': true });
-		o.depends({ Login_control: "ssh_login_failed", '!contains': true });
-		o.description = _('Add the IP addresses in the list to the whitelist for the blocking function (if available), Only record in the log. Mask notation is currently not supported.');
+		o = s.taboption('blacklist', form.Value, 'login_ip_white_timeout', _('Release time (s)'));
+		o.default = '86400';
+		o.datatype = 'and(uinteger,min(0))';
+		o.description = _('\"0\" in ipset means permanent release, use with caution');
+		o.depends('port_release_enable', '1');
 
 
 		return m.render();
