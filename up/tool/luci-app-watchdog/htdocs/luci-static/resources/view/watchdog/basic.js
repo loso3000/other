@@ -171,7 +171,7 @@ return view.extend({
 			});
 		};
 		o.depends('login_web_black', '1');
-		o.description = _('You can add or delete here, the numbers after represent the remaining time. When adding, only the IP needs to be entered.<br/>Due to limitations on the web interface, please keep one empty line if you need to clear the content; otherwise, it will not be possible to submit. ╮(╯_╰)╭<br/>Please use the 「Save」 button in the text box.');
+		o.description = _('Automatic ban blacklist list, with the ban time following the IP address');
 
 		//o = s.taboption('blacklist', form.Flag, 'port_release_enable', _('Release port'));
 		//o.default = '0';

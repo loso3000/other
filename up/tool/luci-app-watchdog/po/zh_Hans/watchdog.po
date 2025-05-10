@@ -48,10 +48,10 @@ msgid "Unknown error: %s."
 msgstr "未知错误：%s"
 
 msgid "Check Interval (s)"
-msgstr "检测时间间隔（秒）"
+msgstr "检测间隔时间（秒）"
 
 msgid "Shorter intervals provide quicker response but consume more system resources."
-msgstr "越短的时间间隔响应越及时，但会占用更多的系统资源"
+msgstr "越短的间隔时间响应越快，但会占用更多的系统资源"
 
 
 msgid "Web Login"
@@ -84,7 +84,7 @@ msgid "Blacklisting time (s)"
 msgstr "拉黑时间（秒）"
 
 msgid "\"0\" in ipset means permanent blacklist, use with caution. If misconfigured, change the device IP and clear rules in LUCI."
-msgstr "ipset 中, \"0\" 为永久拉黑，慎用。如不幸误操作，请更改设备 IP 进入 LUCI 界面清空规则。"
+msgstr "\"0\" 为永久拉黑，慎用。如不幸误操作，请更改设备 IP 进入 LUCI 界面清空规则。"
 
 msgid "Release port"
 msgstr "放行端口"
@@ -105,13 +105,13 @@ msgid "Release time (s)"
 msgstr "放行时间（秒）"
 
 msgid "\"0\" in ipset means permanent release, use with caution"
-msgstr "ipset 中, \"0\" 为永久放行，慎用"
+msgstr "\"0\" 为永久放行，慎用"
 
 msgid "IP blacklist"
-msgstr "IP 黑名单列表"
+msgstr "IP黑名单列表"
 
-msgid "You can add or delete here, the numbers after represent the remaining time. When adding, only the IP needs to be entered.<br/>Due to limitations on the web interface, please keep one empty line if you need to clear the content; otherwise, it will not be possible to submit. ╮(╯_╰)╭<br/>Please use the 「Save」 button in the text box."
-msgstr "可在此处添加或删除，后面的数字为剩余时间，添加时只需要输入 IP<br/>由于网页端的限制，如需清空内容，请保留一处空白的换行，否则内容为空会导致无法提交 ╮(╯_╰)╭<br/>文本框请使用「保存」按钮"
+msgid "Automatic ban blacklist list, with the ban time following the IP address"
+msgstr "自动封禁黑名单列表，IP后面是封禁时间"
 
 
 msgid "MAC Filtering Mode"
@@ -194,3 +194,74 @@ msgstr "清除日志"
 
 msgid "Refresh every 5 seconds."
 msgstr "每 5 秒刷新"
+
+msgid "Content 1"
+msgstr "内容1"
+
+msgid "Content 2"
+msgstr "内容2"
+
+msgid "Device 1"
+msgstr "设备1"
+
+msgid "Device 2"
+msgstr "设备2"
+
+msgid "Device 3"
+msgstr "设备3"
+
+msgid "Device 4"
+msgstr "设备4"
+
+
+msgid "Device %s logged into router via %s"
+msgstr "设备 %s 通过 %s 登录了路由器"
+
+msgid "/ (Homepage login)"
+msgstr "/ (首页登录)"
+
+msgid "%s frequent %s login attempts"
+msgstr "%s 频繁尝试 %s 登录"
+
+msgid "Block Information"
+msgstr "封禁信息"
+
+msgid "Device %s (%s) frequently attempted %s %s login"
+msgstr "设备 %s (%s) 频繁尝试 %s %s 登录"
+
+msgid "%s logged into router via %s"
+msgstr "%s 通过 %s 登录了路由器"
+
+msgid "Login Information"
+msgstr "登录信息"
+
+msgid "Device %s (%s) logged into router via %s %s"
+msgstr "设备 %s (%s) 通过 %s %s 登录了路由器"
+
+msgid "Time:"
+msgstr "时间："
+
+msgid "Device IP:"
+msgstr "设备 IP："
+
+msgid "Login Method:"
+msgstr "登录方式："
+
+
+msgid "Initialization completed"
+msgstr "初始化完成"
+
+msgid "Start running..."
+msgstr "开始运行..."
+
+
+msgid "[Ban information]Cancel the ban IP:%s"
+msgstr "[封禁信息]取消封禁IP：%s "
+
+msgid "[Block Information]Add to blacklist IP: %s Attempts:%s Time:%s"
+msgstr "[封禁信息]添加黑名单IP：%s 尝试次数: %s 时间：%s"
+
+
+msgid "Failed to add to blacklist, invalid IP format: %s (removed from list)"
+msgstr "黑名单添加失败，IP %s 格式错误，已从列表中移除"
+
