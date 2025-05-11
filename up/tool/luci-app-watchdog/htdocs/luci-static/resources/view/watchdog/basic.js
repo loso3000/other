@@ -5,11 +5,8 @@
 'require fs';
 'require ui';
 'require uci';
-'require rpc';
 'require form';
 'require poll';
-'require tools.widgets as widgets';
-'require tools.firewall as fwtool';
 
 function checkProcess() {
     return fs.exec('/bin/pidof', ['watchdog']).then(function(res) {
@@ -66,28 +63,10 @@ var cbiRichListValue = form.ListValue.extend({
 });
 
 return view.extend({
-	callHostHints: rpc.declare({
-		object: 'luci-rpc',
-		method: 'getHostHints',
-		expect: { '': {} }
-	}),
 
-	load: function () {
-		return Promise.all([
-			this.callHostHints()
-		]);
-	},
+    render: function() {
 
-	render: function (data) {
-		if (fwtool.checkLegacySNAT())
-			return fwtool.renderMigration();
-		else
-			return this.renderForwards(data);
-	},
-
-
-    renderForwards: function(data) {
-        var hosts = data[0], m, s, o;
+        var  m, s, o;
 	m = new form.Map('watchdog', _('watchdog'), _('This is the security watchdog plugin for OpenWRT, which monitors and guards web login, SSH connections, and other situations.<br /><br />If you encounter any issues while using it, please submit them here:') + '<a href="https://github.com/sirpdboy/luci-app-watchdog" target="_blank">' + _('GitHub Project Address') + '</a>');
         s = m.section(form.TypedSection);
         s.anonymous = true;
