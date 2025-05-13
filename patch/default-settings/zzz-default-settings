@@ -1,105 +1,456 @@
 #!/bin/sh
+. /etc/
+ver=$(uci -q get base_config.@base[0].ver 2>/dev/null)
+test -n "$ver" || {
+touch /etc/config/base_config
+uci -q add base_config base >/dev/null 2>&1
+ver=0
+}
+#argon
+sed -i 's,media .. \"\/b,resource .. \"\/b,g' /usr/lib/lua/luci/view/themes/argon/sysauth.htm
+uci -q set luci.main.lang='auto'
+uci -q set luci.main.mediaurlbase='/luci-static/kucat'
+
+is_x86_64() {
+    eval $(cat /etc/os-release  | grep -o -e "DISTRIB_ARCH=\S*")
+    [[ "$DISTRIB_ARCH" = "x86_64" ]] &&  return 0 ||  return 1
+        
+}
+
+is_vip() {
+     eval $(cat /etc/ezopenwrt_version | grep -o -e "EZVER=\S*")
+    [[ "$EZVER" = "Vip*" ]] &&  return 0 ||  return 1
+
+}
+
+# stop avahi cups
+# /etc/init.d/avahi-daemon disable  && /etc/init.d/avahi-daemon stop  
+debug=0
 setup_ssid()
 {
-    local r="radio$1"
-    
-    if ! uci show wireless.${r} >/dev/null 2>&1; then
+COUNTRY='US'
+CH50=149
+CH24=11
+HWMODE50='11a'
+HWMODE24='11b'
+HTMODE50='VHT80'
+HTMODE24='HT20'
+NETWORKID=lan
+local r="$1"
+uci -q delete wireless.default_${r}
+ if ! uci show wireless.${r} >/dev/null 2>&1; then
         return
-    fi
-    local s="wlan$1"
-    logger "default-wifi: setup $1's ssid"
-    local mac=`ifconfig ${s} | grep "HWaddr" | awk '{print $5}'`
-    local wifimac=`echo ${mac}|awk -F ":" '{print $4""$5""$6 }'|tr A-Z a-z|cut -c4-`
-    # uci set wireless.${r}.disabled=0
-    uci set wireless.${r}.country=CN
-    # uci set wireless.${r}.channel=149
-    if [ `uci get wireless.${r}.channel` -lt 14 ]; then
-        uci set wireless.${r}.channel=11
-        uci set wireless.default_${r}.ssid=Op-2.4G
+ fi
+    SUBFIX=`echo -n $MACADDR | sed 's/://g' | tr a-z A-Z | tail -c4`
+    SSID=${DISTRIB_ID}_${SUBFIX}
+    # local s="wlan$1"
+    #local mac=`ifconfig ${s} | grep "HWaddr" | awk '{print $5}'`
+    #local wifimac=`echo ${mac}|awk -F ":" '{print $4""$5""$6 }'|tr A-Z a-z|cut -c4-`
+    uci -q set wireless.${r}.disabled=0
+    uci -q set wireless.${r}.country=${COUNTRY}
+    uci -q set wireless.${r}.legacy_rates='1'
+    uci -q set wireless.${r}.mu_beamformer='1'
+    uci -q set wireless.${r}.bursting='1'
+    uci -q set wireless.${r}.ff='1'
+    uci -q set wireless.${r}.compression='1'
+    uci -q set wireless.${r}.noscan='0'
+    uci -q set wireless.${r}.txpower='20'
+    if [ `uci -q get wireless.${r}.channel` -lt 14 ]; then
+        uci -q set wireless.${r}.channel=${CH24}
+        uci -q set wireless.${r}.htmode=${HTMODE24}
+        uci -q set wireless.${r}.hwmode=${HWMODE24}
+        uci -q set wireless.${NETWORKID}_${r}.ssid="${SSID}"
+        logger "default-wifi: set $1 -- ssid:${SSID} -- password:${SSID_PASSWD}"
     else
-        uci set wireless.${r}.channel=149
-        uci set wireless.default_${r}.ssid=Op-5G
+        uci -q set wireless.${r}.channel=${CH50}
+        uci -q set wireless.${r}.htmode=${HTMODE50}
+        uci -q set wireless.${r}.hwmode=${HWMODE50}
+        uci -q set wireless.${NETWORKID}_${r}.ssid="${SSID}"_5G
+        logger "default-wifi: set $1 -- ssid:${SSID}_5G -- password:${SSID_PASSWD}"
     fi
-    uci set wireless.default_${r}.encryption='psk2'
-    uci set wireless.default_${r}.key='12345678'
-    uci commit
+    uci -q set wireless.${NETWORKID}_${r}=wifi-iface
+    uci -q set wireless.${NETWORKID}_${r}.device=${r}
+    uci -q set wireless.${NETWORKID}_${r}.network=${NETWORKID}
+    uci -q set wireless.${NETWORKID}_${r}.mode='ap'
+    uci -q set wireless.${NETWORKID}_${r}.disassoc_low_ack='0'
+    uci -q set wireless.${NETWORKID}_${r}.encryption='psk2+ccmp'
+    uci -q set wireless.${NETWORKID}_${r}.wps_pushbutton='0'
+    uci -q set wireless.${NETWORKID}_${r}.isolate='0'
+    uci -q set wireless.${NETWORKID}_${r}.key="${SSID_PASSWD}"
+    uci -q commit wireless
 }
-WIFI_NUM=`find /sys/class/net/ -name wlan* | wc -l`
-if [ ${WIFI_NUM} -gt 0 ]; then
-    # update /etc/config/wireless
-    for i in `seq 0 ${WIFI_NUM}`; do
-        setup_ssid ${i}
-    done
-fi
-uci set luci.main.lang=zh_cn
-uci set system.@system[0].timezone=CST-8
-uci set system.@system[0].zonename=Asia/Shanghai
-uci set dhcp.@dnsmasq[0].cachesize='10000'
-uci set dhcp.@dnsmasq[0].min_ttl='3600'
-uci set dhcp.@dnsmasq[0].filter_aaaa='1'
-uci set dhcp.@dnsmasq[0].localservice='0'
-uci set dhcp.@dnsmasq[0].nonwildcard='0'
-uci set dhcp.lan.ra=''
-uci set dhcp.lan.ndp=''
-uci set dhcp.lan.dhcpv6=''
-uci set dhcp.lan.ignore='0'
-uci set dhcp.lan.ra_management='1'
-uci set dhcp.lan.ra_default='1'
-uci set dhcp.lan.force='1'
-uci set network.lan.delegate='0'
-uci set network.wan.mtu=1460
-uci set network.wan.metric='41'
-uci set network.wan.delegate='0'
-uci set network.wan.ipv6='0'
-uci -q delete network.wan6
-uci set fstab.@global[0].anon_mount=1
-uci set fstab.@global[0].check_fs=1
-sed -i '/option disabled/d' /etc/config/wireless
-sed -i '/set wireless.radio${devidx}.disabled/d' /lib/wifi/mac80211.sh
-uci set wireless.radio0.disabled=0
-uci set wireless.radio1.disabled=0
-uci set vsftpd.@listen[0].enable4='0'
-uci set turboacc.config.sw_flow='0'
-uci commit turboacc
-uci commit vsftpd
-uci commit wireless
-uci commit luci
-uci commit system
-uci commit dhcp
-uci commit fstab
-uci commit network
+setup_network()
+{
+    ifname=$(uci -q get network.lan.ifname) 
+    [ "x$ifname" = "x" ] && ifname="device" || ifname="ifname" 
+     wan_interface=`uci -q get network.wan.$ifname` 
+    netname=$(ls /sys/class/net/ | grep -E '^(eth[0-9]+|usb[0-9]+|lan[0-9]+|wan)$')
+    netsum=$(echo "$netname" | wc -l)
+    if [ $netsum -gt 1 ] ;then
+        lannet=''
+        for i in $(seq 1 $netsum); do 
+            [[ -n ${wan_interface} && "${wan_interface}" == "$(echo "$netname" | sed -n ${i}p)" ]] || lannet="${lannet} $(echo "$netname" | sed -n ${i}p)"
+        done
+        lannet=$(echo "$lannet" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+        [ "x$ifname" = "xdevice" ] && uci -q set network.@$ifname[0].ports="${lannet}" || uci -q set network.lan.$ifname="${lannet}"
+    fi
+}
+
+. /etc/openwrt_release
+test -n "${DISTRIB_ID}" || DISTRIB_ID=EzOpWrt
+DISTRIB_ID=$(echo -n $DISTRIB_ID | tr a-z A-Z)
+uci -q set fstab.@global[0].check_fs=1
+MACADDR=""
+test -e /usr/share/natcapd/board_mac.lua && MACADDR=$(lua /usr/share/natcapd/board_mac.lua)
+test -n "$MACADDR" || MACADDR=$(. /lib/functions/system.sh; get_mac_label | tr a-f A-F)
+test -n "$MACADDR" || MACADDR=$(cat /etc/board.json | jsonfilter -e "$['network']['wan']['macaddr']" | tr a-f A-F)
+test -n "$MACADDR" || MACADDR=$(cat /etc/board.json | jsonfilter -e "$['network']['lan']['macaddr']" | tr a-f A-F)
+test -n "$MACADDR" || MACADDR=$(cat /sys/class/net/eth0/address | tr a-f A-F)
+test -n "$MACADDR" || MACADDR=$(cat /sys/class/net/eth1/address | tr a-f A-F)
+test -n "$MACADDR" || MACADDR=$(head -c6 /dev/urandom | hexdump -e '/1 "%02X:"' | head -c17)
+test -n "$MACADDR" || MACADDR=$(head -c6 /dev/random | hexdump -e '/1 "%02X:"' | head -c17)
+SSID_PASSWD=88888888
+sed -i '/option disabled/d' /etc/config/wireless  >/dev/null 2>&1
+sed -i '/set wireless.radio${devidx}.disabled/d' /lib/wifi/mac80211.sh   >/dev/null 2>&1
 wifi up
 
-rm -f /usr/lib/lua/luci/view/admin_status/index/ddns.htm
-rm -f /usr/lib/lua/luci/view/admin_status/index/upnp.htm
-rm -f /usr/lib/lua/luci/view/admin_status/index/minidlna.htm
+#wifi net
+test $ver -lt 1 && {
+    ver=1
+    if [ `find /sys/class/net/ -name wlan* | wc -l` -gt 0 ]; then
+      for i in radio0 radio1 radio2 radio3 wifi0 wifi1 wifi2 wifi3; do
+            setup_ssid ${i}
+        done
+    fi
+    sed -i '/option disabled/d' /etc/config/wireless  >/dev/null 2>&1
+    sed -i '/set wireless.radio${devidx}.disabled/d' /lib/wifi/mac80211.sh   >/dev/null 2>&1
+    uci del dhcp.lan.ignore
+    uci del dhcp.lan.ra_slaac
+    uci del network.lan.delegate
+    uci -q set network.lan.proto='static'
+    setup_network
+    uci -q commit network
+    sed -i '/lcp-echo/d' /etc/ppp/options
+    echo "lcp-echo-failure 10" >>  /etc/ppp/options 
+    echo "lcp-echo-interval 200" >>  /etc/ppp/options
+[ x$debug = x1 ] && echo $ver
+}
+#ssh link
+test $ver -lt 2 && {
+frmware=`cat /etc/ezopenwrt_version | awk -F '-' '{printf $2}'`
 
-sed -i 's/\"nas\"/\"services\"/g' /usr/lib/lua/luci/controller/samba4.lua
-ln -sf /sbin/ip /usr/bin/ip
+[ -f '/usr/lib/lua/luci/view/admin_status/index/ddns.htm' ] &&rm -f /usr/lib/lua/luci/view/admin_status/index/ddns.htm
+[ -f '/usr/lib/lua/luci/view/admin_status/index/minidlna.htm' ] &&rm -f /usr/lib/lua/luci/view/admin_status/index/minidlna.htm
+[ -f '/usr/lib/lua/luci/view/admin_status/index/mwan.htm' ] &&rm -f /usr/lib/lua/luci/view/admin_status/index/mwan.htm
+[ -f '/usr/lib/lua/luci/view/admin_status/index/upnp.htm' ] &&rm -f /usr/lib/lua/luci/view/admin_status/index/upnp.htm
+ver=2
 
-# sed -i 's/root::0:0:99999:7:::/root:$1$V4UetPzk$CYXluq4wUazHjmCDBCqXF.:0:0:99999:7:::/g' /etc/shadow
-# [ -f '/bin/bash' ] && sed -i 's|root:x:0:0:root:/root:/bin/ash|root:x:0:0:root:/root:/bin/bash|g' /etc/passwd
+uci -q set system.@system[0].hostname='EzOpWrt'
+uci -q commit system
+sed -i 's/root.*/root::0:0:99999:7:::/g' /etc/shadow
 
-sed -i 's/immortalwrt.org/openwrt.org/g'  /etc/config/luci
+uci -q batch <<-EOF
+set system.@system[0].timezone=CST-8
+set system.@system[0].zonename=Asia/Shanghai
+set system.@system[0].ttylogin='1'
+delete system.ntp.server
+add_list system.ntp.server='time1.cloud.tencent.com'
+add_list system.ntp.server='ntp1.aliyun.com'
+add_list system.ntp.server='ntp.ntsc.ac.cn'
+add_list system.ntp.server='cn.ntp.org.cn'
+set dhcp.@dnsmasq[0].min_ttl='3600'
+set dhcp.@dnsmasq[0].filter_aaaa='0'
+set dhcp.@dnsmasq[0].localservice='0'
+set dhcp.@dnsmasq[0].nonwildcard='0'
+set dhcp.@dnsmasq[0].port='53'
+set fstab.@global[0].anon_mount=1
+set fstab.@global[0].check_fs=1
+set vsftpd.@listen[0].enable4='0'
+set upnpd.config.enabled='0'
+set upnpd.config.igdv1='1'
+set mwan3.wan.enabled='0'
+EOF
 
-sed -i '/DISTRIB_DESCRIPTION/d' /etc/openwrt_release
-echo "DISTRIB_DESCRIPTION='OpenWrt '" >> /etc/openwrt_release
-[ -f /etc/ezopenwrt_version ]  && { 
-    sed -i '/DISTRIB_REVISION/d' /etc/openwrt_release
-    new_DISTRIB_REVISION=`cat  /etc/ezopenwrt_version`
-    echo "DISTRIB_REVISION='EzOpWrt "${new_DISTRIB_REVISION}"'" >> /etc/openwrt_release
+if [ $frmware = Plus ] ;then
+uci -q batch <<-EOF
+set dhcp.lan.ndp=''
+set dhcp.lan.ra='hybrid'
+set dhcp.lan.dhcpv6='hybrid'
+set dhcp.lan.ignore='0'
+set dhcp.lan.ra_management='1'
+set dhcp.lan.ra_default='1'
+set dhcp.lan.force='1'
+set network.lan.delegate='0'
+set network.wan.mtu=1420
+set network.wan.metric='41'
+set network.wan.delegate='0'
+set network.wan.ipv6='auto'
+set turboacc.config.fullcone_nat='1'
+set turboacc.config.bbr_cca='0'
+set turboacc.config.sfe_flow='0'
+set turboacc.config.hw_flow='0'
+set turboacc.config.sw_flow='0'
+
+EOF
+sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/aria2.lua
+sed -i 's/services/nas/g' /usr/lib/lua/luci/view/aria2/overview_status.htm
+sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/hd_idle.lua
+sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/minidlna.lua
+sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/transmission.lua
+sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/mjpg-streamer.lua
+sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/p910nd.lua
+sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/usb_printer.lua
+sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/xunlei.lua
+sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/cifs.lua
+sed -i 's/services/nas/g'  /usr/lib/lua/luci/view/minidlna_status.htm
+sed -i 's/services/vpn/g' /usr/lib/lua/luci/controller/zerotier.lua   #zerotier
+sed -i 's/services/vpn/g' /usr/lib/lua/luci/view/zerotier/zerotier_status.htm   #zerotier
+sed -i 's/services/vpn/g' /usr/share/luci/menu.d/luci-app-zerotier.json
+sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/samba4.lua
+sed -i 's/services/nas/g' /usr/share/luci/menu.d/luci-app-samba4.json
+sed -i 's/services/nas/g' /usr/share/luci/menu.d/luci-app-gowebdav.json
+sed -i 's/services/nas/g' /usr/share/luci/menu.d/luci-app-qbittorrent.json
+sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/alist.lua
+sed -i 's/services/nas/g' /usr/share/luci/menu.d/luci-app-alist.json
+sed -i 's/services/nas/g' /usr/lib/lua/luci/view/alist/alist_status.htm
+sed -i 's/services/nas/g' /usr/lib/lua/luci/view/alist/admin_info.htm
+
+elif  [ $frmware = Bypass ] ;then
+uci -q batch <<-EOF
+set dhcp.lan.ra=''
+set dhcp.lan.ndp=''
+set dhcp.lan.dhcpv6=''
+set dhcp.lan.ignore='0'
+set dhcp.lan.ra_management='1'
+set dhcp.lan.ra_default='1'
+set dhcp.lan.force='1'
+set network.lan.delegate='0'
+set network.lan.proto='static'
+del dhcp.lan.ignore
+del dhcp.lan.dynamicdhcp
+set dhcp.lan.force='1'
+delete network.wan
+delete network.wan6
+set turboacc.config.sw_flow='0'
+EOF
+
+sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/aria2.lua
+sed -i 's/services/nas/g' /usr/lib/lua/luci/view/aria2/overview_status.htm
+sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/hd_idle.lua
+sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/minidlna.lua
+sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/transmission.lua
+sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/mjpg-streamer.lua
+sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/p910nd.lua
+sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/usb_printer.lua
+sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/xunlei.lua
+sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/cifs.lua
+sed -i 's/services/nas/g'  /usr/lib/lua/luci/view/minidlna_status.htm
+sed -i 's/services/vpn/g' /usr/lib/lua/luci/controller/zerotier.lua   #zerotier
+sed -i 's/services/vpn/g' /usr/lib/lua/luci/view/zerotier/zerotier_status.htm   #zerotier
+sed -i 's/services/vpn/g' /usr/share/luci/menu.d/luci-app-zerotier.json
+sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/samba4.lua
+sed -i 's/services/nas/g' /usr/share/luci/menu.d/luci-app-samba4.json
+sed -i 's/services/nas/g' /usr/share/luci/menu.d/luci-app-gowebdav.json
+sed -i 's/services/nas/g' /usr/share/luci/menu.d/luci-app-qbittorrent.json
+sed -i 's/services/nas/g' /usr/lib/lua/luci/controller/alist.lua
+sed -i 's/services/nas/g' /usr/share/luci/menu.d/luci-app-alist.json
+sed -i 's/services/nas/g' /usr/lib/lua/luci/view/alist/alist_status.htm
+sed -i 's/services/nas/g' /usr/lib/lua/luci/view/alist/admin_info.htm
+else
+
+uci -q batch <<-EOF
+set dhcp.lan.ra='hybrid'
+set dhcp.lan.dhcpv6='hybrid'
+set dhcp.lan.ndp=''
+set dhcp.lan.ignore='0'
+set dhcp.lan.ra_management='1'
+set dhcp.lan.ra_default='1'
+set dhcp.lan.force='1'
+set network.lan.delegate='0'
+set network.wan.mtu=1420
+set network.wan.metric='41'
+set network.wan.delegate='0'
+set network.wan.ipv6='auto'
+set turboacc.config.sw_flow='0'
+EOF
+sed -i 's/nas/services/g' /usr/lib/lua/luci/controller/cifs.lua
+sed -i 's/nas/services/g' /usr/lib/lua/luci/controller/zerotier.lua   #zerotier
+sed -i 's/nas/services/g' /usr/lib/lua/luci/view/zerotier/zerotier_status.htm   #zerotier
+sed -i 's/nas/services/g' /usr/share/luci/menu.d/luci-app-zerotier.json
+sed -i 's/nas/services/g' /usr/lib/lua/luci/controller/samba4.lua
+sed -i 's/nas/services/g' /usr/share/luci/menu.d/luci-app-samba4.json
+sed -i 's/nas/services/g' /usr/share/luci/menu.d/luci-app-gowebdav.json
+sed -i 's/nas/services/g' /usr/share/luci/menu.d/luci-app-qbittorrent.json
+sed -i 's/nas/services/g' /usr/lib/lua/luci/controller/alist.lua
+sed -i 's/nas/services/g' /usr/share/luci/menu.d/luci-app-alist.json
+sed -i 's/nas/services/g' /usr/lib/lua/luci/view/alist/alist_status.htm
+sed -i 's/nas/services/g' /usr/lib/lua/luci/view/alist/admin_info.htm
+fi
+uci -q commit vsftpd
+uci -q commit luci
+uci -q commit fstab
+uci -q commit upnpd
+uci -q commit dhcp
+uci -q commit fstab
+uci -q commit turboacc
+uci -q commit network
+uci -q commit system
+uci -q commit firewall
+uci -q commit mwan3
+[ x$debug = x1 ] && echo $ver
 }
 
-sed -i '/REDIRECT --to-ports 53/d' /etc/firewall.user
-echo "iptables -t nat -I POSTROUTING -o br-lan -j MASQUERADE" >> /etc/firewall.user
-echo 'iptables -I zone_lan_forward -t filter -m conntrack --ctstate DNAT -j ACCEPT' >> /etc/firewall.user
-sed -i '/lcp-echo/d' /etc/ppp/options
-echo "lcp-echo-failure 10" >>  /etc/ppp/options
-echo "lcp-echo-interval 200" >>  /etc/ppp/options
+# sed -i '/coremark/d' /etc/crontabs/root
+ln -sf /sbin/ip /usr/bin/ip
+# Disable opkg signature check
+sed -i 's/option check_signature/# option check_signature/g' /etc/opkg.conf
+. /etc/ezopenwrt_version
+[ -n $EZVER ] && {
+sed -i '/DISTRIB_DESCRIPTION/d' /etc/openwrt_release
+sed -i '/DISTRIB_REVISION/d' /etc/openwrt_release
+echo "DISTRIB_DESCRIPTION='"${EZVER}"'" >> /etc/openwrt_release
+echo "DISTRIB_REVISION='"${EZVER}"'" >> /etc/openwrt_release
+sed -i '/OPENWRT_RELEASE/d' /etc/os-release
+echo "OPENWRT_RELEASE='"${EZVER}"'" >> /etc/os-release
+}
+sed -i 's/immortalwrt/openwrt/g' /etc/config/luci
+
+#tv
+test $ver -lt 3 && {
+ver=3
+HOSTNAME="samsungTV"
+TAG="googleDNS"
+MAC=""
+IPADDR=""
+DNS1="8.8.4.4"
+DNS2="8.8.8.8"
+
+uci batch <<EOF
+  set dhcp.${HOSTNAME}="host"
+  set dhcp.${HOSTNAME}.name="${HOSTNAME}"
+  set dhcp.${HOSTNAME}.mac="${MAC}"
+  set dhcp.${HOSTNAME}.ip="${IPADDR}"
+  set dhcp.${HOSTNAME}.tag="${TAG}"
+  set dhcp.${TAG}="tag"
+  set dhcp.${TAG}.dhcp_option="6,${DNS1},${DNS2}"
+EOF
+
+uci -q add dhcp domain
+uci -q set "dhcp.@domain[-1].name=time.android.com"
+uci -q set "dhcp.@domain[-1].ip=203.107.6.88"
+uci -q commit dhcp
+
+[ x$debug = x1 ] && echo $ver
+}
+
+
+#distfeeds
+test $ver -lt 4 && { 
+ver=4
+
+echo "src/gz is_store https://istore.linkease.com/repo/all/store" >/etc/opkg/customfeeds.conf
+if is_x86_64; then
+cat <<-EOF > /etc/opkg/distfeeds.conf
+src/gz ezopwrt_core https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/targets/x86/64/packages
+src/gz ezopwrt_base https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/x86_64/base
+src/gz ezopwrt_luci https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/x86_64/luci
+src/gz ezopwrt_packages https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/x86_64/packages
+src/gz ezopwrt_routing https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/x86_64/routing
+src/gz ezopwrt_telephony https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/x86_64/telephony
+EOF
+else
+cat <<-EOF > /etc/opkg/distfeeds.conf
+src/gz ezopwrt_core https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/targets/rockchip/armv8/packages
+src/gz ezopwrt_base https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/aarch64_generic/base
+src/gz ezopwrt_luci https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/aarch64_generic/luci
+src/gz ezopwrt_packages https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/aarch64_generic/packages
+src/gz ezopwrt_routing https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/aarch64_generic/routing
+src/gz ezopwrt_telephony https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/aarch64_generic/telephony
+EOF
+
+fi
+
+[ x$debug = x1 ] && echo $ver
+}
+
+#tv
+test $ver -lt 5 && { 
+ver=5
+
+uci -q delete ttyd.@ttyd[0].interface
+    if [[ -e /etc/config/ttyd ]]; then
+        uci -q batch <<-EOF >/dev/null
+            delete ttyd.@ttyd[0].interface
+EOF
+    fi
+    for samba in samba4 samba ; do
+        if [ -e /etc/config/$samba ]; then
+            uci -q batch <<-EOF >/dev/null
+                set $samba.@samba[0].interface='lan wan'
+                commit $samba
+EOF
+        fi
+    done
+    
+uci -q set dropbear.@dropbear[0].Interface=''
+uci -q commit dropbear
+
+# docker mirror
+
+uci -q batch <<-EOF >/dev/null
+    set luci.apply.rollback=30
+    set luci.apply.holdoff=2
+    commit luci
+EOF
+
+if [[ -f /etc/config/nginx ]] ;then
+
+uci -q batch <<-EOF >/dev/null
+ set nginx.global.uci_enable='true'
+ del nginx._lan
+ del nginx._redirect2ssl
+ add nginx server
+ rename nginx.@server[0]='_lan'
+ set nginx._lan.server_name='_lan'
+ add_list nginx._lan.listen='80 default_server'
+ add_list nginx._lan.listen='[::]:80 default_server'
+# add_list nginx._lan.include='restrict_locally'
+ add_list nginx._lan.include='conf.d/*.locations'
+ set nginx._lan.access_log='off; # logd openwrt'
+ commit nginx
+EOF
+service nginx restart
+fi
+
+if [[ -f /etc/config/snmpd ]] ;then
+
+uci -q batch <<-EOF >/dev/null
+set snmpd.default_settings=snmpd
+set snmpd.default_settings.agentaddress='udp:127.0.0.1,udp6:[::1]:161'
+ set snmpd.default_settings.community='public'
+ set snmpd.default_settings.version='v2c'
+ commit snmpd
+EOF
+fi
+
+uci set firewall.@defaults[0].synflood_protect='1'
+uci set firewall.@defaults[0].input='DROP'
+[ x$debug = x1 ] && echo $ver
+}
+
+uci -q set base_config.@base[0].ver=$ver
+uci -q commit base_config
+[ -f '/etc/init.d/miniupnpd' ] &&/etc/init.d/miniupnpd restart
+[ -f '/etc/init.d/turboacc' ] &&/etc/init.d/turboacc restart
+[ -f '/etc/init.d/ttyd' ] &&/etc/init.d/ttyd restart
+[ -f '/etc/init.d/mwan3' ] &&/etc/init.d/mwan3 restart
+/etc/init.d/system restart
+/etc/init.d/network restart
+/etc/init.d/dnsmasq restart
+
+ntpd -n -q -p 0.pool.ntp.org -p 1.pool.ntp.org -p 2.pool.ntp.org
 sed -i '/log-facility/d' /etc/dnsmasq.conf
 echo "log-facility=/dev/null" >> /etc/dnsmasq.conf
-
-sed -i 's/cbi.submit\"] = true/cbi.submit\"] = \"1\"/g' /usr/lib/lua/luci/dispatcher.lua
 echo 'hsts=0' > /root/.wgetrc
 rm -rf /tmp/luci-*
 
