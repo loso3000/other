@@ -349,7 +349,7 @@ test $ver -lt 4 && {
 ver=4
 
 echo "src/gz is_store https://istore.linkease.com/repo/all/store" >/etc/opkg/customfeeds.conf
-[ -f /etc/opkg/distfeeds.conf ] && {
+[ -f /etc/opkg/distfeeds.conf ] || {
 if is_x86_64; then
 cat <<-EOF > /etc/opkg/distfeeds.conf
 src/gz ezopwrt_core https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/targets/x86/64/packages
