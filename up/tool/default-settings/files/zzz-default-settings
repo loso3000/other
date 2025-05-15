@@ -445,6 +445,7 @@ uci -q commit base_config
 [ -f '/etc/init.d/turboacc' ] &&/etc/init.d/turboacc restart
 [ -f '/etc/init.d/ttyd' ] &&/etc/init.d/ttyd restart
 [ -f '/etc/init.d/mwan3' ] &&/etc/init.d/mwan3 restart
+[ -f '/etc/init.d/watchdog' ] &&/etc/init.d/watchdog restart
 /etc/init.d/system restart
 /etc/init.d/network restart
 /etc/init.d/dnsmasq restart
