@@ -369,6 +369,9 @@ EOF
         src/gz ezopwrt_telephony https://downloads.immortalwrt.org/releases/24.10-SNAPSHOT/packages/aarch64_generic/telephony
 EOF
     fi
+else
+mv /etc/opkg/distfeeds.conf  /etc/opkg/distfeeds.conf.bak
+mv /etc/opkg/distfeeds.conf.server  /etc/opkg/distfeeds.conf
 fi
 sed -i 's#\/24.10\/#\/24.10.1\/#g' /etc/opkg/distfeeds.conf
 sed -i 's#downloads.openwrt.org#downloads.immortalwrt.org#g' /etc/opkg/distfeeds.conf
